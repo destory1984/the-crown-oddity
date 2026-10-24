@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -2371,6 +2371,120 @@ func run() -> void:
 		var out: bool = main.in_house == -1 and main.player.x >= main.VILLAGE.VILLAGE_X - 0.5 and main.in_village
 		calm_enemies(false)
 		check("houses", doors_ok and inside and picture and out, "5 doors reachable=%s went in=%s picture in the last house=%s came out=%s" % [doors_ok, inside, picture, out])
+	if want.call("one_key"):
+		# v0.0.48: E is the one action key (the user: "동일성 있게 해줘"): it enters a house, leaves it, opens a field
+		# chest and a cupboard, still talks to Bori (her shop), and by a villager standing at a door it talks rather than
+		# enters; Space still works but no shown help or touch text names it
+		main.story_step = maxi(main.story_step, 8)
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		calm_enemies(true)
+		main.hour = 12.0
+		main.in_village = true
+		main.in_hill = false
+		main.in_lake = false
+		main.in_forest = false
+		main.in_garden = false
+		main.in_cave = false
+		var seen0: Array = main.house_seen.duplicate()
+		main.house_seen = [false, false, false, false, false]
+		reset_to(main.village.doors[2])
+		tap(KEY_E)
+		await wait(1.0)
+		var e_in: bool = main.in_house == 2 and main.player.x >= main.HOUSE_X
+		reset_to(Vector2(main.cupboard.position.x, main.cupboard.position.z + 1.0))
+		var g0: int = main.player.gold
+		var p0: int = main.player.pots
+		tap(KEY_E)
+		await wait(0.2)
+		var e_cup: bool = main.house_seen[2]
+		main.close_story()
+		reset_to(main.HOUSE_EXIT + Vector2(0, -0.85)) # beside the doorway, not on it
+		await wait(0.3)
+		var stayed: bool = main.in_house == 2
+		tap(KEY_E)
+		await wait(1.0)
+		var e_out: bool = stayed and main.in_house == -1 and main.in_village and main.player.x >= main.VILLAGE.VILLAGE_X - 0.5
+		# Space still goes in (the old habit)
+		reset_to(main.village.doors[2])
+		tap(KEY_SPACE)
+		await wait(1.0)
+		var space_in: bool = main.in_house == 2
+		reset_to(main.HOUSE_EXIT)
+		await wait(1.0)
+		# a villager standing at a door: E talks to him, Sora stays outside
+		var fid := ""
+		for id in main.village.folk_pos:
+			if main.folk_awake_here(id) and main.folk_state.get(id, "out") == "out" and not main.STORY.HINT_FOLK.has(id):
+				fid = id
+				break
+		var talked := false
+		if fid != "":
+			var d: Vector2 = main.village.doors[3]
+			var pos0: Vector2 = main.village.folk_pos[fid]
+			var route0 = main.folk_route[fid].pos if main.folk_route.has(fid) else null
+			main.village.folk_pos[fid] = d + Vector2(0.6, 0)
+			if main.folk_route.has(fid):
+				main.folk_route[fid].pos = d + Vector2(0.6, 0)
+			reset_to(d)
+			main.crown_key()
+			await wait(1.0)
+			talked = main.in_house == -1 and main.story_open
+			main.close_story()
+			await wait(0.2)
+			main.close_story()
+			main.village.folk_pos[fid] = pos0
+			if route0 != null:
+				main.folk_route[fid].pos = route0
+		main.house_seen = seen0
+		main.player.gold = g0
+		main.player.pots = p0
+		# a field chest on the marsh
+		main.in_village = false
+		var c: Dictionary = main.chests[0]
+		var open0: bool = c.open
+		c.open = false
+		reset_to(Vector2(c.x + 0.6, c.z))
+		var gc: int = main.player.gold
+		tap(KEY_E)
+		await wait(0.2)
+		var e_chest: bool = c.open and main.player.gold > gc
+		c.open = open0
+		main.player.gold = gc
+		# Bori still answers to E (nothing else waiting: her shop)
+		var tea0: bool = main.has_tea
+		var dq0: int = main.doran_q
+		var mq0: int = main.mail_q
+		main.has_tea = true
+		main.doran_q = maxi(3, main.doran_q)
+		main.mail_q = maxi(2, main.mail_q)
+		main.story_step = maxi(main.story_step, 3)
+		reset_to(Vector2(main.shop_pos.x, main.shop_pos.z))
+		main.crown_key()
+		await wait(0.2)
+		var bori: bool = main.shop_open
+		main.toggle_shop(false)
+		main.has_tea = tea0
+		main.doran_q = dq0
+		main.mail_q = mq0
+		# no help row, shop line or touch key names Space or the hand key any more
+		var texts: Array = [main.ui.shop_keys.text]
+		for r in main.ui.help_keys_rows + main.ui.help_touch_rows + main.ui.set_help_keys + main.ui.set_help_touch:
+			texts.append((r[0] as Label).text)
+			texts.append((r[1] as Label).text)
+		main.touch_ui = true
+		texts.append(main.touch_words("상자 앞에서 Space를 누르자"))
+		texts.append(main.touch_words(String(main.STORY.HINT_FOLK.tori.hints.cupboards[1])))
+		main.touch_ui = false
+		var quiet := true
+		for tx in texts:
+			quiet = quiet and not "Space" in String(tx) and not "손 단추" in String(tx) and not "손 (" in String(tx)
+		var no_hand: bool = not main.touch_layer.keys().has("open") if main.touch_layer != null else true
+		calm_enemies(false)
+		check("one_key", e_in and e_cup and e_out and space_in and talked and e_chest and bori and quiet and no_hand,
+			"E enters=%s E opens the cupboard=%s E leaves at the door=%s Space still enters=%s E by %s at a door talks=%s E opens a field chest=%s E by Bori opens the shop=%s no Space in shown texts=%s no hand key=%s" % [e_in, e_cup, e_out, space_in, fid, talked, e_chest, bori, quiet, no_hand])
 	if want.call("feats"):
 		main.feats_done = [false, false, false, false, false, false]
 		var g0: int = main.player.gold

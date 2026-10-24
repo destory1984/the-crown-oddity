@@ -2621,7 +2621,7 @@ func update_bat(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 		m.emission_energy_multiplier = 0.9
 	e.shadow.position = Vector3(e.x, 0.02, e.z)
 
-# ---- inside the village houses: Space at a door goes in. One small room (x >= HOUSE_X) is dressed for whichever
+# ---- inside the village houses: E (or the old Space) at a door goes in. One small room (x >= HOUSE_X) is dressed for whichever
 # house it is; each of the five houses has a cupboard to look in once. The last house keeps an old picture of the moonkeepers with Hangyeol.
 const HOUSE_X := 480
 const HOUSE_ROWS := ["#########", "#.......#", "#.......#", "#.......#", "#.......#", "#.......#", "####S####"]
@@ -3073,6 +3073,8 @@ func way_at(way: Array, k: float) -> Vector2: # k 0 at his spot, 1 at his door
 		left -= d
 	return way[way.size() - 1]
 
+const HOUSE_EXIT := Vector2(HOUSE_X + 4, 6) # the doorway inside a house: walking onto it or E beside it goes out
+
 func house_door_near() -> int:
 	for i in village.doors.size():
 		if Vector2(player.x, player.z).distance_to(village.doors[i]) < 0.9:
@@ -3407,6 +3409,13 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
 	"",
 	"2026-10-25 새벽",
+	"· v0.0.48: 집 들어가기와 상자 열기도 E 한 키로 한다.",
+	"    - E는 먼저 말 걸기, 그다음 팔찌 쓰기(등불, 벽돌 풀기, 길돌, 낚시), 그다음 집 문, 들판 상자, 찬장, 동굴 열쇠 상자와 문을 연다.",
+	"    - 문 앞에 마을 사람이 서 있으면 E는 집에 들어가지 않고 그 사람에게 말을 건다.",
+	"    - 집 안에서는 문 0.95칸 안에서 E를 누르면 밖으로 나간다. 문 위로 걸어 나가는 길도 그대로다.",
+	"    - Space도 예전처럼 열고 들어가지만 조작법, 도움말, 상점 줄 어디에도 더는 적지 않는다. 조작법은 15줄에서 14줄이 되었다.",
+	"    - 휴대폰의 손 단추를 없앴다. 팔찌 단추 하나가 말 걸기, 열기, 들어가기를 모두 한다.",
+	"    - 토리의 찬장 실마리도 'E를 눌러 봐'로 바꿨다.",
 	"· v0.0.47: 달빛 눈금이 8칸에서 시작해 12칸까지 늘고, 마을 사람들이 잡담을 하며, 소라가 쉬면 노을도 앉아 쉰다.",
 	"    - 눈금은 큰 일 네 곳을 처음 마칠 때 한 칸씩 깨어난다. 한결의 편지를 보리 할머니께 전할 때, 벽돌 거북을 물리칠 때, 열셋째 등불을 심지에게 건넬 때, 성의 기사를 물리칠 때다. 네 자리는 GPT가 골랐다.",
 	"    - 편지의 최대 체력 +10과 열셋째 등불의 최대 체력 +15는 눈금 한 칸으로 바뀌었다. 칸이 깨어나면 대사 한 줄과 '최대 9칸'처럼 실제 칸 수를 알리는 줄이 나온다.",
@@ -4029,7 +4038,7 @@ func build_settings(root: Control) -> void:
 	ui.set_stacks[0].append([lt, lang, null])
 	# 도움말
 	var help_rows := [["이동", "WASD, 방향키. Shift로 달린다 (물수제비 걸음을 얻으면 물 위도)"], ["싸움", "J 또는 왼쪽 클릭 베기, K 또는 오른쪽 클릭 구르기, L 막기"],
-		["기술", "U I O 또는 1 2 3, 회복약은 4"], ["팔찌", "E: 말 걸기, 등불, 벽돌 풀기, 길돌, 낚시"], ["열기", "Space: 상자, 집. Q 일지, H 조작법, M 소리, T 3시간 보내기"],
+		["기술", "U I O 또는 1 2 3, 회복약은 4"], ["팔찌", "E: 말 걸기, 열기, 들어가기, 등불, 벽돌 풀기, 길돌, 낚시"], ["메뉴", "Q 일지, H 조작법, M 소리, T 3시간 보내기"],
 		["화면", "Z X 또는 휠로 확대·축소. F8 처음 자리로, F9 처음부터. Esc 이 창"], ["요령", "맞기 직전에 구르면 섬광 피하기, 막으면 섬광 막기. 괴물은 때리기 전에 빨갛게 부풀고 \"!\"가 뜬다"]]
 	for i in help_rows.size():
 		var ht := label(ui.set_pages[1], help_rows[i][0], Vector2(0, i * 48), 16, Color("#eef3ff"))
@@ -4042,8 +4051,8 @@ func build_settings(root: Control) -> void:
 	# phones: the same page for the touch keys (use_touch_help swaps the two)
 	var touch_rows := [["이동", "화면 왼쪽에 엄지를 대면 막대가 생긴다. 끝까지 밀면 달린다 (물수제비 걸음을 얻으면 물 위도)"],
 		["싸움", "칼 단추로 베기, 화살표 단추로 구르기, 방패 단추를 누르고 있으면 막기"],
-		["기술", "오른쪽 아래 그림 셋은 회오리·불씨탄·빛파동, 초록 하트는 회복약"], ["팔찌", "팔찌 단추 (E): 말 걸기, 등불, 벽돌 풀기, 길돌, 낚시"],
-		["열기", "손 단추 (Space): 상자, 집"], ["화면", "돋보기 단추로 확대·축소. 미니맵 왼쪽 단추 넷: 조작법, 효과음, 일지, 설정"], help_rows[6]]
+		["기술", "오른쪽 아래 그림 셋은 회오리·불씨탄·빛파동, 초록 하트는 회복약"], ["팔찌", "팔찌 단추 (E): 말 걸기, 열기, 들어가기, 등불, 벽돌 풀기, 길돌, 낚시"],
+		["화면", "돋보기 단추로 확대·축소. 미니맵 왼쪽 단추 넷: 조작법, 효과음, 일지, 설정"], help_rows[6]]
 	ui.set_help_touch = []
 	for i in touch_rows.size():
 		var tt := label(ui.set_pages[1], touch_rows[i][0], Vector2(0, i * 48), 16, Color("#eef3ff"))
@@ -4599,7 +4608,7 @@ func fit_shop() -> void:
 		board.scale = Vector2.ONE
 		place(board, Control.PRESET_CENTER, Vector2(-160, -270), Vector2(620, 420))
 		place(line, Control.PRESET_CENTER_BOTTOM, Vector2(-470, -150), Vector2(940, 100))
-		ui.shop_keys.text = "1 → 4 사기  ·  E / Space / Esc 닫기"
+		ui.shop_keys.text = "1 → 4 사기  ·  E / Esc 닫기"
 		return
 	var vs := get_viewport().get_visible_rect().size
 	place(line, Control.PRESET_CENTER_BOTTOM, Vector2(-470, -108), Vector2(940, 100))
@@ -5492,10 +5501,14 @@ func dodge() -> void:
 func in_marsh() -> bool:
 	return not (in_cave or in_village or in_forest or in_lake or in_hill or in_garden)
 
+# Space (the old key, no longer shown anywhere) and the end of E: doors, chests, cupboards, the shop
 func interact() -> void:
 	if in_cave and cave_interact():
 		return
 	if in_village and in_house >= 0 and cupboard_key():
+		return
+	if in_village and in_house >= 0 and Vector2(player.x, player.z).distance_to(HOUSE_EXIT) < 0.95 and fade_rect.color.a == 0.0:
+		fade_then(leave_house) # E at the door inside goes out, as walking onto it does
 		return
 	if in_village and in_house < 0 and house_door_near() >= 0 and fade_rect.color.a == 0.0:
 		var hi := house_door_near()
@@ -5826,7 +5839,7 @@ func build_hud() -> void:
 	sn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ui.shop_say = label(say, "", Vector2(40, 32), 19)
 	ui.shop_say.size = Vector2(860, 40)
-	ui.shop_keys = label(say, "1 → 4 사기  ·  E / Space / Esc 닫기", Vector2(680, 70), 12, Color("#a99d84"))
+	ui.shop_keys = label(say, "1 → 4 사기  ·  E / Esc 닫기", Vector2(680, 70), 12, Color("#a99d84"))
 	ui.shop_back = back_key(shop, func(): toggle_shop(false)) # phones only (fit_shop)
 	ui.shop_back.visible = false
 	shop.visible = false
@@ -5954,7 +5967,7 @@ func build_hud() -> void:
 	help.mouse_filter = Control.MOUSE_FILTER_STOP
 	var help_title := label(help, "조작법", Vector2(62, 20), 13, Color("#a99d84"))
 	var rows := [["WASD / 방향키", "이동"], ["Shift", "달리기"], ["J / 왼쪽 클릭", "공격 (연속기)"], ["K / 오른쪽 클릭", "구르기 (때맞추면 섬광)"], ["L / 가운데 클릭", "막기 (때맞추면 반격, Lv4부터 1초 모아 J)"],
-		["U I O / 1 2 3", "스킬 (기세 30·15·60)"], ["4", "회복약"], ["Space", "상자 열기, 들어가기"], ["E", "팔찌 쓰기, 말 걸기 (보리 할머니 포함)"], ["Z X / 휠", "확대·축소"], ["T R P", "3시간 뒤로 / 비 / 사진"], ["F8", "처음 자리로 (진행은 그대로)"], ["F9", "처음부터 (저장 지우기)"], ["Q", "일지 (할 일과 곁이야기)"], ["H", "조작법 숨기기"]]
+		["U I O / 1 2 3", "스킬 (기세 30·15·60)"], ["4", "회복약"], ["E", "말 걸기, 상자 열기, 들어가기, 팔찌 쓰기"], ["Z X / 휠", "확대·축소"], ["T R P", "3시간 뒤로 / 비 / 사진"], ["F8", "처음 자리로 (진행은 그대로)"], ["F9", "처음부터 (저장 지우기)"], ["Q", "일지 (할 일과 곁이야기)"], ["H", "조작법 숨기기"]]
 	ui.help_rows = []
 	for i in rows.size():
 		var hk := label(help, rows[i][0], Vector2(14, 60 + i * 27), 13, Color("#e9dfc4"))
@@ -5966,7 +5979,7 @@ func build_hud() -> void:
 	# phones: the touch keys, each row with the key's own picture (use_touch_help swaps the two sets)
 	var trows := [["touch_stick_base", "왼쪽 막대", "이동, 끝까지 밀면 달리기"], ["touch_attack", "칼", "공격 (연속기)"],
 		["touch_dodge", "화살표", "구르기 (때맞추면 섬광)"], ["touch_guard", "방패 (누른 채)", "막기 (때맞추면 반격, Lv4부터 1초 모아 칼)"],
-		["touch_crown", "팔찌 (E)", "팔찌 쓰기, 말 걸기 (보리 할머니 포함)"], ["touch_open", "손 (Space)", "상자 열기, 들어가기"],
+		["touch_crown", "팔찌 (E)", "말 걸기, 상자 열기, 들어가기, 팔찌 쓰기"],
 		["skill_0", "기술 그림 셋", "회오리·불씨탄·빛파동 (기세 30·15·60)"], ["skill_3", "초록 하트", "회복약"],
 		["touch_zoom_in", "돋보기 둘", "확대·축소"], ["key_help", "물음표", "조작법"], ["key_sound", "스피커", "효과음 켜고 끄기"],
 		["key_journal", "책", "일지 (할 일과 곁이야기)"], ["key_gear", "톱니바퀴", "설정"]]
@@ -7159,7 +7172,8 @@ func spend_pips(n: int) -> bool:
 	pip_flash = 0.3
 	return true
 
-# E key: talk to Simji, light a dark village lantern, or (in the marsh opening) touch the crown
+# E key, the one action key (v0.0.48; the user: "아이템 사용하는건 보통 E 아닌가? ... 동일성 있게 해줘"): talk first,
+# then the bracelet's uses (lamps, bricks, waystones, fishing), then whatever Space opens (houses, chests, cupboards)
 func crown_key() -> void:
 	var me := Vector2(player.x, player.z)
 	if way_key():
@@ -7285,7 +7299,10 @@ func crown_key() -> void:
 						return
 					light_village_lamp(d)
 					return
-	touch_crown()
+	if story_step == 1 and dark_lamp != null: # the opening: the first touch of the bracelet
+		touch_crown()
+		return
+	interact() # nothing of the bracelet's own here: E also enters houses and opens chests and cupboards (v0.0.48)
 
 # ---- six working villagers who drop hints (v0.0.35; the user: "마을이 너무 썰렁해", "실마리만 말해주는 npc"):
 # woodcutter Dusol, miner Chadol, farmer Saecham, fisher Yeoul (Dusol's sister), weaver Darae and her grandson Tori.
@@ -12606,7 +12623,7 @@ func leave_cave() -> void:
 # on phones the keyboard words in quest lines, toasts and story lines become the touch keys' names
 const TOUCH_WORDS := [["Shift를 누르고 달리면", "막대를 끝까지 밀어 달리면"], ["Shift를 누르고", "막대를 끝까지 밀고"],
 	["Shift를 누른 채", "막대를 끝까지 민 채"], ["Shift로 달리며 J", "막대를 끝까지 밀며 칼 단추"], ["Shift로", "막대를 끝까지 밀어"],
-	["Space", "손 단추"]]
+	["Space", "팔찌 단추"], ["손 단추", "팔찌 단추"]]
 var touch_e := RegEx.create_from_string("(?<![A-Za-z])E(?![A-Za-z])") # the E key alone: "(E)", "E로", "E를", "E  ", "E!"
 
 func touch_words(t: String) -> String:
@@ -13297,7 +13314,7 @@ func _process(dt: float) -> void:
 	if feat_t <= 0.0 and not intro:
 		feat_t = 1.0
 		check_feats()
-	if in_house >= 0 and Vector2(player.x, player.z).distance_to(Vector2(HOUSE_X + 4, 6)) < 0.7 and fade_rect.color.a == 0.0:
+	if in_house >= 0 and Vector2(player.x, player.z).distance_to(HOUSE_EXIT) < 0.7 and fade_rect.color.a == 0.0:
 		fade_then(leave_house)
 	if in_cave:
 		check_painting()

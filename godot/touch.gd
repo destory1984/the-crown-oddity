@@ -18,7 +18,7 @@ var tex := {}
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	for n in ["attack", "dodge", "guard", "crown", "open", "stick_base", "stick_knob", "zoom_in", "zoom_out"]:
+	for n in ["attack", "dodge", "guard", "crown", "stick_base", "stick_knob", "zoom_in", "zoom_out"]:
 		tex[n] = load("res://art/ui/touch_%s.png" % n)
 
 # where each key sits (centre, radius) for the screen as it is now; the skills are the HUD's own icons
@@ -29,7 +29,6 @@ func keys() -> Dictionary:
 		"dodge": [Vector2(vs.x - 196, vs.y - 158), 42.0],
 		"guard": [Vector2(vs.x - 176, vs.y - 270), 42.0],
 		"crown": [Vector2(vs.x - 64, vs.y - 300), 38.0],
-		"open": [Vector2(vs.x - 290, vs.y - 226), 38.0],
 		# a column left of the menu keys, level with their two rows: clear of the boss bar and the quest line under them
 		"zoom_in": [Vector2(vs.x - 358, 36), 26.0],
 		"zoom_out": [Vector2(vs.x - 358, 100), 26.0],
@@ -98,7 +97,6 @@ func press(n: String, idx: int) -> void:
 			main.touch_keys[KEY_L] = true
 			held[idx] = n
 		"crown": main.crown_key()
-		"open": main.interact()
 		"zoom_in": main.cam_dist = clampf(main.cam_dist - 2.4, 8, 26)
 		"zoom_out": main.cam_dist = clampf(main.cam_dist + 2.4, 8, 26)
 		"skill0", "skill1", "skill2": main.use_skill(int(n.right(1)))
@@ -137,7 +135,7 @@ func _draw() -> void:
 	draw_texture_rect(tex.stick_base, Rect2(base - Vector2(96, 96), Vector2(192, 192)), false, Color(1, 1, 1, a))
 	draw_texture_rect(tex.stick_knob, Rect2(knob - Vector2(40, 40), Vector2(80, 80)), false, Color(1, 1, 1, a))
 	var k := keys()
-	for n in ["attack", "dodge", "guard", "crown", "open", "zoom_in", "zoom_out"]:
+	for n in ["attack", "dodge", "guard", "crown", "zoom_in", "zoom_out"]:
 		var c: Vector2 = k[n][0]
 		var r: float = k[n][1]
 		var lit := held.values().has(n)
