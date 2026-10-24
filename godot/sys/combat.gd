@@ -220,6 +220,8 @@ func attack() -> void:
 	m.sfx(180.0 + m.player.combo * 60.0, 0.07, "sawtooth", 0.12, 300.0)
 
 # Lv3: running with Shift, J dashes 3 m ahead and cuts everything along the way
+const DASH_TIME := 0.14 # the dash slash is a visible slide, not a blink (the user, 2026-10-25: Sora "warps" when keys are mashed)
+
 func dash_slash() -> void:
 	m.player.sp -= 15.0
 	m.player.combo = 0
@@ -228,28 +230,80 @@ func dash_slash() -> void:
 	var f: Vector2 = m.player.face
 	var start := Vector2(m.player.x, m.player.z)
 	var end := start
-	for k in 12: # stop short of walls and water
+	# stop short of walls and water; the water skip only counts while she is already on water, so letting go of
+	# Shift never leaves her over a river the moment after
+	var skip0: bool = m.skipping
+	if not m.skip_water(start.x, start.y):
+		m.skipping = false
+	for k in 12:
 		var nxt := start + f * (0.25 * (k + 1))
 		if not m.player_can(nxt.x, nxt.y):
 			break
 		end = nxt
-	for e in m.enemies:
+	m.skipping = skip0
+	m.dash = {"from": start, "to": end, "t": 0.0, "f": f, "hit": {}, "ghosts": 0}
+	m.player.inv = maxf(m.player.inv, DASH_TIME + 0.12)
+	m.player.vx = 0.0
+	m.player.vz = 0.0
+	m.sfx(200, 0.16, "noise", 0.12, 900) # the whoosh
+	m.sfx(260, 0.12, "sawtooth", 0.15, 600)
+	m.burst(Vector3(start.x, 0.6, start.y), Color("#bfe7ff"), 10, 2.0)
+
+func update_dash(dt: float) -> void:
+	var d: Dictionary = m.dash
+	d.t += dt
+	var k: float = clampf(d.t / DASH_TIME, 0.0, 1.0)
+	var np: Vector2 = d.from.lerp(d.to, k)
+	m.player.x = np.x
+	m.player.z = np.y
+	m.player.inv = maxf(m.player.inv, 0.1)
+	var f: Vector2 = d.f
+	var reach: float = (d.from as Vector2).distance_to(np)
+	for e in m.enemies: # cuts everything on the line as the slide passes it
 		if e.dead:
 			continue
+		var eid: int = e.node.get_instance_id() # not the dictionary itself: its hash changes as it is hurt
+		if d.hit.has(eid):
+			continue
 		var p := Vector2(e.x, e.z)
-		var along := clampf((p - start).dot(f), 0.0, start.distance_to(end))
-		if p.distance_to(start + f * along) < 1.1:
-			damage_enemy(e, m.player.atk * 1.5, start, 5.0, false, 0.07)
+		var along := clampf((p - d.from).dot(f), 0.0, reach)
+		if p.distance_to(d.from + f * along) < 1.1:
+			d.hit[eid] = true
+			damage_enemy(e, m.player.atk * 1.5, d.from, 5.0, false, 0.07)
 			m.player.mp = minf(m.player.max_mp, m.player.mp + 5.0)
 			m.last_hit_t = m.t
-	m.player.x = end.x
-	m.player.z = end.y
-	m.player.vx = f.x * 3.0
-	m.player.vz = f.y * 3.0
-	var ang := -atan2(f.y, f.x)
-	m.effects.slash_fx(Vector3(end.x, m.height_at(end.x, end.y), end.y), ang, false)
-	m.burst(Vector3((start.x + end.x) / 2.0, 0.6, (start.y + end.y) / 2.0), Color("#bfe7ff"), 16, 2.5)
-	m.sfx(260, 0.12, "sawtooth", 0.15, 600)
+	while d.ghosts < 4 and k >= 0.2 * (d.ghosts + 1): # afterimages along the line
+		d.ghosts += 1
+		dash_ghost(d.from.lerp(d.to, 0.2 * d.ghosts))
+	if int(d.t * 60.0) != int((d.t - dt) * 60.0):
+		m.burst(Vector3(np.x, 0.5, np.y), Color("#e6f6ff"), 2, 1.2) # speed streak
+	if k >= 1.0:
+		var end: Vector2 = d.to
+		m.player.vx = f.x * 3.0
+		m.player.vz = f.y * 3.0
+		m.dash = {}
+		m.effects.slash_fx(Vector3(end.x, m.height_at(end.x, end.y), end.y), -atan2(f.y, f.x), false)
+		m.burst(Vector3((d.from.x + end.x) / 2.0, 0.6, (d.from.y + end.y) / 2.0), Color("#bfe7ff"), 16, 2.5)
+
+# a fading copy of Sora's picture left where she passed
+func dash_ghost(at: Vector2) -> void:
+	var g := Sprite3D.new()
+	g.texture = m.hero.texture
+	g.region_enabled = true
+	g.region_rect = m.hero.region_rect
+	g.pixel_size = m.hero.pixel_size
+	g.offset = m.hero.offset
+	g.flip_h = m.hero.flip_h
+	g.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	g.scale = m.hero.scale
+	g.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	g.shaded = false
+	g.modulate = Color(0.7, 0.9, 1.0, 0.55)
+	g.position = Vector3(at.x, m.height_at(at.x, at.y), at.y)
+	m.add_child(g)
+	var tw := g.create_tween()
+	tw.tween_property(g, "modulate:a", 0.0, 0.22)
+	tw.tween_callback(g.queue_free)
 
 # Lv4: guard for a second to gather light, then J: a wide, heavy cut in front
 func charged_slash() -> void:
@@ -361,6 +415,8 @@ func drink_potion() -> void:
 	m.sfx(660, 0.25, "sine", 0.25, 300)
 
 func dodge() -> void:
+	if not m.dash.is_empty():
+		return
 	var cost := 15 if m.has_feather else 25
 	if m.player.dodge > 0 or m.player.sp < cost:
 		return

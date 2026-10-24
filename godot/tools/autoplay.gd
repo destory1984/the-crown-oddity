@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -405,6 +405,7 @@ func run() -> void:
 		main.fake_keys[KEY_SHIFT] = true
 		main.attack()
 		main.fake_keys.clear()
+		await wait_for(func(): return main.dash.is_empty(), 3.0) # the dash is a 0.14 s slide now
 		var dashed: bool = main.player.x > 27.5 and gob.hp < hp1
 		# charged slash at Lv4: guard a second, then J
 		main.player.lv = 4
@@ -2047,6 +2048,103 @@ func run() -> void:
 		var balloon: bool = main.folk_bubble_y("simji") > main.folk_bubble_y("doran") and main.folk_bubble_y("tori") < main.folk_bubble_y("doran")
 		check("folk_height", bad.is_empty() and shorter and simji_top and balloon,
 			"%d villagers, off the table %s; Tori %.2f / Kongal %.2f under Noeul %.2f=%s; Simji %.2f tallest=%s; balloons follow=%s" % [main.village.folk_node.size(), bad, main.folk_height("tori"), main.folk_height("kongal"), noeul_h, shorter, sj_h, simji_top, balloon])
+	if want.call("mash"):
+		# keys mashed in a fight (the user, 2026-10-25: Sora "warps"): attack, dodge, guard, skills, Shift, random directions
+		# changing every 0.1 - 0.3 s, with the water skip off and on, in the open and on a shore. No rescue hop may
+		# fire (a real water stop on the shore excepted) and no frame may move her over 1.0 unit unless a scripted slide
+		# (dash slash, rescue glide) is running.
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		for z in ["in_village", "in_forest", "in_lake", "in_garden", "in_cave", "in_hill"]:
+			main.set(z, false)
+		park_mates(true)
+		var shore := Vector2(20, 30)
+		var field := Vector2(20, 30)
+		var fld := false
+		var nb := false
+		for sz in range(4, 44):
+			for sx in range(4, 44):
+				if not fld:
+					var clear := true
+					for ox in range(-3, 4):
+						for oz in range(-3, 4):
+							clear = clear and main.tile_at(sx + ox, sz + oz) != main.WATER and main.player_can(sx + ox, sz + oz)
+					if clear:
+						field = Vector2(sx, sz)
+						fld = true
+				if nb:
+					continue
+				if main.tile_at(sx, sz) != main.WATER and main.player_can(sx, sz) and (main.tile_at(sx + 1, sz) == main.WATER or main.tile_at(sx, sz + 1) == main.WATER) and main.player_can(sx - 1.0, sz - 1.0):
+					shore = Vector2(sx, sz)
+					nb = true
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 20261025
+		var skip0: bool = main.has_skip
+		var lv0: int = main.player.lv
+		var report: Array = []
+		var stuck_hops := 0
+		var big_jumps := 0
+		var dashes := 0
+		var worst := 0.0
+		var runs := [[field, false], [field, true], [shore, false], [shore, true]]
+		for run in runs:
+			main.has_skip = run[1]
+			main.player.lv = 5
+			main.player.max_hp = 5000
+			reset_to(run[0])
+			calm_enemies(true)
+			for k in 3:
+				main.spawn_enemy(run[0] + Vector2(2.5 + k, -1.0 + k))
+			main.unstick_log.clear()
+			var last := Vector2(main.player.x, main.player.z)
+			var dir_t := 0.0
+			var t_end := 12.0
+			var el := 0.0
+			var shore_run: bool = run[0] == shore and nb
+			while el < t_end:
+				var step_t := rng.randf_range(0.1, 0.3)
+				main.fake_keys.clear()
+				var dirs := [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1), Vector2(1, 1), Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2.ZERO]
+				hold_world(dirs[rng.randi() % dirs.size()])
+				if rng.randf() < 0.6:
+					main.fake_keys[KEY_SHIFT] = true
+				if rng.randf() < 0.2:
+					main.fake_keys[KEY_L] = true
+				main.player.hp = float(main.player.max_hp)
+				main.player.sp = maxf(main.player.sp, 40.0)
+				for key in [KEY_J, KEY_J, KEY_J, KEY_K, KEY_U, KEY_I, KEY_O, KEY_4]:
+					if rng.randf() < 0.45:
+						tap(key)
+				var t_in := 0.0
+				while t_in < step_t:
+					await get_tree().process_frame
+					t_in += 0.016
+					el += 0.016
+					var now := Vector2(main.player.x, main.player.z)
+					var jump := now.distance_to(last)
+					worst = maxf(worst, jump)
+					if jump > 1.0 and jump < 20.0 and main.dash.is_empty() and main.rescue_glide.is_empty() and main.windrun_glide.is_empty() and main.gust_dir == Vector2.ZERO and main.down_t <= 0.0:
+						big_jumps += 1
+						report.append("jump %.2f at %s" % [jump, now])
+					if not main.dash.is_empty():
+						dashes += 1
+					last = now
+			release()
+			for e in main.unstick_log:
+				if e.reason == "stuck" or (e.reason == "water" and not shore_run):
+					stuck_hops += 1
+					report.append(str(e))
+			calm_enemies(false)
+		main.has_skip = skip0
+		main.player.lv = lv0
+		main.dash = {}
+		main.rescue_glide = {}
+		release()
+		park_mates(false)
+		main.return_to_start()
+		check("mash", stuck_hops == 0 and big_jumps == 0 and dashes > 0, "4 runs of 12 s mashed (field %s, shore %s): %d rescue hops, %d jumps over 1.0 (worst frame %.2f), dash frames %d %s" % [field, shore, stuck_hops, big_jumps, worst, dashes, report.slice(0, 3)])
 	if want.call("folk_sleep"):
 		# after dark the villagers walk home and go in (Simji stays out); in his house Doran sleeps and E still talks to
 		# him; in the morning they come back out (the user asked, 2026-10-24)

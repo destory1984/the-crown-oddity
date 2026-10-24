@@ -218,7 +218,7 @@ func layout_top() -> void:
 		var fit := _fit_quest(c[0], c[1], c[2], c[3], vs)
 		var ok: bool = fit.deco.position.x >= 0.0 and fit.deco.end.x <= vs.x and fit.deco.position.y >= 0.0 and fit.deco.end.y <= vs.y
 		for r in blocks:
-			if fit.deco.intersects(r):
+			if fit.deco.intersects((r as Rect2).abs()):
 				ok = false
 		fit["ok"] = ok
 		if ok and fit.lines <= 2:
@@ -238,7 +238,7 @@ func _fit_quest(xl: float, xr: float, y: float, centre: bool, vs: Vector2) -> Di
 	q.autowrap_mode = TextServer.AUTOWRAP_OFF
 	q.size = Vector2.ZERO
 	var tw := q.get_minimum_size().x + 2.0
-	var w := minf(minf(tw, xr - xl - 2.0 * QUEST_PAD), 620.0)
+	var w := maxf(40.0, minf(minf(tw, xr - xl - 2.0 * QUEST_PAD), 620.0)) # never negative in a tiny window
 	var cx := vs.x / 2.0 if centre else (xl + xr) / 2.0
 	cx = clampf(cx, xl + QUEST_PAD + w / 2.0, xr - QUEST_PAD - w / 2.0)
 	if w < tw:

@@ -196,21 +196,70 @@ func walkable(x: float, z: float) -> bool:
 			return false
 	return true
 
-func unstick() -> void:
-	var best := Vector2(player.x, player.z)
+# the nearest open spot to where Sora stands: first every 0.1 tile in rings up to 1.5 tiles round her (so a small overlap
+# moves her a hair, not to the next tile centre), then the old search over tile centres up to 11 tiles away
+func find_free_spot() -> Vector2:
+	var here := Vector2(player.x, player.z)
+	if player_can(here.x, here.y):
+		return here
+	for r in range(1, 16):
+		for a in 16:
+			var p := here + Vector2.from_angle(a * TAU / 16.0) * (r * 0.1)
+			if player_can(p.x, p.y):
+				return p
+	var best := here
 	var found := false
 	for r in range(1, 12):
 		for dz in range(-r, r + 1):
 			for dx in range(-r, r + 1):
 				var c := Vector2(round(player.x) + dx, round(player.z) + dz)
 				if player_can(c.x, c.y):
-					if not found or c.distance_to(Vector2(player.x, player.z)) < best.distance_to(Vector2(player.x, player.z)):
+					if not found or c.distance_to(here) < best.distance_to(here):
 						best = c
 						found = true
 		if found:
 			break
+	return best
+
+# every rescue is logged (the user, 2026-10-25: Sora "warps" in fights): autoplay "mash" reads this
+var unstick_log: Array = []
+func log_unstick(reason: String, from_at: Vector2, to_at: Vector2) -> void:
+	unstick_log.append({"t": snappedf(t, 0.01), "from": from_at, "to": to_at, "reason": reason, "skipping": skipping, "dodge": player.dodge > 0.0,
+		"atk_cd": snappedf(player.atk_cd, 0.01), "dash": not dash.is_empty(), "x": snappedf(player.x, 0.1)})
+	if OS.is_debug_build() and OS.get_environment("UNSTICK_LOG") == "1":
+		print("UNSTICK ", unstick_log[unstick_log.size() - 1])
+
+# at once (loads, tests)
+func unstick(reason := "stuck") -> void:
+	var best := find_free_spot()
+	log_unstick(reason, Vector2(player.x, player.z), best)
 	player.x = best.x
 	player.z = best.y
+
+# in play: the same spot, reached by a 0.12 s glide instead of a one-frame hop
+var rescue_glide := {}
+func rescue(reason: String) -> void:
+	var best := find_free_spot()
+	var here := Vector2(player.x, player.z)
+	if best.distance_to(here) < 0.01:
+		return
+	log_unstick(reason, here, best)
+	rescue_glide = {"from": here, "to": best, "t": 0.0, "dur": 0.12}
+
+func update_rescue(dt: float) -> void:
+	rescue_glide.t += dt
+	var k: float = clampf(rescue_glide.t / rescue_glide.dur, 0.0, 1.0)
+	k = k * k * (3.0 - 2.0 * k)
+	var np: Vector2 = rescue_glide.from.lerp(rescue_glide.to, k)
+	player.x = np.x
+	player.z = np.y
+	player.vx = 0.0
+	player.vz = 0.0
+	if rescue_glide.t >= rescue_glide.dur:
+		rescue_glide = {}
+
+# running + J: the dash slash slides Sora forward in DASH_TIME (combat.gd update_dash); state here
+var dash := {}
 
 # Sora keeps a little room from cave walls so her sprite never sinks into one
 var has_skip := false   # 물수제비 걸음 (story step 7 ability)
@@ -570,6 +619,14 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
 	"",
 	"2026-10-25 새벽",
+	"· v0.0.55: 싸우다 키를 마구 누르면 소라가 순간이동하던 것을 고쳤다.",
+	"    - 원인은 달려 베기(Lv3, Shift를 누른 채 J)였다. 달리면서 공격을 연타하면 소라가 한 프레임에 3칸을 건너뛰었다. 이제 0.14초 동안 앞으로 미끄러지며 지나가는 적을 베고, 그동안 무적이며 잔상 네 개와 바람 소리가 남는다.",
+	"    - 달려 베기의 도착점을 잴 때 물 걷기는 이미 물 위에 있을 때만 친다. 그래서 Shift를 놓은 순간 강 위에 떠서 물가로 던져지는 일이 없다.",
+	"    - 그 밖의 한 프레임 이동은 없었다. 구르기와 밀려남은 속도로 움직이고, 기술은 소라를 옮기지 않는다.",
+	"    - 벽이나 물에 끼었을 때의 구출은 먼저 소라 둘레 0.1칸 간격 1.5칸 안에서 가까운 빈자리를 찾고, 그다음에야 타일 가운데를 찾는다. 그리고 0.12초 동안 미끄러져 간다. 전에는 최대 11칸을 한 프레임에 건너뛰었다.",
+	"    - 구출은 모두 기록에 남는다(때, 어디서 어디로, 까닭, 달리기와 구르기 상태). 환경변수 UNSTICK_LOG=1이면 화면에도 찍는다.",
+	"    - 마구 누르기 시험 mash는 들판과 물가에서 물 걷기를 껐다 켜고 12초씩 공격, 구르기, 막기, 기술, Shift, 방향을 무작위로 누른다. 구출이 한 번도 없고 한 프레임에 1칸을 넘는 이동도 없어야 통과한다.",
+	"    - 좁은 창에서 할 일 글귀 칸의 너비가 음수가 되던 오류도 막았다.",
 	"· v0.0.54: 소라가 쉬면 물결도 노을처럼 앉아 쉰다.",
 	"    - 소라가 10초 넘게 가만히 있고 7칸 안에 괴물이 없으면 곁에 선 물결이 앉은 그림(art/folk/mulgyeol_rest.png)으로 바뀐다. 노를 무릎에 가로로 얹은 모습이다.",
 	"    - 앉은 그림은 서 있을 때와 같은 크기로 그려서 키가 그대로이고, 바닥에서 90px 올려 발이 땅에 닿게 했다.",
@@ -1675,7 +1732,8 @@ func _process(dt: float) -> void:
 		if int(t * 8.0) != int((t - dt) * 8.0):
 			burst(Vector3(player.x, -0.2, player.z), Color("#9fe0ff"), 4, 1.2)
 	elif not running and on_water and not skipping:
-		unstick() # stopped on open water: back to the nearest shore
+		if rescue_glide.is_empty() and dash.is_empty():
+			rescue("water") # stopped on open water: back to the nearest shore
 	player.sp = maxf(0, player.sp - 22 * dt) if running else minf(100, player.sp + (27.0 if has_pearl else 18.0) * dt)
 	if skipping and on_water:
 		player.sp = maxf(player.sp, 1.0)
@@ -1708,10 +1766,16 @@ func _process(dt: float) -> void:
 	if not windrun_glide.is_empty():
 		hill_zone.update_glide(dt)
 		v = Vector2.ZERO
+	if not dash.is_empty():
+		combat.update_dash(dt)
+		v = Vector2.ZERO
+	if not rescue_glide.is_empty():
+		update_rescue(dt)
+		v = Vector2.ZERO
 	var nx: float = player.x + v.x * dt
 	var nz: float = player.z + v.y * dt
-	if gust_dir == Vector2.ZERO and windrun_glide.is_empty() and not player_can(player.x, player.z): # stuck in a wall (old save, knockback): hop to the nearest open floor
-		unstick()
+	if gust_dir == Vector2.ZERO and windrun_glide.is_empty() and dash.is_empty() and rescue_glide.is_empty() and not player_can(player.x, player.z): # stuck in a wall (old save, knockback): glide to the nearest open floor
+		rescue("stuck")
 	if player_can(nx, player.z): player.x = nx
 	if player_can(player.x, nz): player.z = nz
 
