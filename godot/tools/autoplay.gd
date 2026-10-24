@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -4025,6 +4025,102 @@ func run() -> void:
 		main.in_hill = false
 		check("mill", shut and wall and wound and dry and called and wet and guard_ok and down and chest and kept,
 			"wall shut/unwound=%s/%s windmill wound=%s channel dry=%s wind called and water in=%s skip crosses=%s guardian=%s down=%s chest oar ring=%s saved=%s" % [shut, wall, wound, dry, called, wet, guard_ok, down, chest, kept])
+	if want.call("windrun_retry"):
+		# a missed pinwheel run: a gust carries Sora to the wind post in under a second without a jump, the quest line says
+		# to press E there again, each miss makes the next run 2 s longer (12, 14, 16, at most 18), leaving the hollow
+		# mid-run gives the same line without moving her, a win starts the next lap at 12 s again (the user, 2026-10-25)
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		var keep := [main.in_hill, main.forest_q, main.hill_q, main.mill_q, main.mill_hint_told, main.mill_in_told, main.windrun_quest]
+		main.in_hill = true
+		main.forest_q = 3
+		main.hill_q = 3
+		main.mill_q = 2
+		main.mill_hint_told = true
+		main.mill_in_told = true
+		main.hill.raise_bridge()
+		main.windrun_tries = 0
+		calm_enemies(true)
+		park_mates(true)
+		var sm: Dictionary = main.hill.south_marks
+		var w0: Vector2 = main.hill.wheels[0]
+		var bad: Array = []
+		var times: Array = []
+		var biggest := 0.0
+		for tryno in 3:
+			reset_to(sm.P + Vector2(1.0, 0))
+			tap(KEY_E)
+			await wait(0.1)
+			if not main.windrun_on:
+				bad.append("run %d did not start" % tryno)
+				break
+			times.append(snappedf(main.windrun_left, 0.5))
+			reset_to(w0 + Vector2(0, 2.0)) # away from the post, in the hollow
+			main.windrun_left = 0.05
+			var last := Vector2(main.player.x, main.player.z)
+			var frames := 0
+			await get_tree().process_frame
+			while frames < 120 and (main.windrun_on or not main.windrun_glide.is_empty() or frames < 3):
+				await get_tree().process_frame
+				var now := Vector2(main.player.x, main.player.z)
+				biggest = maxf(biggest, now.distance_to(last))
+				last = now
+				frames += 1
+			var d: float = last.distance_to(sm.P)
+			var line_ok: bool = main.ui.quest.text.begins_with(main.hill_zone.retry_prefix()) and ("%d번째" % (tryno + 2)) in main.ui.quest.text
+			if not (d < 1.2 and line_ok and not main.windrun_on and main.windrun_tries == tryno + 1):
+				bad.append("miss %d: %.2f tiles from the post, quest '%s', tries %d" % [tryno, d, main.ui.quest.text, main.windrun_tries])
+		# leaving the hollow mid-run: the same line, no gust, and the run after it is 18 s (the cap)
+		reset_to(sm.P + Vector2(1.0, 0))
+		tap(KEY_E)
+		await wait(0.1)
+		times.append(snappedf(main.windrun_left, 0.5))
+		reset_to(Vector2(sm.P.x, float(main.HILL.MILL_Z) - 3.0))
+		await wait(0.15)
+		var left_at := Vector2(main.player.x, main.player.z)
+		var stayed: bool = left_at.distance_to(Vector2(sm.P.x, float(main.HILL.MILL_Z) - 3.0)) < 0.3 and main.windrun_glide.is_empty()
+		var left_line: bool = not main.windrun_on and main.ui.quest.text.begins_with(main.hill_zone.retry_prefix()) and main.windrun_tries == 4
+		reset_to(sm.P + Vector2(1.0, 0))
+		tap(KEY_E)
+		await wait(0.1)
+		times.append(snappedf(main.windrun_left, 0.5))
+		# a win: every pinwheel, then the next lap starts at 12 s again
+		for w in main.hill.wheels:
+			reset_to(w)
+			await wait(0.1)
+		main.close_story()
+		await wait(0.3)
+		main.close_story()
+		await wait(0.2)
+		var won: bool = main.mill_q == 3 and main.windrun_tries == 0 and not main.windrun_on
+		reset_to(sm.P + Vector2(1.0, 0))
+		tap(KEY_E)
+		await wait(0.1)
+		times.append(snappedf(main.windrun_left, 0.5))
+		main.windrun_on = false
+		main.in_hill = keep[0]
+		main.forest_q = keep[1]
+		main.hill_q = keep[2]
+		main.mill_q = keep[3]
+		main.mill_hint_told = keep[4]
+		main.mill_in_told = keep[5]
+		main.windrun_quest = keep[6]
+		main.windrun_tries = 0
+		for e in main.enemies:
+			if e.get("mill_guard", false):
+				e.dead = true
+		calm_enemies(false)
+		park_mates(false)
+		main.return_to_start()
+		check("windrun_retry", bad.is_empty() and biggest <= 1.0 and stayed and left_line and won and times == [12.0, 14.0, 16.0, 18.0, 18.0, 12.0],
+			"misses %s, biggest step %.2f, leaving stayed=%s retry line=%s, win resets=%s, run times %s" % [bad, biggest, stayed, left_line, won, times])
 	if want.call("post"):
 		# the stream's end below the mole's hall: skip in, ring the islands' crystals, Bori's postcard
 		if main.intro:

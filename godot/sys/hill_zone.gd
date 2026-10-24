@@ -7,6 +7,11 @@ const Main := preload("res://main.gd")
 var m: Main
 
 const WINDRUN_TIME := 12.0
+const WINDRUN_STEP := 2.0 # each missed run adds this many seconds to the next, at most to WINDRUN_MAX
+const WINDRUN_MAX := 18.0
+const GLIDE_TIME := 0.6 # the gust that carries Sora back to the wind post (the user, 2026-10-25: he did not know how to try again)
+var post_flag: Node3D
+var post_mark: Label3D
 
 func _init(main: Main) -> void:
 	m = main
@@ -230,6 +235,7 @@ func scarecrow_beaten() -> void:
 
 # ---- the wind hills (between the forest and the garden)
 func enter_hill() -> void:
+	m.windrun_tries = 0
 	m.in_forest = false
 	m.in_hill = true
 	m.player.x = m.hill.marks.S.x + 1.2
@@ -258,6 +264,7 @@ func enter_hill() -> void:
 	m.save_game()
 
 func leave_hill() -> void:
+	m.windrun_tries = 0
 	m.in_hill = false
 	m.in_forest = true
 	m.player.x = m.forest.marks.E.x - 1.2
@@ -313,6 +320,17 @@ func build_windrun() -> void:
 	var flag: MeshInstance3D = m.box(Vector3(0.7, 0.4, 0.06), m.mat_color(Color("#7ac8e8")))
 	flag.position = Vector3(0.38, 1.4, 0)
 	post.add_child(flag)
+	post_flag = flag
+	post_mark = Label3D.new() # the key that starts the run, floating over the post while it is waiting
+	post_mark.font = m.ui_font
+	post_mark.font_size = 48
+	post_mark.pixel_size = 0.012
+	post_mark.outline_size = 14
+	post_mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	post_mark.no_depth_test = true
+	post_mark.position = Vector3(0, 2.3, 0)
+	post_mark.visible = false
+	post.add_child(post_mark)
 	var at: Vector2 = m.hill.south_marks.P
 	post.position = Vector3(at.x, 0, at.y)
 	m.add_child(post)
@@ -368,13 +386,19 @@ func mill_key() -> bool:
 		m.show_story("", Main.STORY.MILL_STILL)
 		m.save_game()
 		return true
-	if m.mill_q >= 2 and not m.windrun_on and me.distance_to(sm.P) < 1.6:
+	if m.mill_q >= 2 and not m.windrun_on and m.windrun_glide.is_empty() and me.distance_to(sm.P) < 1.6:
 		m.windrun_on = true
-		m.windrun_left = WINDRUN_TIME
+		m.windrun_left = windrun_time()
 		m.windrun_got = []
-		m.windrun_quest = m.main_road_quest() if m.ui.quest.text.begins_with(windrun_prefix()) else m.quest_raw
+		var cur: String = m.ui.quest.text
+		if cur.begins_with(windrun_prefix()):
+			m.windrun_quest = m.main_road_quest()
+		elif cur.begins_with(retry_prefix()): # the line before the first try is kept through the retries
+			m.windrun_quest = m.windrun_quest if m.windrun_quest != "" else m.main_road_quest()
+		else:
+			m.windrun_quest = m.quest_raw
 		m.sfx(523, 0.12, "triangle", 0.2)
-		m.toast("12초 안에 바람개비 넷을 지나자!")
+		m.toast(tr("%d초 안에 바람개비 넷을 지나자!") % int(m.windrun_left))
 		return true
 	if me.distance_to(sm.b) < 1.8:
 		m.show_story("", Main.STORY.MILL_BOAT)
@@ -460,6 +484,7 @@ func update_mill(dt: float) -> void:
 		m.ui.zone_sub.text = "멈춘 풍차들"
 	if m.windrun_on:
 		update_windrun(dt)
+	update_post(me)
 	if m.story_open:
 		return
 	if m.hill_q >= 3 and m.mill_q == 0 and not m.mill_hint_told and me.distance_to(sm.G) < 5.0:
@@ -475,9 +500,81 @@ func update_mill(dt: float) -> void:
 	if m.mill_q == 3 and me.y > 27.5:
 		spawn_mill_guard()
 
+# the post's flag flutters while the first run is still to be won, and the key floats over it when Sora is near
+func update_post(me: Vector2) -> void:
+	if post_flag == null:
+		return
+	var waiting: bool = m.mill_q == 2 and not m.windrun_on
+	post_flag.rotation.y = sin(m.t * 6.0) * 0.4 if m.mill_q == 2 else 0.0
+	var near: bool = waiting and me.distance_to(m.hill.south_marks.P) < 6.0 and m.windrun_glide.is_empty()
+	post_mark.visible = near
+	if near:
+		post_mark.text = m.touch_words(tr("E"))
+		post_mark.position.y = 2.3 + sin(m.t * 3.0) * 0.12
+
+func windrun_time() -> float:
+	return minf(WINDRUN_MAX, WINDRUN_TIME + WINDRUN_STEP * m.windrun_tries)
+
+func retry_prefix() -> String: # "깃대에서 E: 바람 부르기 다시 " as the quest line shows it
+	return m.touch_words(tr("깃대에서 E: 바람 부르기 다시 (%d번째)")).split("%")[0]
+
+func retry_quest() -> String:
+	return tr("깃대에서 E: 바람 부르기 다시 (%d번째)") % (m.windrun_tries + 1)
+
+# a missed run: before the first win the quest line says where to press E again, the next run is 2 s longer and (when
+# she is still in the hollow) a gust carries her back to the post
+func miss_windrun(glide: bool) -> void:
+	if m.mill_q != 2:
+		end_windrun("바람이 흩어졌다. 깃대에서 다시 해 보자")
+		return
+	m.windrun_on = false
+	m.windrun_tries += 1
+	m.set_quest(retry_quest())
+	m.toast(tr("바람이 흩어졌다. 다음엔 %d초") % int(windrun_time()))
+	if glide:
+		start_glide()
+
+func start_glide() -> void:
+	var post: Vector2 = m.hill.south_marks.P
+	var first: Vector2 = m.hill.wheels[0]
+	var to := post
+	for off in [(first - post).normalized(), Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+		if m.player_can(post.x + off.x, post.y + off.y):
+			to = post + off
+			break
+	var from := Vector2(m.player.x, m.player.z)
+	m.windrun_glide = {"from": from, "to": to, "t": 0.0, "dur": maxf(GLIDE_TIME, from.distance_to(to) / 14.0), "puff": 0.0}
+	m.player.vx = 0.0
+	m.player.vz = 0.0
+	m.sfx(260, 0.45, "noise", 0.1, 500)
+	m.burst(Vector3(from.x, 0.4, from.y), Color("#ffffff"), 16, 2.0)
+
+func update_glide(dt: float) -> void:
+	var g: Dictionary = m.windrun_glide
+	g.t += dt
+	var k: float = clampf(g.t / g.dur, 0.0, 1.0)
+	k = k * k * (3.0 - 2.0 * k)
+	var np: Vector2 = g.from.lerp(g.to, k)
+	m.player.x = np.x
+	m.player.z = np.y
+	m.player.vx = 0.0
+	m.player.vz = 0.0
+	m.player.inv = maxf(m.player.inv, 0.3)
+	m.ground_y = m.height_at(np.x, np.y)
+	g.puff -= dt
+	if g.puff <= 0.0:
+		g.puff = 0.05
+		m.burst(Vector3(np.x, 0.5, np.y), Color("#ffffff"), 3, 0.8)
+	if g.t >= g.dur:
+		var look: Vector2 = (m.hill.wheels[0] - np).normalized() # lands facing the first pinwheel
+		if look != Vector2.ZERO:
+			m.player.face = look
+		m.windrun_glide = {}
+		m.burst(Vector3(np.x, 0.4, np.y), Color("#ffffff"), 10, 1.5)
+
 func update_windrun(dt: float) -> void:
 	if not m.in_hill or m.player.z < Main.HILL.MILL_Z - 0.5:
-		end_windrun("바람이 흩어졌다. 깃대에서 다시 해 보자")
+		miss_windrun(false)
 		return
 	m.windrun_left -= dt
 	for i in m.hill.wheels.size():
@@ -491,6 +588,7 @@ func update_windrun(dt: float) -> void:
 	m.set_quest(tr("바람 부르기 %d/4 · %d초") % [m.windrun_got.size(), int(ceil(m.windrun_left))])
 	if m.windrun_got.size() == m.hill.wheels.size():
 		if m.mill_q == 2:
+			m.windrun_tries = 0
 			end_windrun("바람이 골로 내려왔다!")
 			m.mill_q = 3
 			m.hill.fill()
@@ -501,7 +599,7 @@ func update_windrun(dt: float) -> void:
 		else:
 			end_windrun("바람이 골을 한 바퀴 돌았다")
 	elif m.windrun_left <= 0.0:
-		end_windrun("바람이 흩어졌다. 깃대에서 다시 해 보자")
+		miss_windrun(true)
 
 func windrun_prefix() -> String: # "바람 부르기 " as the quest line shows it
 	return m.touch_words(tr("바람 부르기 %d/4 · %d초")).split("%")[0]

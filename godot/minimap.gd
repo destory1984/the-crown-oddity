@@ -59,6 +59,10 @@ func _draw() -> void:
 			var dp: Vector3 = main.castle.doll.position
 			draw_rect(Rect2(dp.x - 0.2, dp.z - 0.2, 1.4, 1.4), Color("#263440"))
 			draw_rect(Rect2(dp.x + 0.05, dp.z + 0.05, 0.9, 0.9), Color("#9fb4c8"))
+	if main.in_hill and main.mill_q == 2: # the wind post, until the first run is won
+		var wp: Vector2 = main.hill.south_marks.P
+		draw_rect(Rect2(wp.x - 0.3, wp.y - 0.3, 1.6, 1.6), Color(0.02, 0.04, 0.09))
+		draw_rect(Rect2(wp.x, wp.y - 0.1, 1.2, 0.8), Color("#7ac8e8"))
 	draw_set_transform_matrix(Transform2D())
 	# the ways down (violet) and up (gold) as small upright stairs of three steps, drawn on screen over their tile
 	for st: Array in map_tex.get_meta("stairs", []):

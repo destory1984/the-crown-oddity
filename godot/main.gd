@@ -551,6 +551,13 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
 	"",
 	"2026-10-25 새벽",
+	"· v0.0.51: 방앗간 바람개비 달리기를 놓치면 바람이 소라를 깃대로 데려다주고, 바로 E로 다시 할 수 있다.",
+	"    - 시간이 다 되면 바람이 0.6초 동안 소라를 깃대 곁까지 실어 가고, 소라는 첫 바람개비를 보고 선다. 한 프레임에 1칸을 넘게 튀지 않는다.",
+	"    - 할 일 줄이 '깃대에서 E: 바람 부르기 다시 (2번째)'로 바뀐다. 휴대폰에서는 E가 팔찌 단추로 나온다.",
+	"    - 놓칠 때마다 다음 달리기가 2초씩 길어진다. 12초 → 14초 → 16초, 가장 길게 18초이고 토스트가 '다음엔 14초'처럼 알려 준다.",
+	"    - 성공하거나 언덕을 떠났다 다시 오면 12초로 돌아간다.",
+	"    - 첫 성공 전에는 깃대의 깃발이 펄럭이고, 6칸 안에 가면 그 위에 E 표시가 떠다니며, 미니맵에도 깃대가 보인다.",
+	"    - 골 밖으로 걸어 나가 끝난 달리기는 소라를 옮기지 않고 같은 할 일 줄만 남긴다. 달리기 도중 저장하면 불러올 때 그 줄이 나온다.",
 	"· v0.0.50: 이야기 글상자의 위아래 여백을 같게 맞췄다.",
 	"    - 글 덩어리가 상자 가운데에 놓여서 첫 줄 위의 빈틈과 마지막 줄 아래의 빈틈이 같다. 전에는 위가 크고 아래가 14px뿐이었다.",
 	"    - 글이 상자 기본 높이(144px)보다 짧으면 위에 붙이지 않고 가운데에 둔다. 얼굴 그림이 있는 줄은 얼굴도 같은 가운데에 맞춘다.",
@@ -1352,6 +1359,8 @@ var windrun_left := 0.0
 var windrun_got: Array = []
 var windrun_nodes: Array = []
 var windrun_quest := ""
+var windrun_tries := 0 # missed runs since she came to the hill: each makes the next 2 s longer
+var windrun_glide := {} # the gust back to the wind post after a missed run: from, to, t, dur
 
 # ---- the heart of the garden (story steps 11 and 12)
 const GARDEN_RETRY_QUEST := "정원 한가운데로 돌아가 굳은달 거푸집에 다시 맞서자"
@@ -1655,9 +1664,12 @@ func _process(dt: float) -> void:
 	if gust_dir != Vector2.ZERO:
 		hill_zone.update_gust(dt)
 		v = Vector2.ZERO
+	if not windrun_glide.is_empty():
+		hill_zone.update_glide(dt)
+		v = Vector2.ZERO
 	var nx: float = player.x + v.x * dt
 	var nz: float = player.z + v.y * dt
-	if gust_dir == Vector2.ZERO and not player_can(player.x, player.z): # stuck in a wall (old save, knockback): hop to the nearest open floor
+	if gust_dir == Vector2.ZERO and windrun_glide.is_empty() and not player_can(player.x, player.z): # stuck in a wall (old save, knockback): hop to the nearest open floor
 		unstick()
 	if player_can(nx, player.z): player.x = nx
 	if player_can(player.x, nz): player.z = nz
