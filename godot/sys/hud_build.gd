@@ -123,9 +123,13 @@ func use_touch_help(on: bool) -> void:
 	for r in m.ui.set_help_keys:
 		r[0].visible = not on
 		r[1].get_parent().visible = not on
+		if r[2] != null:
+			(r[2] as Control).visible = not on
 	for r in m.ui.set_help_touch:
 		r[0].visible = on
 		r[1].get_parent().visible = on
+		if r[2] != null:
+			(r[2] as Control).visible = on
 	m.ui.set_stacks[1] = m.ui.set_help_touch if on else m.ui.set_help_keys
 
 # ---- the top-centre blocks laid out from real rects (the user, 2026-10-25: the quest line ran over the companions' rows)
@@ -623,7 +627,7 @@ func build_hud() -> void:
 	help.mouse_filter = Control.MOUSE_FILTER_STOP
 	var help_title := label(help, "조작법", Vector2(62, 20), 13, Color("#a99d84"))
 	var rows := [["WASD / 방향키", "이동"], ["Shift", "달리기"], ["J / 왼쪽 클릭", "공격 (연속기)"], ["K / 오른쪽 클릭", "구르기 (때맞추면 섬광)"], ["L / 가운데 클릭", "막기 (때맞추면 반격, Lv4부터 1초 모아 J)"],
-		["U I O / 1 2 3", "스킬 (기세 30·15·60)"], ["4", "회복약"], ["E", "말 걸기, 상자 열기, 들어가기, 팔찌 쓰기"], ["Z X / 휠", "확대·축소"], ["T R P", "3시간 뒤로 / 비 / 사진"], ["F8", "처음 자리로 (진행은 그대로)"], ["F9", "처음부터 (저장 지우기)"], ["Q", "일지 (할 일과 곁이야기)"], ["H", "조작법 숨기기"]]
+		["U I O / 1 2 3", "스킬 (기세 30·15·60)"], ["4", "회복약"], ["E", "말 걸기, 상자 열기, 들어가기, 팔찌 쓰기"], ["Z X / 휠", "확대·축소"], ["T R P", "3시간 뒤로 / 비 / 사진"], ["F8", "처음 자리로 (진행은 그대로)"], ["F9", "처음부터 (저장 지우기)"], ["Q", "일지 (할 일과 곁이야기)"], ["B", "배경 음악 켜기/끄기"], ["H", "조작법 숨기기"]]
 	m.ui.help_rows = []
 	for i in rows.size():
 		var hk := label(help, rows[i][0], Vector2(14, 60 + i * 27), 13, Color("#e9dfc4"))

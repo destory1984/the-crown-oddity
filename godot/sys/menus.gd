@@ -16,6 +16,8 @@ const ICON_SVG := {
 	"gear": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5.6"/><circle cx="12" cy="12" r="1.9"/><path d="M12 3.2v3.2M12 17.6v3.2M3.2 12h3.2M17.6 12h3.2M5.8 5.8L8 8M16 16l2.2 2.2M5.8 18.2L8 16M16 8l2.2-2.2"/></svg>',
 	"sound": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3l4.5-3.8v12.6L7 14.5H4z"/><path d="M15 9.2a4 4 0 0 1 0 5.6"/><path d="M17.6 6.6a7.6 7.6 0 0 1 0 10.8"/></svg>',
 	"mute": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3l4.5-3.8v12.6L7 14.5H4z"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></svg>',
+	"music": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 17V6.5l9-2V15"/><path d="M9.5 9.5l9-2"/><circle cx="7" cy="17.4" r="2.5"/><circle cx="16" cy="15.4" r="2.5"/></svg>',
+	"music_off": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 17V6.5l9-2V15"/><path d="M9.5 9.5l9-2"/><circle cx="7" cy="17.4" r="2.5"/><circle cx="16" cy="15.4" r="2.5"/><path d="M4 4l16 16"/></svg>',
 	"back": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(0.25 -2.25)"><path d="M9 7L4.5 11.5 9 16"/><path d="M5 11.5h9a5 5 0 0 1 0 10h-2"/></g></svg>',
 }
 const JOURNAL_HEADS := ["지금 할 일", "곁이야기", "도전 과제", "지닌 것"]
@@ -137,10 +139,12 @@ func load_settings() -> void:
 			m.cfg[k] = d[k]
 	m.cfg.text = clampi(int(m.cfg.text), 0, Main.TEXT_SIZES.size() - 1)
 	m.muted = bool(d.get("muted", m.muted))
+	m.music_on = bool(d.get("music", true))
 
 func save_settings() -> void:
 	var d := m.cfg.duplicate()
 	d["muted"] = m.muted
+	d["music"] = m.music_on
 	var f := FileAccess.open(SETTINGS_PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(d))
@@ -294,13 +298,26 @@ func build_settings(root: Control) -> void:
 	m.ui.set_sound.icon = odd_icon("sound")
 	m.ui.set_sound.expand_icon = true
 	m.ui.set_sound.focus_mode = Control.FOCUS_NONE
-	m.ui.set_sound.tooltip_text = tr("효과음") + " (M)"
-	m.ui.set_sound.position = Vector2(640 - 44 * 3 - 16, 0)
+	m.ui.set_sound.position = Vector2(640 - 44 * 4 - 24, 0) # four header buttons, 44 x 40 each, 8 px apart
 	m.ui.set_sound.size = Vector2(44, 40)
 	m.ui.set_sound.pressed.connect(func(): toggle_sound(); apply_settings())
 	col.add_child(m.ui.set_sound)
+	m.ui.set_music = Button.new()
+	m.ui.set_music.icon = odd_icon("music")
+	m.ui.set_music.expand_icon = true
+	m.ui.set_music.focus_mode = Control.FOCUS_NONE
+	m.ui.set_music.position = Vector2(640 - 44 * 3 - 16, 0)
+	m.ui.set_music.size = Vector2(44, 40)
+	m.ui.set_music.pressed.connect(func(): m.music.toggle_music(); apply_settings())
+	col.add_child(m.ui.set_music)
 	m.ui.set_minus = set_button(col, "가−", Vector2(640 - 44 * 2 - 8, 0), Vector2(44, 40), func(): m.cfg.text = maxi(0, int(m.cfg.text) - 1); save_settings(); apply_settings())
 	m.ui.set_plus = set_button(col, "가+", Vector2(640 - 44, 0), Vector2(44, 40), func(): m.cfg.text = mini(Main.TEXT_SIZES.size() - 1, int(m.cfg.text) + 1); save_settings(); apply_settings())
+	for tb in [m.ui.set_minus, m.ui.set_plus]: # tighter padding, so each header button is the 44 x 40 the row is laid out for
+		tb.add_theme_stylebox_override("normal", flat(Color("#0d1a3acc"), Color("#9fb4ff66"), 1, 8, 2.0))
+		tb.add_theme_stylebox_override("hover", flat(Color("#26456199"), Color("#93d2ff88"), 1, 8, 2.0))
+		tb.add_theme_stylebox_override("pressed", flat(Color("#26456199"), Color("#93d2ff88"), 1, 8, 2.0))
+		tb.add_theme_stylebox_override("disabled", flat(Color("#0d1a3a73"), Color("#9fb4ff2a"), 1, 8, 2.0))
+		tb.size = Vector2(44, 40)
 	# the four tab names stay English in every language (the user asked), so tr() never touches them
 	var tabs := ["Settings", "Help", "Changes", "About"]
 	m.ui.set_tabs = []
@@ -353,7 +370,7 @@ func build_settings(root: Control) -> void:
 	m.ui.set_stacks[0].append([lt, lang, null])
 	# 도움말
 	var help_rows := [["이동", "WASD, 방향키. Shift로 달린다 (물수제비 걸음을 얻으면 물 위도)"], ["싸움", "J 또는 왼쪽 클릭 베기, K 또는 오른쪽 클릭 구르기, L 막기"],
-		["기술", "U I O 또는 1 2 3, 회복약은 4"], ["팔찌", "E: 말 걸기, 열기, 들어가기, 등불, 벽돌 풀기, 길돌, 낚시"], ["메뉴", "Q 일지, H 조작법, M 소리, T 3시간 보내기"],
+		["기술", "U I O 또는 1 2 3, 회복약은 4"], ["팔찌", "E: 말 걸기, 열기, 들어가기, 등불, 벽돌 풀기, 길돌, 낚시"], ["메뉴", "Q 일지, H 조작법, M 소리, B 음악, T 3시간 보내기"],
 		["화면", "Z X 또는 휠로 확대·축소. F8 처음 자리로, F9 처음부터. Esc 이 창"], ["요령", "맞기 직전에 구르면 섬광 피하기, 막으면 섬광 막기. 괴물은 때리기 전에 빨갛게 부풀고 \"!\"가 뜬다"]]
 	for i in help_rows.size():
 		var ht := m.hud_build.label(m.ui.set_pages[1], help_rows[i][0], Vector2(0, i * 48), 16, Color("#eef3ff"))
@@ -378,6 +395,23 @@ func build_settings(root: Control) -> void:
 		tt.visible = false
 		td.get_parent().visible = false
 		m.ui.set_help_touch.append([tt, td, null])
+	# the tune that plays and the button for the next one: one row in the keyboard list and one in the touch list
+	m.ui.music_rows = []
+	for stack in [m.ui.set_help_keys, m.ui.set_help_touch]:
+		var mt := m.hud_build.label(m.ui.set_pages[1], "음악", Vector2(0, stack.size() * 48), 16, Color("#eef3ff"))
+		mt.size = Vector2(112, 20)
+		var md := m.hud_build.wrap_label(m.ui.set_pages[1], m.music.tune_line(), Vector2(122, stack.size() * 48), 518, 16, ODD_MUTED)
+		md.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		scale_text(md)
+		scale_text(mt)
+		var nb := set_button(m.ui.set_pages[1], "다음 곡", Vector2(122, stack.size() * 48 + 42), Vector2(96, 34), func(): m.music.next_tune())
+		if stack == m.ui.set_help_touch:
+			mt.visible = false
+			md.get_parent().visible = false
+			nb.visible = false
+		stack.append([mt, md, nb])
+		m.ui.music_rows.append([mt, md, nb])
+	m.ui.set_stacks[1] = m.ui.set_help_keys
 	# 바뀐 것
 	var scroll := ScrollContainer.new() # the list grows with every ship: it scrolls
 	scroll.size = Vector2(640, 396)
@@ -437,6 +471,7 @@ func toggle_settings(show: bool) -> void:
 func toggle_sound() -> void:
 	m.muted = not m.muted
 	save_settings()
+	m.music.sfx_switch()
 	m.toast("소리 끔" if m.muted else "소리 켬")
 	refresh_sound_btn()
 	if m.muted:
@@ -461,6 +496,12 @@ func refresh_sound_btn() -> void:
 	if m.ui.has("set_sound"):
 		m.ui.set_sound.icon = odd_icon("mute" if m.muted else "sound")
 		m.ui.set_sound.modulate = Color(1, 1, 1, 0.6) if m.muted else Color.WHITE
+		m.ui.set_sound.tooltip_text = tr("효과음 꺼짐") + " (M)" if m.muted else tr("효과음 켜짐") + " (M)"
+	if m.ui.has("set_music"):
+		m.ui.set_music.icon = odd_icon("music" if m.music_on else "music_off")
+		m.ui.set_music.modulate = Color.WHITE if m.music_on else Color(1, 1, 1, 0.6)
+		m.ui.set_music.tooltip_text = (tr("배경 음악 켜짐") + " (B)") if m.music_on else (tr("배경 음악 꺼짐") + " (B)")
+	m.music.refresh_help()
 
 func toggle_help(show: bool) -> void:
 	if show:

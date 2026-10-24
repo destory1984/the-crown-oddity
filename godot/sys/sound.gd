@@ -17,6 +17,7 @@ func sfx(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide := 0.0) -
 		return
 	var pl := AudioStreamPlayer.new()
 	pl.stream = sfx_stream(freq, dur, wave, vol, slide)
+	pl.bus = "Sfx"
 	m.add_child(pl)
 	pl.play()
 	pl.finished.connect(pl.queue_free)

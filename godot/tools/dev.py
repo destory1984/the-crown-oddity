@@ -10,6 +10,7 @@
     python tools/dev.py test [NAME]           autoplay tests (tools/autoplay.gd); exit code = failures
     python tools/dev.py sound                 write every effect to shots/sounds/*.wav and print its shape
     python tools/dev.py baseline [SCENE ...]  keep the current shots as the reference for later diffs
+    python tools/bgm.py [NAME ...]            re-render the background tunes into audio/bgm/ (needs numpy and ffmpeg)
 
 Paths can be overridden with the GODOT_DIR and SITE_REPO environment variables.
 """

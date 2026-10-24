@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -2145,6 +2145,122 @@ func run() -> void:
 		park_mates(false)
 		main.return_to_start()
 		check("mash", stuck_hops == 0 and big_jumps == 0 and dashes > 0, "4 runs of 12 s mashed (field %s, shore %s): %d rescue hops, %d jumps over 1.0 (worst frame %.2f), dash frames %d %s" % [field, shore, stuck_hops, big_jumps, worst, dashes, report.slice(0, 3)])
+	if want.call("bgm"):
+		# background music: which tune the place calls for, the switch, the buses, the header buttons, the nine loops
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		var keep := {}
+		for k in ["intro", "in_village", "in_forest", "in_lake", "in_garden", "in_cave", "in_hill", "in_house", "garden_q", "hour", "day", "ending_due"]:
+			keep[k] = main.get(k)
+		var keep_x: float = main.player.x
+		var keep_boss: bool = main.ui.boss.visible
+		var keep_mail: Array = main.mail_got.duplicate()
+		var bad: Array = []
+		var base := func():
+			for k in ["intro", "in_village", "in_forest", "in_lake", "in_garden", "in_cave", "in_hill", "ending_due"]:
+				main.set(k, false)
+			main.in_house = -1
+			main.garden_q = 0
+			main.hour = 12.0
+			main.ui.boss.visible = false
+			main.player.x = 20.0
+			main.mail_got = [false, false, false]
+		var expect := func(label: String, want_tune: String):
+			var got: String = main.music.pick()
+			if got != want_tune:
+				bad.append("%s: %s, wanted %s" % [label, got, want_tune])
+		base.call()
+		main.intro = true
+		expect.call("title", "title")
+		base.call()
+		main.in_village = true
+		expect.call("village by day", "village")
+		main.hour = 23.0
+		expect.call("village by night", "night")
+		main.in_house = 0
+		expect.call("a house at night", "village")
+		base.call()
+		expect.call("marsh", "field_marsh")
+		main.in_lake = true
+		expect.call("lake", "field_marsh")
+		base.call()
+		main.in_forest = true
+		expect.call("forest", "field_wild")
+		main.hour = 23.0
+		expect.call("forest at night", "night")
+		base.call()
+		main.in_cave = true
+		expect.call("cave", "dungeon")
+		main.hour = 23.0
+		expect.call("cave at night", "dungeon")
+		base.call()
+		main.in_hill = true
+		main.player.x = main.CASTLE.CASTLE_X + 5.0
+		expect.call("castle", "dungeon")
+		base.call()
+		main.in_forest = true
+		main.ui.boss.visible = true
+		expect.call("a boss awake", "boss")
+		base.call()
+		main.in_garden = true
+		main.garden_q = 2
+		main.ui.boss.visible = true
+		expect.call("the mold", "boss_final")
+		base.call()
+		main.in_garden = true
+		main.garden_q = 5
+		expect.call("the clock room after the winding", "ending")
+		base.call()
+		main.in_village = true
+		main.mail_got = [true, true, true]
+		var fest := false
+		for d in 40:
+			main.day = d
+			main.hour = 23.0
+			if main.festival_now():
+				fest = true
+				break
+		if fest:
+			expect.call("the festival", "ending")
+		else:
+			bad.append("no festival night found")
+		# the switch: flips, saves, aims the Music bus; and back
+		var on0: bool = main.music_on
+		main.music.toggle_music()
+		var off_ok: bool = main.music_on != on0 and main.music.bus_target == main.music.OFF_DB and bool(JSON.parse_string(FileAccess.get_file_as_string(main.menus.SETTINGS_PATH)).get("music", true)) == main.music_on
+		main.music.toggle_music()
+		var on_ok: bool = main.music_on == on0 and main.music.bus_target == main.music.MUSIC_DB
+		# buses, and the effects play on the Sfx one
+		var buses: bool = AudioServer.get_bus_index("Sfx") >= 0 and AudioServer.get_bus_index("Music") >= 0 and AudioServer.get_bus_send(AudioServer.get_bus_index("Music")) == &"Master"
+		var sfx_bus := false
+		var n0: int = main.get_child_count()
+		main.sfx(440.0, 0.05)
+		for c in main.get_children():
+			if c is AudioStreamPlayer and c.bus == &"Sfx":
+				sfx_bus = true
+		# the settings header: four buttons, 44 x 40, 8 px apart, inside the 640 px column
+		var hb: Array = [main.ui.set_sound, main.ui.set_music, main.ui.set_minus, main.ui.set_plus]
+		var header := true
+		for i in hb.size():
+			var b: Control = hb[i]
+			header = header and b.size == Vector2(44, 40) and b.position.x + b.size.x <= 640.0
+			if i > 0:
+				header = header and absf(b.position.x - (hb[i - 1].position.x + hb[i - 1].size.x) - 8.0) < 0.01
+		# the nine loops
+		var loops := true
+		for n in main.music.TUNES:
+			var st = load("res://audio/bgm/%s.ogg" % n)
+			loops = loops and st is AudioStreamOggVorbis and st.loop
+		# put the state back
+		for k in keep:
+			main.set(k, keep[k])
+		main.player.x = keep_x
+		main.ui.boss.visible = keep_boss
+		main.mail_got = keep_mail
+		check("bgm", bad.is_empty() and off_ok and on_ok and buses and sfx_bus and header and loops,
+			"picks %s; switch off/on=%s/%s; buses=%s effects on Sfx=%s; header buttons=%s %s; nine loops=%s" % [str(bad), off_ok, on_ok, buses, sfx_bus, header, str(hb.map(func(b): return [b.position, b.size])), loops])
 	if want.call("folk_sleep"):
 		# after dark the villagers walk home and go in (Simji stays out); in his house Doran sleeps and E still talks to
 		# him; in the morning they come back out (the user asked, 2026-10-24)

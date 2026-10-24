@@ -54,6 +54,7 @@ var menus := preload("res://sys/menus.gd").new(self)
 var chatter := preload("res://sys/chatter.gd").new(self)
 var minigames := preload("res://sys/minigames.gd").new(self)
 var folk := preload("res://sys/folk.gd").new(self)
+var music := preload("res://sys/music.gd").new(self)
 var errands := preload("res://sys/errands.gd").new(self)
 var waystones := preload("res://sys/waystones.gd").new(self)
 var village_life := preload("res://sys/village_life.gd").new(self)
@@ -96,6 +97,7 @@ var raining := false
 var t := 0.0
 var ground_y := 0.0         # smoothed ground height under the player, so 0.18 steps don't jolt the camera
 var muted := false
+var music_on := true # background music (the B key, the settings header button); saved beside `muted`
 # Ys-style combat feel: hit-stop, flash dodge (slow-mo), guard and flash guard (counter)
 var hitstop := 0.0          # seconds the whole game stays frozen after a hit
 var slowmo := 0.0           # seconds enemies run at SLOWMO speed after a flash dodge
@@ -328,13 +330,18 @@ func glow_mat(c: Color, energy := 3.0) -> StandardMaterial3D:
 	return m
 
 # ---------------------------------------------------------------- setup
+func _exit_tree() -> void:
+	music.shutdown()
+
 func _ready() -> void:
+	music.setup()
 	if "--pseudo" in OS.get_cmdline_user_args():
 		TranslationServer.pseudolocalization_enabled = true # shows which text goes through the translation table
 	get_viewport().size_changed.connect(func(): if ui.has("story_cap"): fit_story())
 	rng.seed = 7
 	if not Array(OS.get_cmdline_user_args()).any(func(x): return x.begins_with("--test") or x.begins_with("--scene")):
 		menus.load_settings() # tests and screenshots always run with the default settings
+	music.apply_buses_now()
 	# Pretendard ships as unicode-range pieces; chain them as fallbacks so web builds (no system fonts) get Hangul
 	var sys := SystemFont.new()
 	sys.font_names = PackedStringArray(["Pretendard", "Malgun Gothic", "Noto Sans KR", "Apple SD Gothic Neo", "sans-serif"])
@@ -619,6 +626,14 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
 	"",
 	"2026-10-25 새벽",
+	"· v0.0.56: 배경 음악이 생겼고, 설정 위쪽에 음악 단추가 생겼다.",
+	"    - 음악은 모두 코드로 만든다(녹음 없음). 80년대 후반 PC 액션 RPG 같은 FM 록(들판, 동굴, 우두머리)과 느린 곡(제목, 마을, 밤, 끝맺음) 두 갈래로 모두 9곡이다.",
+	"    - 곡은 제목, 늪과 호수, 바람 부는 들, 동굴과 성, 우두머리, 마지막 싸움, 마을, 밤, 끝맺음이다. 곳과 때에 따라 0.5초마다 골라서 1초 동안 겹쳐 바꾼다.",
+	"    - 효과음 길과 음악 길을 따로 두었다. 음악은 효과음보다 14dB 낮아서 발소리, 타격, 줍는 소리가 늘 위에서 들린다.",
+	"    - B 키와 설정 위쪽 단추(소리 단추 옆)가 음악을 켜고 끈다. 끄면 1초에 걸쳐 조용해지고 설정에 저장된다. 위쪽 단추 넷은 모두 44 x 40이고 8px씩 떨어져 있다.",
+	"    - 설정의 Help 쪽에 '♪ 곡 이름'과 '다음 곡' 단추가 있다. 누르면 지금 곡이 0.12초에 사라지고 0.35초 뒤에 다음 곡이 나온다. 그 자리를 떠날 때까지 이어진다.",
+	"    - 조작법 창에 'B 배경 음악 켜기/끄기' 줄이 생겼다(휴대폰 화면에는 키가 없어서 넣지 않았다).",
+	"    - 곡을 다시 만들려면 python tools/bgm.py를 쓴다(numpy와 ffmpeg가 필요하다). 처음 1초는 조용하다.",
 	"· v0.0.55: 싸우다 키를 마구 누르면 소라가 순간이동하던 것을 고쳤다.",
 	"    - 원인은 달려 베기(Lv3, Shift를 누른 채 J)였다. 달리면서 공격을 연타하면 소라가 한 프레임에 3칸을 건너뛰었다. 이제 0.14초 동안 앞으로 미끄러지며 지나가는 적을 베고, 그동안 무적이며 잔상 네 개와 바람 소리가 남는다.",
 	"    - 달려 베기의 도착점을 잴 때 물 걷기는 이미 물 위에 있을 때만 친다. 그래서 Shift를 놓은 순간 강 위에 떠서 물가로 던져지는 일이 없다.",
@@ -1669,10 +1684,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F9: save.reset_game()
 			KEY_F8: return_to_start()
 			KEY_M: toggle_sound()
+			KEY_B: music.toggle_music()
 
 # ---------------------------------------------------------------- loop
 func _process(dt: float) -> void:
 	dt = minf(dt, 1.0 / 20.0)
+	music.update(dt) # before the world waits for a sheet, a story or the shop: the tune plays on
 	if hitstop > 0.0:
 		hitstop -= dt
 		return

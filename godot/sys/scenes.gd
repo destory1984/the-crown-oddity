@@ -77,6 +77,8 @@ const SCENES := {
 	"controls_big": {"play": true, "controls": true, "text": 3},
 	"settings_big": {"play": true, "settings": true, "text": 3},
 	"settings_news": {"play": true, "settings": true, "set_tab": 2}, # the Changes tab
+	"settings_help": {"play": true, "settings": true, "set_tab": 1},                       # the Help tab with the music row
+	"settings_off": {"play": true, "settings": true, "set_tab": 1, "sound_off": true, "music_off": true}, # both header buttons in the off state
 	"hush": {"play": true, "village": true, "hush": true, "hour": 14.0},
 	"east": {"play": true, "at": Vector2(42.0, 21.5), "hour": 12.0},
 	"fall": {"play": true, "fall": 2.5, "at": Vector2(20, 22)},
@@ -617,6 +619,11 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.toggle_settings(true)
 		if sc.has("set_tab"):
 			m.show_set_tab(int(sc.set_tab))
+		if sc.has("sound_off"):
+			m.muted = true
+		if sc.has("music_off"):
+			m.music_on = false
+		m.apply_settings()
 	if sc.get("far", false): # zoomed all the way out, to judge the haze
 		m.cam_dist = 26.0
 	if sc.get("folk6", false): # far enough out to see all six
