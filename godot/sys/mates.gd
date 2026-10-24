@@ -242,6 +242,7 @@ func update_mate2(dt: float) -> void:
 		spr.flip_h = m.screen_left(Vector2(to.x, to.z))
 	else:
 		spr.frame = 0
+	m.folk.hop("noeul", spr, dt)
 	if m.mate != null and m.mate.visible: # never on top of Mulgyeol
 		var apart := Vector3(m.mate2.position.x - m.mate.position.x, 0, m.mate2.position.z - m.mate.position.z)
 		if apart.length() < 0.7 and apart.length() > 0.01:
@@ -292,10 +293,11 @@ func update_mate(dt: float) -> void:
 	var stop := 1.4 if target != null else 0.3
 	if to.length() > stop:
 		m.mate.position = mate_step(m.mate.position, to.normalized() * minf(to.length() - stop, dt * 5.5))
-		m.mate.position.y = absf(sin(m.t * 11.0)) * 0.06
 		spr.flip_h = not m.screen_left(Vector2(to.x, to.z)) # his picture faces left (Noeul's running frame faces right)
 	else:
 		m.mate.position.y = 0.0
+	m.mate.position.y = 0.0
+	m.folk.hop("mulgyeol", spr, dt)
 	spr.frame = 1 if fmod(m.t, 3.0) < 0.3 else 0
 	if target != null and best < 1.9 and m.mate_cd <= 0.0 and not m.story_open:
 		m.mate_cd = 1.0

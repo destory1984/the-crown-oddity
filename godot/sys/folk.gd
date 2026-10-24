@@ -19,6 +19,46 @@ const ROUTE_WALK := 1.4     # tiles a second by day
 func _init(main: Main) -> void:
 	m = main
 
+# ---- hopping walkers (the user, 2026-10-25: "통통통 튀어서 걷도록"): every NPC that moves without a walk sheet hops
+# in small arcs, one hop per HOP_STEP tiles walked, with a squash on landing and a stretch at the top; when it stops it
+# finishes the hop in the air and settles. The sprite hops, never the node, so balloons (anchored to the node or to the
+# ground spot) stay put. `key` names the walker, `base_y` is the sprite's resting height, `alt` alternates frames 0 and 1.
+const HOP_H := 0.12 # a hop's height in world units (Mulgyeol's old 0.06 doubled)
+const HOP_STEP := 0.45 # tiles walked per hop
+const HOP_SQUASH_T := 0.06
+var hops := {} # key -> {last, p, base, scale, squash, n}
+
+func hop(key: String, spr: Sprite3D, dt: float, base_y := 0.0, height := HOP_H, alt := false) -> void:
+	var g := Vector2(spr.global_position.x, spr.global_position.z)
+	if not hops.has(key) or not is_instance_valid(hops[key].get("spr")) or hops[key].spr != spr:
+		hops[key] = {"last": g, "p": 0.0, "scale": spr.scale, "squash": 0.0, "n": 0, "spr": spr}
+	var s: Dictionary = hops[key]
+	var d: float = g.distance_to(s.last)
+	s.last = g
+	if d > 1.5: # moved by a snap or a door: not a step
+		d = 0.0
+	var p: float = s.p
+	if d > 0.002:
+		p += d / HOP_STEP
+	elif p > 0.0:
+		p += dt * 6.0 # settles at about a walking pace
+	if p >= 1.0:
+		p = fmod(p, 1.0) if d > 0.002 else 0.0
+		s.squash = HOP_SQUASH_T
+		s.n += 1
+		if alt and spr.hframes > 1:
+			spr.frame = s.n % 2
+	s.p = p
+	var arc := sin(PI * p)
+	spr.position.y = base_y + arc * height
+	var sq: float = s.squash
+	var bs: Vector3 = s.scale
+	if sq > 0.0:
+		s.squash = sq - dt
+		spr.scale = Vector3(bs.x * 1.08, bs.y * 0.9, bs.z)
+	else:
+		spr.scale = Vector3(bs.x * (1.0 - 0.03 * arc), bs.y * (1.0 + 0.05 * arc), bs.z)
+
 func house_char(x: float, z: float) -> String:
 	var tx := int(round(x)) - Main.HOUSE_X
 	var tz := int(round(z))
@@ -320,7 +360,8 @@ func update_folk_sleep(dt: float) -> void:
 		var at := way_at(way, k)
 		if Main.FOLK_ROUTES.has(id) and k <= 0.0 and st in ["out", "going"]:
 			at = folk_route_state(id).pos
-		spr.position = Vector3(at.x, 0.05 * absf(sin(m.t * 9.0)) if roam else 0.0, at.y) # a little bob in his step
+		spr.position = Vector3(at.x, 0.0, at.y)
+		hop("folk_" + id, spr, dt, 0.0, HOP_H * folk_hop_scale(id), true)
 		spr.visible = st != "in"
 		if st in ["going", "coming"] and not roam:
 			var ahead := way_at(way, clampf(k + (0.02 if st == "going" else -0.02), 0.0, 1.0))
@@ -353,6 +394,7 @@ func update_folk_sleep(dt: float) -> void:
 		m.kid_node.visible = kst != "in"
 		var ks: Sprite3D = m.village.folk_node.kongal
 		m.kid_node.position = Vector3(ks.position.x + 0.7, 0, ks.position.z + 0.3)
+		hop("kid", m.kid_node.get_meta("spr"), dt, 0.0, HOP_H * 0.75)
 		if m.sleeper_nodes.has("kid") and place_sleeper("kid", kst == "in" and m.in_house == folk_home("kongal")):
 			rolls[folk_bed("kid")[1]] = true
 	elif m.sleeper_nodes.has("kid"):
@@ -360,6 +402,9 @@ func update_folk_sleep(dt: float) -> void:
 	for k in range(1, Main.HOUSE_SPOTS.size()):
 		if m.folk_rocks.has("spot%d" % k):
 			m.folk_rocks["spot%d" % k].r = 0.55 if rolls.has(k) else 0.0
+
+func folk_hop_scale(id: String) -> float: # the hop follows the walker's height
+	return 0.85 if id in ["tori", "kongal"] else 1.0
 
 func folk_way(id: String) -> Array:
 	if m.folk_ways.has(id):

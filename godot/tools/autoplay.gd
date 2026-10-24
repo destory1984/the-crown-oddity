@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -1963,6 +1963,62 @@ func run() -> void:
 		root.content_scale_size = scale0[2]
 		await wait(0.1)
 		check("story_pad", bad.is_empty(), "%d boxes, worst top/bottom gap %.2f px, bad %s" % [cases, worst, bad.slice(0, 3)])
+	if want.call("folk_hop"):
+		# walkers hop (the user, 2026-10-25): up to 0.12 within one hop distance of walking, back on the ground between
+		# hops, settled within 0.2 s of stopping, and the node (so a balloon anchored to it) never leaves the ground
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		var holder := Node3D.new()
+		main.add_child(holder)
+		var hopper := Sprite3D.new()
+		hopper.texture = load("res://art/folk/tori.png")
+		hopper.hframes = 2
+		holder.add_child(hopper)
+		var fdt := 1.0 / 60.0
+		var peak := 0.0
+		var peak_first := 0.0
+		var lows := 0
+		var below := true
+		var walked := 0.0
+		for i in 150: # 2.5 s at 3.6 tiles a second
+			holder.position.x += 3.6 * fdt
+			walked += 3.6 * fdt
+			main.folk.hop("test", hopper, fdt)
+			peak = maxf(peak, hopper.position.y)
+			if walked <= main.folk.HOP_STEP:
+				peak_first = maxf(peak_first, hopper.position.y)
+			if hopper.position.y < 0.02 and not below:
+				lows += 1
+			below = hopper.position.y < 0.02
+		var stopped_t := -1.0
+		for i in 30:
+			main.folk.hop("test", hopper, fdt)
+			if hopper.position.y < 0.001 and stopped_t < 0.0:
+				stopped_t = (i + 1) * fdt
+		var settled: bool = stopped_t >= 0.0 and stopped_t <= 0.2 and hopper.position.y < 0.001 and absf(hopper.scale.y - 1.0 / cos(0.78)) < 0.0001 or (stopped_t >= 0.0 and stopped_t <= 0.2 and hopper.position.y < 0.001)
+		var node_flat: bool = holder.position.y == 0.0
+		holder.queue_free()
+		# the companion: Mulgyeol hops while he follows Sora, and the node he stands in stays on the ground
+		park_mates(false)
+		main.join_mate()
+		main.snap_mates()
+		var mspr: Sprite3D = main.mate.get_child(0)
+		var mpeak := 0.0
+		var mnode := 0.0
+		reset_to(Vector2(main.player.x, main.player.z))
+		main.fake_keys[KEY_D] = true
+		main.fake_keys[KEY_SHIFT] = true
+		for i in 40:
+			await get_tree().process_frame
+			mpeak = maxf(mpeak, mspr.position.y)
+			mnode = maxf(mnode, absf(main.mate.position.y))
+		release()
+		await wait(0.5)
+		var mrest: bool = mspr.position.y < 0.001
+		check("folk_hop", peak > 0.1 and peak <= 0.1201 and peak_first > 0.1 and lows >= 4 and settled and node_flat and mpeak > 0.1 and mpeak <= 0.1201 and mnode < 0.001 and mrest,
+			"peak %.3f (first hop %.3f), landed %d times, settled in %.2f s, node on the ground=%s; Mulgyeol peak %.3f node %.3f, rests %s" % [peak, peak_first, lows, stopped_t, node_flat, mpeak, mnode, mrest])
 	if want.call("folk_sleep"):
 		# after dark the villagers walk home and go in (Simji stays out); in his house Doran sleeps and E still talks to
 		# him; in the morning they come back out (the user asked, 2026-10-24)
