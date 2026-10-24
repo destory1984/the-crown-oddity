@@ -36,6 +36,7 @@ func save_game() -> void:
 		"under_drained": m.under.drained, "under_door": m.under.door_open, "under_guards": m.under_guards_done, "under_chest": m.under_chest_open,
 		"under_side": m.under_side_open, "under_diary": m.under_diary_read, "has_lamp": m.has_lamp, "cave_quest": m.quest_before_cave,
 		"pip_max": m.pip_max, "pip_awards": m.pip_awards.keys()}
+	d.merge(m.workshop_zone.save_data())
 	var f := FileAccess.open(m.SAVE_PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(d))
@@ -264,6 +265,7 @@ func load_game() -> void:
 	if bool(d.get("castle_gate", false)):
 		m.castle.open_gate()
 	m.load_quarters(d)
+	m.workshop_zone.load_work(d)
 	m.load_oak(d)
 	m.road_q = int(d.get("road_q", 0))
 	m.mill_q = int(d.get("mill_q", 0))
@@ -330,7 +332,11 @@ func load_game() -> void:
 		var hx: float = m.player.x
 		var hz: float = m.player.z
 		m.enter_hill()
-		if hx >= Main.UNDER.UNDER_X - 0.5:
+		if hx >= Main.WORK.WORK_X - 0.5: # saved on a workshop floor: that floor's arrival tile, companions beside her
+			m.workshop_zone.enter_floor(Main.WORK.floor_of(hx), "A")
+			hx = m.player.x
+			hz = m.player.z
+		elif hx >= Main.UNDER.UNDER_X - 0.5:
 			m.enter_under()
 		elif hx >= Main.STAIRS.STAIRS_X - 0.5:
 			m.enter_stairs()

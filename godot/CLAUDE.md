@@ -4,7 +4,7 @@
 
 - 게임 전부를 코드로 짓는다. `main.tscn` 은 거의 비어 있다.
 - `main.gd` (약 2,200줄)에는 모든 상태 변수, 둘 이상의 파일이 쓰는 상수, `_ready` `_process` `_input`, E 키(`crown_key`, `interact`), 타일과 높이 도우미, `toast`, `set_quest` 만 남는다.
-- 나머지는 `sys/*.gd` 28개에 있다. 각 파일은 `RefCounted` 이고 `main.gd` 맨 위에서 `var 이름 := preload("res://sys/이름.gd").new(self)` 로 한 번 만든다.
+- 나머지는 `sys/*.gd` 30개에 있다. 각 파일은 `RefCounted` 이고 `main.gd` 맨 위에서 `var 이름 := preload("res://sys/이름.gd").new(self)` 로 한 번 만든다.
   - 그 안의 코드는 main 노드를 `m` 으로 받아 상태를 `m.x`, main 상수를 `Main.X`, 다른 시스템을 `m.이름.f()` 로 부른다.
   - 다른 스크립트(`tools/autoplay.gd`, `hud.gd`, 지역 스크립트)가 부르는 함수와 세 파일 이상이 쓰는 함수는 `main.gd` 끝의 "forwarders" 칸에 한 줄 전달 함수가 있다. 그래서 `main.f()` 는 그대로 된다.
   - 새 함수를 sys 파일에 넣고 시험이나 다른 스크립트가 `main.f()` 로 부르게 하려면 전달 함수도 한 줄 더한다.
@@ -41,6 +41,7 @@
 | `sys/castle_zone.gd` | 1027 | 달지기 성: 큰 방, 기사, 숙소와 인형, 달의 계단, 잠긴 층 |
 | `sys/mates.gd` | 303 | 동료 따라오기, 발자취, 체력, 노을 앉기 |
 | `sys/garden_zone.gd` | 951 | 정원: 한가운데, 한결의 길, 곰팡이 보스, 큰 태엽 방, 일꾼, 감기 |
+| `sys/workshop_zone.gd` | 686 | 달지기 작업장: 큰 방의 문, 지하 3층, 수리 요람, 심지의 수리대 (지도는 `workshop.gd`, 층마다 하나) |
 
 - `minimap.gd` 둥근 미니맵, `sky.gd` 왼쪽 위 해와 달 창, `shaders/` 지형, 풀, 물, 틸트시프트.
 - 기획은 `DESIGN.md`. 무엇을 만들지, 밸런스를 정할 때는 기획자 에이전트(`designer`)를 먼저 부른다.
@@ -61,6 +62,7 @@
 | 390 → | 구름 둔덕 | `in_hill` 그대로, `in_cloud()` |
 | 430 → | 가라앉은 달지기 성 | `in_hill` 그대로, `in_castle()` |
 | 480 → | 마을 집 안 | `in_village` 그대로, `in_house >= 0` |
+| 620 → | 달지기 작업장 지하 1층 (660 → 지하 2층, 700 → 지하 3층) | `in_hill` 그대로, `in_workshop()` |
 
 - `tile_at()` 은 큰 x부터 본다. 새 지역을 더하면 맨 위에 넣는다.
 - 곁이야기는 화면 위 할 일 줄(`set_quest`)을 덮어쓰지 않는다. 진행은 toast, 대사, 일지(Q)로 알린다.

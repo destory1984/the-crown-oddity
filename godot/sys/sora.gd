@@ -300,6 +300,8 @@ func faint() -> void:
 			m.set_quest(Main.LAKE_RETRY_QUEST)
 			if m.lake_npc != null:
 				m.lake_npc.visible = true
+	if m.in_workshop():
+		m.workshop_zone.on_faint() # the floors keep what was done; the cradle's latches stay wound
 	if m.in_hill:
 		m.in_hill = false
 		m.in_village = true

@@ -92,10 +92,10 @@ func pick() -> String:
 	# the ending: the clock room once it is wound, the lantern festival, the ending story
 	if (m.in_garden and m.garden_q >= 5) or m.festival_now() or m.ending_due:
 		return "ending"
-	var indoors: bool = m.in_cave or m.in_castle() or m.in_house >= 0
+	var indoors: bool = m.in_cave or m.in_castle() or m.in_workshop() or m.in_house >= 0
 	if m.is_night() and not indoors:
 		return "night"
-	if m.in_cave or m.in_castle():
+	if m.in_cave or m.in_castle() or m.in_workshop():
 		return "dungeon"
 	if m.in_village:
 		return "village"

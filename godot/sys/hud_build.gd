@@ -281,7 +281,7 @@ func disable_touch() -> void:
 		sheet.scale = Vector2.ONE
 		m.menus.size_back_keys(sheet)
 	place(m.ui.journal, Control.PRESET_BOTTOM_LEFT, Vector2(8, -647), Vector2(800, 567))
-	place(m.ui.ways, Control.PRESET_BOTTOM_LEFT, Vector2(8, -300), Vector2(330, 220))
+	place(m.ui.ways, Control.PRESET_BOTTOM_LEFT, Vector2(8, -324), Vector2(330, 244))
 	use_touch_help(false)
 	for c in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn, m.ui.mini.get_parent()]: # the touch layer hid them under sheets
 		c.visible = not m.intro
@@ -671,7 +671,7 @@ func build_hud() -> void:
 	m.menus.back_key(journal, func(): m.toggle_journal(false)).set_meta("title", journal_title)
 	journal.visible = false
 	m.ui.journal = journal
-	var ways := m.menus.menu_panel(root, Vector2(8, -300), Vector2(330, 220), Control.PRESET_BOTTOM_LEFT)
+	var ways := m.menus.menu_panel(root, Vector2(8, -324), Vector2(330, 244), Control.PRESET_BOTTOM_LEFT)
 	var wt := label(ways, "", Vector2(16, 12), 15, Color("#e9dfc4"))
 	wt.size = Vector2(300, 200)
 	wt.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
@@ -839,7 +839,7 @@ func build_hud() -> void:
 func update_pips(dt: float) -> void:
 	m.pip_flash -= dt
 	var by_oak := m.forest_zone.oak_warm()
-	var night_now := m.is_night() or m.in_clock() or by_oak # underground the clock room rests as at night, and by the old oak's warm roots
+	var night_now := m.is_night() or m.in_clock() or m.in_workshop() or by_oak # underground the clock room and the deep workshop rest as at night, and by the old oak's warm roots
 	var heal: bool = m.has_cushion and night_now and m.player.hp < m.player.max_hp
 	if (m.crown_pips >= m.pip_max or not night_now) and not heal:
 		m.rest_t = 0.0

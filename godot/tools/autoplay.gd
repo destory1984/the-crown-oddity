@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -3097,8 +3097,13 @@ func run() -> void:
 		calm_enemies(true)
 		var ok_spots := true
 		for i in main.WAY_NAMES.size():
+			if i == 7: # the deep workshop: one stone per floor, checked below
+				continue
 			var w: Vector2 = main.way_spot(i) + Vector2(0, 1.2)
 			ok_spots = ok_spots and main.walkable(w.x, w.y)
+		for fw in main.wfloors:
+			var wy: Vector2 = fw.marks.Y + Vector2(0, 1.2)
+			ok_spots = ok_spots and main.walkable(wy.x, wy.y)
 		var w0: Vector2 = main.way_spot(0)
 		reset_to(w0 + Vector2(0, 1.0))
 		tap(KEY_E)
@@ -5884,6 +5889,272 @@ func run() -> void:
 		main.in_hill = false
 		calm_enemies(false)
 		check("moon_stairs", shut and wall and skipped and blown and door and garden, "wall shut/opened=%s/%s skipped the channel=%s vent carried her up=%s three lamps open the door=%s top leads to the garden=%s" % [shut, wall, skipped, blown, door, garden])
+	if want.call("workshop"):
+		# 달지기 작업장 (DESIGN.md 깊은 작업장): the door, three floors, their puzzles, the waystones, the cradle, Simji, save/load
+		main.story_step = maxi(main.story_step, 10)
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.in_village = false
+		main.in_lake = false
+		main.in_forest = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_house = -1
+		main.in_hill = true
+		main.night_q = 4
+		main.lake_q = 4
+		main.forest_q = 3
+		main.hill_q = 3
+		main.join_mate()
+		main.join_noeul()
+		main.has_skip = true
+		main.has_unbrick = true
+		main.hour = 12.0
+		main.castle_q = 2 # the knight still stands
+		main.enter_castle()
+		main.close_story()
+		calm_enemies(true)
+		var ws = main.workshop_zone
+		var door: Vector2 = main.WORK_DOOR
+		reset_to(door + Vector2(0, 0.9))
+		tap(KEY_E)
+		await wait(0.1)
+		reset_to(door)
+		await wait(0.6)
+		var shut: bool = not main.work_door and not main.in_workshop()
+		main.castle_q = 3
+		ws.door_look()
+		reset_to(door + Vector2(-2.5, 2.0))
+		await wait(0.3)
+		var seen: bool = main.work_seen and main.story_open
+		main.close_story()
+		reset_to(door + Vector2(0, 0.9))
+		main.crown_pips = 8
+		tap(KEY_E)
+		await wait(0.1)
+		var opened: bool = main.work_door and main.crown_pips == 8
+		main.close_story()
+		reset_to(door)
+		var down: bool = await wait_for(func(): return main.in_workshop(), 3.0)
+		await wait(0.2)
+		var b1 = main.wfloors[0]
+		down = down and Vector2(main.player.x, main.player.z).distance_to(b1.marks.A) < 0.3 and main.work_q == 1
+		main.close_story()
+		await wait(0.1)
+		calm_enemies(true)
+		# B1: two work lamps (1 pip each, each wakes two bricks), the planks, the plug
+		var ox0: float = main.WORK.FLOOR_X[0]
+		var planks_shut: bool = not main.player_can(ox0 + 12, 10)
+		var n0: int = main.enemies.size()
+		var l0: Dictionary = b1.lamps[0]
+		main.crown_pips = 8
+		reset_to(l0.pos + Vector2(1.0, -1.0))
+		tap(KEY_E)
+		await wait(0.1)
+		var lamp1: bool = b1.lamps_lit() == 1 and main.crown_pips == 7 and main.enemies.size() == n0 + 2 and not main.player_can(ox0 + 12, 10)
+		calm_enemies(true)
+		var l1: Dictionary = b1.lamps[1]
+		reset_to(l1.pos + Vector2(-1.0, -1.0))
+		tap(KEY_E)
+		await wait(0.1)
+		var planks: bool = planks_shut and b1.lamps_lit() == 2 and main.player_can(ox0 + 12, 10) and main.player_can(ox0 + 15, 13)
+		calm_enemies(true)
+		main.crown_pips = 8
+		reset_to(Vector2(ox0 + 15, 14))
+		tap(KEY_E)
+		await wait(0.1)
+		var plug: bool = main.work_q == 2 and main.work_ways[0] and main.player_can(ox0 + 15, 16) and main.crown_pips == 8 - main.unbrick_cost()
+		reset_to(Vector2(ox0 + 18, 14))
+		tap(KEY_E)
+		await wait(0.1)
+		var tag: bool = main.work_reads[0] and main.story_open
+		main.close_story()
+		reset_to(b1.marks.V)
+		var to2: bool = await wait_for(func(): return main.in_workshop() and ws.floor_here() == 1, 3.0)
+		await wait(0.2)
+		var b2 = main.wfloors[1]
+		to2 = to2 and Vector2(main.player.x, main.player.z).distance_to(b2.marks.A) < 0.3
+		main.close_story()
+		await wait(0.1)
+		reset_to(b2.marks.S) # up again: beside B1's way down
+		var up1: bool = await wait_for(func(): return main.in_workshop() and ws.floor_here() == 0, 3.0)
+		await wait(0.2)
+		up1 = up1 and Vector2(main.player.x, main.player.z).distance_to(b1.marks.U) < 0.3
+		reset_to(b1.marks.V)
+		await wait_for(func(): return main.in_workshop() and ws.floor_here() == 1, 3.0)
+		await wait(0.2)
+		main.close_story()
+		calm_enemies(true)
+		# B2: the lid covers the stopper until Mulgyeol pulls the chain; the stopper drains the channel
+		var ox1: float = main.WORK.FLOOR_X[1]
+		var flooded: bool = not main.player_can(ox1 + 10, 12)
+		main.crown_pips = 8
+		reset_to(Vector2(ox1 + 8, 10))
+		tap(KEY_E)
+		await wait(0.1)
+		var covered: bool = main.crown_pips == 8 and not b2.drained
+		reset_to(Vector2(ox1 + 6, 9))
+		tap(KEY_E)
+		await wait(0.1)
+		var pulling: bool = main.mate_job.get("kind", "") == "work"
+		var lid: bool = await wait_for(func(): return main.work_pulled, 6.0)
+		lid = lid and main.player_can(ox1 + 6, 10)
+		reset_to(Vector2(ox1 + 6, 10))
+		main.crown_pips = 8
+		tap(KEY_E)
+		await wait(0.1)
+		var drained: bool = flooded and main.work_q == 3 and main.player_can(ox1 + 10, 12) and main.work_ways[1]
+		reset_to(Vector2(ox1 + 27, 4))
+		tap(KEY_E)
+		await wait(0.1)
+		var handle: bool = main.work_reads[1]
+		main.close_story()
+		reset_to(b2.marks.V)
+		var to3: bool = await wait_for(func(): return main.in_workshop() and ws.floor_here() == 2, 3.0)
+		await wait(0.2)
+		var b3 = main.wfloors[2]
+		to3 = to3 and Vector2(main.player.x, main.player.z).distance_to(b3.marks.A) < 0.3
+		main.close_story()
+		await wait(0.1)
+		calm_enemies(true)
+		# B3: a fragment is marked where she stands in the cracked hall; two clamps open the pit door
+		var ox2: float = main.WORK.FLOOR_X[2]
+		var shut3: bool = not main.player_can(ox2 + 11, 12)
+		reset_to(Vector2(ox2 + 10, 3))
+		ws.frag_t = 0.0
+		await wait(0.15)
+		var frag: bool = not ws.frags.is_empty()
+		ws.frags.clear()
+		main.crown_pips = 8
+		reset_to(Vector2(ox2 + 2, 7.5))
+		tap(KEY_E)
+		await wait(0.1)
+		var clamp1: bool = b3.groups_open() == 1 and not main.player_can(ox2 + 11, 12)
+		calm_enemies(true)
+		main.crown_pips = 8
+		reset_to(Vector2(ox2 + 23, 9.5))
+		tap(KEY_E)
+		await wait(0.1)
+		var clamps: bool = shut3 and b3.groups_open() == 2 and main.player_can(ox2 + 11, 12) and main.work_q == 4 and main.work_ways[2]
+		calm_enemies(true)
+		reset_to(Vector2(ox2 + 21, 5))
+		tap(KEY_E)
+		await wait(0.1)
+		var scratch: bool = main.work_reads[2]
+		main.close_story()
+		# the waystones: B3's stone to the castle gate, the gate's stone back to B3
+		reset_to(b3.marks.Y + Vector2(0, 1.0))
+		tap(KEY_E)
+		await wait(0.1)
+		var listed: bool = main.way_open
+		tap(KEY_6)
+		var out_castle: bool = await wait_for(func(): return main.in_castle(), 3.0)
+		await wait(0.2)
+		reset_to(main.way_spot(5) + Vector2(0, 1.0))
+		tap(KEY_E)
+		await wait(0.1)
+		tap(KEY_8)
+		var back3: bool = await wait_for(func(): return main.in_workshop(), 3.0)
+		await wait(0.2)
+		back3 = back3 and ws.floor_here() == 2 and Vector2(main.player.x, main.player.z).distance_to(b3.marks.Y + Vector2(0, 1.2)) < 0.3
+		calm_enemies(true)
+		# the cradle: its story, a latch, a sweep that hurts but undoes nothing, the other two latches, the release
+		var o: Vector2 = b3.marks.O
+		reset_to(o + Vector2(0, -4.0))
+		await wait(0.2)
+		var cradle_in: bool = main.work_cradle_seen and main.story_open
+		main.close_story()
+		await wait(0.1)
+		main.crown_pips = 8
+		var lp0: Vector2 = b3.latches[0].pos
+		reset_to(lp0 + (o - lp0).normalized() * 1.0)
+		ws.arm_i = 1
+		ws.arm_phase = "rest"
+		ws.arm_t = 5.0
+		tap(KEY_E)
+		await wait(0.1)
+		var latch1: bool = main.work_latch[0] and main.crown_pips == 7
+		var lp1: Vector2 = b3.latches[1].pos
+		reset_to(o + (lp1 - o).normalized() * 3.0)
+		var hp0: float = main.player.hp
+		ws.arm_i = 0
+		ws.arm_phase = "rest"
+		ws.arm_t = 0.01
+		await wait(2.0)
+		var swept: bool = main.player.hp < hp0 and main.work_latch[0] and b3.latches_wound() == 1 and main.work_q == 4
+		var swept_note := "hp %.0f -> %.0f" % [hp0, main.player.hp]
+		for k in [1, 2]:
+			var lp: Vector2 = b3.latches[k].pos
+			reset_to(lp + (o - lp).normalized() * 1.0)
+			ws.arm_i = (k + 1) % 3
+			ws.arm_phase = "rest"
+			ws.arm_t = 5.0
+			main.crown_pips = 8
+			tap(KEY_E)
+			await wait(0.1)
+		var latches: bool = b3.latches_wound() == 3
+		var max0: int = main.player.max_hp
+		reset_to(o + Vector2(0, -1.5))
+		tap(KEY_E)
+		await wait(0.1)
+		var released: bool = main.work_q == 5 and main.player.max_hp == max0 + 10
+		main.close_story()
+		await wait(0.1)
+		var once: bool = not ws.give_reward() and main.player.max_hp == max0 + 10
+		# Simji takes the lantern; the bench and the villagers' new lines
+		main.in_hill = false
+		main.errand = maxi(main.errand, 1)
+		if main.hollow_q == 3:
+			main.hollow_q = 4
+		main.enter_village()
+		main.close_story()
+		calm_enemies(true)
+		reset_to(main.village.marks.M + Vector2(0, 1.2))
+		tap(KEY_E)
+		await wait(0.1)
+		var simji: bool = main.work_q == 6 and ws.bench.visible
+		main.close_story()
+		var chat_n := 0
+		for id in ["simji", "doran", "kongal", "darae"]:
+			if main.chatter.folk_chat_lines(id).any(func(l): return String(l).begins_with("수리대")):
+				chat_n += 1
+		var chat: bool = chat_n >= 3
+		# save and load on every floor: back at that floor's arrival tile, companions beside her
+		var loads_ok := true
+		var load_note := ""
+		for i in 3:
+			ws.enter_floor(i, "A")
+			main.close_story()
+			var fi = main.wfloors[i]
+			reset_to(fi.marks.A + Vector2(2.0, 1.0))
+			main.save_game()
+			main.in_hill = false
+			main.player.x = 15.0
+			main.player.z = 15.0
+			main.load_game()
+			await wait(0.3)
+			main.close_story()
+			var me3 := Vector3(main.player.x, 0, main.player.z)
+			var ok_i: bool = main.in_workshop() and ws.floor_here() == i and Vector2(me3.x, me3.z).distance_to(fi.marks.A) < 0.3 \
+				and main.mate != null and main.mate.position.distance_to(me3) < 3.0
+			loads_ok = loads_ok and ok_i
+			load_note += " B%d=%s" % [i + 1, ok_i]
+		var kept: bool = main.work_q == 6 and main.work_latch[2] and b2.drained and b1.planks_shown and main.work_hp
+		# no companion line before they join; the door waits for Mulgyeol
+		park_mates(true)
+		var cast: Array = main.cast_lines(STORY.WORK_B1_IN + STORY.WORK_HANDLE + STORY.WORK_CRADLE_IN)
+		var no_mates: bool = not cast.any(func(l): return String(l).begins_with("노을|") or String(l).begins_with("물결|"))
+		park_mates(false)
+		main.lake_q = 3
+		var waits: bool = not ws.door_ready()
+		main.lake_q = 4
+		main.in_hill = false
+		main.in_village = false
+		calm_enemies(false)
+		check("workshop", shut and seen and opened and down and lamp1 and planks and plug and tag and to2 and up1 and covered and pulling and lid and drained and handle and to3 and frag and clamp1 and clamps and scratch and listed and out_castle and back3 and cradle_in and latch1 and swept and latches and released and once and simji and chat and loads_ok and kept and no_mates and waits,
+			"door shut before the knight=%s first look=%s opens=%s down to B1 arrival=%s lamp 1 pip+2 bricks=%s planks=%s plug=%s tag=%s B2 arrival=%s up to B1=%s lid covers=%s pull=%s/%s drained=%s handle=%s B3 arrival=%s fragment=%s clamp1=%s clamps open the door=%s scratch=%s list=%s to castle=%s back to B3=%s cradle story=%s latch=%s sweep keeps the latch=%s (%s) three latches=%s released +10=%s once=%s simji bench=%s chatter=%d loads:%s kept=%s no early lines=%s door waits=%s" % [shut, seen, opened, down, lamp1, planks, plug, tag, to2, up1, covered, pulling, lid, drained, handle, to3, frag, clamp1, clamps, scratch, listed, out_castle, back3, cradle_in, latch1, swept, swept_note, latches, released, once, simji, chat_n, load_note, kept, no_mates, waits])
 	calm_enemies(false)
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

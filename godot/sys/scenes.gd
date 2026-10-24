@@ -94,6 +94,9 @@ const SCENES := {
 	"stairs_drop": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 2, "hour": 16.0},
 	"under": {"play": true, "village": true, "castle": true, "under": true, "hour": 16.0},
 	"under_in": {"play": true, "village": true, "castle": true, "under_in": true, "hour": 16.0},
+	"workshop1": {"play": true, "village": true, "castle": true, "workshop": 1, "hour": 16.0}, # 달지기 작업장 B1: both lamps lit, the planks shown
+	"workshop2": {"play": true, "village": true, "castle": true, "workshop": 2, "hour": 16.0}, # B2: the lid lifted, the stopper bare
+	"workshop3": {"play": true, "village": true, "castle": true, "workshop": 3, "hour": 16.0}, # B3: the work pit, one latch wound
 	"stairs_top": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 3, "hour": 16.0},
 	"scrap": {"play": true, "at": Vector2(42.5, 5.5), "hour": 17.0},
 	"shore": {"play": true, "shore": 1, "at": Vector2(18.5, 19.5), "hour": 15.0},              # the basket in the mud by day
@@ -490,6 +493,23 @@ func apply_test_args(args: PackedStringArray) -> void:
 				m.castle_q = 3
 				m.enter_under()
 				m.close_story()
+			if sc.has("workshop"): # 달지기 작업장: a floor in the state named in SCENES
+				var wi: int = int(sc.workshop) - 1
+				m.castle_q = 3
+				m.has_unbrick = true
+				m.work_door = true
+				m.work_seen = true
+				var wd: Dictionary = [{"work_q": 1, "work_lamps": [true, true]},
+					{"work_q": 2, "work_pulled": true, "work_ways": [true, false, false]},
+					{"work_q": 4, "work_cradle": true, "work_ways": [true, true, true], "work_latch": [true, false, false]}][wi]
+				wd["work_floor"] = wi + 1
+				m.workshop_zone.load_work(wd)
+				m.workshop_zone.enter_floor(wi, "A")
+				m.close_story()
+				var wx: float = Main.WORK.FLOOR_X[wi]
+				m.player.x = wx + [18.0, 8.0, 10.0][wi]
+				m.player.z = [7.6, 9.0, 14.0][wi]
+				m.snap_mates()
 			if sc.has("under"): # the lamp hall below the castle, the plug pulled
 				m.castle_q = 3
 				m.has_unbrick = true

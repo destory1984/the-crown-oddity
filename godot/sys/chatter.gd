@@ -257,6 +257,7 @@ func folk_tag_ok(id: String, tag: String) -> bool:
 		"after_night": return m.night_q >= 4
 		"after_lake": return m.lake_q >= 4
 		"after_ending": return m.story_step >= 12
+		"after_workshop": return m.work_q >= 6 # the repair bench by the square
 		"festival": return m.festival_now()
 		"errand": return folk_errand_on(id)
 	return false

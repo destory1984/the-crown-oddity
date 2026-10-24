@@ -67,6 +67,12 @@ func _draw() -> void:
 	# the ways down (violet) and up (gold) as small upright stairs of three steps, drawn on screen over their tile
 	for st: Array in map_tex.get_meta("stairs", []):
 		draw_stairs(xf * (st[0] + Vector2(0.5, 0.5)), st[1], s)
+	if main.in_workshop(): # the deep workshop's floor, B1 to B3, on a small dark tab at the top
+		var tag := "B%d" % (main.workshop_zone.floor_here() + 1)
+		var tp := Vector2(size.x / 2.0, 22.0)
+		draw_rect(Rect2(tp - Vector2(16, 12), Vector2(32, 18)), Color(0.04, 0.03, 0.08, 0.9))
+		draw_rect(Rect2(tp - Vector2(16, 12), Vector2(32, 18)), Color("#b45cff"), false, 1.0)
+		draw_string(main.ui_font, tp + Vector2(-9, 2), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#f2e6ff"))
 	# Sora's face in a small round badge marks the player
 	var u := c
 	draw_circle(u, 5.0 * s, Color("#183070"))

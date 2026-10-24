@@ -64,7 +64,7 @@ func leave_stairs() -> void:
 	m.player.z = m.castle.marks.E.y
 	m.ground_y = 0.0
 	m.gust_dir = Vector2.ZERO
-	m.ui.mini.map_tex = m.with_stair_marks(m.castle.map_tex(Main.CASTLE.CASTLE_X + Main.CASTLE.W), [Main.UNDER_STAIR])
+	m.ui.mini.map_tex = castle_map()
 	m.ui.zone_name.text = "가라앉은 달지기 성"
 	m.ui.zone_sub.text = "옥좌의 방"
 	m.snap_mates()
@@ -121,7 +121,7 @@ func enter_castle() -> void:
 	m.player.z = m.castle.marks.S.y
 	m.ground_y = 0.0
 	m.gust_dir = Vector2.ZERO
-	m.ui.mini.map_tex = m.with_stair_marks(m.castle.map_tex(Main.CASTLE.CASTLE_X + Main.CASTLE.W), [Main.UNDER_STAIR])
+	m.ui.mini.map_tex = castle_map()
 	m.ui.zone_name.text = "가라앉은 달지기 성"
 	m.ui.zone_sub.text = "굳은 성문"
 	m.snap_mates()
@@ -164,6 +164,8 @@ func leave_castle() -> void:
 # E in the castle: unbrick the gate, or read a diary page; the third page opens the moon door
 func castle_key() -> bool:
 	var me := Vector2(m.player.x, m.player.z)
+	if m.workshop_zone.door_key(): # the deep workshop's door in the great hall's north-east corner
+		return true
 	if not m.castle.gate_open:
 		for n in m.castle.gate_nodes:
 			if me.distance_to(Vector2(n.position.x, n.position.z)) < 1.6:
@@ -175,7 +177,7 @@ func castle_key() -> bool:
 				m.shake = 0.25
 				m.sfx(196, 0.5, "triangle", 0.3, -60)
 				m.toast("성문의 벽돌이 흙으로 풀렸다")
-				m.ui.mini.map_tex = m.with_stair_marks(m.castle.map_tex(Main.CASTLE.CASTLE_X + Main.CASTLE.W), [Main.UNDER_STAIR])
+				m.ui.mini.map_tex = castle_map()
 				m.set_quest(castle_quest())
 				m.save_game()
 				return true
@@ -187,7 +189,7 @@ func castle_key() -> bool:
 			m.castle.flip_lever(i)
 			m.sfx(220 + i * 60, 0.15, "square", 0.15, -60)
 			m.burst(Vector3(m.castle.levers[i].pos.x, 0.9, m.castle.levers[i].pos.y), Color("#c8962a"), 6, 1.5)
-			m.ui.mini.map_tex = m.with_stair_marks(m.castle.map_tex(Main.CASTLE.CASTLE_X + Main.CASTLE.W), [Main.UNDER_STAIR])
+			m.ui.mini.map_tex = castle_map()
 			if m.castle.vault_solved() and not was:
 				m.shake = 0.2
 				m.sfx(330, 0.4, "triangle", 0.25, 200)
@@ -239,7 +241,7 @@ func castle_key() -> bool:
 					m.castle.open_door()
 					m.shake = 0.3
 					m.sfx(150, 0.6, "triangle", 0.3, -40)
-					m.ui.mini.map_tex = m.with_stair_marks(m.castle.map_tex(Main.CASTLE.CASTLE_X + Main.CASTLE.W), [Main.UNDER_STAIR])
+					m.ui.mini.map_tex = castle_map()
 				m.set_quest(castle_quest())
 				m.save_game()
 			return true
@@ -407,10 +409,12 @@ func knight_beaten() -> void:
 		lines = lines.slice(0, lines.size() - 1) + [Main.STORY.KNIGHT_PIP] + pip_lines + [lines[lines.size() - 1]]
 	m.show_story("", lines)
 	m.set_quest("동쪽 문을 지나 정원 한가운데로 가자")
+	m.workshop_zone.door_look() # the bricks in the great hall's corner fall: the deep workshop's door
+	m.ui.mini.map_tex = castle_map()
 	m.save_game()
 
 func castle_map() -> ImageTexture:
-	return m.with_stair_marks(m.castle.map_tex(Main.CASTLE.CASTLE_X + Main.CASTLE.W), [Main.UNDER_STAIR])
+	return m.with_stair_marks(m.castle.map_tex(Main.CASTLE.CASTLE_X + Main.CASTLE.W), m.workshop_zone.castle_spots())
 
 func doll_bits() -> Array:
 	return m.enemies.filter(func(e): return e.has("doll") and not e.dead)
@@ -849,7 +853,7 @@ func leave_under(to_castle := true) -> void:
 	m.player.z = Main.UNDER_STAIR.y
 	m.ground_y = 0.0
 	m.gust_dir = Vector2.ZERO
-	m.ui.mini.map_tex = m.with_stair_marks(m.castle.map_tex(Main.CASTLE.CASTLE_X + Main.CASTLE.W), [Main.UNDER_STAIR])
+	m.ui.mini.map_tex = castle_map()
 	m.ui.zone_name.text = "가라앉은 달지기 성"
 	m.ui.zone_sub.text = "큰 방"
 	m.snap_mates()

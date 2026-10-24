@@ -283,6 +283,9 @@ func update_mate(dt: float) -> void:
 		if m.in_lake and not m.in_grotto():
 			m.lake_zone.update_mate_job(dt)
 			return
+		if m.in_workshop() and m.mate_job.get("kind", "") == "work": # B2's chain post
+			m.workshop_zone.update_pull(dt)
+			return
 		m.mate_job = {}
 	if m.garden_zone.clock_hold():
 		var hs := m.hand_spot(Main.CLOCK_HANDS.find("mulgyeol"))

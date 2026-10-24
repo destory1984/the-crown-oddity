@@ -18,6 +18,7 @@ func way_spot(i: int) -> Vector2:
 		4: return m.hill.marks.S + Vector2(2.0, -1.5)
 		5: return m.castle.marks.S + Vector2(2.5, 1.5)
 		6: return m.garden.road_marks.Y
+		7: return m.workshop_zone.way_spot() # the deepest awake floor stone under the castle
 	return Vector2.ZERO
 
 func way_known(i: int) -> bool:
@@ -29,12 +30,15 @@ func way_known(i: int) -> bool:
 		4: return m.hill_q >= 1
 		5: return m.castle_q >= 1
 		6: return m.road_q >= 1
+		7: return m.workshop_zone.deepest_way() >= 0
 	return false
 
 func build_ways() -> void:
 	var stone: Material = m.mat_color(Color("#8a8a94"))
 	var moon: Material = m.glow_mat(Color("#bcd6ff"), 0.9)
 	for i in Main.WAY_NAMES.size():
+		if i == 7: # the workshop's stones stand on its floors (workshop.gd builds them)
+			continue
 		var at := way_spot(i)
 		var g := Node3D.new()
 		var b := m.box(Vector3(0.5, 1.2, 0.4), stone)
@@ -50,8 +54,10 @@ func build_ways() -> void:
 
 func way_near() -> int:
 	for i in Main.WAY_NAMES.size():
-		if Vector2(m.player.x, m.player.z).distance_to(way_spot(i)) < 1.4:
+		if i != 7 and Vector2(m.player.x, m.player.z).distance_to(way_spot(i)) < 1.4:
 			return i
+	if m.workshop_zone.near_stone():
+		return 7
 	return -1
 
 func way_key() -> bool:
@@ -106,6 +112,7 @@ func travel(i: int) -> void:
 			4: m.enter_hill()
 			5: m.enter_castle()
 			6: m.enter_garden()
+			7: m.workshop_zone.travel_in()
 		var to := way_spot(i) + Vector2(0, 1.2)
 		m.player.x = to.x
 		m.player.z = to.y

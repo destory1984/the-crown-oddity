@@ -35,6 +35,7 @@
 #   sys/castle_zone.gd    Sunken castle: hall, knight, quarters and doll, moon stairs, the undercroft.
 #   sys/mates.gd          Companions: following, trails, health, Noeul sitting, update_mate.
 #   sys/garden_zone.gd    Garden: the heart, Hangyeol's road, the mold boss, the clock room, workers, winding.
+#   sys/workshop_zone.gd  Deep workshop: the great hall's door, three floors under the castle, the cradle, Simji's bench.
 extends Node3D
 
 # The systems: one object per sys/*.gd file (see the file map above), each holding this node as `m`.
@@ -67,6 +68,7 @@ var hill_zone := preload("res://sys/hill_zone.gd").new(self)
 var castle_zone := preload("res://sys/castle_zone.gd").new(self)
 var mates := preload("res://sys/mates.gd").new(self)
 var garden_zone := preload("res://sys/garden_zone.gd").new(self)
+var workshop_zone := preload("res://sys/workshop_zone.gd").new(self)
 
 const N := 48
 const WATER := 0
@@ -150,6 +152,8 @@ var cave_door_open := false
 var cave_marks := {}        # letter -> world Vector2 (S, P, K, D, B, E; 1 2 3 the shrine's stones)
 
 func tile_at(x: float, z: float) -> int:
+	if x >= WORK.WORK_X - 0.5:
+		return WATER if wfloors[WORK.floor_of(x)].blocked(x, z) else GRASS
 	if x >= VILLAGE.VILLAGE_X - 0.5:
 		return WATER if village.blocked(x, z) else (SAND if village.char_at(x, z) in "=:P" else GRASS)
 	if x >= UNDER.UNDER_X - 0.5 and x < VILLAGE.VILLAGE_X - 0.5:
@@ -270,6 +274,8 @@ var skip_grace := 0.0   # a short let-go of Shift or the arrows mid-river does n
 
 # water the water skip can run over: the marsh rivers and ponds, and the deep runs in the grotto
 func skip_water(x: float, z: float) -> bool:
+	if x >= WORK.WORK_X - 0.5:
+		return false
 	if x >= VILLAGE.VILLAGE_X - 0.5:
 		return village.char_at(x, z) in "~B"
 	if x >= UNDER.UNDER_X - 0.5 and x < VILLAGE.VILLAGE_X - 0.5:
@@ -420,6 +426,7 @@ func _ready() -> void:
 	hud_build.build_mate_hud(ui.root)
 	under.build(self)
 	castle_zone.build_under_stair()
+	workshop_zone.build()
 	market.build_magpie()
 	apply_settings()
 	daynight.update_daylight(0.0)
@@ -598,7 +605,7 @@ var ng_armed := 0.0         # seconds left to confirm with a second E
 
 # ---- moon waystones: a standing stone in each hub. E at one opens a list of the stones already reached;
 # a number key (1 - 6) travels there. Esc or E closes the list.
-const WAY_NAMES := ["늪 오두막", "마을 광장", "남쪽 호수 부두", "굳은 숲 입구", "바람 언덕", "달지기 성 문", "정원 앞 야영터"]
+const WAY_NAMES := ["늪 오두막", "마을 광장", "남쪽 호수 부두", "굳은 숲 입구", "바람 언덕", "달지기 성 문", "정원 앞 야영터", "달지기 작업장"]
 var way_open := false
 var way_nodes: Array = []
 
@@ -623,7 +630,20 @@ func folk_bubble_y(id: String) -> float:
 
 const CHANGES_PAGE := 100 # lines of 바뀐 것 shown before the 더 읽기 button
 const CHANGES := [
-	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
+	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
+	"",
+	"2026-10-25 아침",
+	"· v0.0.57: 성 큰 방 밑에 지하 3층짜리 곁이야기 '끝내지 못한 등불'(달지기 작업장)이 생겼다.",
+	"    - 기사를 쓰러뜨리면 큰 방 북동쪽 구석에 손 둘이 새겨진 정비 문이 드러난다. 노을과 물결이 함께 있으면 E로 열린다.",
+	"    - 지하 1층 짝등 작업장에서는 작업등 둘을 다 켜야 겹친 빛 속에 널빤지 길이 드러난다. 건너편 벽돌 마개를 풀면 아래 계단이 열린다.",
+	"    - 지하 2층 엇갈린 물길에서는 사슬 기둥 곁에서 E를 누르면 물결이 걸어가 쇠 뚜껑을 당긴다. 그 밑 마개를 풀면 남쪽 물길이 마른다.",
+	"    - 지하 3층 남겨 둔 손잡이에서는 빨간 고리가 뜨고 1초 뒤 천장 조각이 떨어진다. 벽 틈은 안전하고, 벽의 죔쇠 둘을 풀면 일 구덩이가 열린다.",
+	"    - 맨 아래 수리 요람과는 싸우지 않는다. 팔 셋이 바닥 경고 1초 뒤 차례로 휩쓸고, 그 틈에 걸쇠 셋을 감은 뒤 E로 등불을 푼다. 맞아도 감은 걸쇠는 그대로다.",
+	"    - 보상은 최대 체력 +10이고 한 번만 준다. 등불을 심지에게 주면 광장 곁에 수리대가 생기고 마을 사람 넷의 잡담이 하나씩 는다.",
+	"    - 층을 풀 때마다 그 층의 길돌이 깨어난다. 길돌 목록 8번 '달지기 작업장'이 가장 깊은 길돌로 데려간다.",
+	"    - 미니맵 위에 층 꼬리표(B1, B2, B3)가 붙고, 성 미니맵에는 문 자리에 보라색 계단이 붙는다.",
+	"    - 자동 시험 workshop이 문, 세 층의 장치, 길돌, 요람, 심지, 층마다 저장과 불러오기를 확인한다.",
+	"    - 놀 수 있는 분량은 약 302분 → 322분이 되었다.",
 	"",
 	"2026-10-25 새벽",
 	"· v0.0.56: 배경 음악이 생겼고, 설정 위쪽에 음악 단추가 생겼다.",
@@ -1250,6 +1270,8 @@ func crown_key() -> void:
 		return
 	if in_cloud() and hill_zone.cloud_key():
 		return
+	if in_workshop() and workshop_zone.work_key():
+		return
 	if in_stairs() and castle_zone.stairs_key():
 		return
 	if in_under() and castle_zone.under_key():
@@ -1281,6 +1303,8 @@ func crown_key() -> void:
 			return
 		if hollow_q == 3 and me.distance_to(village.marks.M) < 1.8:
 			simji_lantern()
+			return
+		if workshop_zone.simji_key():
 			return
 		if me.distance_to(village.marks.M) < 1.8 and errands.deliver(1, STORY.MAIL_SIMJI):
 			return
@@ -1657,7 +1681,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		toggle_settings(true)
 		return
 	if way_open and event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode >= KEY_1 and event.keycode <= KEY_7:
+		if event.keycode >= KEY_1 and event.keycode < KEY_1 + WAY_NAMES.size():
 			waystones.travel(event.keycode - KEY_1)
 			return
 		if event.keycode == KEY_ESCAPE:
@@ -1856,7 +1880,7 @@ func _process(dt: float) -> void:
 		if l.visible and not l.get_meta("dark", false):
 			var ld := Vector2(l.position.x - player.x, l.position.z - player.z).length()
 			warm = maxf(warm, clampf(1.0 - (ld - 1.5) / 2.5, 0.0, 1.0))
-	if in_cave or in_grotto() or in_under() or jar_node != null and jar_node.visible:
+	if in_cave or in_grotto() or in_under() or in_workshop() or jar_node != null and jar_node.visible:
 		warm = maxf(warm, 0.6) # the cave lamp on her, or the firefly jar at her side
 	lit = lit.lerp(Color(1.0, 0.95, 0.86), warm * night)
 	hero.modulate = Color(1, 0.5, 0.5) if player.hurt_t > 0 else Color(lit.r, lit.g, lit.b, 0.3 if blink else 1.0)
@@ -1918,6 +1942,10 @@ func _process(dt: float) -> void:
 		fade_then(enter_under)
 	if in_under() and fade_rect.color.a == 0.0:
 		castle_zone.update_under(dt)
+	if in_castle():
+		workshop_zone.update_castle()
+	if in_workshop() and fade_rect.color.a == 0.0:
+		workshop_zone.update_work(dt)
 	if in_stairs() and gust_dir == Vector2.ZERO and Vector2(player.x, player.z).distance_to(stairs.marks.S) < 0.8 and fade_rect.color.a == 0.0:
 		fade_then(castle_zone.leave_stairs)
 	if in_stairs() and Vector2(player.x, player.z).distance_to(stairs.marks.N) < 0.8 and fade_rect.color.a == 0.0:
@@ -2084,6 +2112,24 @@ var under_guards_done := false
 var under_chest_open := false
 var under_side_open := false
 var under_diary_read := false
+
+# ---- 달지기 작업장 (side story "끝내지 못한 등불", DESIGN.md 깊은 작업장): three floors under the great hall, x >= 620.
+# work_q: 0 not entered, 1 B1 (lamps, plug), 2 B1 cleared, 3 B2 cleared (stopper), 4 B3 clamps open (the cradle),
+# 5 the lantern released, 6 given to Simji (the repair bench stands in the village)
+const WORK := preload("res://workshop.gd")
+var wfloors: Array = [WORK.new(0), WORK.new(1), WORK.new(2)]
+const WORK_DOOR := Vector2(CASTLE.CASTLE_X + 21, 8) # the floor tile in front of the door in the great hall's north-east corner
+var work_q := 0
+var work_floor := 0          # deepest floor reached (1 - 3)
+var work_door := false       # the door is open
+var work_seen := false       # its first look after the knight was told
+var work_pulled := false     # B2: Mulgyeol lifted the lid
+var work_cradle_seen := false
+var work_hp := false         # the +10 max HP was given (kept by a new round)
+var work_reads := [false, false, false]  # the repair tag, the polished handle, the scratched correction
+var work_ways := [false, false, false]   # each floor's return waystone awake
+var work_latch := [false, false, false]  # the cradle's latches (south, west, east)
+var work_spawned := [false, false, false]
 var has_lamp := false          # 한결의 등잔, a keepsake
 
 # ---- the bigger village (48x36): the market's honesty-box stalls and its target yard, the inn, and the pond's
@@ -2301,6 +2347,7 @@ func quarters_target() -> Vector3: return castle_zone.quarters_target()
 func step_target() -> Vector3: return castle_zone.step_target()
 func load_quarters(d: Dictionary) -> void: castle_zone.load_quarters(d)
 func in_under() -> bool: return castle_zone.in_under()
+func in_workshop() -> bool: return workshop_zone.in_workshop()
 func chest_sprite(at: Vector2, tint: Color) -> Sprite3D: return castle_zone.chest_sprite(at, tint)
 func enter_under() -> void: castle_zone.enter_under()
 func in_hangyeol_room(p: Vector2) -> bool: return castle_zone.in_hangyeol_room(p)
