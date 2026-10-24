@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -1920,6 +1920,49 @@ func run() -> void:
 		await wait(0.1)
 		check("quest_layout", bad.is_empty() and blocks_n >= 6 and w_touch and w_key and w_back,
 			"%d layouts, %d bad %s; blocks %d; wording touch/key/touch again=%s/%s/%s" % [cases, bad.size(), bad.slice(0, 3), blocks_n, w_touch, w_key, w_back])
+	if want.call("story_pad"):
+		# the story box: the space above the first text line equals the space below the last, on one-line and three-line
+		# narration and on a named line, at 645, 900 and 1600 px and in the touch layout (the user, 2026-10-25)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		var root: Window = main.get_tree().root
+		var scale0 := [root.content_scale_mode, root.content_scale_aspect, root.content_scale_size]
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		var lines := ["|-|달지기 책 1/5", "|-|바람이 잦아든 방에는 오래된 책장이 줄지어 서 있고, 그 사이로 먼지가 천천히 내려앉는다. 소라는 숨을 죽인 채 한 걸음씩 안으로 들어갔다. 책장 끝에서 낡은 책 한 권이 희미하게 빛나고 있었다.", "소라|calm|여기서 잠깐 쉬었다 가자."]
+		var bad: Array = []
+		var worst := 0.0
+		var cases := 0
+		for touch in [false, true]:
+			if touch:
+				main.enable_touch()
+			for w in [645, 900, 1600]:
+				if touch and w != 900:
+					continue
+				root.content_scale_size = Vector2i(w, 480) if not touch else Vector2i(960, 540)
+				await wait(0.1)
+				var vs: Vector2 = main.get_viewport().get_visible_rect().size
+				for l in lines:
+					main.show_story("", [l])
+					main.fit_story()
+					var cap: Control = main.ui.story_cap
+					var tx: Control = main.ui.story_text
+					var box_h: float = cap.offset_bottom - cap.offset_top
+					var top: float = tx.position.y
+					var bot: float = box_h - (tx.position.y + tx.size.y)
+					var r: Rect2 = cap.get_global_rect()
+					worst = maxf(worst, absf(top - bot))
+					cases += 1
+					if absf(top - bot) > 2.0 or r.position.x < 0.0 or r.end.x > vs.x + 0.5 or r.position.y < 0.0 or r.end.y > vs.y + 0.5:
+						bad.append("%s %d %s top %.1f bottom %.1f box %s" % [touch, w, l.substr(0, 6), top, bot, r])
+		main.close_story()
+		main.disable_touch()
+		root.content_scale_mode = scale0[0]
+		root.content_scale_aspect = scale0[1]
+		root.content_scale_size = scale0[2]
+		await wait(0.1)
+		check("story_pad", bad.is_empty(), "%d boxes, worst top/bottom gap %.2f px, bad %s" % [cases, worst, bad.slice(0, 3)])
 	if want.call("folk_sleep"):
 		# after dark the villagers walk home and go in (Simji stays out); in his house Doran sleeps and E still talks to
 		# him; in the morning they come back out (the user asked, 2026-10-24)

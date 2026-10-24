@@ -218,6 +218,8 @@ func start_game(with_story := true) -> void:
 	tw.tween_property(m.ui.title, "modulate:a", 0.0, 1.2)
 	tw.tween_callback(m.ui.title.queue_free)
 
+const STORY_PAD := 20.0 # least space above and below the text block
+
 func fit_story() -> void:
 	var vw := m.get_viewport().get_visible_rect().size.x
 	var pw := minf(896.0, vw - 2.0 * (STORY_MARGIN + 12.0)) # the frame draws 10px outside its rect
@@ -231,7 +233,13 @@ func fit_story() -> void:
 	m.ui.story_cap.offset_right = cw / 2.0
 	m.ui.story_text.size.x = cw - m.ui.story_text.position.x - 40.0
 	m.ui.story_hint.position.x = cw - 35.0
-	# the box grows upward when the text needs more lines than its 144 px hold (big text on a small screen)
-	var ch := maxf(Main.STORY_BOX_H, m.ui.story_text.position.y + m.ui.story_text.get_minimum_size().y + 14.0)
+	# the box grows upward when the text needs more lines than its 144 px hold (big text on a small screen); the text
+	# block (and the face beside it) sits in the middle, so the space above the first line equals the space below the last
+	# (the user, 2026-10-25: the narration sat low in the box). The name tab hangs on the top edge and ends 14 px inside.
+	var th: float = m.ui.story_text.get_minimum_size().y
+	var ch := maxf(Main.STORY_BOX_H, th + 2.0 * STORY_PAD)
 	m.ui.story_cap.offset_top = m.ui.story_cap.offset_bottom - ch
+	m.ui.story_text.size.y = th
+	m.ui.story_text.position.y = (ch - th) / 2.0
+	m.ui.story_face.position.y = (ch - m.ui.story_face.size.y) / 2.0
 	m.ui.story_hint.position.y = ch - 28.0

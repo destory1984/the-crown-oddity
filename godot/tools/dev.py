@@ -85,7 +85,7 @@ def shot(names, extra):
         out = SHOTS / f"{name}.png"
         out.unlink(missing_ok=True)
         # the GUI exe renders reliably; the console exe sometimes exits before drawing
-        p = subprocess.Popen([str(GODOT_GUI), "--path", ".", "--", f"--scene={name}", f"--shot={out.as_posix()}", *extra],
+        p = subprocess.Popen([str(GODOT_GUI), "--audio-driver", "Dummy", "--path", ".", "--", f"--scene={name}", f"--shot={out.as_posix()}", *extra],
                              cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         deadline = time.time() + 45
         while time.time() < deadline and not out.exists():

@@ -84,6 +84,7 @@ const SCENES := {
 	"noeul_sit": {"play": true, "noeul_sit": true, "at": Vector2(20, 30), "hour": 13.0}, # Noeul sits while Sora rests
 	"folk_talk": {"play": true, "village": true, "folk_talk": true, "hour": 14.0},           # a villager's chatter balloon
 	"quest_narrow": {"play": true, "quest_narrow": true, "at": Vector2(20, 22), "hour": 13.0}, # 645 px wide, two companions, a long quest line
+	"story_pad": {"play": true, "story_pad": true, "at": Vector2(20, 22), "hour": 13.0}, # 645 px wide, a narration line in the story box
 	"pips12": {"play": true, "pips12": true, "at": Vector2(20, 22), "hour": 13.0},          # the moon gauge grown to 12
 	"stairs": {"play": true, "village": true, "castle": true, "stairs": true, "hour": 16.0},
 	"stairs_foot": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 0, "hour": 16.0},
@@ -664,6 +665,12 @@ func apply_test_args(args: PackedStringArray) -> void:
 		root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 		root.content_scale_size = Vector2i(645, 480)
 		m.set_quest("동쪽 출구로 나가자 (E). 길을 막은 회색 나무는 팔찌로 하나씩 풀 수 있다")
+	if sc.has("story_pad"):
+		var root: Window = m.get_tree().root
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root.content_scale_size = Vector2i(645, 480)
+		m.get_tree().create_timer(1.0).timeout.connect(func(): m.show_story("", ["|-|달지기 책 1/5"]); m.ui.story_text.visible_characters = -1)
 	if sc.has("pips12"):
 		m.pip_max = 12
 		m.crown_pips = 10
