@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -1833,7 +1833,7 @@ func run() -> void:
 		root.content_scale_aspect = scale0[1]
 		root.content_scale_size = scale0[2]
 		await wait(0.1)
-		var desk: bool = main.ui.help_rows == main.ui.help_keys_rows and main.ui.quest.offset_left == -300.0 and main.ui.boss.offset_left == -220.0 \
+		var desk: bool = main.ui.help_rows == main.ui.help_keys_rows \
 			and not main.ui.shop_back.visible and main.ui.shop_board.scale == Vector2.ONE and main.ui.hint.visible
 		var q0: String = main.ui.quest.text
 		main.touch_ui = true # on phones the keyboard words read as the touch keys
@@ -1844,6 +1844,82 @@ func run() -> void:
 		calm_enemies(false)
 		check("touch_controls", words_ok and moved > 1.5 and runs and swung and stopped and guards and unguards and no_swing and clear and backs and touch_help and shop_ok and keys_back and desk,
 			"stick walked %.1f tiles, runs at the rim=%s sword while walking=%s let go stops=%s shield held/let go=%s/%s a tap on the world does not swing=%s; layout clear=%s (quest %s boss %s) back keys 56=%s touch help=%s shop fits, keys aside=%s back after=%s desktop again=%s" % [moved, runs, swung, stopped, guards, unguards, no_swing, clear, quest_r, boss_r, backs, touch_help, shop_ok, keys_back, desk])
+	if want.call("quest_layout"):
+		# the quest line is laid out from real rects: at every window size, with 0 - 2 companions and the boss bar on or
+		# off, its ornament box stays on screen and clear of the status panel, the dial, the companions' rows, the boss
+		# bar, the minimap and the menu keys (the user, 2026-10-25: it ran over the companions); the wording follows the
+		# input used last
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		var root: Window = main.get_tree().root
+		var scale0 := [root.content_scale_mode, root.content_scale_aspect, root.content_scale_size]
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		var quest0: String = main.quest_raw
+		var texts := ["동쪽 출구로 나가자 (E)", "벽돌 벽을 팔찌로 풀며 숲 동쪽 끝의 노을에게 가자. 길을 막은 회색 나무는 팔찌로 하나씩 풀 수 있다"]
+		var sizes := [Vector2i(645, 480), Vector2i(900, 600), Vector2i(1179, 700), Vector2i(1280, 720), Vector2i(1600, 900), Vector2i(960, 540)]
+		var bad: Array = []
+		var cases := 0
+		var wrapped_long := true
+		for touch in [false, true]:
+			if touch:
+				main.enable_touch()
+			for sz in sizes:
+				if touch and sz != Vector2i(960, 540):
+					continue
+				root.content_scale_size = sz
+				await wait(0.1)
+				var vs: Vector2 = main.get_viewport().get_visible_rect().size
+				for n_mates in [0, 1, 2]:
+					for boss in [false, true]:
+						for ti in 2:
+							main.ui.boss.visible = boss
+							for i in 2:
+								main.ui.mate_rows[i].row.visible = i < n_mates
+							main.set_quest(texts[ti])
+							main.hud_build.layout_top()
+							var d: Rect2 = main.hud_build.quest_deco
+							var qr: Rect2 = main.ui.quest.get_global_rect()
+							var ok: bool = d.position.x >= 0.0 and d.end.x <= vs.x and d.position.y >= 0.0 and d.end.y <= vs.y and d.encloses(qr.grow(-0.5))
+							var why := ""
+							for r in main.hud_build.quest_blocks():
+								if d.intersects(r):
+									ok = false
+									why = str(r)
+							if boss:
+								var br: Rect2 = main.hud_build.boss_rect()
+								for r in [main.hud_build.STATUS_RECT, main.hud_build.DIAL_RECT, main.hud_build.mates_rect(), main.ui.mini.get_parent().get_global_rect()]:
+									if br.intersects(r) and (r as Rect2).size != Vector2.ZERO:
+										ok = false
+										why = "boss " + str(r)
+							cases += 1
+							if not ok:
+								bad.append("%s %s mates %d boss %s text %d deco %s qr %s %s" % [touch, vs, n_mates, boss, ti, d, qr, why])
+				main.ui.boss.visible = false
+		var blocks_n: int = main.hud_build.quest_blocks().size()
+		main.disable_touch()
+		root.content_scale_mode = scale0[0]
+		root.content_scale_aspect = scale0[1]
+		root.content_scale_size = scale0[2]
+		# wording: a touch layout says the touch names until a key is pressed, then the key names, and back after a touch
+		main.enable_touch()
+		main.set_quest("벽돌 벽을 풀자 (E)")
+		var w_touch: bool = "팔찌 단추" in main.ui.quest.text
+		var kev := InputEventKey.new()
+		kev.keycode = KEY_W
+		kev.pressed = true
+		main._input(kev)
+		var w_key: bool = "(E)" in main.ui.quest.text and main.quest_raw == "벽돌 벽을 풀자 (E)"
+		var tev := InputEventScreenTouch.new()
+		tev.pressed = true
+		main._input(tev)
+		var w_back: bool = "팔찌 단추" in main.ui.quest.text
+		main.disable_touch()
+		main.set_quest(quest0)
+		await wait(0.1)
+		check("quest_layout", bad.is_empty() and blocks_n >= 6 and w_touch and w_key and w_back,
+			"%d layouts, %d bad %s; blocks %d; wording touch/key/touch again=%s/%s/%s" % [cases, bad.size(), bad.slice(0, 3), blocks_n, w_touch, w_key, w_back])
 	if want.call("folk_sleep"):
 		# after dark the villagers walk home and go in (Simji stays out); in his house Doran sleeps and E still talks to
 		# him; in the morning they come back out (the user asked, 2026-10-24)

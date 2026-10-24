@@ -15,7 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TABLE = ROOT / "i18n" / "text.csv"
 LANGS = ["ko", "en", "ja", "zh_CN"]
-SOURCES = ["main.gd", "hud.gd", "story_lines.gd", "village.gd", "marsh.gd"]
+SOURCES = ["main.gd", "hud.gd", "story_lines.gd", "village.gd", "marsh.gd"] + sorted(
+    p.relative_to(ROOT).as_posix() for p in (ROOT / "sys").glob("*.gd"))
 HANGUL = re.compile(r"[가-힣]")
 LITERAL = re.compile(r'"((?:[^"\\n]|\.)*)"')
 

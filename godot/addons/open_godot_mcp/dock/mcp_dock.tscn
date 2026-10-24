@@ -1,0 +1,288 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://addons/open_godot_mcp/dock/mcp_dock.gd" id="1"]
+[ext_resource type="Script" path="res://addons/open_godot_mcp/dock/i18n.gd" id="2"]
+
+[node name="OpenGodot" type="Control"]
+clip_contents = true
+script = ExtResource("1")
+custom_minimum_size = Vector2(200, 320)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Open Godot MCP"
+autowrap_mode = 3
+
+[node name="StatusLabel" type="Label" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Status: Not connected"
+autowrap_mode = 3
+
+[node name="InfoLabel" type="Label" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+autowrap_mode = 3
+
+[node name="UpdateBanner" type="VBoxContainer" parent="Scroll/VBox"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="UpdateLabel" type="Label" parent="Scroll/VBox/UpdateBanner"]
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+
+[node name="UpdateBtnRow" type="HBoxContainer" parent="Scroll/VBox/UpdateBanner"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="UpdateBtn" type="Button" parent="Scroll/VBox/UpdateBanner/UpdateBtnRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Update"
+
+[node name="ReleaseNotesBtn" type="Button" parent="Scroll/VBox/UpdateBanner/UpdateBtnRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Release notes"
+
+[node name="UpdateSeparator" type="HSeparator" parent="Scroll/VBox/UpdateBanner"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Spacer1" type="Control" parent="Scroll/VBox"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ReconnectBtn" type="Button" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Reconnect"
+
+[node name="LangRow" type="HBoxContainer" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="LangLabel" type="Label" parent="Scroll/VBox/LangRow"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Language"
+
+[node name="LangOption" type="OptionButton" parent="Scroll/VBox/LangRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 0)
+
+[node name="Spacer2" type="HSeparator" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScreenshotSection" type="VBoxContainer" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ScreenshotTitle" type="Label" parent="Scroll/VBox/ScreenshotSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Screenshot cleanup"
+autowrap_mode = 3
+
+[node name="ScreenshotRow1" type="VBoxContainer" parent="Scroll/VBox/ScreenshotSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="MaxCountLabel" type="Label" parent="Scroll/VBox/ScreenshotSection/ScreenshotRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Max count"
+autowrap_mode = 3
+
+[node name="MaxCountSpin" type="SpinBox" parent="Scroll/VBox/ScreenshotSection/ScreenshotRow1"]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 999.0
+value = 50.0
+
+[node name="ScreenshotRow2" type="VBoxContainer" parent="Scroll/VBox/ScreenshotSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="MaxAgeLabel" type="Label" parent="Scroll/VBox/ScreenshotSection/ScreenshotRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Max age (h)"
+autowrap_mode = 3
+
+[node name="MaxAgeSpin" type="SpinBox" parent="Scroll/VBox/ScreenshotSection/ScreenshotRow2"]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 720.0
+value = 24.0
+
+[node name="AgnesSection" type="VBoxContainer" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="AgnesTitle" type="Label" parent="Scroll/VBox/AgnesSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Agnes API (free)"
+autowrap_mode = 3
+
+[node name="AgnesEnable" type="CheckButton" parent="Scroll/VBox/AgnesSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Enable Agnes"
+
+[node name="AgnesKeyLabel" type="Label" parent="Scroll/VBox/AgnesSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Agnes API Key"
+autowrap_mode = 3
+
+[node name="AgnesKeyEdit" type="TextEdit" parent="Scroll/VBox/AgnesSection"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+secret = true
+placeholder_text = "One key per line:
+sk-xxx
+sk-yyy"
+
+[node name="AgnesVision" type="CheckButton" parent="Scroll/VBox/AgnesSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Vision"
+
+[node name="AgnesImageGen" type="CheckButton" parent="Scroll/VBox/AgnesSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Image gen"
+
+[node name="AgnesVideoGen" type="CheckButton" parent="Scroll/VBox/AgnesSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Video gen"
+
+[node name="NvidiaSection" type="VBoxContainer" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="NvidiaTitle" type="Label" parent="Scroll/VBox/NvidiaSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "NVIDIA API (free)"
+autowrap_mode = 3
+
+[node name="NvidiaEnable" type="CheckButton" parent="Scroll/VBox/NvidiaSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Enable NVIDIA"
+
+[node name="NvidiaKeyLabel" type="Label" parent="Scroll/VBox/NvidiaSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "NVIDIA API Key"
+autowrap_mode = 3
+
+[node name="NvidiaKeyEdit" type="TextEdit" parent="Scroll/VBox/NvidiaSection"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+secret = true
+placeholder_text = "One key per line:
+nvapi-xxx
+nvapi-yyy"
+
+[node name="NvidiaVision" type="CheckButton" parent="Scroll/VBox/NvidiaSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Vision"
+
+[node name="NvidiaImageGen" type="CheckButton" parent="Scroll/VBox/NvidiaSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Image gen"
+
+[node name="ConfigLocationSection" type="VBoxContainer" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ConfigLocationTitle" type="Label" parent="Scroll/VBox/ConfigLocationSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Config location"
+autowrap_mode = 3
+
+[node name="ProjectConfigCheck" type="CheckButton" parent="Scroll/VBox/ConfigLocationSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Use project-level config"
+
+[node name="ConfigPathLabel" type="Label" parent="Scroll/VBox/ConfigLocationSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+autowrap_mode = 3
+
+[node name="SaveBtn" type="Button" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Save"
+
+[node name="SaveStatusLabel" type="Label" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+autowrap_mode = 3
+
+[node name="GitWarningLabel" type="Label" parent="Scroll/VBox"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+
+[node name="ConfigHelpLabel" type="Label" parent="Scroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+autowrap_mode = 3

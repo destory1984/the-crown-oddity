@@ -2,7 +2,46 @@
 
 ## 구성
 
-- 게임 전부를 `main.gd` 가 코드로 짓는다. `main.tscn` 은 거의 비어 있다.
+- 게임 전부를 코드로 짓는다. `main.tscn` 은 거의 비어 있다.
+- `main.gd` (약 2,200줄)에는 모든 상태 변수, 둘 이상의 파일이 쓰는 상수, `_ready` `_process` `_input`, E 키(`crown_key`, `interact`), 타일과 높이 도우미, `toast`, `set_quest` 만 남는다.
+- 나머지는 `sys/*.gd` 28개에 있다. 각 파일은 `RefCounted` 이고 `main.gd` 맨 위에서 `var 이름 := preload("res://sys/이름.gd").new(self)` 로 한 번 만든다.
+  - 그 안의 코드는 main 노드를 `m` 으로 받아 상태를 `m.x`, main 상수를 `Main.X`, 다른 시스템을 `m.이름.f()` 로 부른다.
+  - 다른 스크립트(`tools/autoplay.gd`, `hud.gd`, 지역 스크립트)가 부르는 함수와 세 파일 이상이 쓰는 함수는 `main.gd` 끝의 "forwarders" 칸에 한 줄 전달 함수가 있다. 그래서 `main.f()` 는 그대로 된다.
+  - 새 함수를 sys 파일에 넣고 시험이나 다른 스크립트가 `main.f()` 로 부르게 하려면 전달 함수도 한 줄 더한다.
+  - 시험 장면 표 `SCENES` 는 `sys/scenes.gd` 에 있다. `dev.py scenes` 도 거기서 읽는다.
+- 파일 지도 (줄 수는 2026-10-25 기준):
+
+| 파일 | 줄 | 들어 있는 것 |
+|---|---|---|
+| `sys/scenes.gd` | 678 | 시험 장면 표 SCENES, apply_test_args |
+| `sys/sound.gd` | 68 | sfx 합성, 발소리 |
+| `sys/effects.gd` | 247 | 입자, 폭발, 고리, 칼 휘두름 시안, 피해 숫자 |
+| `sys/world_build.gd` | 787 | 환경, 섬 지도, 다리, 지형, 풀, 소품, 등불, 오두막 |
+| `sys/shop.gd` | 100 | 보리 할머니 가게: 열기, 값, 사기 |
+| `sys/sora.gd` | 372 | 소라 만들기, 그림 칸, 서 있는 동작, 맞기, 넘어짐, 쓰러짐 |
+| `sys/combat.gd` | 375 | 피해, 경험치, 공격, 달려 베기, 모아 베기, 기술, 물약, 회피 |
+| `sys/monsters.gd` | 670 | 고블린, 늑대, 박쥐, 고슴도치, 보스, 괴물 갱신, 던진 벽돌 |
+| `sys/daynight.gd` | 95 | 시각, 달 모양, 시간 넘기기, 해와 하늘 빛 |
+| `sys/hud_build.gd` | 771 | HUD 판, 글, 막대, build_hud, 동료 막대, 달빛 칸, 터치 화면 |
+| `sys/story.gd` | 237 | 이야기 삽화 장면, 첫 장면들, show_story |
+| `sys/save.gd` | 482 | 저장과 불러오기, 옛 저장 고치기, 처음부터 |
+| `sys/menus.gd` | 621 | 메뉴 모양, 설정, 도움말, 소리 단추, 일지 |
+| `sys/chatter.gd` | 330 | 동료 잡담, 마을 사람 잡담 말풍선 |
+| `sys/minigames.gd` | 313 | 달빛 시련, 바람개비 경주, 낚시 |
+| `sys/folk.gd` | 465 | 마을 집 안, 밤에 자기, 낮 일과와 길, 찬장 |
+| `sys/errands.gd` | 362 | 업적, 도란의 편지, 축제, 새 바퀴, 실마리 마을 사람, 심부름 |
+| `sys/waystones.gd` | 114 | 달 이정표 목록과 이동 |
+| `sys/village_life.gd` | 373 | 마을 드나들기, 등불 값, 달빛 칸, 등불 밤, 콩알의 꼬마 |
+| `sys/market.gd` | 382 | 장터 가판, 과녁, 여관, 병 편지, 까치 도둑 |
+| `sys/cave.gd` | 804 | 동굴 짓기, 돌단, 울림 수정, 물길 끝 굴, 수레두더지 |
+| `sys/shore.gd` | 276 | 깨어난 물가: 바구니, 부표, 걸림, 물가 괴물 |
+| `sys/forest_zone.gd` | 633 | 굳은 숲: 벽, 숲터, 다람쥐 우리, 남쪽 골짜기, 다람쥐 나무 |
+| `sys/lake_zone.gd` | 649 | 남쪽 호수: 물결, 거북, 아랫못, 물빛 동굴과 게 |
+| `sys/hill_zone.gd` | 635 | 바람 언덕: 구름 둔덕, 돌풍, 허수아비, 방앗간, 바람 달리기, 매 |
+| `sys/castle_zone.gd` | 1027 | 달지기 성: 큰 방, 기사, 숙소와 인형, 달의 계단, 잠긴 층 |
+| `sys/mates.gd` | 303 | 동료 따라오기, 발자취, 체력, 노을 앉기 |
+| `sys/garden_zone.gd` | 951 | 정원: 한가운데, 한결의 길, 곰팡이 보스, 큰 태엽 방, 일꾼, 감기 |
+
 - `minimap.gd` 둥근 미니맵, `sky.gd` 왼쪽 위 해와 달 창, `shaders/` 지형, 풀, 물, 틸트시프트.
 - 기획은 `DESIGN.md`. 무엇을 만들지, 밸런스를 정할 때는 기획자 에이전트(`designer`)를 먼저 부른다.
 - 웹 사이트 저장소는 `../rpg_demo` (GitHub `destory1984/the-crown-oddity`). 맨 위에 웹 실행 파일, `godot/` 에 이 프로젝트 원본 사본이 들어간다.
@@ -32,7 +71,7 @@
 
 1. 고친다.
 2. `python tools/dev.py check` : 스크립트 문법과 타입 오류를 잡는다. `tools/autoplay.gd` 는 시험을 돌릴 때만 읽히므로 check가 그 파일의 오류를 못 잡는다. 시험이 멈추면(TIMED OUT) 먼저 그 파일의 형 추론 오류(`:=`)를 의심한다. GDScript는 `:=` 로 타입을 추론할 수 없는 값(사전에서 꺼낸 값 등)에서 자주 막힌다. 그런 곳은 `var x: float =` 처럼 타입을 적는다.
-3. `python tools/dev.py shot 장면이름` : `shots/장면이름.png` 를 읽어 눈으로 확인한다. 장면은 `python tools/dev.py scenes` (title, start, night, dusk, noon, cottage, shop, boss, bridge, faint). 새 상황을 확인해야 하면 `main.gd` 의 `SCENES` 에 장면을 더한다. `--hour=23 --day=4` 로 시각과 날짜를 덮어쓸 수 있다.
+3. `python tools/dev.py shot 장면이름` : `shots/장면이름.png` 를 읽어 눈으로 확인한다. 장면은 `python tools/dev.py scenes` (title, start, night, dusk, noon, cottage, shop, boss, bridge, faint). 새 상황을 확인해야 하면 `sys/scenes.gd` 의 `SCENES` 에 장면을 더한다. `--hour=23 --day=4` 로 시각과 날짜를 덮어쓸 수 있다.
 4. `python tools/dev.py test` : 자동 플레이 시험(`tools/autoplay.gd`). 진짜 게임에 클릭과 키를 넣어 결과를 본다. 시작 화면, 다리 4곳 건너기, 상점에서 사기, 발소리, 보스 곁 12초 버티기, 쓰러짐 뒤 되돌림. 사용자가 찾아 준 버그는 고친 뒤 여기에 시험으로 더한다.
 5. 소리를 바꿨으면 `python tools/dev.py sound` : 효과음마다 길이, 크기(peak, rms), 쉿 소리 정도(zcr)를 숫자로 보고 `shots/sounds/*.wav` 를 남긴다. zcr이 0.15를 넘으면 쉿 소리가 난다.
 6. 화면을 크게 바꾸기 전에 `python tools/dev.py baseline 장면` 으로 기준 사진을 두면, 다음 `shot` 이 기준과 몇 % 다른지 알려 준다. 시간대가 다르면 30% 넘게 다르다. 같은 조건에서 5%를 넘으면 의도한 변화인지 본다.

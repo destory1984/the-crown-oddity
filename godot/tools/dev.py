@@ -66,7 +66,7 @@ def check():
 
 
 def scene_names():
-    src = (ROOT / "main.gd").read_text(encoding="utf-8")
+    src = (ROOT / "sys" / "scenes.gd").read_text(encoding="utf-8")  # the SCENES table moved out of main.gd
     block = src[src.index("const SCENES := {"):]
     block = block[: block.index("\n}\n")]
     return re.findall(r'^\t"(\w+)":', block, re.M)

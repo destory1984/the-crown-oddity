@@ -14,7 +14,7 @@
 - `python tools/dev.py shot 장면이름` : `shots/장면이름.png` 를 남긴다. 한 장에 20 → 40초. 찍은 그림은 열어서 눈으로 본다.
 - `python tools/dev.py test 시험이름` : `tools/autoplay.gd` 의 자동 시험 하나를 돌린다. 하나에 1 → 3분.
 - Godot 창이 멈춰 남으면 `python tools/dev.py kill`.
-- 지도는 `main.gd` 의 `CAVE_ROWS`(지하 동굴)와 지역마다의 `*.gd` 의 `ROWS` 글자 지도다. `#` 벽, `.` 바닥, `~` 깊은 물, `_` 무너진 틈, `W` 벽돌 벽, `D` 문, `S` `N` `E` 들고 나는 곳이다. 지역 좌표표는 `CLAUDE.md` 에 있다.
+- 지도는 `sys/cave.gd` 의 `CAVE_ROWS`(지하 동굴)와 지역마다의 `*.gd` 의 `ROWS` 글자 지도다. `#` 벽, `.` 바닥, `~` 깊은 물, `_` 무너진 틈, `W` 벽돌 벽, `D` 문, `S` `N` `E` 들고 나는 곳이다. 지역 좌표표는 `CLAUDE.md` 에 있다.
 
 ## 볼 것
 

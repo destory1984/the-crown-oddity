@@ -112,18 +112,12 @@ func _draw() -> void:
 	# zone name, small, under the dial
 	text(Vector2(10, 254), main.ui.zone_name.text, 14, TEXT)
 	text(Vector2(10, 272), main.ui.zone_sub.text, 11, DIM)
-	# ---- quest ornaments
-	if main.ui.quest.visible:
-		var cx := vs.x / 2.0
-		var qy: float = main.ui.quest.position.y
-		var low := qy + 34.0
-		var top_half := 140.0
-		if main.touch_ui: # phones: the line sits in the free width and may wrap to two lines
-			cx = main.ui.quest.position.x + main.ui.quest.size.x / 2.0
-			low = qy + main.ui.quest.size.y + 8.0
-			top_half = minf(140.0, main.ui.quest.size.x / 2.0)
-		for y in [qy - 8.0, low]:
-			var half := top_half if y < qy else 80.0
+	# ---- quest ornaments: from the box hud_build laid the quest text out in, so no line crosses the text
+	if main.ui.quest.visible and main.hud_build.quest_deco.size != Vector2.ZERO:
+		var d: Rect2 = main.hud_build.quest_deco
+		var cx := d.get_center().x
+		var half := d.size.x / 2.0
+		for y in [d.position.y + 4.0, d.end.y - 4.0]:
 			draw_line(Vector2(cx - half, y), Vector2(cx - 10, y), GOLD_DIM, 1.0)
 			draw_line(Vector2(cx + 10, y), Vector2(cx + half, y), GOLD_DIM, 1.0)
 			diamond(Vector2(cx, y), 4, GOLD)
