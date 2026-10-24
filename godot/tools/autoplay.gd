@@ -3843,6 +3843,7 @@ func run() -> void:
 		main.in_garden = false
 		main.in_cave = false
 		main.join_noeul()
+		main.join_mate()
 		calm_enemies(true)
 		var risers: Array = main.enemies.filter(func(e): return e.dead and not e.get("cave", false) and not e.get("boss", false))
 		for e in risers:
@@ -3853,16 +3854,18 @@ func run() -> void:
 		main.player.vz = 0.0
 		main.last_input_t = main.t
 		var spr: Sprite3D = main.mate2.get_child(0)
+		var mspr: Sprite3D = main.mate.get_child(0)
 		await wait(1.5)
-		var standing: bool = not main.noeul_sitting and spr.hframes == 3
+		var standing: bool = not main.noeul_sitting and spr.hframes == 3 and not main.mulgyeol_sitting and mspr.hframes == 2
 		main.last_input_t = main.t - 20.0 # no key for 20 s
 		await wait(1.0)
 		var sat: bool = main.noeul_sitting and spr.hframes == 1 and spr.texture.resource_path.ends_with("noeul_rest.png")
+		var msat: bool = main.mulgyeol_sitting and mspr.hframes == 1 and mspr.texture.resource_path.ends_with("mulgyeol_rest.png") and absf(mspr.offset.y - 90.0) < 0.1 			and Vector2(main.mate.position.x - main.mate2.position.x, main.mate.position.z - main.mate2.position.z).length() >= 0.9
 		hold_world(Vector2(1, 0))
 		main.last_input_t = main.t
 		await wait(0.4)
 		release()
-		var up: bool = not main.noeul_sitting and spr.hframes == 3 and spr.texture.resource_path.ends_with("noeul.png")
+		var up: bool = not main.noeul_sitting and spr.hframes == 3 and spr.texture.resource_path.ends_with("noeul.png") and not main.mulgyeol_sitting and mspr.hframes == 2 and mspr.texture.resource_path.ends_with("mulgyeol.png") and absf(mspr.offset.y - 85.0) < 0.1
 		main.player.vx = 0.0
 		main.player.vz = 0.0
 		await wait(1.0)
@@ -3870,7 +3873,7 @@ func run() -> void:
 		main.spawn_enemy(Vector2(main.player.x + 4.0, main.player.z)) # a monster near: he does not sit
 		var gob: Dictionary = main.enemies[main.enemies.size() - 1]
 		await wait(0.5)
-		var fight_up: bool = not main.noeul_sitting
+		var fight_up: bool = not main.noeul_sitting and not main.mulgyeol_sitting
 		if not gob.dead:
 			gob.dead = true
 			gob.node.queue_free()
@@ -3880,7 +3883,7 @@ func run() -> void:
 			e.respawn = 8.0
 		main.last_input_t = main.t
 		calm_enemies(false)
-		check("noeul_rest", standing and sat and up and fight_up, "standing at first=%s sits on the rest picture while Sora rests=%s stands when she moves=%s stays up with a monster near=%s" % [standing, sat, up, fight_up])
+		check("noeul_rest", standing and sat and msat and up and fight_up, "standing at first=%s Noeul sits on the rest picture while Sora rests=%s Mulgyeol too, apart from him=%s both stand when she moves=%s both stay up with a monster near=%s" % [standing, sat, msat, up, fight_up])
 	if want.call("east_bridge"):
 		main.in_village = false
 		main.in_hill = false

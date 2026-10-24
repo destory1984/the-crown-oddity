@@ -570,6 +570,11 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
 	"",
 	"2026-10-25 새벽",
+	"· v0.0.54: 소라가 쉬면 물결도 노을처럼 앉아 쉰다.",
+	"    - 소라가 10초 넘게 가만히 있고 7칸 안에 괴물이 없으면 곁에 선 물결이 앉은 그림(art/folk/mulgyeol_rest.png)으로 바뀐다. 노를 무릎에 가로로 얹은 모습이다.",
+	"    - 앉은 그림은 서 있을 때와 같은 크기로 그려서 키가 그대로이고, 바닥에서 90px 올려 발이 땅에 닿게 했다.",
+	"    - 소라가 움직이거나 괴물이 7칸 안에 오면 바로 일어난다. 노을도 함께 있으면 둘이 1칸 이상 떨어져 앉는다.",
+	"    - 앉기 시험 noeul_rest가 이제 물결도 확인한다.",
 	"· v0.0.53: 마을 아이들과 사람들의 키를 노을에 맞춰 줄였다.",
 	"    - 마을 사람들의 그림은 머리가 큰 아이 모양이라 노을과 비슷한 키로 그리면 머리가 훨씬 커 보였다. 키 표 하나(FOLK_HEIGHT)에서 모두 정한다.",
 	"    - 토리 1.75 → 1.35, 콩알 1.75 → 1.40, 두솔과 여울 1.75 → 1.50, 차돌과 도란과 새참 1.75 → 1.55, 다래 1.75 → 1.60이다. 심지는 2.10 그대로 가장 크고, 노을은 1.80이다.",
@@ -1374,6 +1379,11 @@ var mate_down := {"mulgyeol": 0.0, "noeul": 0.0}
 var noeul_tex: Texture2D
 var noeul_rest_tex: Texture2D
 var noeul_sitting := false
+# ... and Mulgyeol too (v0.0.54, art/folk/mulgyeol_rest.png, 172 x 180, drawn at the standing sprite's scale; the offset
+# goes 85 -> 90 so the seat stays on the ground)
+var mulgyeol_tex: Texture2D
+var mulgyeol_rest_tex: Texture2D
+var mulgyeol_sitting := false
 
 # ---- 참새 방앗간 (DESIGN.md, chapter 6): below the wind hills' south fence, a windless hollow with an old mill.
 # Unwind the broken wall (after the hawk), wind the big windmill, then run past four pinwheels within 12 s from the

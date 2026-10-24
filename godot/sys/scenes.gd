@@ -646,6 +646,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.get_tree().create_timer(1.0).timeout.connect(func(): m.say_bubble(m.mate, "다리 아파. 좀 쉬었다 가자."); m.say_bubble(m.mate2, "……뭘 봐. 그냥 쉬는 거야."))
 	if sc.has("noeul_sit"):
 		m.join_noeul()
+		m.join_mate()
 		m.snap_mates()
 		m.last_input_t = -100.0
 		for e in m.enemies: # no monster within 7 tiles, or he would not sit

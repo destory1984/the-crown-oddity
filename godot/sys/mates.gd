@@ -207,6 +207,19 @@ func noeul_sit(on: bool) -> void:
 	spr.hframes = 1 if on else 3
 	spr.frame = 0
 
+func mulgyeol_sit(on: bool) -> void:
+	if on == m.mulgyeol_sitting or m.mate == null:
+		return
+	m.mulgyeol_sitting = on
+	var spr: Sprite3D = m.mate.get_child(0)
+	if m.mulgyeol_tex == null:
+		m.mulgyeol_tex = spr.texture
+		m.mulgyeol_rest_tex = load("res://art/folk/mulgyeol_rest.png")
+	spr.texture = m.mulgyeol_rest_tex if on else m.mulgyeol_tex
+	spr.hframes = 1 if on else 2
+	spr.frame = 0
+	spr.offset = Vector2(0, 90 if on else 85)
+
 func update_mate2(dt: float) -> void:
 	if m.mate2 == null:
 		return
@@ -264,6 +277,8 @@ func update_mate(dt: float) -> void:
 	if m.mate == null:
 		return
 	m.mate.visible = true
+	if m.mulgyeol_sitting and (not sora_resting() or m.mate_down["mulgyeol"] > 0.0 or not m.mate_job.is_empty() or m.garden_zone.clock_hold()):
+		mulgyeol_sit(false)
 	if not m.mate_job.is_empty():
 		if m.in_lake and not m.in_grotto():
 			m.lake_zone.update_mate_job(dt)
@@ -291,6 +306,12 @@ func update_mate(dt: float) -> void:
 		goal = Vector3(target.x, 0, target.z)
 	var to := goal - m.mate.position
 	var stop := 1.4 if target != null else 0.3
+	var sit := target == null and to.length() <= 0.45 and sora_resting() and m.mate.position.distance_to(me) < 3.0
+	mulgyeol_sit(sit)
+	if sit: # sitting by her: nothing near, so nothing to fight
+		m.mate.position.y = 0.0
+		m.folk.hop("mulgyeol", spr, dt) # settles a hop that was still in the air
+		return
 	if to.length() > stop:
 		m.mate.position = mate_step(m.mate.position, to.normalized() * minf(to.length() - stop, dt * 5.5))
 		spr.flip_h = not m.screen_left(Vector2(to.x, to.z)) # his picture faces left (Noeul's running frame faces right)
