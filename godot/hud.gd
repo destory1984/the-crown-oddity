@@ -89,15 +89,15 @@ func _draw() -> void:
 	var prog := (h - 6.0) / 12.0 if day else fmod(h + 6.0, 24.0) / 12.0
 	var ang := PI + PI * prog
 	var sp := dc + Vector2(cos(ang) * 58, sin(ang) * 32)
-	if day:
-		draw_circle(sp, 9, Color(1.0, 0.75, 0.3, 0.25))
-		draw_circle(sp, 5.5, Color("#ffd25a"))
+	if day: # sun and moon twice the old size (the user found them too small, 2026-10-24)
+		draw_circle(sp, 18, Color(1.0, 0.75, 0.3, 0.25))
+		draw_circle(sp, 11, Color("#ffd25a"))
 	else:
-		draw_circle(sp, 8, Color(0.75, 0.8, 1.0, 0.2))
-		draw_circle(sp, 5.5, Color("#e8ecff"))
+		draw_circle(sp, 16, Color(0.75, 0.8, 1.0, 0.2))
+		draw_circle(sp, 11, Color("#e8ecff"))
 		var ph: Vector2 = main.moon_phase()
 		if ph.x < 0.98:
-			draw_circle(sp + Vector2(5.5 * 2.0 * ph.x * ph.y, -0.5), 5.4, Color("#0b1530"))
+			draw_circle(sp + Vector2(11.0 * 2.0 * ph.x * ph.y, -1.0), 10.8, Color("#0b1530"))
 	# zone name, small, under the dial
 	text(Vector2(10, 254), main.ui.zone_name.text, 14, TEXT)
 	text(Vector2(10, 272), main.ui.zone_sub.text, 11, DIM)

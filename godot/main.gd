@@ -437,6 +437,7 @@ const SCENES := {
 	"settings": {"play": true, "settings": true},
 	"controls_big": {"play": true, "controls": true, "text": 3},
 	"settings_big": {"play": true, "settings": true, "text": 3},
+	"settings_news": {"play": true, "settings": true, "set_tab": 2}, # the Changes tab
 	"hush": {"play": true, "village": true, "hush": true, "hour": 14.0},
 	"east": {"play": true, "at": Vector2(42.0, 21.5), "hour": 12.0},
 	"fall": {"play": true, "fall": 2.5, "at": Vector2(20, 22)},
@@ -902,7 +903,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 	if sc.get("talk", false):
 		story_step = 3
 		show_story("", STORY.BORI)
-		for k in 4:
+		for k in 2: # stop on a spoken line (Bori knows the crown) so her portrait is lit, not a narration line that dims both
 			next_story()
 			next_story()
 	if sc.get("cave_in", false):
@@ -965,6 +966,8 @@ func apply_test_args(args: PackedStringArray) -> void:
 		toggle_help(true)
 	if sc.get("settings", false):
 		toggle_settings(true)
+		if sc.has("set_tab"):
+			show_set_tab(int(sc.set_tab))
 	if sc.get("far", false): # zoomed all the way out, to judge the haze
 		cam_dist = 26.0
 	if sc.get("folk6", false): # far enough out to see all six
@@ -2808,8 +2811,9 @@ const FOLK_ROUTES := {
 	"kongal": [[Vector2(10, 15), true], [Vector2(12, 14), false], [Vector2(13, 12), true], [Vector2(12, 14), false]], # the square
 	"mulgyeol": [[Vector2(28, 21), true], [Vector2(29, 24), true]], # a look at the pond
 	"dusol": [[Vector2(43, 11), true], [Vector2(42, 9), true]], # woodpile and the forest road's edge
-	"chadol": [[Vector2(45, 20), true], [Vector2(46, 19), false], [Vector2(46, 9), false], [Vector2(44, 8), true],
-		[Vector2(46, 9), false], [Vector2(46, 19), false]], # ore cart and the market
+	"chadol": [[Vector2(45, 20), true], [Vector2(46, 19), false], [Vector2(46, 13), false], [Vector2(45, 12), false],
+		[Vector2(45, 9), false], [Vector2(44, 8), true], [Vector2(45, 9), false], [Vector2(45, 12), false],
+		[Vector2(46, 13), false], [Vector2(46, 19), false]], # ore cart and the market, crossing the east road off the gate
 	"saecham": [[Vector2(38, 21), true], [Vector2(37, 23), false], [Vector2(35, 24), true], [Vector2(37, 23), false],
 		[Vector2(38, 21), true], [Vector2(33, 19), false], [Vector2(33, 9), false], [Vector2(33, 8), true],
 		[Vector2(33, 9), false], [Vector2(33, 19), false]], # field, pond edge, field, market
@@ -2842,6 +2846,12 @@ func route_reset(id: String) -> void:
 		r.pos = village.folk_pos[id]
 		r.back = false
 		r.wait = randf_range(6.0, 14.0)
+
+func folk_on_point(id: String) -> bool:
+	if not FOLK_ROUTES.has(id) or not folk_route.has(id):
+		return true
+	var r: Dictionary = folk_route[id]
+	return (r.pos as Vector2).distance_to(route_at(id, r.i)) < 0.01
 
 func route_home(id: String) -> bool:
 	return not FOLK_ROUTES.has(id) or (folk_route_state(id).pos as Vector2).distance_to(village.folk_pos[id]) < 0.01
@@ -2933,7 +2943,8 @@ func update_folk_sleep(dt: float) -> void:
 			if st == "out":
 				k = 0.0
 				route_reset(id)
-		var step := dt * FOLK_WALK / maxf(1.0, home.distance_to(door))
+		var way := folk_way(id)
+		var step := dt * FOLK_WALK / maxf(1.0, way_length(way))
 		var roam := false # on his day round (or walking it back to his spot at dusk)
 		if st == "going" and not route_home(id): # dusk caught him out on his round: back along it first
 			roam = route_update(id, dt, true, FOLK_WALK)
@@ -2950,15 +2961,18 @@ func update_folk_sleep(dt: float) -> void:
 				st = "out"
 		elif st == "out" and FOLK_ROUTES.has(id):
 			roam = route_update(id, dt, routine_off or folk_busy(id) or is_night(), ROUTE_WALK)
-		var at := home.lerp(door, k)
+		var at := way_at(way, k)
 		if FOLK_ROUTES.has(id) and k <= 0.0 and st in ["out", "going"]:
 			at = folk_route_state(id).pos
 		spr.position = Vector3(at.x, 0.05 * absf(sin(t * 9.0)) if roam else 0.0, at.y) # a little bob in his step
 		spr.visible = st != "in"
 		if st in ["going", "coming"] and not roam:
-			spr.flip_h = screen_left(door - home) if st == "going" else screen_left(home - door)
-		if folk_rocks.has(id): # he blocks the way where he stands, only while he is out
-			folk_rocks[id].r = 0.45 if st == "out" else 0.0
+			var ahead := way_at(way, clampf(k + (0.02 if st == "going" else -0.02), 0.0, 1.0))
+			if ahead.distance_to(at) > 0.001:
+				spr.flip_h = screen_left(ahead - at)
+		if folk_rocks.has(id): # he blocks the way where he stands, only while he is out and not on his way between
+			# two points (stopped mid-leg to let Sora pass he used to block her too: both stood still, GPT playtests 2 -> 9)
+			folk_rocks[id].r = 0.45 if st == "out" and folk_on_point(id) else 0.0
 			folk_rocks[id].x = at.x
 			folk_rocks[id].z = at.y
 		folk_state[id] = st
@@ -2990,6 +3004,55 @@ func update_folk_sleep(dt: float) -> void:
 	for k in range(1, HOUSE_SPOTS.size()):
 		if folk_rocks.has("spot%d" % k):
 			folk_rocks["spot%d" % k].r = 0.55 if rolls.has(k) else 0.0
+
+# the way from his spot to his door along open village tiles (a breadth-first search, found once): they used to
+# walk the straight line through houses and fences (GPT playtests 2 -> 9)
+var folk_ways := {}
+
+func folk_way(id: String) -> Array:
+	if folk_ways.has(id):
+		return folk_ways[id]
+	var home: Vector2 = village.folk_pos[id]
+	var door: Vector2 = village.doors[folk_home(id)]
+	var vx := float(VILLAGE.VILLAGE_X)
+	var from := Vector2i(int(round(home.x - vx)), int(round(home.y)))
+	var goal := Vector2i(int(round(door.x - vx)), int(round(door.y)))
+	var prev := {from: from}
+	var todo: Array = [from]
+	while not todo.is_empty() and not prev.has(goal):
+		var c: Vector2i = todo.pop_front()
+		for dv in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var n: Vector2i = c + dv
+			if prev.has(n) or n.x < 0 or n.y < 0 or n.x >= VILLAGE.W or n.y >= VILLAGE.H or village.blocked(vx + n.x, n.y):
+				continue
+			prev[n] = c
+			todo.append(n)
+	var way: Array = [door]
+	if prev.has(goal):
+		var c: Vector2i = prev[goal]
+		while c != from:
+			way.push_front(Vector2(vx + c.x, c.y))
+			c = prev[c]
+	way.push_front(home)
+	folk_ways[id] = way
+	return way
+
+func way_length(way: Array) -> float:
+	var n := 0.0
+	for i in range(1, way.size()):
+		n += (way[i] as Vector2).distance_to(way[i - 1])
+	return n
+
+func way_at(way: Array, k: float) -> Vector2: # k 0 at his spot, 1 at his door
+	var left := way_length(way) * clampf(k, 0.0, 1.0)
+	for i in range(1, way.size()):
+		var a: Vector2 = way[i - 1]
+		var b: Vector2 = way[i]
+		var d := a.distance_to(b)
+		if left <= d:
+			return a.lerp(b, left / maxf(d, 0.0001))
+		left -= d
+	return way[way.size() - 1]
 
 func house_door_near() -> int:
 	for i in village.doors.size():
@@ -3325,57 +3388,225 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
 	"",
 	"2026-10-24 저녁",
-	"· v0.0.45: 이야기 줄기를 사용자가 고른 안(태엽 팔찌, 함께 감는 손)으로 바꿨다. 소라는 왕관을 머리에 쓴 채 둔다. 왕관은 달지기의 표식이라 옛 장치와 벽돌이 알아보고 쫓는다. 힘을 쓰는 것은 소매 끝 파랑·금색 장식인 한 쌍의 태엽 팔찌다. 등불 켜기, 벽돌 풀기, 풍차 감기, 달빛 눈금 8칸이 모두 팔찌로 옮겨 갔다. 한결은 여덟 사람 몫을 혼자 감으려다 손이 굳었고, 보리 할머니의 말은 \"왕관을 썼다고 혼자 감는 건 아니란다. 옆 사람 손도 빌리렴.\"이 됐다. 이야기 대사 76줄, 할 일 줄과 알림과 조작법 26곳을 고쳤다. 큰 태엽 방의 왕관 모양 홈은 왕관 무늬가 새겨진 둥근 접점이 되어, 팔찌를 대면 테두리가 파랗게 빛난다(왕관이 둘 보이는 일은 없다). 이야기 그림 4장(02 등불, 06 동굴 벽화, 11 마지막 감기, 13 열셋째 등불)과 터치 팔찌 단추 그림을 GPT로 다시 그렸다. 휴대폰과 태블릿에서 \"E  보리 할머니의 상점\" 같은 글에 E가 그대로 남던 것을 고쳐, 상점 안내, 일지, 할 일 줄, 알림, 대사의 E를 모두 \"팔찌 단추\"로 보인다. 예전 저장의 할 일 줄도 불러오면 새 말로 바뀐다. 놀 수 있는 분량은 약 302분 그대로다.",
-	"· v0.0.44: GPT가 이야기 큰길을 다시 따라가며 찾은 일곱 가지를 고쳤다. (1) 동굴 문을 연 뒤에도 할 일 줄이 '열쇠를 찾아 잠긴 문을 열자'로 남았다. 이제 문이 열리면 '열린 문 너머, 수레두더지가 있는 안쪽 방으로 가자'로 바뀐다. (2) 마을에 처음 닿은 순간의 저장을 이어하면 이미 온 마을을 찾으라고 했다. 이제 광장의 등불지기에게 말을 걸라는 줄이 나온다. (3) 달의 계단 마지막 등불을 켜면 아직 못 만난 거푸집의 심장을 노리라고 했다. 이제 '꼭대기 문을 지나 정원으로 가자'이고, 거푸집 줄은 정원 봉인 셋을 푼 뒤에 나온다. (4) 엔딩 전에 편지 세 통을 전하거나 보름달 축제를 보면 정원을 이미 감았다고 했다. 엔딩 전에는 묵은 편지와 꺼진 등불을 되살린 덕이라고 말하고, 정원 이야기는 엔딩 뒤에만 한다. (5) 보리 할머니에게 한결이 누군지 들은 뒤 엽서를 주워도 '한결이 누군지는 몰라도'라고 했다. 이제 마지막 달지기 한결에게 못 간 엽서라고 말한다. (6) 밤 추격 중에 낮까지 있다가 저장하고 이어하면 낮에는 없는 노을을 쫓으라고 했다. 이제 밤이 되면 마을에서 쉬자는 줄이 나온다. (7) 마을 다섯째 집 그림을 안 봤는데도 물결이 그 그림 속 한결과 닮았다고 했다. 그림을 안 봤으면 처음 보는 말을 한다. 전체 시험에서 가끔 실패하던 동료 수다 시험(말풍선 4개 → 1개)은 앞 시험에서 쓰러진 고블린이 8초 뒤 9칸 밖에서 다시 일어나 8칸 안으로 다가와 수다를 끊은 탓이라, 그 시험 동안은 되살아나지 않게 했다.",
+	"· v0.0.46: GPT가 이야기 시험 놀이 2 → 9바퀴에서 찾은 21가지 가운데 20가지를 고쳤다.",
+	"    - (1) 치명타를 맞은 그 순간 자동 저장이 되면 체력 0으로 이어했다. 쓰러져 있는 동안은 저장하지 않고, 체력 0으로 남은 예전 저장은 체력을 채워 연다.",
+	"    - (2) 거북을 이긴 뒤 마을 동쪽 문 앞에서 광부 차돌과 소라가 서로 길을 막고 멈췄다. 차돌이 오가는 길을 문 바로 앞 칸에서 1 → 2칸 서쪽으로 옮기고, 주민이 소라를 기다리며 길 가운데 서 있을 때는 소라를 막지 않는다.",
+	"    - (3) 정원 싸움 도중 저장을 불러오거나 정원에서 쓰러지면 없는 방어전이나 마지막 감기를 하라고 했다. 이제 '정원 한가운데로 돌아가 굳은달 거푸집에 다시 맞서자'가 뜬다.",
+	"    - (4) 방앗간 바람 부르기 도중 저장하면 멈춘 초시계가 할 일 줄에 남았다. 저장에는 달리기 전 할 일 줄을 넣고, 예전 저장은 큰길 할 일로 바꾸며 깃대에서 다시 하라고 알린다.",
+	"    - (5) 마을 의뢰 중 동굴에 다시 들어가 쓰러지면 할 일 줄이 사라졌다. 쓰러지면 들어가기 전 할 일 줄이 돌아오고, 빈 줄이 그것을 덮지 않는다.",
+	"    - (6) 거북에게 지고 마을에서 깨어나도 섬의 거북을 물리치라고 했다. 이제 남쪽 문으로 호수에 나가 부두의 물결에게 말을 걸라고 하고, 호수에 들어서면 '부두의 물결에게 말을 걸자'가 된다.",
+	"    - (7) 고슴도치 싸움 도중 이어하면 고슴도치가 사라져 마지막 뿌리를 바로 풀 수 있었다. 싸움을 마쳤는지 저장하고, 못 마쳤으면 마지막 매듭에서 고슴도치가 다시 나온다.",
+	"    - (8) 수레두더지를 이긴 뒤 새로 켜면 두더지와 첫 보상이 다시 나왔다. 물수제비를 얻은 뒤에는 두더지가 나오지 않고, 두 번째 승리는 아무것도 바꾸지 않는다.",
+	"    - (9) 첫 등불 뒤 5초 안에 보리 할머니를 만나면 할 일 줄이 이미 간 오두막으로 되돌아갔다.",
+	"    - (10) 벽화를 늦게 처음 보면 이미 연 문의 열쇠를 찾으라 했다. 이제 열쇠, 문, 물수제비 상태에 맞는 줄이 뜬다.",
+	"    - (11) 숲 결투에서 지고 다시 들어가면 이미 연 벽을 풀라고 했다. 이제 '노을과 다시 겨루자'가 뜬다.",
+	"    - (12) 휴대폰의 'E를', 'E 두 번'은 v0.0.45에서 이미 '팔찌 단추'로 바뀌어 고칠 것이 없었다.",
+	"    - (13) 노을과 물결이 동료가 되기 전에도 여관, 장터 쪽지, 유리병 편지, 까치 대사에 나왔다. 아직 함께하지 않는 동료의 대사는 빼고, 꼭 필요한 줄은 소라의 말이나 서술로 바꿨다. 까치 이야기의 '한결의 일기에 나왔어'는 '들은 적 있어'로 고쳤다.",
+	"    - (14) 도란의 의뢰를 먼저 받으면 편지를 전한 뒤에도 처음 만난 인사를 했다. 의뢰를 시작하면 만난 것으로 친다.",
+	"    - (15) 보리 할머니가 편지를 도란에게 돌려주라 했는데 돌려주는 장면이 없었다. 다음에 도란에게 말을 걸 때, 또는 등불 밤이 시작될 때 돌려준다.",
+	"    - (16) 성 지하 동쪽 배수 통로에서도 한결의 방 수호자 싸움이 시작됐다. 이제 한결의 방 안(열 1 → 8)에서만 시작한다.",
+	"    - (17) 주민이 자러 가고 일어날 때 집과 울타리를 뚫고 곧게 걸었다. 이제 마을 길을 찾아 집 문까지 걷는다.",
+	"    - (18) 큰 태엽을 함께 감은 뒤에도 일곱 손잡이에 먼지가 소복하다고 했다. 이제 여덟 손잡이 모두에 새 손때가 묻었다고 한다.",
+	"    - (19) 정원 도착 대사의 '성의 동쪽 문을 지나자'를 '회색 문을 지나자'로 고쳤다.",
+	"    - (20) 백 년 동안 섬 밖에 살던 물결이 섬 밖은 처음이라고 했다. 친구들과 함께 자고 걷는 것이 처음이라는 말로 바꿨다.",
+	"    - (21) 다람쥐를 구하지 않았는데 곳간 상자에서 구해 준 답례라 하고, 성의 일기 세 장을 다 읽지 않았는데 앞의 세 장과 글씨를 비교했다. 이제 구한 다람쥐와 읽은 장 수에 맞춰 말한다.",
+	"    - 화면 왼쪽 위 하늘 시계의 해와 달도 두 배로 키웠다(반지름 5.5 → 11px).",
+	"    - 3시 방향으로 걸을 때 머리 리본이 한 걸음마다 사라졌다 나타나던 것도 고쳤다(걷기 그림 둘째 칸에 리본을 그려 넣음).",
+	"    - 설정의 바뀐 것 탭과 CHANGES.md가 이제 한 줄에 한 문장씩 보여 준다(판마다 첫 문장, 그 밑에 나머지 문장과 고친 것 하나씩).",
+	"    - 놀 수 있는 분량은 약 302분 그대로다.",
+	"· v0.0.45: 이야기 줄기를 사용자가 고른 안(태엽 팔찌, 함께 감는 손)으로 바꿨다.",
+	"    - 소라는 왕관을 머리에 쓴 채 둔다.",
+	"    - 왕관은 달지기의 표식이라 옛 장치와 벽돌이 알아보고 쫓는다.",
+	"    - 힘을 쓰는 것은 소매 끝 파랑·금색 장식인 한 쌍의 태엽 팔찌다.",
+	"    - 등불 켜기, 벽돌 풀기, 풍차 감기, 달빛 눈금 8칸이 모두 팔찌로 옮겨 갔다.",
+	"    - 한결은 여덟 사람 몫을 혼자 감으려다 손이 굳었고, 보리 할머니의 말은 \"왕관을 썼다고 혼자 감는 건 아니란다. 옆 사람 손도 빌리렴.\"이 됐다.",
+	"    - 이야기 대사 76줄, 할 일 줄과 알림과 조작법 26곳을 고쳤다.",
+	"    - 큰 태엽 방의 왕관 모양 홈은 왕관 무늬가 새겨진 둥근 접점이 되어, 팔찌를 대면 테두리가 파랗게 빛난다(왕관이 둘 보이는 일은 없다).",
+	"    - 이야기 그림 4장(02 등불, 06 동굴 벽화, 11 마지막 감기, 13 열셋째 등불)과 터치 팔찌 단추 그림을 GPT로 다시 그렸다.",
+	"    - 휴대폰과 태블릿에서 \"E  보리 할머니의 상점\" 같은 글에 E가 그대로 남던 것을 고쳐, 상점 안내, 일지, 할 일 줄, 알림, 대사의 E를 모두 \"팔찌 단추\"로 보인다.",
+	"    - 예전 저장의 할 일 줄도 불러오면 새 말로 바뀐다.",
+	"    - 놀 수 있는 분량은 약 302분 그대로다.",
+	"· v0.0.44: GPT가 이야기 큰길을 다시 따라가며 찾은 일곱 가지를 고쳤다.",
+	"    - (1) 동굴 문을 연 뒤에도 할 일 줄이 '열쇠를 찾아 잠긴 문을 열자'로 남았다. 이제 문이 열리면 '열린 문 너머, 수레두더지가 있는 안쪽 방으로 가자'로 바뀐다.",
+	"    - (2) 마을에 처음 닿은 순간의 저장을 이어하면 이미 온 마을을 찾으라고 했다. 이제 광장의 등불지기에게 말을 걸라는 줄이 나온다.",
+	"    - (3) 달의 계단 마지막 등불을 켜면 아직 못 만난 거푸집의 심장을 노리라고 했다. 이제 '꼭대기 문을 지나 정원으로 가자'이고, 거푸집 줄은 정원 봉인 셋을 푼 뒤에 나온다.",
+	"    - (4) 엔딩 전에 편지 세 통을 전하거나 보름달 축제를 보면 정원을 이미 감았다고 했다. 엔딩 전에는 묵은 편지와 꺼진 등불을 되살린 덕이라고 말하고, 정원 이야기는 엔딩 뒤에만 한다.",
+	"    - (5) 보리 할머니에게 한결이 누군지 들은 뒤 엽서를 주워도 '한결이 누군지는 몰라도'라고 했다. 이제 마지막 달지기 한결에게 못 간 엽서라고 말한다.",
+	"    - (6) 밤 추격 중에 낮까지 있다가 저장하고 이어하면 낮에는 없는 노을을 쫓으라고 했다. 이제 밤이 되면 마을에서 쉬자는 줄이 나온다.",
+	"    - (7) 마을 다섯째 집 그림을 안 봤는데도 물결이 그 그림 속 한결과 닮았다고 했다. 그림을 안 봤으면 처음 보는 말을 한다.",
+	"    - 전체 시험에서 가끔 실패하던 동료 수다 시험(말풍선 4개 → 1개)은 앞 시험에서 쓰러진 고블린이 8초 뒤 9칸 밖에서 다시 일어나 8칸 안으로 다가와 수다를 끊은 탓이라, 그 시험 동안은 되살아나지 않게 했다.",
 	"",
 	"2026-10-24 아침",
-	"· v0.0.43: GPT가 처음부터 끝까지 이야기대로 따라가며 찾은 열한 가지를 고쳤다. 마지막 태엽 감기 대사 도중 저장하고 이어하면 엔딩, 금화 500, 경험치 400, 큰 태엽 방 구멍이 사라졌는데, 이제 이어하면 엔딩이 그대로 나오고 보상은 한 번만 받는다. 나중에 동굴을 다시 찾았다가 안에서 저장하면 나올 때 할 일 줄이 비던 것, 거북 전투 중 저장을 불러오면 부두로 돌아오는데 할 일 줄은 섬 전투로 남던 것, 마지막 봉인을 풀어도 할 일 줄이 2/3에 멈추던 것을 고쳤다. 동굴 출구의 '다음 장에서 이어진다'는 지금 강을 건너 마을로 가자는 말로, 심지의 등불 열두 개는 광장 둘레 등불로, 보리가 읽은 편지는 도란에게 돌려주라는 말로, 왕관을 머리에 쓰지 않는다는 말과 첫 만남 이야기는 실제 이야기에 맞게 고쳤다. 새 바퀴 안내는 다음 바퀴의 실제 배율(1.5배 → 2배 → 2.5배)을 보여 주고 두 쪽으로 나뉘며, 작은 화면에서 큰 글자로 긴 대사가 나오면 대화 상자가 위로 늘어난다.",
-	"· v0.0.42: 마을 사람들이 낮에 저마다 두세 곳을 오간다. 나무꾼 두솔은 장작더미와 숲길 가, 광부 차돌은 광석 수레와 장터, 농부 새참은 밭과 연못가와 장터, 어부 여울은 연못가와 나루 머리, 다래는 장터 자리와 여관 문 앞, 토리는 장터와 광장과 새참의 밭, 도란은 북쪽 집들 앞, 콩알은 광장(꼬마 고블린도 따라간다), 마을에 있을 때의 물결은 연못가를 오간다. 한 곳에서 6 → 14초 머물고 1초에 1.4칸 걷는다. 걷는 도중에도 E로 말을 걸 수 있고, 말하는 동안은 멈춘다. 소라가 앞길 0.9칸 안에 서 있으면 기다린다. 해가 지면 있던 자리에서 길을 되짚어 집으로 간다. 심부름이 걸린 사람(울고 있는 콩알, 편지를 든 도란, 노를 기다리는 물결)과 등불지기 심지는 제자리에 있다.",
-	"· v0.0.41: 휴대폰에서 할 일 줄, 알림, 대사에 남아 있던 키보드 말(Shift, (E), Space)을 터치 단추 이름(막대를 끝까지 밀어, 왕관 단추, 손 단추)으로 바꿔 보인다. 웹 판에서 나던 오류 하나(뒤로 단추 제목 찾기)도 고쳤다.",
-	"· v0.0.40: 휴대폰 화면에서 GPT 시험 놀이꾼이 찾은 여덟 가지를 고쳤다. 상점이 화면 안에 줄어 들어가고 제목이 잘리지 않으며, 상점·일지·설정·조작법이 열리면 메뉴 단추와 미니맵이 비켜난다. 상점은 왼쪽 위 단추로 닫는다. 돋보기 단추는 메뉴 단추 왼쪽으로 옮겨 보스 체력 막대를 가리지 않는다. 긴 할 일 줄은 동료 상태와 오른쪽 단추 사이에서 두 줄로 접힌다. 휴대폰 조작법은 이동 막대와 터치 단추 그림으로 설명하고, 기술 그림 밑에 이름이 붙는다. 동료 말풍선이 1.4배로 커지고 1초 더 머문다. 창의 뒤로 단추가 56px 이상이 되었다. 달지기 숙소는 벽 윗면을 옅은 청회색으로 덮고 바닥을 조금 밝혀 밤에도 벽과 바닥이 구별된다.",
-	"· v0.0.39: GPT 시험 놀이꾼이 두 번째로 찾은 네 가지를 고쳤다. 벽돌왕을 쓰러뜨린 뒤 할 일 줄이 '다음 장에서 계속' 대신 '열린 동굴 입구로 내려가자'를 보여 주고, 동굴 입구 위에 금빛 느낌표가 뜬다. 작은 돌숲에 들어서면 남쪽 나무들이 반쯤 비쳐 달 돌 앞 바닥과 안내판이 보인다. 밤 숲의 벽돌 벽 앞 바닥에 옅게 빛나는 테두리가 생겼다. 성 아래 등불 방은 물이 빠질 때 '물빛 등불 넷을 8초 안에 켜자'라고 알려 주고, 아직 꺼진 등불 위에 금빛 느낌표가 뜬다.",
-	"· v0.0.38: GPT 시험 놀이꾼이 찾은 다섯 가지를 고쳤다. 좁은 틈에서는 물결과 노을이 소라 뒤에 한 줄로 따라오고, 소라가 멈추면 서로 떨어진 빈자리에 선다(다람쥐 나무 입구에서 셋이 겹쳐 보였다). 밤 아랫못의 열린 창살 길에 빛나는 다리 가장자리와 작은 등불을 달았다. 깨어난 물가에서 강가 길부터 다리 서쪽 끝까지 갈대를 걷어 한 칸 길을 냈다. 자는 주민이 깔개와 침대 위에 비스듬히 눕고 밑에 그림자가 생겼다. 달지기 숙소 안에서는 다음에 할 일(셈판, 작업대, 멈춘 문지기, 장부) 위에 금빛 느낌표가 뜬다.",
-	"· v0.0.37: 5장에 다람쥐 나무(약 2분). 다람쥐 다섯을 구하고 회색 문을 연 뒤에는 숲 한가운데 회색 나무 틈 앞에 큰 다람쥐가 앉아 있다. 말을 걸면 굳은 나무 한 그루가 비켜서고, 안쪽 숨은 빈터에 숲에서 가장 늙은 도토리나무가 서 있다. 이 나무 뿌리가 아직 살아서 남쪽 골짜기 개울을 데우고 있었다. 나무 곁 3.2칸 안에서는 낮에도 켜진 등불 곁처럼 쉬어 눈금이 찬다(칸마다 6초). 뿌리를 묶은 벽돌 매듭 셋을 왕관으로 풀면(눈금 1칸씩) 뿌리가 하나씩 나무 쪽으로 당겨 붙고, 둘째 매듭 뒤에는 벽돌 고슴도치 2마리가 굴러 나온다. 마지막 매듭 뒤 1.5초 동안은 대사 없이 나무가 한 번 숨 쉬고 낮은 가지의 잎 둘이 처음 흔들린다. 그 뒤 나무가 초록이 되고, 구해 준 다람쥐 다섯이 돌아와 가지에 앉는다. 싹 튼 도토리(회복약 65 → 75, 새 바퀴에도 남는다), 최대 체력 +10, 금화 60을 받는다. 마을 나무꾼 두솔의 다람쥐 틈 실마리도 켰다. 대사와 소품은 GPT의 의견으로 다듬었다.",
-	"· v0.0.36: 7장에 달지기 숙소(약 4분). 벽돌 기사를 쓰러뜨린 자리에 녹슨 태엽이 남고, 그 태엽으로 옥좌의 방 남쪽 벽의 태엽 문을 연다. 식당과 바구니 방에서 벽돌 6마리와 싸우고, 바구니 셈판에서 한결이 마지막으로 가져간 등불 바구니를 찾는다. 일방 태엽대의 깡통 문지기를 왕관으로 감으면(눈금 1칸) 침방까지 걸어가는데, 식당의 벽돌 더미 셋이 문지기에게 달려든다(닿으면 태엽이 튕겨 나와 곁에서 E로 다시 걷는다). 침방 장부의 한결 다음 칸에 소라의 이름을 적으면 문지기가 백 년 만에 제 의자에 앉아 작은 놋 방패를 건넨다(섬광 막기 0.12초 → 0.16초, 새 바퀴에도 남음). 궤짝에서 최대 체력 +10, 회복약 2, 금화 80. 대사와 소품은 GPT와 의논해 다듬었다.",
-	"· v0.0.35: 마을에 일하는 사람 여섯이 생겼다. 나무꾼 두솔, 광부 차돌, 농부 새참, 낚시꾼 여울(두솔의 동생), 바구니 짜는 다래 할머니와 손자 토리. 저마다 일터(장작더미, 광석 수레, 굳은 밭, 연못가, 장터)에 서 있고, 말을 걸면 아직 못 끝낸 곁이야기의 실마리를 하나씩 들려준다. 이야기가 나아갈 때마다 하는 말이 바뀌고, 마지막 이야기에서 선물(회복약 1, 금화 30, 또는 물고기가 30% 빨리 무는 미끼 주머니)을 준다. 밤에는 집에 들어가 자며 한 집에 셋까지 잔다. 대사와 그림은 GPT와 함께 만들었다.",
-	"· v0.0.34: 1장에 깨어난 물가(약 4분). 보리 할머니를 만난 뒤, 소라가 깨어난 자리에서 물가로 눌린 갈대 줄이 이어지고 그 끝 진흙에 갈대 바구니가 묻혀 있다. 왕관으로 진흙을 풀면(눈금 1칸) 벽돌 두 무리(고블린 2, 고블린 1과 활 1)가 일어나고, 바구니에서 금화 30과 회복약 1이 나온다. 보리 할머니는 달지기 등불 바구니를 알아보고 백 년 동안 켜지 않은 자기 등불과 회복약 1을 준다. 벽돌왕을 넘어뜨린 뒤 밤에 물가에서 등불 바구니를 띄우면(눈금 1칸) 물길 약 20칸을 따라 흘러가고, 벽돌 걸림 셋(고블린 2, 2, 고블린 1과 활 1)을 풀어 주면 늪 호수 섬 앞에 머문다(최대 체력 +10). 보리 할머니께 알리면 갈대 방석을 준다(밤에 켜진 등불 곁에서 쉬면 체력이 초당 4씩 찬다). 대사와 소품은 GPT와 의논해 다듬었다.",
-	"· v0.0.33: 8 → 9장 끝 뒤에 큰 태엽 방(약 5분). 끝 장면은 그대로이고, 거푸집이 앉아 있던 자리에 구멍이 열린다. 내려가면 땅을 돌리는 큰 태엽 열쇠가 있다. 굳은 톱니 셋을 왕관으로 풀며(눈금 1칸씩) 열쇠에서 달려 나오는 거푸집 찌꺼기(2, 3, 4마리)를 막으면 벽돌 일꾼들이 일어나 톱니를 돌본다. 열쇠 한가운데에 왕관을 올리면 마을 사람들이 내려와 손잡이 여덟을 함께 잡고, 금빛 고리에 맞춰 E를 여덟 번 누르면 다 같이 감는다(그림 한 장). 궤짝에서 달지기 기름병(회복약을 마시면 기세 +20), 최대 체력 +20, 회복약 2, 금화 200. 대사와 소품은 GPT와 의논해 다듬었다.",
-	"· v0.0.32: 밤이 되면 마을 사람들(도란, 콩알, 마을에 있을 때의 물결, 꼬마 고블린)이 저마다 가까운 집 문으로 걸어 들어가 자고, 아침이면 나와 제자리로 돌아간다. 등불지기 심지는 밤에도 광장에 남고, 보름달 축제 밤에는 모두 밖에 있다. 자는 사람의 집 문 위에 z가 뜨고, 그 집에 들어가면 침대에서 자는 모습(GPT 그림)이 보인다. 곁에서 E를 누르면 깨어 낮과 같은 이야기와 심부름을 하니 반딧불, 달꽃 같은 밤 심부름도 막히지 않는다. 낮에 서던 자리에서 E를 누르면 어디서 자는지 알려 준다.",
-	"· v0.0.31: 아이폰과 아이패드에서 글자와 단추가 너무 작던 것을 키웠다. 휴대폰은 기준 화면을 640 → 540으로 줄여 모든 것이 약 1.2배 커지고 글자도 한 단계 커진다. 아이패드도 터치 화면으로 알아본다(전에는 사파리가 맥이라고 해서 데스크톱 화면이 나왔다). 메뉴 단추 넷은 미니맵 왼쪽에 2x2로 모이고, 설정과 일지 같은 큰 창은 화면에 맞게 줄어든다.",
-	"· v0.0.30: 아이폰에서 미니맵은 움직이는데 화면 속 세상은 멈춰 있던 잘못을 고쳤다. 미니어처 흐림이 흐리게 하려고 복사한 화면이 아이폰 브라우저에서 첫 장면에 멈춰 있었다. 아이폰과 아이패드에서는 미니어처 흐림을 끄고, 다른 기기에서도 화면 복사에 밉맵을 쓰지 않는다.",
-	"· v0.0.29: 휴대폰 가로 화면에서 놀 수 있다. 화면 왼쪽에 엄지를 대면 이동 막대가 생기고 끝까지 밀면 달린다. 오른쪽에 공격, 구르기, 막기, 왕관(E), 열기(Space) 단추가 있고 기술 그림을 누르면 기술을 쓴다. 손가락 여럿을 따로 읽어 걸으면서 벨 수 있다. 메뉴 단추는 미니맵 왼쪽, 확대·축소는 미니맵 아래로 옮긴다. 세로로 들면 가로로 돌려 달라고 한다. 휴대폰에서는 그림자를 끄고 풀을 절반만 그린다.",
-	"· v0.0.28: 동료 수다를 107개에서 500개로 늘렸다(셋이 하는 대화 224, 곳과 때에 따른 대화 124, 이야기 진행 대화 27, 둘이 주고받는 말 50, 혼잣말 75). 동굴, 정원, 비 오는 때에도 그곳 수다가 나온다. 초안은 GPT가 쓰고 이야기 사실에 어긋나지 않는지 골랐다.",
-	"· v0.0.27: 왼쪽 아래 단추 넷(조작법, 소리, 일지, 설정)을 오른쪽 기술 단추와 같은 금빛 마름모로 바꿨다. GPT가 그린 시안 다섯 가운데 4번(겹금테에 금빛 선 그림)이다. 단추는 56 → 64 px이고 8 px 간격은 그대로다.",
-	"· v0.0.26: 동굴 밖에서 저장하고 다시 켜면 동굴에 내려갈 때마다 노을을 처음 만나는 벽화 장면이 다시 뜨던 잘못을 고쳤다. 열쇠와 연 문이 잊히던 것도 함께 고쳤다.",
-	"· v0.0.25: 미니맵의 계단 표시를 네모에서 작은 계단 그림(세 단)으로 바꿨다. 올라가는 곳은 금빛, 내려가는 곳은 보라이고, 카메라를 돌려도 똑바로 선다.",
-	"· v0.0.24: 설정 창의 네 쪽 이름을 Settings, Help, Changes, About으로 바꿨다. 어느 언어에서도 영어로 보인다.",
+	"· v0.0.43: GPT가 처음부터 끝까지 이야기대로 따라가며 찾은 열한 가지를 고쳤다.",
+	"    - 마지막 태엽 감기 대사 도중 저장하고 이어하면 엔딩, 금화 500, 경험치 400, 큰 태엽 방 구멍이 사라졌는데, 이제 이어하면 엔딩이 그대로 나오고 보상은 한 번만 받는다.",
+	"    - 나중에 동굴을 다시 찾았다가 안에서 저장하면 나올 때 할 일 줄이 비던 것, 거북 전투 중 저장을 불러오면 부두로 돌아오는데 할 일 줄은 섬 전투로 남던 것, 마지막 봉인을 풀어도 할 일 줄이 2/3에 멈추던 것을 고쳤다.",
+	"    - 동굴 출구의 '다음 장에서 이어진다'는 지금 강을 건너 마을로 가자는 말로, 심지의 등불 열두 개는 광장 둘레 등불로, 보리가 읽은 편지는 도란에게 돌려주라는 말로, 왕관을 머리에 쓰지 않는다는 말과 첫 만남 이야기는 실제 이야기에 맞게 고쳤다.",
+	"    - 새 바퀴 안내는 다음 바퀴의 실제 배율(1.5배 → 2배 → 2.5배)을 보여 주고 두 쪽으로 나뉘며, 작은 화면에서 큰 글자로 긴 대사가 나오면 대화 상자가 위로 늘어난다.",
+	"· v0.0.42: 마을 사람들이 낮에 저마다 두세 곳을 오간다.",
+	"    - 나무꾼 두솔은 장작더미와 숲길 가, 광부 차돌은 광석 수레와 장터, 농부 새참은 밭과 연못가와 장터, 어부 여울은 연못가와 나루 머리, 다래는 장터 자리와 여관 문 앞, 토리는 장터와 광장과 새참의 밭, 도란은 북쪽 집들 앞, 콩알은 광장(꼬마 고블린도 따라간다), 마을에 있을 때의 물결은 연못가를 오간다.",
+	"    - 한 곳에서 6 → 14초 머물고 1초에 1.4칸 걷는다.",
+	"    - 걷는 도중에도 E로 말을 걸 수 있고, 말하는 동안은 멈춘다.",
+	"    - 소라가 앞길 0.9칸 안에 서 있으면 기다린다.",
+	"    - 해가 지면 있던 자리에서 길을 되짚어 집으로 간다.",
+	"    - 심부름이 걸린 사람(울고 있는 콩알, 편지를 든 도란, 노를 기다리는 물결)과 등불지기 심지는 제자리에 있다.",
+	"· v0.0.41: 휴대폰에서 할 일 줄, 알림, 대사에 남아 있던 키보드 말(Shift, (E), Space)을 터치 단추 이름(막대를 끝까지 밀어, 왕관 단추, 손 단추)으로 바꿔 보인다.",
+	"    - 웹 판에서 나던 오류 하나(뒤로 단추 제목 찾기)도 고쳤다.",
+	"· v0.0.40: 휴대폰 화면에서 GPT 시험 놀이꾼이 찾은 여덟 가지를 고쳤다.",
+	"    - 상점이 화면 안에 줄어 들어가고 제목이 잘리지 않으며, 상점·일지·설정·조작법이 열리면 메뉴 단추와 미니맵이 비켜난다.",
+	"    - 상점은 왼쪽 위 단추로 닫는다.",
+	"    - 돋보기 단추는 메뉴 단추 왼쪽으로 옮겨 보스 체력 막대를 가리지 않는다.",
+	"    - 긴 할 일 줄은 동료 상태와 오른쪽 단추 사이에서 두 줄로 접힌다.",
+	"    - 휴대폰 조작법은 이동 막대와 터치 단추 그림으로 설명하고, 기술 그림 밑에 이름이 붙는다.",
+	"    - 동료 말풍선이 1.4배로 커지고 1초 더 머문다.",
+	"    - 창의 뒤로 단추가 56px 이상이 되었다.",
+	"    - 달지기 숙소는 벽 윗면을 옅은 청회색으로 덮고 바닥을 조금 밝혀 밤에도 벽과 바닥이 구별된다.",
+	"· v0.0.39: GPT 시험 놀이꾼이 두 번째로 찾은 네 가지를 고쳤다.",
+	"    - 벽돌왕을 쓰러뜨린 뒤 할 일 줄이 '다음 장에서 계속' 대신 '열린 동굴 입구로 내려가자'를 보여 주고, 동굴 입구 위에 금빛 느낌표가 뜬다.",
+	"    - 작은 돌숲에 들어서면 남쪽 나무들이 반쯤 비쳐 달 돌 앞 바닥과 안내판이 보인다.",
+	"    - 밤 숲의 벽돌 벽 앞 바닥에 옅게 빛나는 테두리가 생겼다.",
+	"    - 성 아래 등불 방은 물이 빠질 때 '물빛 등불 넷을 8초 안에 켜자'라고 알려 주고, 아직 꺼진 등불 위에 금빛 느낌표가 뜬다.",
+	"· v0.0.38: GPT 시험 놀이꾼이 찾은 다섯 가지를 고쳤다.",
+	"    - 좁은 틈에서는 물결과 노을이 소라 뒤에 한 줄로 따라오고, 소라가 멈추면 서로 떨어진 빈자리에 선다(다람쥐 나무 입구에서 셋이 겹쳐 보였다).",
+	"    - 밤 아랫못의 열린 창살 길에 빛나는 다리 가장자리와 작은 등불을 달았다.",
+	"    - 깨어난 물가에서 강가 길부터 다리 서쪽 끝까지 갈대를 걷어 한 칸 길을 냈다.",
+	"    - 자는 주민이 깔개와 침대 위에 비스듬히 눕고 밑에 그림자가 생겼다.",
+	"    - 달지기 숙소 안에서는 다음에 할 일(셈판, 작업대, 멈춘 문지기, 장부) 위에 금빛 느낌표가 뜬다.",
+	"· v0.0.37: 5장에 다람쥐 나무(약 2분).",
+	"    - 다람쥐 다섯을 구하고 회색 문을 연 뒤에는 숲 한가운데 회색 나무 틈 앞에 큰 다람쥐가 앉아 있다.",
+	"    - 말을 걸면 굳은 나무 한 그루가 비켜서고, 안쪽 숨은 빈터에 숲에서 가장 늙은 도토리나무가 서 있다.",
+	"    - 이 나무 뿌리가 아직 살아서 남쪽 골짜기 개울을 데우고 있었다.",
+	"    - 나무 곁 3.2칸 안에서는 낮에도 켜진 등불 곁처럼 쉬어 눈금이 찬다(칸마다 6초).",
+	"    - 뿌리를 묶은 벽돌 매듭 셋을 왕관으로 풀면(눈금 1칸씩) 뿌리가 하나씩 나무 쪽으로 당겨 붙고, 둘째 매듭 뒤에는 벽돌 고슴도치 2마리가 굴러 나온다.",
+	"    - 마지막 매듭 뒤 1.5초 동안은 대사 없이 나무가 한 번 숨 쉬고 낮은 가지의 잎 둘이 처음 흔들린다.",
+	"    - 그 뒤 나무가 초록이 되고, 구해 준 다람쥐 다섯이 돌아와 가지에 앉는다.",
+	"    - 싹 튼 도토리(회복약 65 → 75, 새 바퀴에도 남는다), 최대 체력 +10, 금화 60을 받는다.",
+	"    - 마을 나무꾼 두솔의 다람쥐 틈 실마리도 켰다.",
+	"    - 대사와 소품은 GPT의 의견으로 다듬었다.",
+	"· v0.0.36: 7장에 달지기 숙소(약 4분).",
+	"    - 벽돌 기사를 쓰러뜨린 자리에 녹슨 태엽이 남고, 그 태엽으로 옥좌의 방 남쪽 벽의 태엽 문을 연다.",
+	"    - 식당과 바구니 방에서 벽돌 6마리와 싸우고, 바구니 셈판에서 한결이 마지막으로 가져간 등불 바구니를 찾는다.",
+	"    - 일방 태엽대의 깡통 문지기를 왕관으로 감으면(눈금 1칸) 침방까지 걸어가는데, 식당의 벽돌 더미 셋이 문지기에게 달려든다(닿으면 태엽이 튕겨 나와 곁에서 E로 다시 걷는다).",
+	"    - 침방 장부의 한결 다음 칸에 소라의 이름을 적으면 문지기가 백 년 만에 제 의자에 앉아 작은 놋 방패를 건넨다(섬광 막기 0.12초 → 0.16초, 새 바퀴에도 남음).",
+	"    - 궤짝에서 최대 체력 +10, 회복약 2, 금화 80.",
+	"    - 대사와 소품은 GPT와 의논해 다듬었다.",
+	"· v0.0.35: 마을에 일하는 사람 여섯이 생겼다.",
+	"    - 나무꾼 두솔, 광부 차돌, 농부 새참, 낚시꾼 여울(두솔의 동생), 바구니 짜는 다래 할머니와 손자 토리.",
+	"    - 저마다 일터(장작더미, 광석 수레, 굳은 밭, 연못가, 장터)에 서 있고, 말을 걸면 아직 못 끝낸 곁이야기의 실마리를 하나씩 들려준다.",
+	"    - 이야기가 나아갈 때마다 하는 말이 바뀌고, 마지막 이야기에서 선물(회복약 1, 금화 30, 또는 물고기가 30% 빨리 무는 미끼 주머니)을 준다.",
+	"    - 밤에는 집에 들어가 자며 한 집에 셋까지 잔다.",
+	"    - 대사와 그림은 GPT와 함께 만들었다.",
+	"· v0.0.34: 1장에 깨어난 물가(약 4분).",
+	"    - 보리 할머니를 만난 뒤, 소라가 깨어난 자리에서 물가로 눌린 갈대 줄이 이어지고 그 끝 진흙에 갈대 바구니가 묻혀 있다.",
+	"    - 왕관으로 진흙을 풀면(눈금 1칸) 벽돌 두 무리(고블린 2, 고블린 1과 활 1)가 일어나고, 바구니에서 금화 30과 회복약 1이 나온다.",
+	"    - 보리 할머니는 달지기 등불 바구니를 알아보고 백 년 동안 켜지 않은 자기 등불과 회복약 1을 준다.",
+	"    - 벽돌왕을 넘어뜨린 뒤 밤에 물가에서 등불 바구니를 띄우면(눈금 1칸) 물길 약 20칸을 따라 흘러가고, 벽돌 걸림 셋(고블린 2, 2, 고블린 1과 활 1)을 풀어 주면 늪 호수 섬 앞에 머문다(최대 체력 +10).",
+	"    - 보리 할머니께 알리면 갈대 방석을 준다(밤에 켜진 등불 곁에서 쉬면 체력이 초당 4씩 찬다).",
+	"    - 대사와 소품은 GPT와 의논해 다듬었다.",
+	"· v0.0.33: 8 → 9장 끝 뒤에 큰 태엽 방(약 5분).",
+	"    - 끝 장면은 그대로이고, 거푸집이 앉아 있던 자리에 구멍이 열린다.",
+	"    - 내려가면 땅을 돌리는 큰 태엽 열쇠가 있다.",
+	"    - 굳은 톱니 셋을 왕관으로 풀며(눈금 1칸씩) 열쇠에서 달려 나오는 거푸집 찌꺼기(2, 3, 4마리)를 막으면 벽돌 일꾼들이 일어나 톱니를 돌본다.",
+	"    - 열쇠 한가운데에 왕관을 올리면 마을 사람들이 내려와 손잡이 여덟을 함께 잡고, 금빛 고리에 맞춰 E를 여덟 번 누르면 다 같이 감는다(그림 한 장).",
+	"    - 궤짝에서 달지기 기름병(회복약을 마시면 기세 +20), 최대 체력 +20, 회복약 2, 금화 200.",
+	"    - 대사와 소품은 GPT와 의논해 다듬었다.",
+	"· v0.0.32: 밤이 되면 마을 사람들(도란, 콩알, 마을에 있을 때의 물결, 꼬마 고블린)이 저마다 가까운 집 문으로 걸어 들어가 자고, 아침이면 나와 제자리로 돌아간다.",
+	"    - 등불지기 심지는 밤에도 광장에 남고, 보름달 축제 밤에는 모두 밖에 있다.",
+	"    - 자는 사람의 집 문 위에 z가 뜨고, 그 집에 들어가면 침대에서 자는 모습(GPT 그림)이 보인다.",
+	"    - 곁에서 E를 누르면 깨어 낮과 같은 이야기와 심부름을 하니 반딧불, 달꽃 같은 밤 심부름도 막히지 않는다.",
+	"    - 낮에 서던 자리에서 E를 누르면 어디서 자는지 알려 준다.",
+	"· v0.0.31: 아이폰과 아이패드에서 글자와 단추가 너무 작던 것을 키웠다.",
+	"    - 휴대폰은 기준 화면을 640 → 540으로 줄여 모든 것이 약 1.2배 커지고 글자도 한 단계 커진다.",
+	"    - 아이패드도 터치 화면으로 알아본다(전에는 사파리가 맥이라고 해서 데스크톱 화면이 나왔다).",
+	"    - 메뉴 단추 넷은 미니맵 왼쪽에 2x2로 모이고, 설정과 일지 같은 큰 창은 화면에 맞게 줄어든다.",
+	"· v0.0.30: 아이폰에서 미니맵은 움직이는데 화면 속 세상은 멈춰 있던 잘못을 고쳤다.",
+	"    - 미니어처 흐림이 흐리게 하려고 복사한 화면이 아이폰 브라우저에서 첫 장면에 멈춰 있었다.",
+	"    - 아이폰과 아이패드에서는 미니어처 흐림을 끄고, 다른 기기에서도 화면 복사에 밉맵을 쓰지 않는다.",
+	"· v0.0.29: 휴대폰 가로 화면에서 놀 수 있다.",
+	"    - 화면 왼쪽에 엄지를 대면 이동 막대가 생기고 끝까지 밀면 달린다.",
+	"    - 오른쪽에 공격, 구르기, 막기, 왕관(E), 열기(Space) 단추가 있고 기술 그림을 누르면 기술을 쓴다.",
+	"    - 손가락 여럿을 따로 읽어 걸으면서 벨 수 있다.",
+	"    - 메뉴 단추는 미니맵 왼쪽, 확대·축소는 미니맵 아래로 옮긴다.",
+	"    - 세로로 들면 가로로 돌려 달라고 한다.",
+	"    - 휴대폰에서는 그림자를 끄고 풀을 절반만 그린다.",
+	"· v0.0.28: 동료 수다를 107개에서 500개로 늘렸다(셋이 하는 대화 224, 곳과 때에 따른 대화 124, 이야기 진행 대화 27, 둘이 주고받는 말 50, 혼잣말 75).",
+	"    - 동굴, 정원, 비 오는 때에도 그곳 수다가 나온다.",
+	"    - 초안은 GPT가 쓰고 이야기 사실에 어긋나지 않는지 골랐다.",
+	"· v0.0.27: 왼쪽 아래 단추 넷(조작법, 소리, 일지, 설정)을 오른쪽 기술 단추와 같은 금빛 마름모로 바꿨다.",
+	"    - GPT가 그린 시안 다섯 가운데 4번(겹금테에 금빛 선 그림)이다.",
+	"    - 단추는 56 → 64 px이고 8 px 간격은 그대로다.",
+	"· v0.0.26: 동굴 밖에서 저장하고 다시 켜면 동굴에 내려갈 때마다 노을을 처음 만나는 벽화 장면이 다시 뜨던 잘못을 고쳤다.",
+	"    - 열쇠와 연 문이 잊히던 것도 함께 고쳤다.",
+	"· v0.0.25: 미니맵의 계단 표시를 네모에서 작은 계단 그림(세 단)으로 바꿨다.",
+	"    - 올라가는 곳은 금빛, 내려가는 곳은 보라이고, 카메라를 돌려도 똑바로 선다.",
+	"· v0.0.24: 설정 창의 네 쪽 이름을 Settings, Help, Changes, About으로 바꿨다.",
+	"    - 어느 언어에서도 영어로 보인다.",
 	"· v0.0.23: About 쪽에는 만든 사람(우주한량) 한 줄만 남기고 그림, 글꼴, 라이선스, 깃허브 단추를 뺐다.",
 	"· v0.0.22: 바뀐 것 목록이 100줄을 넘으면 최근 100줄만 보이고, 더 읽기 단추로 100줄씩 더 불러온다.",
-	"· v0.0.21: 일지(Q)와 조작법(H) 창에서 Esc를 누르면 창이 닫히고 놀이로 돌아간다. 전에는 아무 일도 없었다.",
+	"· v0.0.21: 일지(Q)와 조작법(H) 창에서 Esc를 누르면 창이 닫히고 놀이로 돌아간다.",
+	"    - 전에는 아무 일도 없었다.",
 	"· v0.0.20: 설정 창의 버전 글자를 제목 아래에서 제목 오른쪽 같은 줄로 옮겼다.",
-	"· v0.0.19: 소라가 2시와 10시 쪽(오른쪽 위, 왼쪽 위)으로 걸을 때 머리가 흔들리고 안짱다리로 보이던 그림을 GPT에 다시 그리게 했다. 칸마다 머리 가운데를 맞춰 머리가 좌우로 1 px 넘게 움직이지 않는다.",
+	"· v0.0.19: 소라가 2시와 10시 쪽(오른쪽 위, 왼쪽 위)으로 걸을 때 머리가 흔들리고 안짱다리로 보이던 그림을 GPT에 다시 그리게 했다.",
+	"    - 칸마다 머리 가운데를 맞춰 머리가 좌우로 1 px 넘게 움직이지 않는다.",
 	"2026-10-24 새벽",
-	"· v0.0.18: 4장에 물지기의 아랫못(약 5분). 거북을 물리친 뒤 섬 남쪽 끝 둑을 풀면 할아버지가 일하던 못이 나온다. 말뚝에서 E를 누르면 물결이 헤엄쳐 물밑 사슬을 당긴다. 디딤돌을 띄우고, 창살 마당에서 혼자 버티고, 물 태엽을 감으면 호수 물이 다시 한 바퀴 돈다. 깡통에서 일지 마지막 장과 물지기 호루라기(물결이 10 → 5초 만에 일어남, 최대 체력 +10). 황금 잉어가 5 → 15로 잘 잡힌다.",
-	"· v0.0.17: 2장에 물길 끝 굴(약 7분). 두더지를 잡고 물수제비 걸음을 얻으면 두더지 방 남쪽 물길을 따라 내려간다. 섬 넷의 수정을 낮은 소리부터 울려 창살을 가라앉히고, 쓸려 온 물건 더미에서 보리 할머니가 한결에게 부친 \"혼자 가지 마\" 엽서를 찾는다. 3장에서 할머니께 건넨다.",
-	"· v0.0.16: 6장에 참새 방앗간(약 9분). 벽돌 매를 물리친 뒤 언덕 남쪽 무너진 담을 풀면 바람 없는 골이 나온다. 큰 풍차를 감고, 깃대에서 12초 안에 바람개비 넷을 지나 바람을 불러 내리면 물길이 찬다. 어귀의 큰 수호자를 쓰러뜨리고 물수제비로 나루에 건너가면 가루 배, 종, 궤짝(삿대 고리: 물결의 장대 60 → 70%, 최대 체력 +10). 장터의 달빛 가루는 이 방앗간에서 빻던 것이다.",
-	"· v0.0.15: 8 → 9장에 한결의 마지막 길(약 8분). 계단 꼭대기에서 정원 아래 무너진 뜰로 들어간다. 뿌리 벽돌을 풀고, 한결의 야영터에서 다섯째 일기와 빈 등불 고리를 찾고, 왕관으로 비춰야 보이는 발자국을 따라 깊은 틈을 건너, 거푸집이 떠 둔 벽돌 한결과 싸운다. 한결이 왕관을 늪으로 보낸 까닭이 밝혀진다. 일곱째 길돌 정원 앞 야영터.",
-	"· v0.0.14: 우주 한량의 배치 규칙대로 화면의 단추와 판을 모두 가장자리에서 8px에 맞췄다(왼쪽 아래 단추, 왼쪽 위 초상, 미니맵, 기술 칸, 금화 칸). 단추 사이도 8px이다.",
-	"· v0.0.13: 땅 밑에서 올라가는 곳을 지도에 금빛 네모로 표시한다(성 아래 잠긴 층, 물빛 동굴, 지하 동굴). 내려가는 곳은 보라색 그대로. 잠긴 층의 올라가는 계단에 틀과 등을 달았다.",
-	"· v0.0.12: 멀리 보기(Z X, 휠)로 카메라를 물리면 땅이 뿌옇게 덮이던 안개를 약하게 했다. 안개가 카메라 거리만큼 뒤로 물러난다.",
+	"· v0.0.18: 4장에 물지기의 아랫못(약 5분).",
+	"    - 거북을 물리친 뒤 섬 남쪽 끝 둑을 풀면 할아버지가 일하던 못이 나온다.",
+	"    - 말뚝에서 E를 누르면 물결이 헤엄쳐 물밑 사슬을 당긴다.",
+	"    - 디딤돌을 띄우고, 창살 마당에서 혼자 버티고, 물 태엽을 감으면 호수 물이 다시 한 바퀴 돈다.",
+	"    - 깡통에서 일지 마지막 장과 물지기 호루라기(물결이 10 → 5초 만에 일어남, 최대 체력 +10).",
+	"    - 황금 잉어가 5 → 15로 잘 잡힌다.",
+	"· v0.0.17: 2장에 물길 끝 굴(약 7분).",
+	"    - 두더지를 잡고 물수제비 걸음을 얻으면 두더지 방 남쪽 물길을 따라 내려간다.",
+	"    - 섬 넷의 수정을 낮은 소리부터 울려 창살을 가라앉히고, 쓸려 온 물건 더미에서 보리 할머니가 한결에게 부친 \"혼자 가지 마\" 엽서를 찾는다.",
+	"    - 3장에서 할머니께 건넨다.",
+	"· v0.0.16: 6장에 참새 방앗간(약 9분).",
+	"    - 벽돌 매를 물리친 뒤 언덕 남쪽 무너진 담을 풀면 바람 없는 골이 나온다.",
+	"    - 큰 풍차를 감고, 깃대에서 12초 안에 바람개비 넷을 지나 바람을 불러 내리면 물길이 찬다.",
+	"    - 어귀의 큰 수호자를 쓰러뜨리고 물수제비로 나루에 건너가면 가루 배, 종, 궤짝(삿대 고리: 물결의 장대 60 → 70%, 최대 체력 +10).",
+	"    - 장터의 달빛 가루는 이 방앗간에서 빻던 것이다.",
+	"· v0.0.15: 8 → 9장에 한결의 마지막 길(약 8분).",
+	"    - 계단 꼭대기에서 정원 아래 무너진 뜰로 들어간다.",
+	"    - 뿌리 벽돌을 풀고, 한결의 야영터에서 다섯째 일기와 빈 등불 고리를 찾고, 왕관으로 비춰야 보이는 발자국을 따라 깊은 틈을 건너, 거푸집이 떠 둔 벽돌 한결과 싸운다.",
+	"    - 한결이 왕관을 늪으로 보낸 까닭이 밝혀진다.",
+	"    - 일곱째 길돌 정원 앞 야영터.",
+	"· v0.0.14: 우주 한량의 배치 규칙대로 화면의 단추와 판을 모두 가장자리에서 8px에 맞췄다(왼쪽 아래 단추, 왼쪽 위 초상, 미니맵, 기술 칸, 금화 칸).",
+	"    - 단추 사이도 8px이다.",
+	"· v0.0.13: 땅 밑에서 올라가는 곳을 지도에 금빛 네모로 표시한다(성 아래 잠긴 층, 물빛 동굴, 지하 동굴).",
+	"    - 내려가는 곳은 보라색 그대로.",
+	"    - 잠긴 층의 올라가는 계단에 틀과 등을 달았다.",
+	"· v0.0.12: 멀리 보기(Z X, 휠)로 카메라를 물리면 땅이 뿌옇게 덮이던 안개를 약하게 했다.",
+	"    - 안개가 카메라 거리만큼 뒤로 물러난다.",
 	"",
 	"2026-10-23 저녁",
-	"· v0.0.11: 멀리서 깨지던 한글 간판을 그림으로 바꿨다(상점 물약병, 마을 표지판 등불과 화살표, 가판대 사과, 초승달, 찻잔, 여관 침대). 가판대와 여관 앞에 서면 무엇을 얼마에 파는지 알려 준다.",
-	"· v0.0.10: 달빛 시련을 마을에서 바람 언덕 동쪽 선돌(옛 달지기들이 솜씨를 겨루던 돌)로 옮겼다. 벽돌 매를 물리친 뒤 열리고, 선돌에서 9칸 넘게 멀어지면 끝난다. 처음 깬 뒤에는 시련 괴물이 금화와 경험치를 주지 않는다.",
-	"· v0.0.9: 달빛 눈금이 하룻밤에 다 차도록 빨라졌다. 등불 곁 10 → 6초, 반딧불 병 20 → 12초마다 한 칸. 밤은 105초라 등불 곁에서는 밤의 절반이면 8칸이 찬다.",
-	"· v0.0.8: 칼 휘두르는 효과를 금빛 별가루로 바꿨다(시안 5개 중 3번). 가는 금빛 호가 칼끝을 따라 쓸고, 바깥으로 마름모 불티가 튄다.",
+	"· v0.0.11: 멀리서 깨지던 한글 간판을 그림으로 바꿨다(상점 물약병, 마을 표지판 등불과 화살표, 가판대 사과, 초승달, 찻잔, 여관 침대).",
+	"    - 가판대와 여관 앞에 서면 무엇을 얼마에 파는지 알려 준다.",
+	"· v0.0.10: 달빛 시련을 마을에서 바람 언덕 동쪽 선돌(옛 달지기들이 솜씨를 겨루던 돌)로 옮겼다.",
+	"    - 벽돌 매를 물리친 뒤 열리고, 선돌에서 9칸 넘게 멀어지면 끝난다.",
+	"    - 처음 깬 뒤에는 시련 괴물이 금화와 경험치를 주지 않는다.",
+	"· v0.0.9: 달빛 눈금이 하룻밤에 다 차도록 빨라졌다.",
+	"    - 등불 곁 10 → 6초, 반딧불 병 20 → 12초마다 한 칸.",
+	"    - 밤은 105초라 등불 곁에서는 밤의 절반이면 8칸이 찬다.",
+	"· v0.0.8: 칼 휘두르는 효과를 금빛 별가루로 바꿨다(시안 5개 중 3번).",
+	"    - 가는 금빛 호가 칼끝을 따라 쓸고, 바깥으로 마름모 불티가 튄다.",
 	"· v0.0.7: 심지가 열셋째 등불을 마을 동쪽 문에 거는 장면에 삽화를 붙였다.",
-	"· v0.0.6: 벽돌왕을 쓰러뜨린 뒤의 저장을 불러오면 이야기가 동굴이 열린 때로 되돌아가고 할 일 줄이 \"땅 아래로 가는 동굴이 열렸다\"로 바뀌던 것을 고쳤다. 이미 되돌아간 저장은 한 일을 보고 제 단계로 되살린다.",
+	"· v0.0.6: 벽돌왕을 쓰러뜨린 뒤의 저장을 불러오면 이야기가 동굴이 열린 때로 되돌아가고 할 일 줄이 \"땅 아래로 가는 동굴이 열렸다\"로 바뀌던 것을 고쳤다.",
+	"    - 이미 되돌아간 저장은 한 일을 보고 제 단계로 되살린다.",
 	"· v0.0.5: 상점의 보리 할머니 그림을 440x600 → 220x300(넓이 1/4)으로 줄였다.",
-	"· v0.0.4: 설정 창 글자를 13 → 16px, 단추 글자를 13 → 15px로 키웠다. 긴 설명은 줄을 바꾸고, 글자를 키워 넘치면 굴려 본다. 조작법 창(H)이 글자 크기에 맞춰 넓어진다.",
-	"· v0.0.3: 소리를 끄면 소라가 손가락을 입에 대고 \"쉬잇~\" 한다. 우주 한량의 그림을 가져왔다.",
-	"· v0.0.2: 5장 숲 남쪽 잠든 골짜기(약 12분). 노을이 동료가 된 뒤 빈터 남쪽 회색 문으로 내려간다. 개울을 물수제비로 건너고, 기억 등불 셋으로 노을의 옛 기억을 찾고, 빈 망토(체력 1000)와 싸우고, 그림 문 셋 가운데 해 지는 그림 문에서 한결의 편지와 열셋째 등불을 찾는다. 심지에게 건네면 최대 체력 +15, 금화 150, 노을의 공격 간격 1.4 → 1.1초. 새 괴물 벽돌 고슴도치: 몸을 말면 모든 공격을 막고, 가시를 터뜨린 뒤 1.4초 어지러워 피해를 1.3배 받는다.",
-	"· v0.0.1: 설정 창 제목 아래에 버전과 날짜를 작게 띄운다. 기능을 하나 더할 때마다 끝 숫자가 1씩 오른다. 넷째 칸 이름을 만든 이 → About으로 바꿨다.",
-	"· v0.0.1: 설정 창 제목 아래에 버전과 날짜를 작게 띄운다. 기능을 하나 더할 때마다 끝 숫자가 1씩 오른다. 넷째 칸 이름을 만든 이 → About으로 바꿨다.",
+	"· v0.0.4: 설정 창 글자를 13 → 16px, 단추 글자를 13 → 15px로 키웠다.",
+	"    - 긴 설명은 줄을 바꾸고, 글자를 키워 넘치면 굴려 본다.",
+	"    - 조작법 창(H)이 글자 크기에 맞춰 넓어진다.",
+	"· v0.0.3: 소리를 끄면 소라가 손가락을 입에 대고 \"쉬잇~\" 한다.",
+	"    - 우주 한량의 그림을 가져왔다.",
+	"· v0.0.2: 5장 숲 남쪽 잠든 골짜기(약 12분).",
+	"    - 노을이 동료가 된 뒤 빈터 남쪽 회색 문으로 내려간다.",
+	"    - 개울을 물수제비로 건너고, 기억 등불 셋으로 노을의 옛 기억을 찾고, 빈 망토(체력 1000)와 싸우고, 그림 문 셋 가운데 해 지는 그림 문에서 한결의 편지와 열셋째 등불을 찾는다.",
+	"    - 심지에게 건네면 최대 체력 +15, 금화 150, 노을의 공격 간격 1.4 → 1.1초.",
+	"    - 새 괴물 벽돌 고슴도치: 몸을 말면 모든 공격을 막고, 가시를 터뜨린 뒤 1.4초 어지러워 피해를 1.3배 받는다.",
+	"· v0.0.1: 설정 창 제목 아래에 버전과 날짜를 작게 띄운다.",
+	"    - 기능을 하나 더할 때마다 끝 숫자가 1씩 오른다.",
+	"    - 넷째 칸 이름을 만든 이 → About으로 바꿨다.",
+	"· v0.0.1: 설정 창 제목 아래에 버전과 날짜를 작게 띄운다.",
+	"    - 기능을 하나 더할 때마다 끝 숫자가 1씩 오른다.",
+	"    - 넷째 칸 이름을 만든 이 → About으로 바꿨다.",
 	"· 마을을 32x24 → 48x36으로 넓혔다. 장터(정직 상자 가판대 3곳, 과녁 마당), 여관(금화 10, 하룻밤 회복), 낚시하는 부두.",
 	"· 마을 이야기: 밤마다 장터 금화를 물어 가는 벽돌 까치를 쫓아 연못 둥지까지. 연못의 유리병 편지 셋(콩알, 도란, 한결).",
 	"· 마을 집을 물가 기둥집으로, 풀을 짧은 잔디와 키 큰 무더기로 바꿨다(시안 5개 중 5번씩).",
@@ -5815,7 +6046,11 @@ func touch_crown() -> void:
 		burst(Vector3(g.x, height_at(g.x, g.z) + 0.4, g.z), Color("#c9a066"), 20, 2.0)
 		pop_num(Vector3(g.x, height_at(g.x, g.z) + 1.3, g.z), "!", Color("#ff5a4a"))
 		sfx(110, 0.25, "square", 0.25, 80)
-		get_tree().create_timer(4.0).timeout.connect(func(): set_quest("쪽지에 적힌 서쪽 오두막을 찾아가자")))
+		get_tree().create_timer(4.0).timeout.connect(lantern_quest_late))
+
+func lantern_quest_late() -> void: # met Bori within these 5 s: her quest stays (GPT playtests 2 -> 9)
+	if story_step == 2:
+		set_quest("쪽지에 적힌 서쪽 오두막을 찾아가자")
 
 func meet_bori() -> void:
 	story_step = 3
@@ -5894,7 +6129,7 @@ var save_t := 0.0
 var loaded := false
 
 func save_game() -> void:
-	if intro:
+	if intro or down_t > 0.0 or player.hp <= 0.0: # fallen: the faint puts her back first (GPT playtests 2 -> 9)
 		return
 	var boss_dead := false
 	for e in enemies:
@@ -5902,7 +6137,7 @@ func save_game() -> void:
 			boss_dead = true
 	var d := {"lv": player.lv, "xp": player.xp, "max_hp": player.max_hp, "hp": player.hp, "atk": player.atk,
 		"gold": player.gold, "pots": player.pots, "x": player.x, "z": player.z,
-		"story": story_step, "quest": ui.quest.text, "boss_dead": boss_dead, "in_cave": in_cave, "in_village": in_village, "met": met.keys(), "pips": crown_pips, "errand": errand, "kid_q": kid_q, "doran_q": doran_q, "mul_q": mul_q, "night_q": night_q, "in_forest": in_forest, "in_garden": in_garden, "in_hill": in_hill, "hill_q": hill_q, "mills": hill.mills.map(func(mm): return mm.turning), "in_lake": in_lake, "lake_q": lake_q, "garden_q": garden_q, "forest_q": forest_q, "walls": forest.walls.map(func(w): return w.open), "stones": forest.stones.map(func(st): return st.phase), "grove": forest.solved, "grove_chest": forest.chest_open, "has_unbrick": has_unbrick, "vlit": village.dark.map(func(d): return d.lit), "cave_exit_seen": cave_exit_seen, "has_skip": has_skip, "has_key": has_key, "door_open": cave_door_open, "saw_painting": saw_painting, "hour": hour, "day": day,
+		"story": story_step, "quest": windrun_quest if windrun_on else ui.quest.text, "boss_dead": boss_dead, "in_cave": in_cave, "in_village": in_village, "met": met.keys(), "pips": crown_pips, "errand": errand, "kid_q": kid_q, "doran_q": doran_q, "mul_q": mul_q, "night_q": night_q, "in_forest": in_forest, "in_garden": in_garden, "in_hill": in_hill, "hill_q": hill_q, "mills": hill.mills.map(func(mm): return mm.turning), "in_lake": in_lake, "lake_q": lake_q, "garden_q": garden_q, "forest_q": forest_q, "walls": forest.walls.map(func(w): return w.open), "stones": forest.stones.map(func(st): return st.phase), "grove": forest.solved, "grove_chest": forest.chest_open, "has_unbrick": has_unbrick, "vlit": village.dark.map(func(d): return d.lit), "cave_exit_seen": cave_exit_seen, "has_skip": has_skip, "has_key": has_key, "door_open": cave_door_open, "saw_painting": saw_painting, "hour": hour, "day": day,
 		"chests": chests.map(func(c): return c.open), "scraps": marsh.found, "moon_chest": marsh.chest_open,
 		"fly_q": fly_q, "flies": marsh.flies.map(func(f): return f.caught),
 		"grotto_q": grotto_q, "grotto_side": grotto_side, "has_pearl": has_pearl,
@@ -5913,7 +6148,7 @@ func save_game() -> void:
 		"stairs_wall": stairs.wall_open, "stairs_lamps": stairs.lamps.map(func(l): return l.lit),
 		"castle_q": castle_q, "bars": castle.bars, "levers": castle.levers.map(func(lv): return lv.up), "vault": castle.vault_open, "has_armour": has_armour, "castle_gate": castle.gate_open, "castle_pages": castle.pages.map(func(pg): return pg.read),
 		"quarters_q": quarters_q, "quarters_box": quarters_box, "has_buckler": has_buckler, "quarters_again": quarters_again,
-		"oak_q": oak_q, "oak_knots": forest.knots.map(func(k): return k.open), "has_sprout": has_sprout,
+		"oak_q": oak_q, "oak_knots": forest.knots.map(func(k): return k.open), "has_sprout": has_sprout, "oak_hogs": oak_hogs_beaten, "letter_back": letter_back,
 		"under_drained": under.drained, "under_door": under.door_open, "under_guards": under_guards_done, "under_chest": under_chest_open,
 		"under_side": under_side_open, "under_diary": under_diary_read, "has_lamp": has_lamp, "cave_quest": quest_before_cave}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -5930,6 +6165,8 @@ func load_game() -> void:
 	for k in ["lv", "xp", "max_hp", "atk", "gold", "pots"]:
 		player[k] = int(d.get(k, player[k]))
 	player.hp = float(d.get("hp", player.max_hp))
+	if player.hp <= 0.0: # an older save made in the frame she fell: she wakes healed, as after a faint
+		player.hp = float(player.max_hp)
 	player.x = float(d.get("x", player.x))
 	player.z = float(d.get("z", player.z))
 	ground_y = height_at(player.x, player.z)
@@ -5943,6 +6180,7 @@ func load_game() -> void:
 	doran_q = int(d.get("doran_q", 0))
 	mul_q = int(d.get("mul_q", 0))
 	night_q = int(d.get("night_q", 0))
+	letter_back = bool(d.get("letter_back", night_q >= 3)) # older saves past the lantern night: given then
 	forest_q = int(d.get("forest_q", 0))
 	hollow_q = int(d.get("hollow_q", 0))
 	garden_q = int(d.get("garden_q", 0))
@@ -5967,7 +6205,8 @@ func load_game() -> void:
 	clear_south_job()
 	if lake_q >= 4:
 		join_mate()
-	if garden_q >= 2 and garden_q < 5:
+	var garden_cut := garden_q >= 2 and garden_q < 5
+	if garden_cut:
 		garden_q = 1 # the mold fight starts over when she walks back in
 	var ph: Array = d.get("stones", [])
 	for i in mini(ph.size(), forest.stones.size()):
@@ -6292,6 +6531,12 @@ func load_game() -> void:
 		set_quest(SIMJI_QUEST)
 	if chase_cut: # Noeul is not here until the next night (by night in the village start_night begins it again at once)
 		set_quest(NIGHT_REST_QUEST)
+	if garden_cut: # the saved quest spoke of the shards or the winding that start over (GPT playtests 2 -> 9)
+		set_quest(GARDEN_RETRY_QUEST)
+	if ui.quest.text.begins_with(windrun_prefix()): # an older save made mid-run: the frozen timer goes
+		set_quest(main_road_quest())
+		if mill_q >= 2:
+			toast("바람이 흩어졌다. 깃대에서 다시 해 보자")
 	# saved during the last winding lines (garden_q 5, ending not yet played): the ending plays now, paid once
 	ending_due = garden_q >= 5 and story_step < 12
 	if ending_due and not intro:
@@ -6798,12 +7043,15 @@ func crown_key() -> void:
 					hint_folk_talk(id)
 					return
 				if id == "kongal" and errand >= 3 and kid_q != 1 and (kid_q != 3 or doran_q < 3 or fly_q < 3):
+					met[id] = true
 					kongal_errand()
 					return
 				if id == "mulgyeol" and doran_q >= 3 and mul_q != 1:
+					met[id] = true
 					mulgyeol_errand()
 					return
 				if id == "doran" and kid_q >= 3 and doran_q < 2:
+					met[id] = true
 					doran_errand()
 					return
 				if id == "doran" and doran_q >= 3 and lake_q >= 4 and mail_q < 2 and mail_errand():
@@ -6951,10 +7199,14 @@ func kongal_errand() -> void:
 
 # first meeting: the long introduction; afterwards a short line that follows their errand
 func folk_talk(id: String) -> void:
-	if not met.has(id):
+	var q := {"doran": doran_q, "kongal": kid_q, "mulgyeol": mul_q}.get(id, 0) as int
+	if not met.has(id) and q == 0: # once his errand has begun, the lines follow it (GPT playtests 2 -> 9)
 		show_story("", STORY.FOLK[id])
 		return
-	var q := {"doran": doran_q, "kongal": kid_q, "mulgyeol": mul_q}[id] as int
+	if id == "doran" and q >= 3 and not letter_back:
+		letter_back = true
+		show_story("", STORY.DORAN_LETTER_BACK)
+		return
 	var key := id + ("_done" if q >= 3 else ("_carry" if id == "doran" and q == 2 else ("_search" if q == 1 and id != "doran" else "_wait")))
 	show_story("", STORY.FOLK_AGAIN[key])
 
@@ -6973,6 +7225,8 @@ func doran_errand() -> void:
 	else:
 		return
 	save_game()
+
+var letter_back := false # Hangyeol's letter given back to Doran after Bori read it (saved)
 
 func deliver_letter() -> void:
 	doran_q = 3
@@ -7126,6 +7380,17 @@ func night_fall() -> void:
 	after_story = rise_together
 	save_game()
 
+# the letter Bori sent back with Sora: given to Doran on the first talk after, or here as the night begins
+func rise_lines() -> Array:
+	var lines: Array = STORY.RISE_TOGETHER.duplicate()
+	if not letter_back:
+		letter_back = true
+		for i in lines.size():
+			if String(lines[i]).begins_with("도란|"):
+				lines.insert(i, STORY.DORAN_LETTER_BACK[0])
+				break
+	return lines
+
 func rise_together() -> void:
 	noeul_node.visible = false
 	player.x = village.marks.M.x - 1.5
@@ -7135,7 +7400,7 @@ func rise_together() -> void:
 	set_village_lamps(true)
 	burst(Vector3(player.x, 1.6, player.z), Color("#ffc46a"), 40, 4.0)
 	night_q = 3
-	show_story("res://art/story/09_rise_together.jpg", STORY.RISE_TOGETHER)
+	show_story("res://art/story/09_rise_together.jpg", rise_lines())
 	after_story = spawn_noeul_duel
 	set_quest("동쪽 들판의 노을과 겨루자")
 	save_game()
@@ -7256,7 +7521,9 @@ func enter_forest() -> void:
 	place_big_squirrel()
 	if hollow_q == 1:
 		spawn_hollow()
-	if forest_q < 3:
+	if forest_q == 2: # the walls are open; the duel waits (GPT playtests 2 -> 9)
+		set_quest("노을과 다시 겨루자")
+	elif forest_q < 3:
 		set_quest("벽돌 벽을 팔찌로 풀며 숲 동쪽 끝의 노을에게 가자 (E)")
 	save_game()
 
@@ -7456,6 +7723,12 @@ func hollow_key() -> bool:
 			return true
 	return false
 
+func hollow_squirrel_lines() -> Array:
+	var sq: Array = STORY.HOLLOW_SQUIRREL.duplicate()
+	if not forest.freed.has(true): # no cage opened yet: no thanks for it (GPT playtests 2 -> 9)
+		sq[sq.size() - 1] = STORY.HOLLOW_SQUIRREL_NONE
+	return sq
+
 func open_hollow_box(i: int) -> void:
 	var b: Dictionary = forest.boxes[i]
 	forest.open_box_look(b)
@@ -7466,7 +7739,7 @@ func open_hollow_box(i: int) -> void:
 			var n := 3 if has_acorn else 2
 			player.pots += n
 			player.gold += 40
-			show_story("", STORY.HOLLOW_SQUIRREL)
+			show_story("", hollow_squirrel_lines())
 			toast(tr("회복약 %d개, 금화 40") % n)
 		1: # Noeul's hollow
 			hollow_q = 3
@@ -7646,6 +7919,8 @@ var has_sprout := false       # 싹 튼 도토리: potions heal 75, kept into a 
 var oak_told := false         # the clearing's lines this session (not saved)
 var squirrel_seen := false    # the big squirrel's first toast this session (not saved)
 var oak_hush := false         # the 1.5 s after the last knot
+var oak_hogs_up := false      # the two hedgehogs rolled out this session (a load clears them)
+var oak_hogs_beaten := false  # both down (saved): the last knot waits for this
 var big_squirrel: Node3D = null
 var oak_kin: Array = []       # the other four squirrels, in the crown once it is green
 var steam_t := 0.0
@@ -7764,7 +8039,9 @@ func open_oak_gap() -> void:
 # E by a tied knot: 1 pip, the bricks crumble to soil and the brown root draws in toward the trunk
 func untie_knot(i: int) -> void:
 	var done := oak_loose()
-	if done == 2 and not oak_hogs_alive().is_empty():
+	if done == 2 and not oak_hogs_beaten and (not oak_hogs_up or not oak_hogs_alive().is_empty()):
+		if not oak_hogs_up: # a fight cut short by a load: they roll out again (GPT playtests 2 -> 9)
+			oak_hogs_out()
 		toast("고슴도치부터 막자")
 		return
 	if not spend_pips(1):
@@ -7795,6 +8072,7 @@ func untie_knot(i: int) -> void:
 func oak_hogs_out() -> void:
 	if not in_forest or oak_q != 1 or oak_loose() != 2 or not oak_hogs_alive().is_empty():
 		return
+	oak_hogs_up = true
 	for at in forest.oak_hogs:
 		spawn_hog(at)
 		enemies[enemies.size() - 1].oak = true
@@ -7887,6 +8165,9 @@ func show_sprout() -> void:
 	tw.tween_callback(g.queue_free)
 
 func update_oak() -> void:
+	if oak_hogs_up and not oak_hogs_beaten and oak_hogs_alive().is_empty():
+		oak_hogs_beaten = true
+		save_game()
 	if big_squirrel != null and big_squirrel.visible and oak_q < 2: # breathing, 0.04 up and down every 0.6 s
 		(big_squirrel.get_node("body") as Node3D).position.y = 0.04 * absf(sin(t * PI / 0.6))
 	if not oak_ready():
@@ -7914,6 +8195,8 @@ func oak_journal() -> String:
 func load_oak(d: Dictionary) -> void:
 	oak_q = int(d.get("oak_q", 0))
 	has_sprout = bool(d.get("has_sprout", false))
+	oak_hogs_beaten = bool(d.get("oak_hogs", oak_q >= 2))
+	oak_hogs_up = false
 	var loose: Array = [false, false, false]
 	var ks: Array = d.get("oak_knots", [])
 	for i in mini(ks.size(), 3):
@@ -7945,6 +8228,8 @@ func noeul_turned() -> void:
 	save_game()
 
 # ---- the south lake and Mulgyeol joining (between the lantern night and the forest)
+const LAKE_RETRY_QUEST := "마을 남쪽 문으로 호수에 나가, 부두의 물결에게 말을 걸자 (E)"
+
 func enter_lake() -> void:
 	in_village = false
 	in_lake = true
@@ -7964,6 +8249,8 @@ func enter_lake() -> void:
 		lake_q = 1
 		show_story("", STORY.LAKE_IN)
 		set_quest("수문의 벽돌을 팔찌로 풀자 (E)")
+	elif lake_q == 2 and ui.quest.text == touch_words(tr(LAKE_RETRY_QUEST)):
+		set_quest("부두의 물결에게 말을 걸자 (E)")
 	save_game()
 
 func leave_lake() -> void:
@@ -9955,7 +10242,7 @@ func mill_key() -> bool:
 		windrun_on = true
 		windrun_left = WINDRUN_TIME
 		windrun_got = []
-		windrun_quest = ui.quest.text
+		windrun_quest = main_road_quest() if ui.quest.text.begins_with(windrun_prefix()) else ui.quest.text
 		sfx(523, 0.12, "triangle", 0.2)
 		toast("12초 안에 바람개비 넷을 지나자!")
 		return true
@@ -10086,6 +10373,9 @@ func update_windrun(dt: float) -> void:
 	elif windrun_left <= 0.0:
 		end_windrun("바람이 흩어졌다. 깃대에서 다시 해 보자")
 
+func windrun_prefix() -> String: # "바람 부르기 " as the quest line shows it
+	return touch_words(tr("바람 부르기 %d/4 · %d초")).split("%")[0]
+
 func end_windrun(msg: String) -> void:
 	windrun_on = false
 	set_quest(windrun_quest)
@@ -10215,6 +10505,8 @@ func hawk_beaten() -> void:
 	save_game()
 
 # ---- the heart of the garden (story steps 11 and 12)
+const GARDEN_RETRY_QUEST := "정원 한가운데로 돌아가 굳은달 거푸집에 다시 맞서자"
+
 func enter_garden() -> void:
 	in_forest = false
 	in_hill = false
@@ -10825,12 +11117,17 @@ func clock_key() -> bool:
 		crown_into_key()
 		return true
 	if me.distance_to(garden.clock_marks.J) < 1.6:
-		var lines: Array = STORY.CLOCK_WORN.duplicate()
-		if post_q >= 4:
-			lines.append(STORY.CLOCK_WORN_POST)
-		show_story("", lines)
+		show_story("", clock_worn_lines())
 		return true
 	return false
+
+func clock_worn_lines() -> Array: # after the big spring was wound together, eight worn handles (GPT playtests 2 -> 9)
+	if clock_q >= 5:
+		return STORY.CLOCK_WORN_DONE.duplicate()
+	var lines: Array = STORY.CLOCK_WORN.duplicate()
+	if post_q >= 4:
+		lines.append(STORY.CLOCK_WORN_POST)
+	return lines
 
 # freeing a gear lets 2, 3 then 4 scraps out of the key; they run for that gear and do not hit Sora
 func shed_clock_shards(i: int) -> void:
@@ -11982,7 +12279,14 @@ func check_painting() -> void:
 		return
 	saw_painting = true
 	show_story("res://art/story/06_cave_rival.jpg", STORY.PAINTING)
-	set_quest("열쇠를 찾아 잠긴 문을 열자")
+	if has_skip: # seen on a later visit: the quest she has stays (GPT playtests 2 -> 9)
+		pass
+	elif cave_door_open:
+		set_quest(CAVE_DOOR_QUEST)
+	elif has_key:
+		set_quest("얻은 열쇠로 잠긴 문을 열자")
+	else:
+		set_quest("열쇠를 찾아 잠긴 문을 열자")
 	save_game()
 
 func enter_cave() -> void:
@@ -11990,7 +12294,8 @@ func enter_cave() -> void:
 	if not cave_spawned:
 		cave_spawned = true
 		build_cave_props()
-		spawn_mole()
+		if not has_skip: # beaten in an earlier run (GPT playtests 2 -> 9)
+			spawn_mole()
 		for c in CAVE_SPAWNS:
 			spawn_enemy(Vector2(CAVE_X + c[0], c[1]), c[2])
 		for b in BAT_SPOTS:
@@ -12003,7 +12308,10 @@ func enter_cave() -> void:
 	player.z = sp.y
 	ground_y = 0.0
 	snap_mates() # companions come down with her
-	quest_before_cave = ui.quest.text if story_step > 7 else ""
+	if story_step <= 7:
+		quest_before_cave = ""
+	elif ui.quest.text != "" or quest_before_cave == "": # after a faint inside the line was empty (GPT playtests 2 -> 9)
+		quest_before_cave = ui.quest.text
 	set_quest("동굴 깊은 곳으로" if story_step <= 7 else "")
 	ui.outside_map = ui.mini.map_tex
 	ui.mini.map_tex = cave_map_tex()
@@ -13212,6 +13520,7 @@ func faint() -> void:
 				e.shadow.queue_free()
 		if garden_q >= 2 and garden_q < 5:
 			garden_q = 1 # the fight starts over
+			set_quest(GARDEN_RETRY_QUEST)
 			garden.set_posts(0)
 			ring_k = -1
 			for e in enemies:
@@ -13237,6 +13546,7 @@ func faint() -> void:
 					e.x = e.wx
 					e.z = e.wz
 			lake_q = 2 # row out again from the pier
+			set_quest(LAKE_RETRY_QUEST)
 			if lake_npc != null:
 				lake_npc.visible = true
 	if in_hill:
@@ -13291,6 +13601,8 @@ func faint() -> void:
 				e.z = cave_marks.B.y
 				e.dash = 0.0
 				e.wind = 0.0
+		if story_step > 7: # a later visit: the village's quest comes back with her
+			set_quest(quest_before_cave if quest_before_cave != "" else main_road_quest())
 	player.hp = float(player.max_hp)
 	player.x = START.x
 	player.z = START.y
@@ -13436,6 +13748,9 @@ func update_mole(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	e.shadow.position = Vector3(e.x, 0.02, e.z)
 
 func mole_defeated() -> void:
+	ui.boss.visible = false
+	if has_skip: # the first win's lines, quest and skip only once
+		return
 	has_skip = true
 	ui.boss.visible = false
 	set_quest("동쪽 출구로 나가자 (Shift를 누르고 물 위를 달릴 수 있다)")
@@ -13574,6 +13889,16 @@ func under_journal() -> String:
 		return tr("물빛 등불 넷을 8초 안에 (%d/4)") % under.lamps_lit()
 	return tr("큰 방 바닥의 계단으로. 북쪽 벽의 벽돌 마개")
 
+# Hangyeol's room: west of the flooded hall (rows 8 - 11, columns 1 - 8); the east drain up to the hall is outside it
+func in_hangyeol_room(p: Vector2) -> bool:
+	return p.y < 12.4 and p.y > 7.5 and p.x < UNDER.UNDER_X + 8.6
+
+func under_diary_lines() -> Array:
+	var dl: Array = STORY.UNDER_DIARY.duplicate()
+	if castle.pages_read() < 3: # the hand is compared with the castle's three pages only once they are read
+		dl[0] = STORY.UNDER_DIARY_FIRST
+	return dl
+
 func update_under(dt: float) -> void:
 	var me := Vector2(player.x, player.z)
 	if gust_dir == Vector2.ZERO and me.distance_to(under.marks.S) < 0.6:
@@ -13592,7 +13917,7 @@ func update_under(dt: float) -> void:
 			toast("물빛 등불이 모두 꺼졌다. 첫 등불부터 8초 안에")
 			ui.mini.map_tex = under_map()
 	# Hangyeol's room: two big guardians rise when she steps in; the door shuts behind her until both fall
-	if under.door_open and not under_guards_done and under_guards.is_empty() and me.y < 12.4:
+	if under.door_open and not under_guards_done and under_guards.is_empty() and in_hangyeol_room(me):
 		for at in under.guard_spots:
 			spawn_enemy(at)
 			var e: Dictionary = enemies[enemies.size() - 1]
@@ -13677,7 +14002,7 @@ func under_key() -> bool:
 				return true
 	if not under_diary_read and me.distance_to(under.marks.j) < 1.4:
 		under_diary_read = true
-		show_story("", STORY.UNDER_DIARY)
+		show_story("", under_diary_lines())
 		save_game()
 		return true
 	if not under_chest_open and me.distance_to(under.marks.c) < 1.5:
@@ -13742,7 +14067,7 @@ func market_key() -> bool:
 func buy_stall(key: String) -> void:
 	if magpie_q == 0:
 		magpie_q = 1
-		show_story("", STORY.MARKET_NOTE)
+		show_story("", cast_lines(STORY.MARKET_NOTE))
 		save_game()
 		return
 	var st: Dictionary = STALLS[key]
@@ -13902,9 +14227,48 @@ func stay_inn() -> void:
 		snap_mates()
 		save_game())
 	if inn_nights == 1:
-		get_tree().create_timer(0.9).timeout.connect(func(): show_story("", STORY.INN_FIRST))
+		get_tree().create_timer(0.9).timeout.connect(func(): show_story("", inn_first_lines()))
 	else:
 		toast("푹 자고 일어났다. 아침 7시")
+
+# side-story lines in the village can come before Mulgyeol or Noeul has joined: their lines go (GPT playtests 2 -> 9)
+func cast_lines(lines: Array) -> Array:
+	return lines.filter(func(l): return not ((String(l).begins_with("노을|") and mate2 == null) or (String(l).begins_with("물결|") and mate == null)))
+
+func swap_line(lines: Array, from: String, to: String) -> Array: # the line spoken by `from` becomes `to`
+	var out: Array = lines.duplicate()
+	for i in out.size():
+		if String(out[i]).begins_with(from + "|"):
+			out[i] = to
+			break
+	return out
+
+func inn_first_lines() -> Array:
+	var lines: Array = STORY.INN_FIRST
+	if mate == null and mate2 == null:
+		lines = swap_line(lines, "소라", STORY.INN_FIRST_ALONE)
+		lines[lines.size() - 1] = STORY.INN_FIRST_MORNING_ALONE
+	elif mate2 == null:
+		lines = swap_line(lines, "소라", STORY.INN_FIRST_MUL)
+	return cast_lines(lines)
+
+func bottle_lines(i: int) -> Array:
+	var lines: Array = STORY.BOTTLES[i]
+	if mate == null:
+		lines = swap_line(lines, "물결", STORY.BOTTLE_DORAN_ALONE)
+	return cast_lines(lines)
+
+func magpie_nest_lines() -> Array:
+	var lines: Array = STORY.MAGPIE_NEST
+	if mate2 == null:
+		lines = swap_line(lines, "노을", STORY.MAGPIE_NEST_SIGN)
+	return cast_lines(lines)
+
+func magpie_done_lines() -> Array:
+	var lines: Array = STORY.MAGPIE_DONE
+	if mate2 == null:
+		lines = swap_line(lines, "노을", STORY.MAGPIE_DONE_PRICE)
+	return cast_lines(lines)
 
 func pick_bottle(b: Dictionary) -> void:
 	b.got = true
@@ -13912,7 +14276,7 @@ func pick_bottle(b: Dictionary) -> void:
 	var i: int = village.bottles.find(b)
 	burst(Vector3(b.pos.x, 0.3, b.pos.y), Color("#bfe6c8"), 16, 2.0)
 	sfx(880, 0.12, "triangle", 0.2)
-	show_story("", STORY.BOTTLES[i])
+	show_story("", bottle_lines(i))
 	if village.bottles_got() == village.bottles.size():
 		player.gold += 120
 		player.max_hp += 10
@@ -14021,7 +14385,7 @@ func update_magpie(dt: float) -> void:
 		fly_magpie(magpie_at + 1)
 	elif magpie_at == 3 and me.distance_to(here) < 1.4:
 		magpie_q = 2
-		show_story("", STORY.MAGPIE_NEST)
+		show_story("", magpie_nest_lines())
 		save_game()
 
 func fly_magpie(to: int) -> void:
@@ -14058,6 +14422,6 @@ func magpie_key() -> bool:
 	player.gold += 100
 	player.max_hp += 10
 	player.hp = float(player.max_hp)
-	show_story("", STORY.MAGPIE_DONE)
+	show_story("", magpie_done_lines())
 	save_game()
 	return true

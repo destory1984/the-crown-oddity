@@ -39,7 +39,7 @@ func _draw() -> void:
 		var y0 := size.y * i / bands
 		draw_rect(Rect2(0, y0, size.x, size.y / bands + 1), cols[0].lerp(cols[1], float(i) / (bands - 1)))
 	var base := Vector2(size.x / 2.0, size.y - 8.0)
-	var r := Vector2(size.x / 2.0 - 18.0, size.y - 20.0)
+	var r := Vector2(size.x / 2.0 - 24.0, size.y - 26.0)
 	# dashed arc
 	for i in 24:
 		if i % 2 == 0:
@@ -53,16 +53,16 @@ func _draw() -> void:
 	var ang := PI + PI * p
 	var pos := base + Vector2(cos(ang) * r.x, sin(ang) * r.y)
 	if is_day:
-		for k in 4:
-			draw_circle(pos, 12.0 - k * 2.0, Color(1.0, 0.75, 0.3, 0.12))
-		draw_circle(pos, 7.0, Color("#ffd25a"))
-		draw_circle(pos, 4.5, Color("#fffbe0"))
+		for k in 4: # sun and moon drawn twice the old size (the user found them too small, 2026-10-24)
+			draw_circle(pos, 22.0 - k * 3.5, Color(1.0, 0.75, 0.3, 0.12))
+		draw_circle(pos, 13.0, Color("#ffd25a"))
+		draw_circle(pos, 8.5, Color("#fffbe0"))
 	else:
 		for k in 3:
-			draw_circle(pos, 10.0 - k * 2.0, Color(0.75, 0.8, 1.0, 0.12))
+			draw_circle(pos, 19.0 - k * 3.5, Color(0.75, 0.8, 1.0, 0.12))
 		# phase: a shadow disc slides off the moon as it fills; side flips when waning
 		var ph: Vector2 = main.moon_phase()
-		var mr := 6.5
+		var mr := 12.0
 		draw_circle(pos, mr, Color("#e8ecff"))
 		if ph.x < 0.98:
 			var off := mr * 2.0 * ph.x * ph.y

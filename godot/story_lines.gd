@@ -163,6 +163,12 @@ const BORI_LETTER := [
 	"||달빛 눈금이 모두 찼다. 최대 체력 +10.",
 ]
 
+# the letter back to Doran: the first talk after Bori's letter, or at the start of the lantern night (main.gd)
+const DORAN_LETTER_BACK := [
+	"||소라는 품에 넣어 온 한결의 편지를 도란에게 돌려주었다.",
+	"도란|doran|보리 할머니가 나더러 지니라고 하셨다고? ……그럼 내가 다시 품고 있겠소. 고맙소, 손님.",
+]
+
 const MUL_ASK := [
 	"물결|mulgyeol_grumpy|또 왔어? ……도란 영감 편지까지 풀었다며.",
 	"물결|mulgyeol_grumpy|그럼 이것도 해 봐. 호수가 굳던 날, 내 노가 물살에 떠밀려 늪 북서쪽 연못까지 흘러갔어.",
@@ -262,7 +268,7 @@ const NOEUL_TURNS := [
 ]
 
 const GARDEN_IN := [
-	"||성의 동쪽 문을 지나자, 하늘이 낮게 내려앉은 둥근 빈터가 나왔다. 땅은 온통 회색으로 굳어 금이 가 있었다.",
+	"||회색 문을 지나자, 하늘이 낮게 내려앉은 둥근 빈터가 나왔다. 땅은 온통 회색으로 굳어 금이 가 있었다.",
 	"노을|jae|저기야. 저 초승달 모양 틀이 '그분'…… 굳은달 거푸집.",
 	"||차갑고 딱딱한 목소리가 땅 밑에서 울렸다. '왕관을…… 한가운데로…… 모든 것을 한 모양으로……'",
 	"소라|determined|정원은 굳히라고 만든 게 아니야. 다시 감을 거야!",
@@ -789,6 +795,7 @@ const UNDER_DIARY := [
 	"||「하지만 여덟 사람 몫을 혼자 감다가 손이 굳었다. 왕관을 썼다고 혼자 감는 게 아니었다. 이 등잔에 그날을 적어 둔다.」",
 	"소라|sad|보리 할머니가 하신 말과 똑같아. 한결도…… 한 번은 틀렸구나.",
 ]
+const UNDER_DIARY_FIRST := "||한결의 일기, 넷째 장. 글씨가 몹시 흐트러져 있다." # the castle's three pages not all read
 
 const UNDER_CHEST := [
 	"||상자 안에는 작은 놋쇠 등잔이 들어 있다. 기름도 없는데 희미하게 따뜻하다.",
@@ -1163,10 +1170,14 @@ const TARGET_MEDAL := [
 const INN_FIRST := [
 	"||여관 2층의 작은 방. 침대 셋이 나란히 놓여 있고, 창밖으로 연못이 반짝인다.",
 	"노을|jae|침대에서 자는 거 얼마 만이지.",
-	"물결|mulgyeol|나는 섬 밖에서 자는 게 처음이야. 좀 설렌다.",
+	"물결|mulgyeol|나는 친구들이랑 같이 자 보는 게 처음이야. 좀 설렌다.",
 	"소라|calm|잘 자, 둘 다. 내일도 같이 가자.",
 	"||다음 날 아침 7시. 모두 개운하게 일어났다. (체력과 기력, 동료의 체력이 가득 찼다)",
 ]
+# INN_FIRST before the companions join (main.gd inn_first_lines): Sora's goodnight and the morning
+const INN_FIRST_MUL := "소라|calm|잘 자, 물결. 내일도 같이 가자."
+const INN_FIRST_ALONE := "소라|calm|혼자 묵는 여관 방도 포근하네. 내일도 힘내자."
+const INN_FIRST_MORNING_ALONE := "||다음 날 아침 7시. 개운하게 일어났다. (체력과 기력이 가득 찼다)"
 
 const BOTTLES := [
 	[
@@ -1186,6 +1197,8 @@ const BOTTLES := [
 	],
 ]
 
+const BOTTLE_DORAN_ALONE := "소라|calm|섬에 사는 벗이라…… 도란 아저씨의 오랜 친구였나 봐." # BOTTLES[1] before Mulgyeol joins
+
 const MARKET_NOTE := [
 	"||가판대 금화 상자 위에 쪽지가 꽂혀 있다.",
 	"||「요즘 밤마다 상자 속 금화가 몇 닢씩 사라집니다. 범인을 알려 주시는 분께 사례하겠습니다. — 장터 사람들」",
@@ -1198,10 +1211,12 @@ const MAGPIE_NEST := [
 	"||연못 한가운데, 물 위에 엮은 작은 둥지. 금화가 동그랗게 쌓여 달처럼 반짝인다.",
 	"||둥지 위의 까치가 고개를 갸웃한다. 몸은 벽돌인데, 눈만은 등불처럼 따뜻하다.",
 	"물결|mulgyeol|벽돌 까치야. 그런데 이 녀석, 우리를 안 무서워해.",
-	"노을|jae|한결의 일기에 나왔어. 등불을 돌보던 까치가 있었다고. 부두 끝 달 등불이 그 녀석 자리였대.",
+	"노을|jae|들은 적 있어. 등불을 돌보던 까치가 있었다고. 부두 끝 달 등불이 그 녀석 자리였대.",
 	"소라|sad|그 등불이 꺼져서…… 금화로 작은 달을 만들고 있었구나.",
 	"소라|determined|부두 끝 달 등불을 다시 켜 주자. (팔찌 달빛 2칸)",
 ]
+
+const MAGPIE_NEST_SIGN := "||둥지 곁 말뚝에 오래된 글씨가 남아 있다. 「부두 끝 달 등불은 까치의 자리 — 한결」" # before Noeul joins
 
 const MAGPIE_DONE := [
 	"||낡은 달 등불에 푸른 빛이 차오르자, 까치가 둥지에서 날아올라 등불 꼭대기에 내려앉았다.",
@@ -1210,6 +1225,7 @@ const MAGPIE_DONE := [
 	"노을|jae|장터 사람들이 달빛 가루를 싸게 준대. 범인을 찾아 준 사례로. (달빛 가루 40 → 25)",
 	"소라|laugh|잘 자, 까치야. 이제 진짜 달이 있잖아. (금화 +100, 최대 체력 +10)",
 ]
+const MAGPIE_DONE_PRICE := "||장터 사람들이 범인을 찾아 준 사례로 달빛 가루를 싸게 주기로 했다. (달빛 가루 40 → 25)" # before Noeul joins
 
 # rest talks that follow the story: [key, talk]. main.gd story_talk_ok(key) says when each may come; each is told once,
 # before the everyday REST_TALK, and only when everyone in it is with Sora.
@@ -1259,6 +1275,7 @@ const HOLLOW_SQUIRREL := [
 	"||다람쥐들의 겨울 곳간이다. 도토리 사이에 회복약 두 병이 끼어 있다.",
 	"소라|laugh|우리에서 꺼내 준 답례인가 봐.",
 ]
+const HOLLOW_SQUIRREL_NONE := "소라|calm|다람쥐들의 곳간이구나. 고마워, 조금만 빌려 갈게." # no squirrel freed yet
 
 const HOLLOW_MOON := [
 	"||낡은 짐 꾸러미. 말린 빵과 금화, 그리고 숲 지도 한 장.",
@@ -1531,6 +1548,11 @@ const CLOCK_WORN := [
 	"노을|jae|……이번엔 옆 손잡이도 비워 두지 말자.",
 ]
 const CLOCK_WORN_POST := "소라|calm|할머니가 엽서에 썼지. 혼자 가지 말라고."
+const CLOCK_WORN_DONE := [ # after the big spring was wound together (clock_q 5)
+	"||여덟 손잡이 모두에 새 손때가 묻어 있다. 먼지는 어디에도 없다.",
+	"소라|laugh|이번엔 여덟 사람 몫을 여덟 사람이 밀었어.",
+	"노을|jae_smirk|다음에 와도 옆 손잡이는 비어 있지 않을 거야.",
+]
 
 const CLOCK_GEAR1 := [
 	"||벽가에 앉아 있던 고블린 둘이 일어나 톱니에 붙었다. 이를 하나씩 닦는다.",
@@ -1783,7 +1805,7 @@ const OAK_AFTER := [
 ]
 
 const REST_TALK_STORY := [
-	["mul_new", [["mulgyeol", "섬 밖에서 이렇게 오래 있어 본 건 처음이야."], ["sora", "할아버지 생각 나?"], ["mulgyeol", "응. 그래도 할아버지라면 가라고 했을 거야."]]],
+	["mul_new", [["mulgyeol", "친구들이랑 이렇게 오래 길을 걸어 본 건 처음이야."], ["sora", "할아버지 생각 나?"], ["mulgyeol", "응. 그래도 할아버지라면 가라고 했을 거야."]]],
 	["noeul_new", [["noeul", "……내가 같이 가도 괜찮은 거야? 마을 등불을 끈 건 나였는데."], ["mulgyeol", "그건 이제 다 갚았잖아."], ["sora", "응. 지금은 우리 편이야."], ["noeul", "……고마워."]]],
 	["hollow_hint", [["noeul", "숲 빈터 남쪽에 회색 문이 있었어."], ["sora", "가 보고 싶어?"], ["noeul", "……응. 언젠가."]]],
 	["hawk", [["sora", "풍차가 다시 도니까 언덕이 노래하는 것 같아."], ["noeul", "벽돌 매가 바람을 막고 있었던 거야."], ["mulgyeol", "바람이 돌아오니 털이 다 날린다!"]]],

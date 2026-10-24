@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -2873,6 +2873,291 @@ func run() -> void:
 		check("playtest5", door_q and arrive_q and chase_q and card_before and card_after and echo_first and echo_seen and mail_pre and mail_end and fest,
 			"cave door quest=%s village arrival save quest=%s day chase save quest=%s postcard before/after the letter=%s/%s road echo unseen/seen painting=%s/%s mail thanks before/after the ending=%s/%s festival=%s"
 			% [door_q, arrive_q, chase_q, card_before, card_after, echo_first, echo_seen, mail_pre, mail_end, fest])
+	if want.call("laps"):
+		# GPT's story playtests, laps 2 -> 9 (shots/plans/laps2to9_findings.md): one check for each finding fixed.
+		# The state before comes back at the end.
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		calm_enemies(true)
+		main.save_game()
+		var before: String = FileAccess.get_file_as_string(main.SAVE_PATH)
+		var bad: Array = []
+		var f: FileAccess
+		# 1. no save while she lies fallen (hp 0); an older hp 0 save wakes healed
+		main.player.hp = float(main.player.max_hp)
+		main.save_game()
+		main.down_t = 3.0
+		main.player.hp = 0.0
+		main.save_game()
+		var sd: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var hp_saved: float = float(sd.get("hp", 0.0))
+		main.down_t = 0.0
+		main.player.hp = float(main.player.max_hp)
+		sd["hp"] = 0.0
+		f = FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(JSON.stringify(sd))
+		f.close()
+		main.load_game()
+		if main.story_open:
+			main.close_story()
+		if not (hp_saved > 0.0 and main.player.hp == float(main.player.max_hp)):
+			bad.append("1 fallen save hp=%s, hp 0 save loads hp=%s" % [hp_saved, main.player.hp])
+		main.return_to_start()
+		# 2. Chadol's round keeps off the east gate, and stopped mid-leg for Sora he does not block her
+		var gate: Vector2 = main.village.marks.F
+		var pts: Array = main.FOLK_ROUTES["chadol"]
+		var gate_near := 99.0
+		for i in pts.size():
+			var a: Vector2 = main.route_at("chadol", i)
+			var b: Vector2 = main.route_at("chadol", (i + 1) % pts.size())
+			for s in 11:
+				gate_near = minf(gate_near, a.lerp(b, s / 10.0).distance_to(gate))
+		main.routine_off = false
+		var cr: Dictionary = main.folk_route_state("chadol")
+		cr.i = 2
+		cr.back = false
+		var mid: Vector2 = main.route_at("chadol", 2) + Vector2(0, 5)
+		cr.pos = mid
+		main.player.x = mid.x
+		main.player.z = mid.y - 0.5
+		main.update_folk_sleep(0.05)
+		var rock_r: float = float(main.folk_rocks["chadol"].r) if main.folk_rocks.has("chadol") else -1.0
+		var waited: bool = (cr.pos as Vector2).distance_to(mid) < 0.01
+		main.route_reset("chadol")
+		main.routine_off = true
+		main.update_folk_sleep(0.0)
+		if not (gate_near >= 1.9 and rock_r == 0.0 and waited):
+			bad.append("2 chadol gate distance=%.1f rock while waiting=%s waited=%s" % [gate_near, rock_r, waited])
+		main.return_to_start()
+		# 3. a save made mid-fight in the garden (garden_q 3) loads with the go-back-to-the-centre quest
+		var gs: Vector2 = main.garden.marks.S
+		f = FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(JSON.stringify({"story": 11, "garden_q": 3, "road_q": 4, "in_garden": true, "has_skip": true, "errand": 4,
+			"x": gs.x + 1.5, "z": gs.y, "quest": "마을 사람들이 등불을 켜는 동안 거푸집 조각을 막자 2/8"}))
+		f.close()
+		main.load_game()
+		if main.story_open:
+			main.close_story()
+		if not (main.garden_q == 1 and main.ui.quest.text == main.tr(main.GARDEN_RETRY_QUEST)):
+			bad.append("3 garden save quest=%s" % main.ui.quest.text)
+		main.return_to_start()
+		# 4. the mill run: the save keeps the quest from before the run; an older save with the timer loads without it
+		main.windrun_on = true
+		main.windrun_quest = "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
+		main.set_quest(main.tr("바람 부르기 %d/4 · %d초") % [1, 9])
+		main.save_game()
+		var mq: String = String(JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH)).get("quest", ""))
+		main.windrun_on = false
+		f = FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(JSON.stringify({"story": 10, "has_skip": true, "errand": 4, "quest": "바람 부르기 2/4 · 5초"})) # mill_q 0: a mill_q save would open the hill wall for good and spoil the mill test
+		f.close()
+		main.load_game()
+		if main.story_open:
+			main.close_story()
+		if not (mq == main.windrun_quest and not main.ui.quest.text.begins_with(main.windrun_prefix())):
+			bad.append("4 mill saved quest=%s old save quest=%s" % [mq, main.ui.quest.text])
+		main.return_to_start()
+		# 5. the cave revisited from the village: a faint inside gives the quest back, an empty line never replaces it
+		var st0: int = main.story_step
+		main.story_step = maxi(main.story_step, 8)
+		main.set_quest("콩알의 꼬마 고블린을 찾자")
+		main.enter_cave()
+		main.faint()
+		var cave_back: bool = main.ui.quest.text == main.tr("콩알의 꼬마 고블린을 찾자")
+		main.set_quest("")
+		main.enter_cave()
+		main.leave_cave()
+		if main.story_open:
+			main.close_story()
+		cave_back = cave_back and main.ui.quest.text == main.tr("콩알의 꼬마 고블린을 찾자")
+		if not cave_back:
+			bad.append("5 cave quest after faint and re-entry=%s" % main.ui.quest.text)
+		main.return_to_start()
+		# 6. beaten by the turtle: back in the village the quest says how to row out again; at the lake, talk at the pier
+		main.in_village = false
+		main.in_lake = true
+		main.lake_q = 3
+		main.faint()
+		var lake_ok: bool = main.lake_q == 2 and main.ui.quest.text == main.tr(main.LAKE_RETRY_QUEST)
+		main.enter_lake()
+		if main.story_open:
+			main.close_story()
+		lake_ok = lake_ok and main.ui.quest.text == main.tr("부두의 물결에게 말을 걸자 (E)")
+		if not lake_ok:
+			bad.append("6 turtle faint quest=%s" % main.ui.quest.text)
+		main.return_to_start()
+		# 7. the hedgehogs: a fight cut by a load comes back at the last knot, which waits until both are down
+		var oak0: Array = [main.oak_q, main.oak_hogs_beaten, main.oak_hogs_up, main.crown_pips]
+		main.in_village = false
+		main.in_forest = true
+		main.oak_q = 1
+		main.oak_hogs_beaten = false
+		main.oak_hogs_up = false
+		main.forest.oak_look(true, [true, true, false], false)
+		main.crown_pips = 8
+		main.untie_knot(2)
+		var hogs: int = main.oak_hogs_alive().size()
+		var knot_shut: bool = not main.forest.knots[2].open
+		for e in main.oak_hogs_alive():
+			e.dead = true
+			e.node.queue_free()
+			e.shadow.queue_free()
+		main.update_oak()
+		var hogs_beaten: bool = main.oak_hogs_beaten
+		main.oak_q = oak0[0]
+		main.oak_hogs_beaten = oak0[1]
+		main.oak_hogs_up = oak0[2]
+		main.crown_pips = oak0[3]
+		if not (hogs == 2 and knot_shut and hogs_beaten):
+			bad.append("7 oak hogs out=%d last knot shut=%s beaten=%s" % [hogs, knot_shut, hogs_beaten])
+		main.return_to_start()
+		# 8. a second cart-mole win changes nothing
+		var sk0: bool = main.has_skip
+		main.has_skip = true
+		main.set_quest("물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자")
+		main.mole_defeated()
+		if main.story_open or main.ui.quest.text != main.tr("물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"):
+			bad.append("8 second mole win story=%s quest=%s" % [main.story_open, main.ui.quest.text])
+		main.close_story()
+		main.has_skip = sk0
+		# 9. the late hint after the first lamp leaves Bori's quest alone once she has been met
+		main.story_step = 3
+		main.set_quest("북쪽 벽돌왕을 쓰러뜨려 물길을 열어라 (상점에서 약을 챙기자)")
+		main.lantern_quest_late()
+		var late_ok: bool = main.ui.quest.text == main.tr("북쪽 벽돌왕을 쓰러뜨려 물길을 열어라 (상점에서 약을 챙기자)")
+		main.story_step = 2
+		main.lantern_quest_late()
+		late_ok = late_ok and main.ui.quest.text == main.tr("쪽지에 적힌 서쪽 오두막을 찾아가자")
+		main.story_step = maxi(st0, 8)
+		if not late_ok:
+			bad.append("9 late lamp hint")
+		# 10. the painting first seen late: the quest fits the key, the door and the skip
+		var pk: Array = [main.saw_painting, main.has_key, main.cave_door_open, main.has_skip]
+		var pq: Array = []
+		for c in [[true, false, false], [true, true, false], [true, true, true]]:
+			main.saw_painting = false
+			main.has_key = c[0]
+			main.cave_door_open = c[1]
+			main.has_skip = c[2]
+			main.set_quest("동굴 다음 길")
+			reset_to(main.cave_marks.P)
+			main.check_painting()
+			main.close_story()
+			pq.append(main.ui.quest.text)
+		main.saw_painting = pk[0]
+		main.has_key = pk[1]
+		main.cave_door_open = pk[2]
+		main.has_skip = pk[3]
+		if pq != [main.tr("얻은 열쇠로 잠긴 문을 열자"), main.tr(main.CAVE_DOOR_QUEST), main.tr("동굴 다음 길")]:
+			bad.append("10 painting quests=%s" % [pq])
+		main.return_to_start()
+		# 11. back in the forest after losing the duel, the duel is the quest
+		var fq0: int = main.forest_q
+		main.forest_q = 2
+		main.enter_forest()
+		if main.story_open:
+			main.close_story()
+		if main.ui.quest.text != main.tr("노을과 다시 겨루자"):
+			bad.append("11 forest re-entry quest=%s" % main.ui.quest.text)
+		main.forest_q = fq0
+		main.return_to_start()
+		# 13. village side lines before Mulgyeol and Noeul join: neither speaks; with Mulgyeol alone only he does
+		park_mates(true)
+		var sets: Array = [main.inn_first_lines(), main.cast_lines(STORY.MARKET_NOTE), main.bottle_lines(1), main.magpie_nest_lines(), main.magpie_done_lines()]
+		var cast_bad := 0
+		for ls in sets:
+			for l in ls:
+				if String(l).begins_with("노을|") or String(l).begins_with("물결|"):
+					cast_bad += 1
+		var price_kept: bool = "40 → 25" in "".join(main.magpie_done_lines())
+		var mul_only := true
+		if parked.size() == 2 and parked[0] != null:
+			main.mate = parked[0]
+			var il: Array = main.inn_first_lines()
+			mul_only = il.has(STORY.INN_FIRST_MUL) and not "".join(il).contains("노을|")
+			main.mate = null
+		park_mates(false)
+		if not (cast_bad == 0 and price_kept and mul_only):
+			bad.append("13 lines by companions not yet joined=%d price line=%s mulgyeol-only inn=%s" % [cast_bad, price_kept, mul_only])
+		# 14, 15. Doran after the letter: no first-meeting lines once his errand began; the letter goes back once
+		var dm0: bool = main.met.has("doran")
+		var dq0: int = main.doran_q
+		var lb0: bool = main.letter_back
+		main.met.erase("doran")
+		main.doran_q = 3
+		main.letter_back = false
+		main.folk_talk("doran")
+		var give: bool = main.story_open and main.story_lines == STORY.DORAN_LETTER_BACK.slice(1) # the first line is on screen
+		main.close_story()
+		main.folk_talk("doran")
+		var after: bool = main.story_open and main.story_lines == (STORY.FOLK_AGAIN["doran_done"] as Array).slice(1) and main.letter_back
+		main.close_story()
+		main.letter_back = false
+		var rl: Array = main.rise_lines()
+		var rise_give: bool = rl.has(STORY.DORAN_LETTER_BACK[0]) and main.letter_back and not main.rise_lines().has(STORY.DORAN_LETTER_BACK[0])
+		main.doran_q = dq0
+		main.letter_back = lb0
+		if dm0:
+			main.met["doran"] = true
+		if not (give and after and rise_give):
+			bad.append("14/15 doran letter back=%s then thanks=%s on the lantern night=%s" % [give, after, rise_give])
+		# 16. the guardians wake only in Hangyeol's room, not in the east drain
+		var ux := float(main.UNDER.UNDER_X)
+		if not (main.in_hangyeol_room(Vector2(ux + 4, 10)) and not main.in_hangyeol_room(Vector2(ux + 23.5, 11.5)) and not main.in_hangyeol_room(Vector2(ux + 18, 9))):
+			bad.append("16 hangyeol room bounds")
+		# 17. the villagers' ways home cross no house, fence or water
+		var through: Array = []
+		for id in main.SLEEP_IDS:
+			var way: Array = main.folk_way(id)
+			for s in 61:
+				var p: Vector2 = main.way_at(way, s / 60.0)
+				if main.village.blocked(p.x, p.y):
+					through.append(id)
+					break
+		if not through.is_empty():
+			bad.append("17 ways through walls: %s" % [through])
+		# 18 - 21. lines that fit what was done
+		var cq0: int = main.clock_q
+		main.clock_q = 5
+		var clock_ok: bool = not "먼지가 소복" in "".join(main.clock_worn_lines())
+		main.clock_q = cq0
+		var garden_in_ok: bool = not "성의 동쪽 문" in String(STORY.GARDEN_IN[0])
+		var island_ok: bool = not "섬 밖" in "".join(STORY.INN_FIRST)
+		for t in STORY.REST_TALK_STORY:
+			if t[0] == "mul_new":
+				island_ok = island_ok and not "섬 밖" in str(t[1])
+		var fr0: Array = main.forest.freed.duplicate()
+		for i in main.forest.freed.size():
+			main.forest.freed[i] = false
+		var hollow_ok: bool = not "꺼내 준" in "".join(main.hollow_squirrel_lines())
+		main.forest.freed[0] = true
+		hollow_ok = hollow_ok and "꺼내 준" in "".join(main.hollow_squirrel_lines())
+		for i in fr0.size():
+			main.forest.freed[i] = fr0[i]
+		var pr0: Array = main.castle.pages.map(func(pg): return pg.read)
+		for pg in main.castle.pages:
+			pg.read = false
+		var diary_ok: bool = not "세 장" in "".join(main.under_diary_lines())
+		for i in pr0.size():
+			main.castle.pages[i].read = pr0[i]
+		if not (clock_ok and garden_in_ok and island_ok and hollow_ok and diary_ok):
+			bad.append("18-21 clock=%s garden arrival=%s mulgyeol island=%s squirrel store=%s diary=%s" % [clock_ok, garden_in_ok, island_ok, hollow_ok, diary_ok])
+		main.story_step = st0
+		# put the state from before back
+		f = FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(before)
+		f.close()
+		main.return_to_start()
+		f = FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(before)
+		f.close()
+		main.load_game()
+		if main.story_open:
+			main.close_story()
+		calm_enemies(false)
+		check("laps", bad.is_empty(), "GPT story playtests 2 -> 9, 20 findings checked; failing: %s" % [bad])
 	if want.call("books"):
 		main.story_step = maxi(main.story_step, 10)
 		if main.intro:
