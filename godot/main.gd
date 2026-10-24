@@ -546,11 +546,36 @@ const WAY_NAMES := ["늪 오두막", "마을 광장", "남쪽 호수 부두", "�
 var way_open := false
 var way_nodes: Array = []
 
+# ---- villager heights (the user, 2026-10-25: "아이들이 노을에 비해서 조금 커보이는데?"). The villagers are chibi
+# drawings with big heads, so at Noeul's height their heads came out much bigger than his. Heads measured in frame 0
+# (top of hair or hat to chin, px of the frame height) and how tall each head stands in the world after the change:
+#   Noeul 69/180 at 1.80 = 0.69 | Sora 85/244 at 1.58 = 0.55 | Mulgyeol 57/170 at 1.75 = 0.59 | Simji 55/200 at 2.10 = 0.58
+#   Tori 85/170 at 1.35 = 0.68 | Kongal 72/170 at 1.40 = 0.59 | Dusol 79/170 at 1.50 = 0.70 | Yeoul 79/170 at 1.50 = 0.70
+#   Chadol 75/170 at 1.55 = 0.68 | Doran 74/170 at 1.55 = 0.67 | Darae 72/170 at 1.60 = 0.68 | Saecham 84/170 at 1.55 = 0.77
+#   kid goblin 40/110 at 0.80 = 0.29 (Kongal's ratio 1.40 / 1.75)
+# Saecham's head is mostly his wide straw hat; at 1.55 (the grown-ups' floor) it stays a little over Noeul's.
+# Feet stay on the ground: the offset is half the frame height in px, only pixel_size changes. Before: 1.75 for all.
+const FOLK_HEIGHT := {"tori": 1.35, "kongal": 1.4, "dusol": 1.5, "yeoul": 1.5, "chadol": 1.55, "doran": 1.55,
+	"darae": 1.6, "saecham": 1.55, "simji": 2.1, "kid": 0.8}
+
+func folk_height(id: String) -> float:
+	return float(FOLK_HEIGHT.get(id, 1.75))
+
+# a villager's balloon just over his head: the sprite stands 1/cos(camera pitch) taller than its height (2.7 at 1.75)
+func folk_bubble_y(id: String) -> float:
+	return 2.6 if id == "bori" else folk_height(id) / cos(0.78) + 0.23
+
 const CHANGES_PAGE := 100 # lines of 바뀐 것 shown before the 더 읽기 button
 const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
 	"",
 	"2026-10-25 새벽",
+	"· v0.0.53: 마을 아이들과 사람들의 키를 노을에 맞춰 줄였다.",
+	"    - 마을 사람들의 그림은 머리가 큰 아이 모양이라 노을과 비슷한 키로 그리면 머리가 훨씬 커 보였다. 키 표 하나(FOLK_HEIGHT)에서 모두 정한다.",
+	"    - 토리 1.75 → 1.35, 콩알 1.75 → 1.40, 두솔과 여울 1.75 → 1.50, 차돌과 도란과 새참 1.75 → 1.55, 다래 1.75 → 1.60이다. 심지는 2.10 그대로 가장 크고, 노을은 1.80이다.",
+	"    - 콩알의 꼬마 고블린은 콩알 비율대로 1.00 → 0.80이 되었다. 물결은 1.75 그대로다.",
+	"    - 발은 땅에 그대로 닿고, 그림 크기만 바뀐다. 말풍선 높이는 키에서 계산해 머리 바로 위에 뜬다.",
+	"    - 시험 장면 folk_line은 소라, 노을, 물결과 마을 사람들을 한 줄로 세워 키를 나란히 보여 준다.",
 	"· v0.0.52: 마을 사람들이 미끄러지듯 흐르지 않고 통통 튀며 걷는다.",
 	"    - 걷는 사람은 0.45칸 걸을 때마다 0.12칸 높이로 한 번씩 튄다. 빨리 걸으면 더 빨리 튄다. 콩알과 토리는 조금 낮게(0.10칸), 콩알의 꼬마 고블린은 0.09칸 튄다.",
 	"    - 내려앉을 때 잠깐 납작해지고(세로 0.9, 가로 1.08, 0.06초) 꼭대기에서는 살짝 길어진다. 튀는 사이에는 발이 땅에 닿는다.",

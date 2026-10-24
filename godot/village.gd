@@ -197,7 +197,7 @@ func build(m: Node) -> void:
 		spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 		spr.shaded = false
-		spr.pixel_size = 1.75 / 170.0
+		spr.pixel_size = m.folk_height(f.id) / 170.0 # main.gd FOLK_HEIGHT
 		spr.offset = Vector2(0, 85)
 		spr.position = Vector3(w.x, 0, w.y)
 		m.add_child(spr)
@@ -277,7 +277,7 @@ func kid_goblin(m: Node) -> Node3D:
 	spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	spr.shaded = false
-	spr.pixel_size = 1.0 / 110.0
+	spr.pixel_size = m.folk_height("kid") / 110.0
 	spr.offset = Vector2(0, 55)
 	g.add_child(spr)
 	g.set_meta("spr", spr)
@@ -306,7 +306,7 @@ func simji(m: Node) -> Node3D:
 	spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	spr.shaded = false
-	spr.pixel_size = 2.1 / 200.0
+	spr.pixel_size = m.folk_height("simji") / 200.0
 	spr.offset = Vector2(0, 100)
 	g.add_child(spr)
 	var glow := OmniLight3D.new() # his own lamp lights him up at night

@@ -760,10 +760,7 @@ func place_clock_folk(walk := false) -> void:
 		if not m.clock_folk.has(id):
 			var g := Node3D.new()
 			var spr := m.folk_sprite(id)
-			var hpx := float(spr.texture.get_height())
-			spr.pixel_size = {"simji": 2.1, "kid": 1.0}.get(id, 1.75) / hpx
-			spr.offset = Vector2(0, hpx / 2.0)
-			g.add_child(spr)
+			g.add_child(spr) # folk_sprite sizes it from main.gd FOLK_HEIGHT
 			m.add_child(g)
 			m.clock_folk[id] = g
 		var g: Node3D = m.clock_folk[id]

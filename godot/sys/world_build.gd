@@ -573,8 +573,9 @@ func folk_sprite(id: String) -> Sprite3D:
 	spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	spr.shaded = false
-	spr.pixel_size = 1.75 / 170.0
-	spr.offset = Vector2(0, 85)
+	var hpx := float(spr.texture.get_height())
+	spr.pixel_size = m.folk_height(id) / hpx
+	spr.offset = Vector2(0, hpx / 2.0)
 	return spr
 
 func lantern(x: float, z: float, post_mat: Material, glass: Material) -> void:

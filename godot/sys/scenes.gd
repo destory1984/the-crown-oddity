@@ -85,6 +85,7 @@ const SCENES := {
 	"folk_talk": {"play": true, "village": true, "folk_talk": true, "hour": 14.0},           # a villager's chatter balloon
 	"quest_narrow": {"play": true, "quest_narrow": true, "at": Vector2(20, 22), "hour": 13.0}, # 645 px wide, two companions, a long quest line
 	"story_pad": {"play": true, "story_pad": true, "at": Vector2(20, 22), "hour": 13.0}, # 645 px wide, a narration line in the story box
+	"folk_line": {"play": true, "village": true, "folk_line": true, "hour": 13.0}, # Sora, Noeul, Mulgyeol and the villagers in a row, names under them
 	"pips12": {"play": true, "pips12": true, "at": Vector2(20, 22), "hour": 13.0},          # the moon gauge grown to 12
 	"stairs": {"play": true, "village": true, "castle": true, "stairs": true, "hour": 16.0},
 	"stairs_foot": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 0, "hour": 16.0},
@@ -656,6 +657,37 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.player.x = dp.x + 1.6
 		m.player.z = dp.y + 0.8
 		m.get_tree().create_timer(2.0).timeout.connect(func(): m.chatter.folk_say("doran", "문 앞에선 발소리부터 줄이는 법이오."))
+	if sc.has("folk_line"): # the heights side by side: fresh sprites from the same maker as the villagers' (folk_sprite)
+		var vx := float(Main.VILLAGE.VILLAGE_X)
+		m.join_noeul()
+		var ids := ["noeul", "mulgyeol", "doran", "kongal", "dusol", "chadol", "saecham", "yeoul", "darae", "tori", "simji", "kid"]
+		var names := {"noeul": "노을", "mulgyeol": "물결", "doran": "도란", "kongal": "콩알", "dusol": "두솔", "chadol": "차돌", "saecham": "새참", "yeoul": "여울", "darae": "다래", "tori": "토리", "simji": "심지", "kid": "꼬마"}
+		var right := Vector2(cos(m.cam_yaw), -sin(m.cam_yaw)) # along the screen's horizontal, so the row reads level
+		var o := Vector2(vx + 19.0, 10.5) - right * 0.95 * ids.size() / 2.0
+		var sora_at := o + right * 0.95 * (ids.size() / 2.0 + 0.5) + Vector2(sin(m.cam_yaw), cos(m.cam_yaw)) * 1.5 # in the middle, a step nearer the camera
+		m.player.x = sora_at.x
+		m.player.z = sora_at.y
+		m.mate2.position = Vector3(-50, 0, -50) # Noeul stands in the row below instead of by her side
+		for i in ids.size():
+			var spr: Sprite3D
+			if ids[i] == "noeul":
+				spr = m.village_life.noeul_sprite()
+			else:
+				spr = m.folk_sprite(ids[i])
+			var sp := o + right * 0.95 * (i + 1)
+			spr.position = Vector3(sp.x, 0, sp.y)
+			spr.flip_h = true
+			m.add_child(spr)
+			var nm := Label3D.new()
+			nm.text = names[ids[i]]
+			nm.font = m.ui_font
+			nm.font_size = 36
+			nm.pixel_size = 0.008
+			nm.outline_size = 12
+			nm.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			nm.no_depth_test = true
+			nm.position = Vector3(sp.x, -0.1, sp.y)
+			m.add_child(nm)
 	if sc.has("quest_narrow"):
 		m.join_mate()
 		m.join_noeul()

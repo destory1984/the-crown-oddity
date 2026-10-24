@@ -7,7 +7,6 @@ const Main := preload("res://main.gd")
 var m: Main
 
 const FOLK_CHAT_R := 4.0
-const FOLK_BUBBLE_Y := {"simji": 3.25, "kid": 1.6, "bori": 2.6} # balloon height over the ground; 2.7 for the rest
 
 func _init(main: Main) -> void:
 	m = main
@@ -324,7 +323,7 @@ func folk_say(id: String, line: String) -> void:
 	var n0 := m.bubbles_said
 	say_bubble(anchor, m.touch_words(tr(line)), 3.0)
 	m.bubbles_said = n0 # the companions' count stays theirs
-	(anchor.get_child(0) as Node3D).position.y = FOLK_BUBBLE_Y.get(id, 2.7)
+	(anchor.get_child(0) as Node3D).position.y = m.folk_bubble_y(id)
 	m.folk_chat_last[id] = line
 	m.folk_said.append([id, line])
 	m.folk_bubbles.append({"anchor": anchor, "id": id, "t": 3.6 + (1.0 if m.touch_ui else 0.0)})

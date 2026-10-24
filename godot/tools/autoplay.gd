@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -2019,6 +2019,34 @@ func run() -> void:
 		var mrest: bool = mspr.position.y < 0.001
 		check("folk_hop", peak > 0.1 and peak <= 0.1201 and peak_first > 0.1 and lows >= 4 and settled and node_flat and mpeak > 0.1 and mpeak <= 0.1201 and mnode < 0.001 and mrest,
 			"peak %.3f (first hop %.3f), landed %d times, settled in %.2f s, node on the ground=%s; Mulgyeol peak %.3f node %.3f, rests %s" % [peak, peak_first, lows, stopped_t, node_flat, mpeak, mnode, mrest])
+	if want.call("folk_height"):
+		# the villagers' heights come from one table (the user, 2026-10-25: the children looked big next to Noeul)
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		var bad: Array = []
+		var tallest := 0.0
+		var noeul_h := 1.8
+		for id in main.village.folk_node:
+			var vs: Sprite3D = main.village.folk_node[id]
+			var h: float = vs.pixel_size * vs.texture.get_height()
+			tallest = maxf(tallest, h)
+			if absf(h - main.folk_height(id)) > 0.01:
+				bad.append("%s village %.3f vs %.3f" % [id, h, main.folk_height(id)])
+			var fs: Sprite3D = main.folk_sprite(id)
+			var fh: float = fs.pixel_size * fs.texture.get_height()
+			if absf(fh - main.folk_height(id)) > 0.01 or absf(fs.offset.y - fs.texture.get_height() / 2.0) > 0.01:
+				bad.append("%s folk_sprite %.3f" % [id, fh])
+			fs.free()
+		var sj: Sprite3D = main.village.simji_node.get_child(0)
+		var sj_h: float = sj.pixel_size * sj.texture.get_height()
+		var kid_h: float = main.folk_height("kid")
+		var shorter: bool = main.folk_height("tori") < noeul_h - 0.3 and main.folk_height("kongal") < noeul_h - 0.3
+		var simji_top: bool = absf(sj_h - 2.1) < 0.01 and tallest <= sj_h + 0.001 and kid_h < main.folk_height("kongal")
+		var balloon: bool = main.folk_bubble_y("simji") > main.folk_bubble_y("doran") and main.folk_bubble_y("tori") < main.folk_bubble_y("doran")
+		check("folk_height", bad.is_empty() and shorter and simji_top and balloon,
+			"%d villagers, off the table %s; Tori %.2f / Kongal %.2f under Noeul %.2f=%s; Simji %.2f tallest=%s; balloons follow=%s" % [main.village.folk_node.size(), bad, main.folk_height("tori"), main.folk_height("kongal"), noeul_h, shorter, sj_h, simji_top, balloon])
 	if want.call("folk_sleep"):
 		# after dark the villagers walk home and go in (Simji stays out); in his house Doran sleeps and E still talks to
 		# him; in the morning they come back out (the user asked, 2026-10-24)
