@@ -38,6 +38,15 @@ func bar(at: Vector2, w: float, frac: float, col: Color, label: String, value: S
 	text(at + Vector2(-44, 9), label, 11, DIM)
 	text(at + Vector2(w + 16, 10), value, 12, TEXT)
 
+var pips_drawn := 0 # diamonds in the moon gauge at the last draw (autoplay pips)
+
+# one diamond per pip of pip_max (8 - 12), 16 px apart from x 178: 12 end at x 354, under the 400 px bars
+func pip_spots() -> Array:
+	var out: Array = []
+	for i in main.pip_max:
+		out.append(Vector2(178 + i * 16, 124))
+	return out
+
 func _draw() -> void:
 	if main == null or main.intro:
 		return
@@ -63,10 +72,12 @@ func _draw() -> void:
 	bar(Vector2(x0, 78), 230, p.sp / 100.0, Color("#f2e2b0"), "기력", "%d/100" % int(p.sp))
 	var need: int = p.lv * 25
 	bar(Vector2(x0, 100), 230, float(p.xp) / need, Color("#8de07a"), "경험", "%d/%d" % [p.xp, need])
-	# crown moon gauge: 8 small diamonds
+	# the bracelets' moon gauge: pip_max small diamonds (8 at the start, up to 12; 12 end at x 354, under the 400 px bars)
 	text(Vector2(x0 - 44, 129), "달빛", 11, DIM)
-	for i in 8:
-		var pc := Vector2(x0 + 8 + i * 16, 124)
+	var spots := pip_spots()
+	pips_drawn = spots.size()
+	for i in spots.size():
+		var pc: Vector2 = spots[i]
 		var full: bool = i < main.crown_pips
 		var flash: bool = main.pip_flash > 0.0 and i == main.crown_pips
 		if full:
@@ -76,7 +87,7 @@ func _draw() -> void:
 		else:
 			draw_polyline(PackedVector2Array([pc + Vector2(0, -6), pc + Vector2(6, 0), pc + Vector2(0, 6), pc + Vector2(-6, 0), pc + Vector2(0, -6)]), Color("#6a6050"), 1.0)
 	var grow: float = 6.0 * minf(1.0, main.rest_t / main.rest_need)
-	if grow >= 0.5 and main.crown_pips < 8: # the next pip glows in while resting (too small a diamond cannot be drawn)
+	if grow >= 0.5 and main.crown_pips < main.pip_max: # the next pip glows in while resting (too small a diamond cannot be drawn)
 		diamond(Vector2(x0 + 8 + main.crown_pips * 16, 124), grow, Color("#9fd4ff"))
 	# ---- sun / moon dial hanging under the portrait
 	var dc := Vector2(59, 222)

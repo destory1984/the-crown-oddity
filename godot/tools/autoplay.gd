@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -119,9 +119,10 @@ func wait_for(cond: Callable, sec: float) -> bool:
 	return cond.call()
 
 func run() -> void:
-	var want := func(n): return only == "all" or only == n
+	var want := func(n): return only == "all" or n in only.split(",")
 	main.sleep_off = true # the villagers stay out at night here; folk_sleep turns their sleep back on
 	main.routine_off = true # and on their spots by day; folk_routine turns their rounds on
+	main.folk_chat_off = true # and quiet; folk_chat lets them talk
 	main.shore_q = 1 # the shore hint does not open over tests that wake Sora at the start; shore sets it itself
 	if only == "title_space": # the user's web save, then Space at the title, twice
 		var f := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
@@ -854,8 +855,9 @@ func run() -> void:
 		await wait(0.3)
 		var no_shop: bool = not main.shop_open
 		main.close_story()
-		check("doran_errand", asked and read and no_shop and main.doran_q == 3 and main.crown_pips == 8 and main.player.max_hp == hp0 + 10,
-			"asked=%s read=%s delivered(no shop)=%s doran_q=%d pips=%d max_hp +%d" % [asked, read, no_shop, main.doran_q, main.crown_pips, main.player.max_hp - hp0])
+		# v0.0.47: the letter wakes a ninth pip in place of max HP +10, and fills the gauge
+		check("doran_errand", asked and read and no_shop and main.doran_q == 3 and main.pip_max == 9 and main.crown_pips == 9 and main.player.max_hp == hp0,
+			"asked=%s read=%s delivered(no shop)=%s doran_q=%d pips=%d/%d max_hp +%d" % [asked, read, no_shop, main.doran_q, main.crown_pips, main.pip_max, main.player.max_hp - hp0])
 		main.in_village = true
 		reset_to(main.village.marks.M + Vector2(-1.2, 0))
 	if want.call("mulgyeol_errand"):
@@ -3311,6 +3313,257 @@ func run() -> void:
 			e.respawn = 8.0
 		calm_enemies(false)
 		check("mate_chat", talked and three and hushed and story_first and main.chat_cd > 10.0, "a balloon after standing still=%s a four-line talk among all three=%s (%d balloons) a monster stops it=%s story talk first=%s %s" % [talked, three, said, hushed, story_first, main.talks_heard.keys()])
+	if want.call("pips"):
+		# v0.0.47: the moon gauge grows 8 -> 12, one pip at the letter, the turtle, the thirteenth lantern and the knight
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		var th0: Node3D = main.thirteenth # the lantern scene hangs the thirteenth lantern; taken down again after
+		var kept0: Array = [main.pip_max, main.pip_awards.duplicate(), main.crown_pips, main.doran_q, main.lake_q, main.hollow_q, main.castle_q, main.post_q, main.player.gold, main.ui.quest.text]
+		main.pip_max = 8
+		main.pip_awards = {}
+		main.crown_pips = 3
+		main.post_q = 0
+		var steps: Array = []
+		var hp_same := true
+		var hp0: int = main.player.max_hp
+		main.deliver_letter()
+		var letter_line: bool = main.story_lines.any(func(l): return "최대 9칸" in String(l))
+		main.close_story()
+		steps.append([main.pip_max, main.crown_pips])
+		hp_same = hp_same and main.player.max_hp == hp0
+		main.turtle_beaten()
+		main.close_story()
+		steps.append([main.pip_max, main.crown_pips])
+		hp0 = main.player.max_hp # the turtle's XP may level her up
+		main.simji_lantern()
+		main.close_story()
+		steps.append([main.pip_max, main.crown_pips])
+		hp_same = hp_same and main.player.max_hp == hp0
+		main.knight_beaten()
+		main.close_story()
+		steps.append([main.pip_max, main.crown_pips])
+		var grew: bool = str(steps) == str([[9, 9], [10, 10], [11, 11], [12, 12]])
+		main.deliver_letter() # each place gives its pip once
+		var no_line: bool = not main.story_lines.any(func(l): return "깨어났다" in String(l))
+		main.close_story()
+		main.knight_beaten()
+		main.close_story()
+		var once: bool = main.pip_max == 12 and main.pip_awards.size() == 4 and no_line
+		# the HUD draws one diamond per pip, all inside the 400 px bars
+		await wait(0.2)
+		var spots: Array = main.ui.hud.pip_spots()
+		var hud_ok: bool = spots.size() == 12 and (spots[11] as Vector2).x + 6.0 <= 400.0 and main.ui.hud.pips_drawn == 12
+		# save and load keep the gauge
+		main.crown_pips = 5
+		main.save_game()
+		var sd: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		main.pip_max = 8
+		main.pip_awards = {}
+		main.load_pips(sd)
+		var saved: bool = main.pip_max == 12 and main.pip_awards.size() == 4 and main.crown_pips == 5
+		# a new round keeps both, and starts full
+		main.write_new_round()
+		var nd: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		main.load_pips(nd)
+		var round_ok: bool = int(nd.get("pip_max", 0)) == 12 and (nd.get("pip_awards", []) as Array).size() == 4 and main.crown_pips == 12
+		main.pip_note = "" # an earlier test may have loaded an old save and left its note
+		main.old_save_pips(nd) # a save that has pip_max: nothing given back
+		round_ok = round_ok and main.pip_max == 12 and main.pip_note == ""
+		var round_info := "(%s %s pips %d/%d)" % [str(nd.get("pip_max")), str(nd.get("pip_awards")), main.crown_pips, main.pip_max]
+		# an old save (no pip_max) past the letter, the turtle and the knight: three pips back, once
+		main.doran_q = 3
+		main.lake_q = 4
+		main.hollow_q = 1
+		main.castle_q = 3
+		var od := {"pips": 6}
+		main.load_pips(od)
+		var old8: bool = main.pip_max == 8 and main.crown_pips == 6
+		main.old_save_pips(od)
+		var old_ok: bool = old8 and main.pip_max == 11 and main.crown_pips == 9 and "11" in main.pip_note and not main.pip_awards.has("lantern")
+		main.pip_note = ""
+		main.save_game()
+		var od2: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		main.load_pips(od2)
+		main.old_save_pips(od2)
+		old_ok = old_ok and main.pip_max == 11 and main.pip_note == ""
+		main.pip_max = int(kept0[0])
+		main.pip_awards = kept0[1]
+		main.crown_pips = int(kept0[2])
+		main.doran_q = int(kept0[3])
+		main.lake_q = int(kept0[4])
+		main.hollow_q = int(kept0[5])
+		main.castle_q = int(kept0[6])
+		main.post_q = int(kept0[7])
+		main.player.gold = int(kept0[8])
+		main.set_quest(String(kept0[9]))
+		if th0 == null and main.thirteenth != null: # the hollow test hangs it for real later
+			main.lanterns.erase(main.thirteenth)
+			(main.thirteenth.get_meta("glass") as Node).queue_free()
+			main.thirteenth.queue_free()
+			main.thirteenth = null
+		main.save_game()
+		check("pips", grew and once and hp_same and letter_line and hud_ok and saved and round_ok and old_ok,
+			"one pip at each place %s=%s once=%s max HP no longer grows=%s letter says max 9=%s HUD 12 inside 400 px=%s (%d drawn) save/load=%s new round keeps and fills=%s %s old save gets 3 back once=%s" % [str(steps), grew, once, hp_same, letter_line, hud_ok, main.ui.hud.pips_drawn, saved, round_ok, round_info, old_ok])
+	if want.call("folk_chat"):
+		# villagers chatter: a line whose tags all fit, from someone within 4 tiles, never from someone asleep
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		var st0: Array = [main.story_step, main.night_q, main.lake_q, main.kid_q, main.hour, main.raining, main.errand, main.doran_q, main.mul_q, main.mail_got[1]]
+		main.in_hill = false
+		main.in_lake = false
+		main.in_forest = false
+		main.in_garden = false
+		main.in_cave = false
+		if not main.in_village:
+			main.enter_village()
+		await wait(0.3)
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		main.story_step = 8
+		main.night_q = 0
+		main.lake_q = 0
+		main.kid_q = 0
+		main.errand = 3
+		main.doran_q = 0
+		main.mul_q = 3
+		main.mail_got[1] = false
+		main.raining = false
+		main.hour = 12.0
+		# by day before the ending: no morning, dusk, rain, festival, errand or later-story line
+		var tags_ok := true
+		for id in main.STORY.FOLK_CHAT:
+			for l in main.folk_chat_lines(id):
+				for pair in main.STORY.FOLK_CHAT[id]:
+					if pair[1] == l:
+						var tg: String = pair[0]
+						for bad in ["after_ending", "after_lake", "after_night", "morning", "dusk", "rain", "festival", "errand"]:
+							if bad in tg:
+								tags_ok = false
+		main.story_step = 12
+		main.night_q = 4
+		var end_line: bool = main.folk_chat_lines("doran").has("이젠 새 소식 담을 봉투도 필요하겠소.")
+		main.story_step = 8
+		main.night_q = 0
+		var kid_hidden: bool = not main.folk_chat_at("kid").is_finite() # not before he is home with Kongal
+		var pair_far: bool = not main.folk_tag_ok("simji", "pair:tori") # a pair line only with the other one near
+		# Sora beside Doran by day: someone speaks within a few seconds, with a line that fits
+		var dp: Vector2 = main.folk_chat_at("doran")
+		reset_to(dp + Vector2(1.5, 0))
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		main.folk_chat_off = false
+		main.folk_chat_cd = {}
+		main.folk_chat_gap = 0.0
+		main.folk_said = []
+		var said0: int = main.bubbles_said
+		for k in 80:
+			if not main.folk_said.is_empty():
+				break
+			await wait(0.1)
+		var spoke: bool = not main.folk_said.is_empty()
+		var line_fits := false
+		if spoke:
+			var who: String = main.folk_said[0][0]
+			for pair in main.STORY.FOLK_CHAT[who]:
+				if pair[1] == main.folk_said[0][1]:
+					line_fits = Array(String(pair[0]).split(",")).all(func(tg): return main.folk_tag_ok(who, String(tg)))
+		var no_mate_count: bool = main.bubbles_said == said0
+		var n1: int = main.folk_said.size()
+		await wait(3.5) # one balloon at a time: nothing more for the next 3.5 s
+		var gap_ok: bool = main.folk_said.size() == n1
+		# asleep at night: no sleeper speaks
+		main.sleep_off = false
+		main.hour = 23.0
+		for k in 100:
+			main.update_folk_sleep(0.5)
+		main.folk_chat_cd = {}
+		main.folk_chat_gap = 0.0
+		var n2: int = main.folk_said.size()
+		var asleep: bool = main.folk_state.get("doran", "out") == "in" and not main.folk_chat_at("doran").is_finite()
+		await wait(6.0)
+		var quiet_night: bool = main.folk_said.slice(n2).all(func(p): return p[0] == "simji")
+		main.sleep_off = true
+		main.hour = 12.0
+		for k in 100:
+			main.update_folk_sleep(0.5)
+		# the kid goblin speaks once he is home
+		main.kid_q = 3
+		main.place_kid()
+		main.update_folk_sleep(0.1)
+		var kid_back: bool = main.folk_chat_at("kid").is_finite()
+		main.folk_chat_off = true
+		main.kid_q = int(st0[3])
+		if main.kid_node != null:
+			main.kid_node.visible = false
+		main.story_step = int(st0[0])
+		main.night_q = int(st0[1])
+		main.lake_q = int(st0[2])
+		main.hour = float(st0[4])
+		main.raining = bool(st0[5])
+		main.errand = int(st0[6])
+		main.doran_q = int(st0[7])
+		main.mul_q = int(st0[8])
+		main.mail_got[1] = bool(st0[9])
+		park_mates(false)
+		calm_enemies(false)
+		check("folk_chat", tags_ok and end_line and kid_hidden and pair_far and spoke and line_fits and no_mate_count and gap_ok and asleep and quiet_night and kid_back,
+			"by day before the ending only fitting lines=%s after the ending Doran's ending line=%s kid quiet before home=%s pair line needs the other=%s someone spoke beside Sora=%s %s its tags fit=%s companions' count untouched=%s one balloon at a time=%s Doran asleep at 23=%s no sleeper spoke=%s kid speaks once home=%s" % [tags_ok, end_line, kid_hidden, pair_far, spoke, str(main.folk_said.slice(0, 2)), line_fits, no_mate_count, gap_ok, asleep, quiet_night, kid_back])
+	if want.call("noeul_rest"):
+		# Noeul sits down (art/folk/noeul_rest.png) while Sora rests, and stands again when she moves or a monster comes
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.in_village = false
+		main.in_hill = false
+		main.in_lake = false
+		main.in_forest = false
+		main.in_garden = false
+		main.in_cave = false
+		main.join_noeul()
+		calm_enemies(true)
+		var risers: Array = main.enemies.filter(func(e): return e.dead and not e.get("cave", false) and not e.get("boss", false))
+		for e in risers:
+			e.respawn = 9999.0
+		reset_to(Vector2(20, 30))
+		main.snap_mates()
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		main.last_input_t = main.t
+		var spr: Sprite3D = main.mate2.get_child(0)
+		await wait(1.5)
+		var standing: bool = not main.noeul_sitting and spr.hframes == 3
+		main.last_input_t = main.t - 20.0 # no key for 20 s
+		await wait(1.0)
+		var sat: bool = main.noeul_sitting and spr.hframes == 1 and spr.texture.resource_path.ends_with("noeul_rest.png")
+		hold_world(Vector2(1, 0))
+		main.last_input_t = main.t
+		await wait(0.4)
+		release()
+		var up: bool = not main.noeul_sitting and spr.hframes == 3 and spr.texture.resource_path.ends_with("noeul.png")
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		await wait(1.0)
+		main.last_input_t = main.t - 20.0
+		main.spawn_enemy(Vector2(main.player.x + 4.0, main.player.z)) # a monster near: he does not sit
+		var gob: Dictionary = main.enemies[main.enemies.size() - 1]
+		await wait(0.5)
+		var fight_up: bool = not main.noeul_sitting
+		if not gob.dead:
+			gob.dead = true
+			gob.node.queue_free()
+			gob.shadow.queue_free()
+		gob.respawn = 9999.0
+		for e in risers:
+			e.respawn = 8.0
+		main.last_input_t = main.t
+		calm_enemies(false)
+		check("noeul_rest", standing and sat and up and fight_up, "standing at first=%s sits on the rest picture while Sora rests=%s stands when she moves=%s stays up with a monster near=%s" % [standing, sat, up, fight_up])
 	if want.call("east_bridge"):
 		main.in_village = false
 		main.in_hill = false
@@ -4759,9 +5012,9 @@ func run() -> void:
 		tap(KEY_E)
 		await wait(0.2)
 		main.close_story()
-		var given: bool = main.hollow_q == 4 and main.player.max_hp == hp1 + 15 and main.thirteenth != null and not main.thirteenth.get_meta("dark", false)
+		var given: bool = main.hollow_q == 4 and main.player.max_hp == hp1 and main.pip_awards.has("lantern") and main.thirteenth != null and not main.thirteenth.get_meta("dark", false) # v0.0.47: a pip in place of max HP +15
 		check("hollow", shut and opened and woke == fm.south.size() and north1 == north0 and hogs.size() == 2 and dry and wet and lit and big and beaten and curled and hit and door and lantern and kept and given,
-			"gate shut/opened=%s/%s woke=%d of %d north unchanged=%s hogs=%d stream dry/skip=%s/%s three memories (pips 5)=%s cloak 1000=%s beaten=%s curled blocks=%s dizzy hits=%s sunset door=%s lantern=%s saved=%s Simji=%s" % [shut, opened, woke, fm.south.size(), north1 == north0, hogs.size(), dry, wet, lit, big, beaten, curled, hit, door, lantern, kept, given])
+			"gate shut/opened=%s/%s woke=%d of %d north unchanged=%s hogs=%d stream dry/skip=%s/%s three memories (pips 5)=%s cloak 1000=%s beaten=%s curled blocks=%s dizzy hits=%s sunset door=%s lantern=%s saved=%s Simji=%s (hollow_q %d, max HP %d -> %d, awards %s)" % [shut, opened, woke, fm.south.size(), north1 == north0, hogs.size(), dry, wet, lit, big, beaten, curled, hit, door, lantern, kept, given, main.hollow_q, hp1, main.player.max_hp, str(main.pip_awards.keys())])
 		main.hour = 12.0
 		reset_to(main.village.marks.M + Vector2(-1.2, 0))
 	if want.call("undercroft"):

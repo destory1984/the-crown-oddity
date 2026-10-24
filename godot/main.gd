@@ -442,6 +442,9 @@ const SCENES := {
 	"east": {"play": true, "at": Vector2(42.0, 21.5), "hour": 12.0},
 	"fall": {"play": true, "fall": 2.5, "at": Vector2(20, 22)},
 	"chat": {"play": true, "chat": true, "at": Vector2(20, 22), "hour": 13.0},
+	"noeul_sit": {"play": true, "noeul_sit": true, "at": Vector2(20, 30), "hour": 13.0}, # Noeul sits while Sora rests
+	"folk_talk": {"play": true, "village": true, "folk_talk": true, "hour": 14.0},           # a villager's chatter balloon
+	"pips12": {"play": true, "pips12": true, "at": Vector2(20, 22), "hour": 13.0},          # the moon gauge grown to 12
 	"stairs": {"play": true, "village": true, "castle": true, "stairs": true, "hour": 16.0},
 	"stairs_foot": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 0, "hour": 16.0},
 	"stairs_drop": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 2, "hour": 16.0},
@@ -995,6 +998,22 @@ func apply_test_args(args: PackedStringArray) -> void:
 		join_noeul()
 		snap_mates()
 		get_tree().create_timer(1.0).timeout.connect(func(): say_bubble(mate, "다리 아파. 좀 쉬었다 가자."); say_bubble(mate2, "……뭘 봐. 그냥 쉬는 거야."))
+	if sc.has("noeul_sit"):
+		join_noeul()
+		snap_mates()
+		last_input_t = -100.0
+		for e in enemies: # no monster within 7 tiles, or he would not sit
+			if not e.get("boss", false) and not e.get("prop", false):
+				e.x = 2.0
+				e.z = 2.0
+	if sc.has("folk_talk"):
+		var dp := folk_chat_at("doran")
+		player.x = dp.x + 1.6
+		player.z = dp.y + 0.8
+		get_tree().create_timer(2.0).timeout.connect(func(): folk_say("doran", "문 앞에선 발소리부터 줄이는 법이오."))
+	if sc.has("pips12"):
+		pip_max = 12
+		crown_pips = 10
 	if sc.has("faint"):
 		get_tree().create_timer(sc.faint).timeout.connect(faint)
 	hour = float(opt.get("hour", sc.get("hour", hour)))
@@ -3234,7 +3253,7 @@ func festival_key() -> bool:
 # attack, max HP, gold, potions, keepsakes, the woken skill, feats and records. Monsters then take
 # 1/(1 + 0.5 x round) of the damage and deal (1 + 0.5 x round) times as much.
 const NG_KEEP := ["lv", "xp", "max_hp", "atk", "gold", "pots", "has_pearl", "has_feather", "has_acorn", "has_ring", "has_shoes",
-	"has_armour", "has_tea", "has_shard", "has_bookmark", "has_lamp", "has_medal", "has_oar_ring", "has_whistle", "has_oil", "has_cushion", "has_bait", "has_buckler", "has_sprout", "skill_up", "stats", "feats", "trial_best", "race_best", "fish"]
+	"has_armour", "has_tea", "has_shard", "has_bookmark", "has_lamp", "has_medal", "has_oar_ring", "has_whistle", "has_oil", "has_cushion", "has_bait", "has_buckler", "has_sprout", "skill_up", "stats", "feats", "trial_best", "race_best", "fish", "pip_max", "pip_awards"]
 var ng := 0                 # how many rounds were finished before this one
 var ng_armed := 0.0         # seconds left to confirm with a second E
 
@@ -3386,6 +3405,21 @@ func travel(i: int) -> void:
 const CHANGES_PAGE := 100 # lines of 바뀐 것 shown before the 더 읽기 button
 const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 302분 / 목표 300분 (100%)",
+	"",
+	"2026-10-25 새벽",
+	"· v0.0.47: 달빛 눈금이 8칸에서 시작해 12칸까지 늘고, 마을 사람들이 잡담을 하며, 소라가 쉬면 노을도 앉아 쉰다.",
+	"    - 눈금은 큰 일 네 곳을 처음 마칠 때 한 칸씩 깨어난다. 한결의 편지를 보리 할머니께 전할 때, 벽돌 거북을 물리칠 때, 열셋째 등불을 심지에게 건넬 때, 성의 기사를 물리칠 때다. 네 자리는 GPT가 골랐다.",
+	"    - 편지의 최대 체력 +10과 열셋째 등불의 최대 체력 +15는 눈금 한 칸으로 바뀌었다. 칸이 깨어나면 대사 한 줄과 '최대 9칸'처럼 실제 칸 수를 알리는 줄이 나온다.",
+	"    - 큰길만 따라가면 11칸, 곁이야기인 열셋째 등불까지 마치면 12칸이 된다.",
+	"    - 쉬어서 채우기, 달가루, 의뢰 보상은 늘어난 칸까지 채운다. 화면 왼쪽 위 마름모도 칸 수만큼 16px 간격으로 그린다(12칸이면 x 178 → 354, 막대 끝 400 안).",
+	"    - 새 바퀴에도 늘어난 칸과 받은 자리를 가져가고, 같은 자리에서 두 번 받지 않는다.",
+	"    - 예전 저장은 이미 마친 자리의 칸을 한 번 돌려받는다. 체력과 금화는 다시 주지 않는다.",
+	"    - 마지막 싸움은 칸이 12개여도 등불 8개가 켜지면 '여덟 등불이 모였다. 이제 함께 감자.'와 함께 마지막 감기가 열린다.",
+	"    - 마을 사람 11명과 보리 할머니가 소라가 4칸 안을 지날 때 가끔 말풍선으로 잡담을 한다. 사람마다 10줄, 모두 120줄이며 GPT가 썼다.",
+	"    - 줄은 아침(6 → 10시), 낮, 해 질 녘, 비, 등불 밤 전과 후, 호수를 푼 뒤, 엔딩 뒤, 등불 축제, 자기 의뢰 중, 짝이 되는 사람이 4칸 안에 있을 때처럼 지금 상황에 맞는 것만 고른다.",
+	"    - 한 사람은 15 → 25초에 한 번 말하고, 말풍선은 4초에 하나만 뜬다. 이야기, 상점, 일지가 열렸을 때, 괴물이 8칸 안에 있을 때, 집 안에서는 말하지 않고, 자는 사람도 말하지 않는다.",
+	"    - 콩알의 꼬마 고블린은 집에 돌아온 뒤에만, 물결은 동료가 되기 전 마을에 있을 때만, 보리 할머니는 낮에 오두막 앞에서만 말한다.",
+	"    - 소라가 10초 넘게 손을 놓고 쉬는 동안 곁에 선 노을이 바닥에 앉아 쉰다. 앉은 그림은 GPT로 그렸고, 소라가 움직이거나 괴물이 7칸 안에 오면 바로 일어선다.",
 	"",
 	"2026-10-24 저녁",
 	"· v0.0.46: GPT가 이야기 시험 놀이 2 → 9바퀴에서 찾은 21가지 가운데 20가지를 고쳤다.",
@@ -4290,6 +4324,139 @@ func hush_talk() -> void:
 		if is_instance_valid(b):
 			b.queue_free()
 	talk_bubbles = []
+
+# ---- villagers chatter (the user, 2026-10-25: "NPC들도 잡담을 한다. 상황에 맞는 잡담을 각각 10개씩"; GPT wrote the
+# 120 lines in STORY.FOLK_CHAT). With Sora within 4 tiles a villager now and then (15 - 25 s apart for each, one
+# balloon at a time, 4 s apart) says a line whose tags all fit, in a balloon like the companions'. Never in a story,
+# the shop, the journal, a menu or a house, near a monster, or from someone asleep.
+const FOLK_CHAT_R := 4.0
+var folk_chat_off := false    # the autoplay tests keep the villagers quiet (all but folk_chat)
+var folk_chat_cd := {}        # id -> seconds until he may speak again
+var folk_chat_gap := 0.0      # seconds until any villager may speak
+var folk_chat_last := {}      # id -> his last line, not said twice running
+var folk_said: Array = []     # [id, line] said, for the tests
+var folk_bubbles: Array = []  # [{"anchor": Node3D, "id": String, "t": float}]: balloons that follow their speaker
+
+# where a villager who can chat now stands; Vector2.INF when he is not here, asleep or travelling with Sora
+func folk_chat_at(id: String) -> Vector2:
+	match id:
+		"bori": # in her cottage on the marsh, by day
+			if not in_marsh() or is_night() or story_step < 3:
+				return Vector2.INF
+			return Vector2(shop_pos.x, shop_pos.z)
+		"simji": # the lamplighter keeps to the square day and night
+			if not in_village or village.simji_node == null or not village.simji_node.visible:
+				return Vector2.INF
+			return Vector2(village.simji_node.position.x, village.simji_node.position.z)
+		"kid": # Kongal's kid goblin, only once he is home with her
+			if not in_village or kid_q != 3 or kid_node == null or not kid_node.visible:
+				return Vector2.INF
+			return Vector2(kid_node.position.x, kid_node.position.z)
+	if not in_village or not village.folk_node.has(id) or not folk_awake_here(id) or folk_state.get(id, "out") == "in":
+		return Vector2.INF
+	var spr: Sprite3D = village.folk_node[id]
+	if not spr.visible:
+		return Vector2.INF
+	return Vector2(spr.position.x, spr.position.z)
+
+# his own errand is running (the lines tagged "errand")
+func folk_errand_on(id: String) -> bool:
+	match id:
+		"simji": return errand == 1                  # the three dark lanterns
+		"doran": return doran_q == 1                 # the letter the bracelet should read
+		"kongal": return kid_q == 1 or kid_q == 2    # her kid goblin lost
+		"mulgyeol": return mul_q == 1 or mul_q == 2  # his oar in the NW pond
+		"bori": return doran_q == 2                  # Hangyeol's letter on its way to her
+	return false
+
+func folk_tag_ok(id: String, tag: String) -> bool:
+	if tag.begins_with("pair:"):
+		var me := folk_chat_at(id)
+		var other := folk_chat_at(tag.substr(5))
+		return me.is_finite() and other.is_finite() and me.distance_to(other) < FOLK_CHAT_R
+	match tag:
+		"any": return true
+		"morning": return hour >= 6.0 and hour < 10.0
+		"day": return hour >= 10.0 and hour < 17.0
+		"dusk": return hour >= 17.0 and hour < 20.0
+		"night": return hour >= 20.0 or hour < 6.0
+		"rain": return raining
+		"before_night": return night_q < 4
+		"after_night": return night_q >= 4
+		"after_lake": return lake_q >= 4
+		"after_ending": return story_step >= 12
+		"festival": return festival_now()
+		"errand": return folk_errand_on(id)
+	return false
+
+# his lines that fit now; one tied to more than the hour (rain, the story, a friend nearby) is twice as likely
+func folk_chat_lines(id: String) -> Array:
+	var out: Array = []
+	for pair in STORY.FOLK_CHAT[id]:
+		var tags: PackedStringArray = String(pair[0]).split(",")
+		if not Array(tags).all(func(tg): return folk_tag_ok(id, String(tg).strip_edges())):
+			continue
+		var line: String = pair[1]
+		if line == folk_chat_last.get(id, "") and STORY.FOLK_CHAT[id].size() > 1:
+			continue
+		out.append(line)
+		if not Array(tags).all(func(tg): return tg in ["any", "morning", "day", "dusk", "night"]):
+			out.append(line)
+	return out
+
+func update_folk_chat(dt: float) -> void:
+	for b in folk_bubbles.duplicate():
+		b.t -= dt
+		var anchor: Node3D = b.anchor
+		var at := folk_chat_at(b.id)
+		if b.t <= 0.0 or not at.is_finite():
+			anchor.queue_free()
+			folk_bubbles.erase(b)
+			continue
+		anchor.position = Vector3(at.x, anchor.position.y, at.y)
+	folk_chat_gap -= dt
+	for id in folk_chat_cd:
+		folk_chat_cd[id] -= dt
+	if folk_chat_off or intro or story_open or shop_open or way_open or settings_open or ui.journal.visible or in_house >= 0 or folk_chat_gap > 0.0:
+		return
+	if not in_village and not in_marsh():
+		return
+	var me := Vector2(player.x, player.z)
+	if enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - me.x, e.z - me.y).length() < 8.0):
+		return
+	var near: Array = []
+	for id in STORY.FOLK_CHAT:
+		var at := folk_chat_at(id)
+		if not at.is_finite() or at.distance_to(me) >= FOLK_CHAT_R:
+			continue
+		if not folk_chat_cd.has(id): # just came near: a moment before he speaks
+			folk_chat_cd[id] = rnd(1.0, 4.0)
+		elif folk_chat_cd[id] <= 0.0:
+			near.append(id)
+	if near.is_empty():
+		return
+	var id: String = near[rng.randi() % near.size()]
+	folk_chat_cd[id] = rnd(15.0, 25.0)
+	var lines := folk_chat_lines(id)
+	if lines.is_empty():
+		return
+	folk_chat_gap = 4.0
+	folk_say(id, lines[rng.randi() % lines.size()])
+
+const FOLK_BUBBLE_Y := {"simji": 3.25, "kid": 1.6, "bori": 2.6} # balloon height over the ground; 2.7 for the rest
+
+func folk_say(id: String, line: String) -> void:
+	var at := folk_chat_at(id)
+	var anchor := Node3D.new()
+	anchor.position = Vector3(at.x, shop_pos.y if id == "bori" else 0.0, at.y)
+	add_child(anchor)
+	var n0 := bubbles_said
+	say_bubble(anchor, touch_words(tr(line)), 3.0)
+	bubbles_said = n0 # the companions' count stays theirs
+	(anchor.get_child(0) as Node3D).position.y = FOLK_BUBBLE_Y.get(id, 2.7)
+	folk_chat_last[id] = line
+	folk_said.append([id, line])
+	folk_bubbles.append({"anchor": anchor, "id": id, "t": 3.6 + (1.0 if touch_ui else 0.0)})
 
 # the signpost by the east bridge: the only way from the marsh to the village
 # Built after the map, props, plants and monsters so the random draws that place them are the same as before.
@@ -5551,6 +5718,7 @@ func build_hud() -> void:
 	deco.set_anchors_preset(Control.PRESET_FULL_RECT)
 	deco.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(deco)
+	ui.hud = deco
 
 	var zone := panel(legacy, Vector2(14, 12), Vector2(190, 58))
 	label(zone, "◆", Vector2(14, 16), 16, Color("#b9a273"))
@@ -6150,7 +6318,8 @@ func save_game() -> void:
 		"quarters_q": quarters_q, "quarters_box": quarters_box, "has_buckler": has_buckler, "quarters_again": quarters_again,
 		"oak_q": oak_q, "oak_knots": forest.knots.map(func(k): return k.open), "has_sprout": has_sprout, "oak_hogs": oak_hogs_beaten, "letter_back": letter_back,
 		"under_drained": under.drained, "under_door": under.door_open, "under_guards": under_guards_done, "under_chest": under_chest_open,
-		"under_side": under_side_open, "under_diary": under_diary_read, "has_lamp": has_lamp, "cave_quest": quest_before_cave}
+		"under_side": under_side_open, "under_diary": under_diary_read, "has_lamp": has_lamp, "cave_quest": quest_before_cave,
+		"pip_max": pip_max, "pip_awards": pip_awards.keys()}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(d))
@@ -6174,7 +6343,7 @@ func load_game() -> void:
 	day = int(d.get("day", day))
 	story_step = int(d.get("story", 0))
 	var was_in_cave := bool(d.get("in_cave", false))
-	crown_pips = int(d.get("pips", 8))
+	load_pips(d)
 	errand = int(d.get("errand", 0))
 	kid_q = int(d.get("kid_q", 0))
 	doran_q = int(d.get("doran_q", 0))
@@ -6518,6 +6687,7 @@ func load_game() -> void:
 	if is_instance_valid(ui.title_hint):
 		ui.title_hint.text = "아무 키나 눌러 이어하기  ·  F9 처음부터"
 	repair_story_step(d)
+	old_save_pips(d)
 	if story_step >= 6: # later chapters: the quest line as it was saved (older saves keep what the zone set)
 		if d.has("quest"):
 			set_quest(old_quest_words(String(d.quest)))
@@ -6879,7 +7049,10 @@ var ring_k := -1           # the ring post the villagers are lighting now (-1: n
 var ring_t := 0.0          # seconds spent on this post
 var forest_q := 0          # 0 never entered, 1 walking the forest, 2 second duel, 3 Noeul turned
 var in_village := false
-var crown_pips := 8        # the crown's moon gauge, 0..8
+var crown_pips := 8        # the bracelets' moon gauge, 0..pip_max
+var pip_max := 8           # v0.0.47: 8 at the start, +1 at the letter, the turtle, the thirteenth lantern and the knight
+var pip_awards := {}       # "letter", "turtle", "lantern", "knight": that place gave its pip (saved, kept into a new round)
+var pip_note := ""         # an old save got its pips back: said once the title closes
 var pip_flash := 0.0
 var rest_t := 0.0
 var met := {}               # villagers already greeted
@@ -6933,6 +7106,50 @@ func leave_village() -> void:
 
 func lamp_cost() -> int:
 	return 1 if is_night() else 2 # the crown is half as strong by day
+
+# ---- the gauge grows (GPT chose the places, shots/plans/pips_plan.md): the first time each of the four is done
+# a pip wakes, up to 12. Returns the narration line for the scene (none when the place gave its pip before).
+const PIP_CAP := 12
+const PIP_PLACES := ["letter", "turtle", "lantern", "knight"]
+
+func award_pip(key: String) -> Array:
+	if pip_awards.has(key):
+		return []
+	pip_awards[key] = true
+	if pip_max >= PIP_CAP:
+		return []
+	pip_max += 1
+	crown_pips = mini(pip_max, crown_pips + 1)
+	pip_flash = 0.5
+	return ["||" + tr("달빛 눈금이 한 칸 깨어났다. 최대 %d칸.") % pip_max]
+
+func load_pips(d: Dictionary) -> void:
+	pip_max = clampi(int(d.get("pip_max", 8)), 8, PIP_CAP)
+	pip_awards = {}
+	for k in d.get("pip_awards", []):
+		pip_awards[String(k)] = true
+	crown_pips = clampi(int(d.get("pips", pip_max)), 0, pip_max) # a new round's save has no pips: full
+
+# run once the progress values are loaded: a save from before v0.0.47 gets the pips of the places already done
+func old_save_pips(d: Dictionary) -> void:
+	if d.has("pip_max"):
+		return
+	var back := restore_pips()
+	if back > 0:
+		pip_note = tr("달빛 눈금 %d칸이 깨어났다. 최대 %d칸.") % [back, pip_max]
+
+# a save from before the gauge grew: the places already done give their pips back (only the pips, no HP or gold again)
+func restore_pips() -> int:
+	var done := {"letter": doran_q >= 3, "turtle": lake_q >= 4, "lantern": hollow_q >= 4, "knight": castle_q >= 3}
+	var n := 0
+	for k in PIP_PLACES:
+		if done[k] and not pip_awards.has(k):
+			pip_awards[k] = true
+			if pip_max < PIP_CAP:
+				pip_max += 1
+				n += 1
+	crown_pips = mini(pip_max, crown_pips + n)
+	return n
 
 func spend_pips(n: int) -> bool:
 	if crown_pips < n:
@@ -7023,7 +7240,7 @@ func crown_key() -> void:
 				set_quest("동쪽 끝 꺼진 등불을 팔찌로 켜자 (E) 0/3")
 			elif errand == 2:
 				errand = 3
-				crown_pips = 8
+				crown_pips = pip_max
 				player.gold += 60
 				player.pots += 1
 				show_story("", STORY.SIMJI_DONE)
@@ -7230,15 +7447,17 @@ var letter_back := false # Hangyeol's letter given back to Doran after Bori read
 
 func deliver_letter() -> void:
 	doran_q = 3
-	crown_pips = 8
-	player.max_hp += 10
+	var pip_lines := award_pip("letter") # the pip took the place of max HP +10 (v0.0.47)
+	if not pip_lines.is_empty():
+		pip_lines.push_front(STORY.BORI_LETTER_PIP)
+	crown_pips = pip_max
 	player.hp = float(player.max_hp)
 	if post_q == 3: # the postcard from the stream's end goes with Hangyeol's letter
 		post_q = 4
 		player.pots += 2
-		show_story("", STORY.BORI_LETTER + post_bori_lines())
+		show_story("", STORY.BORI_LETTER + pip_lines + post_bori_lines())
 	else:
-		show_story("", STORY.BORI_LETTER)
+		show_story("", STORY.BORI_LETTER + pip_lines)
 	set_quest("마을의 뱃사공 물결에게 가 보자 (E)")
 	save_game()
 
@@ -7396,7 +7615,7 @@ func rise_together() -> void:
 	player.x = village.marks.M.x - 1.5
 	player.z = village.marks.M.y + 1.5
 	player.hp = float(player.max_hp)
-	crown_pips = 8
+	crown_pips = pip_max
 	set_village_lamps(true)
 	burst(Vector3(player.x, 1.6, player.z), Color("#ffc46a"), 40, 4.0)
 	night_q = 3
@@ -7809,10 +8028,12 @@ func cloak_beaten() -> void:
 
 func simji_lantern() -> void:
 	hollow_q = 4
-	player.max_hp += 15
+	var pip_lines := award_pip("lantern") # the pip took the place of max HP +15 (v0.0.47)
+	if not pip_lines.is_empty():
+		pip_lines.push_front(STORY.SIMJI_LANTERN_PIP)
 	player.hp = float(player.max_hp)
 	player.gold += 150
-	show_story("res://art/story/13_thirteenth_lamp.jpg", STORY.SIMJI_LANTERN)
+	show_story("res://art/story/13_thirteenth_lamp.jpg", STORY.SIMJI_LANTERN + pip_lines)
 	hang_thirteenth()
 	save_game()
 
@@ -9392,7 +9613,11 @@ func knight_beaten() -> void:
 	ui.boss.visible = false
 	player.gold += 250
 	gain_xp(300)
-	show_story("", STORY.KNIGHT_DOWN)
+	var lines: Array = STORY.KNIGHT_DOWN.duplicate()
+	var pip_lines := award_pip("knight")
+	if not pip_lines.is_empty(): # after who he was, before Noeul asks about the garden
+		lines = lines.slice(0, lines.size() - 1) + [STORY.KNIGHT_PIP] + pip_lines + [lines[lines.size() - 1]]
+	show_story("", lines)
 	set_quest("동쪽 문을 지나 정원 한가운데로 가자")
 	save_game()
 
@@ -9798,7 +10023,10 @@ func turtle_beaten() -> void:
 	ui.boss.visible = false
 	player.gold += 200
 	gain_xp(200)
-	show_story("", STORY.ISLAND_HOME)
+	var pip_lines := award_pip("turtle")
+	if not pip_lines.is_empty():
+		pip_lines.push_front(STORY.ISLAND_PIP)
+	show_story("", STORY.ISLAND_HOME + pip_lines)
 	set_quest("물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자")
 	save_game()
 
@@ -9994,15 +10222,44 @@ func mate_tick(id: String, dt: float) -> bool:
 		mate_hp[id] = minf(mate_max(), mate_health(id) + 4.0 * dt)
 	return false
 
+# ---- Noeul sits down while Sora rests (v0.0.47, picture drawn with GPT: art/folk/noeul_rest.png, one 172 x 180 cell
+# with the feet line of noeul.png, so the same offset keeps his seat on the ground). Up again when she moves or a
+# monster comes within 7 tiles.
+var noeul_tex: Texture2D
+var noeul_rest_tex: Texture2D
+var noeul_sitting := false
+
+func sora_resting() -> bool:
+	if idle_t <= 0.6 or idle_name == "" or t - last_input_t < 10.0 or story_open:
+		return false
+	return not enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - player.x, e.z - player.z).length() < 7.0)
+
+func noeul_sit(on: bool) -> void:
+	if on == noeul_sitting or mate2 == null:
+		return
+	noeul_sitting = on
+	var spr: Sprite3D = mate2.get_child(0)
+	if noeul_tex == null:
+		noeul_tex = spr.texture
+		noeul_rest_tex = load("res://art/folk/noeul_rest.png")
+	spr.frame = 0
+	spr.texture = noeul_rest_tex if on else noeul_tex
+	spr.hframes = 1 if on else 3
+	spr.frame = 0
+
 func update_mate2(dt: float) -> void:
 	if mate2 == null:
 		return
 	mate2.visible = true
+	if not sora_resting() or mate_down["noeul"] > 0.0:
+		noeul_sit(false)
 	if clock_hold(): # at a spoke of the big key, pushing with everyone
+		noeul_sit(false)
 		var hs := hand_spot(CLOCK_HANDS.find("noeul"))
 		mate2.position = Vector3(hs.x, clock_hop_y(), hs.y)
 		return
 	if mate_job_state() == "wait": # waiting outside the grate by Mulgyeol, not at Sora's side
+		noeul_sit(false)
 		var post := Vector3(mate_job.home.x, 0, mate_job.home.y - 1.0)
 		mate2.position = post if mate2.position.distance_to(post) > 3.0 else mate2.position.move_toward(post, dt * 5.5)
 		return
@@ -10015,6 +10272,10 @@ func update_mate2(dt: float) -> void:
 	mate2_cd -= dt
 	var goal := mate_goal("noeul")
 	var to := goal - mate2.position
+	var sit := to.length() <= 0.45 and sora_resting() and mate2.position.distance_to(me) < 3.0
+	noeul_sit(sit)
+	if sit: # sitting by her: no monster is near, so nothing to throw dust at
+		return
 	if to.length() > 0.3:
 		mate2.position = mate_step(mate2.position, to.normalized() * minf(to.length() - 0.3, dt * 5.5))
 		spr.frame = 1
@@ -10908,6 +11169,7 @@ func update_ring(dt: float) -> void:
 		if ring_k >= 8:
 			ring_k = -1
 			garden_q = 4
+			toast("여덟 등불이 모였다. 이제 함께 감자.") # the last winding opens at eight even with more pips
 			set_quest("두 팔을 높이 들어 다 같이 땅을 감자 (E)")
 			save_game()
 		else:
@@ -10977,7 +11239,7 @@ func mold_breaks() -> void:
 			e.node.queue_free()
 			e.shadow.queue_free()
 	ui.boss.visible = false
-	crown_pips = 8
+	crown_pips = pip_max
 	player.gold += 500
 	gain_xp(400)
 	story_step = 12
@@ -11847,7 +12109,7 @@ func update_pips(dt: float) -> void:
 	var by_oak := oak_warm()
 	var night_now := is_night() or in_clock() or by_oak # underground the clock room rests as at night, and by the old oak's warm roots
 	var heal: bool = has_cushion and night_now and player.hp < player.max_hp
-	if (crown_pips >= 8 or not night_now) and not heal:
+	if (crown_pips >= pip_max or not night_now) and not heal:
 		rest_t = 0.0
 		return
 	var me := Vector3(player.x, 0, player.z)
@@ -11869,7 +12131,7 @@ func update_pips(dt: float) -> void:
 		if cushion_t >= 1.0:
 			cushion_t = 0.0
 			burst(Vector3(player.x, ground_y + 0.1, player.z), Color("#9fe07a"), 6, 0.8)
-	if crown_pips >= 8 or not night_now:
+	if crown_pips >= pip_max or not night_now:
 		rest_t = 0.0
 		return
 	rest_need = (6.0 if near_lamp else 12.0) * (0.6 if has_tea else 1.0)
@@ -12628,6 +12890,10 @@ func start_game(with_story := true) -> void:
 		return
 	intro = false
 	cam_yaw = CAM_YAW # the title screen orbits the camera; play always starts from the same angle
+	if pip_note != "": # an old save's pips came back: said once, when play starts
+		var note := pip_note
+		pip_note = ""
+		get_tree().create_timer(1.2).timeout.connect(func(): toast(note))
 	if with_story and (not loaded or story_step == 0): # a new round loads with the story back at 0
 		show_story("res://art/story/01_wake.jpg", STORY.WAKE)
 	if ending_due:
@@ -13010,6 +13276,7 @@ func _process(dt: float) -> void:
 		update_market(dt)
 		update_magpie(dt)
 	update_chat(dt)
+	update_folk_chat(dt)
 	update_mate_hud()
 	if cloud.reveal_t > 0.0:
 		cloud.reveal_t -= dt
@@ -14085,10 +14352,10 @@ func buy_stall(key: String) -> void:
 			player.hp = minf(player.max_hp, player.hp + 40.0)
 			pop_num(Vector3(player.x, 1.8, player.z), "+40", Color("#7aff9a"))
 		"2":
-			if crown_pips >= 8:
+			if crown_pips >= pip_max:
 				toast("팔찌 달빛이 이미 가득하다")
 				return
-			crown_pips = mini(8, crown_pips + 2)
+			crown_pips = mini(pip_max, crown_pips + 2)
 			pip_flash = 0.3
 		"3":
 			player.sp = 100.0
