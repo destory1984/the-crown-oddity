@@ -354,7 +354,7 @@ func disable_touch() -> void:
 		sheet.scale = Vector2.ONE
 		m.menus.size_back_keys(sheet)
 	place(m.ui.journal, Control.PRESET_BOTTOM_LEFT, Vector2(8, -668), Vector2(800, 567))
-	place(m.ui.ways, Control.PRESET_BOTTOM_LEFT, Vector2(8, -345), Vector2(330, 244))
+	place(m.ui.ways, Control.PRESET_BOTTOM_LEFT, Vector2(8, -401), Vector2(400, 300))
 	use_touch_help(false)
 	for c in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn, m.ui.mini.get_parent()]: # the touch layer hid them under sheets
 		c.visible = not m.intro
@@ -745,9 +745,9 @@ func build_hud() -> void:
 	m.menus.back_key(journal, func(): m.toggle_journal(false)).set_meta("title", journal_title)
 	journal.visible = false
 	m.ui.journal = journal
-	var ways := m.menus.menu_panel(root, Vector2(8, -345), Vector2(330, 244), Control.PRESET_BOTTOM_LEFT)
-	var wt := label(ways, "", Vector2(16, 12), 15, Color("#e9dfc4"))
-	wt.size = Vector2(300, 200)
+	var ways := m.menus.menu_panel(root, Vector2(8, -401), Vector2(400, 300), Control.PRESET_BOTTOM_LEFT)
+	var wt := label(ways, "", Vector2(16, 12), 18, Color("#e9dfc4")) # 15 was too small (the owner, 2026-10-25)
+	wt.size = Vector2(368, 276)
 	wt.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	m.ui.ways_text = wt
 	ways.visible = false

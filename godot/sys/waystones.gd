@@ -77,6 +77,12 @@ func toggle_ways(show: bool) -> void:
 		for i in Main.WAY_NAMES.size():
 			lines.append("%d   %s" % [i + 1, tr(Main.WAY_NAMES[i]) if way_known(i) else "? ? ?"])
 		m.ui.ways_text.text = "\n".join(lines)
+		if not m.touch_ui: # the sheet grows with the text size, its bottom kept 8 px over the keys
+			var wt: Label = m.ui.ways_text
+			var need := wt.get_minimum_size()
+			wt.size = need
+			m.ui.ways.offset_right = m.ui.ways.offset_left + maxf(400.0, need.x + 32.0)
+			m.ui.ways.offset_top = m.ui.ways.offset_bottom - maxf(300.0, need.y + 24.0)
 
 func travel(i: int) -> void:
 	toggle_ways(false)

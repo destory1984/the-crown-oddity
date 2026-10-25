@@ -605,6 +605,19 @@ func run() -> void:
 		main.close_story()
 		await wait(0.6)
 		check("rival_scene", shown and main.saw_painting, "painting scene with the rival shows once=%s" % shown)
+		# seen only after Noeul came for the lamps: the painting without his first meeting
+		var nq0: int = main.night_q
+		main.saw_painting = false
+		main.night_q = 1
+		reset_to(main.cave_marks.P + Vector2(0, 0.5))
+		await wait(0.3)
+		var late_open: bool = main.story_open
+		var no_intro: bool = not "내 이름은 노을" in "
+".join(main.story_lines) and not main.ui.story_frame.visible
+		main.close_story()
+		main.night_q = nq0
+		await wait(0.3)
+		check("painting_late", late_open and no_intro and main.saw_painting, "late painting shown=%s no first meeting=%s" % [late_open, no_intro])
 	if want.call("cave_save_load"):
 		main.in_cave = true
 		reset_to(main.cave_marks.S + Vector2(3, 0))

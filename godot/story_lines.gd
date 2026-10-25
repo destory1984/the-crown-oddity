@@ -68,6 +68,18 @@ const PAINTING := [
 	"소라|sad|……혼자서라도 가야 해.",
 ]
 
+# the painting seen only after Noeul has already shown himself (the village lamps night or later): no first meeting
+const PAINTING_LATE := [
+	"||동굴 벽 가득 오래된 그림이 새겨져 있다.",
+	"||여덟 개의 달. 그 아래 왕관 쓴 사람들이 팔찌 찬 손을 모아 커다란 태엽을 함께 감고 있다.",
+	"소라|surprised|이 왕관…… 내 것과 똑같아.",
+	"소라|calm|노을이 말한 달지기가 이 사람들이구나.",
+]
+const PAINTING_WITH_NOEUL := [ # Noeul walks with her
+	"노을|jae|……이 그림. 백 년 동안 혼자 몇 번이나 보러 왔어.",
+	"노을|jae_smirk|그때는 왕관만 보였는데. 지금 보니 다들 손을 모으고 있네.",
+]
+
 const WATER_SKIP := [
 	"||수레두더지가 쓰러지자, 동굴 바닥의 얕은 물이 달빛처럼 일렁였다.",
 	"||왕관의 보석이 물빛을 따라 깜빡인다. 마치 무언가를 가르쳐 주려는 것처럼.",

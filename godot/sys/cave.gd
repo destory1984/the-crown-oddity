@@ -633,7 +633,10 @@ func check_painting() -> void:
 	if m.saw_painting or Vector2(m.player.x, m.player.z).distance_to(m.cave_marks.P) > 2.0:
 		return
 	m.saw_painting = true
-	m.show_story("res://art/story/06_cave_rival.jpg", Main.STORY.PAINTING)
+	if m.night_q >= 1: # Noeul has already come for the crown: his first meeting would come twice (the owner, 2026-10-25)
+		m.show_story("", Main.STORY.PAINTING_LATE + (Main.STORY.PAINTING_WITH_NOEUL if m.mate2 != null else []))
+	else:
+		m.show_story("res://art/story/06_cave_rival.jpg", Main.STORY.PAINTING)
 	if m.has_skip: # seen on a later visit: the quest she has stays (GPT playtests 2 -> 9)
 		pass
 	elif m.cave_door_open:
