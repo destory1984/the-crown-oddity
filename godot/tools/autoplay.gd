@@ -1574,11 +1574,23 @@ func run() -> void:
 		var shown: bool = main.ui.journal.visible
 		var txt: String = main.ui.journal_text.text + main.ui.journal_text2.text
 		var has: bool = "지금 할 일" in txt and "늪의 옛 지도 조각" in txt and "곁이야기" in txt and "지닌 것" in txt
+		# the learnt moves: at Lv4 the first three and Lv6 next
+		main.toggle_journal(false)
+		var lv0: int = main.player.lv
+		main.player.lv = 4
+		main.toggle_journal(true)
+		var txt4: String = main.ui.journal_text2.text
+		var moves: bool = "익힌 기술" in txt4 and "4타 연속기, 달려 베기, 모아 베기" in txt4 and "다음: Lv6 5타 마무리" in txt4 and not "빛 칼날" in txt4
+		main.player.lv = 30
+		main.toggle_journal(true)
+		var txt30: String = main.ui.journal_text2.text
+		moves = moves and "꺼지지 않는 기세" in txt30 and not "다음:" in txt30
+		main.player.lv = lv0
 		tap(KEY_H)
 		await wait(0.1)
 		var swapped: bool = main.ui.help.visible and not main.ui.journal.visible
 		main.toggle_help(false)
-		check("journal", shown and has and swapped, "opens with Q=%s lists quest, side stories, keepsakes=%s help swaps it out=%s" % [shown, has, swapped])
+		check("journal", shown and has and swapped and moves, "opens with Q=%s lists quest, side stories, keepsakes=%s help swaps it out=%s learnt moves Lv4/Lv30=%s" % [shown, has, swapped, moves])
 	if want.call("wolf"):
 		if main.intro:
 			main.start_game(false)

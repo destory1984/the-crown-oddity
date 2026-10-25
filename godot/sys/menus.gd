@@ -3,6 +3,7 @@
 extends RefCounted
 
 const Main := preload("res://main.gd")
+const Combat := preload("res://sys/combat.gd")
 
 var m: Main
 
@@ -20,7 +21,7 @@ const ICON_SVG := {
 	"music_off": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 17V6.5l9-2V15"/><path d="M9.5 9.5l9-2"/><circle cx="7" cy="17.4" r="2.5"/><circle cx="16" cy="15.4" r="2.5"/><path d="M4 4l16 16"/></svg>',
 	"back": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(0.25 -2.25)"><path d="M9 7L4.5 11.5 9 16"/><path d="M5 11.5h9a5 5 0 0 1 0 10h-2"/></g></svg>',
 }
-const JOURNAL_HEADS := ["지금 할 일", "곁이야기", "도전 과제", "지닌 것"]
+const JOURNAL_HEADS := ["지금 할 일", "곁이야기", "도전 과제", "지닌 것", "익힌 기술"]
 
 func _init(main: Main) -> void:
 	m = main
@@ -667,4 +668,17 @@ func journal_lines() -> Array:
 	if m.has_lamp: keep.append(tr("한결의 등잔"))
 	if m.has_medal: keep.append(tr("과녁 메달"))
 	out.append("  " + (", ".join(keep) if not keep.is_empty() else tr("왕관과 태엽 팔찌")))
+	# level moves so far and the next one (the owner asked for perks past Lv8, 2026-10-25)
+	out.append("")
+	out.append(tr("익힌 기술"))
+	var learnt: Array = []
+	var next_lv := 0
+	for lv in Combat.LV_NAMES:
+		if lv <= m.player.lv:
+			learnt.append(tr(Combat.LV_NAMES[lv]))
+		elif next_lv == 0:
+			next_lv = lv
+	out.append("  " + (", ".join(learnt) if not learnt.is_empty() else tr("베기, 구르기, 막기")))
+	if next_lv > 0:
+		out.append("  " + tr("다음: Lv%d %s") % [next_lv, tr(Combat.LV_NAMES[next_lv])])
 	return out
