@@ -81,7 +81,7 @@ func spawn_enemy(at := Vector2(-1, -1), archer := false) -> void:
 			break
 	var node := make_monster()
 	m.add_child(node)
-	var hp: int = (20 + m.player.lv * 8) if archer else (30 + m.player.lv * 10)
+	var hp: int = (20 + m.foe_lv() * 8) if archer else (30 + m.foe_lv() * 10)
 	if archer: # brick archer: green body, mustard head
 		var mats: Array = node.get_meta("mats")
 		mats[2].albedo_color = Color("#3f8a3a")
@@ -118,7 +118,7 @@ func make_wolf() -> Node3D:
 func spawn_wolf(at: Vector2) -> void:
 	var node := make_wolf()
 	m.add_child(node)
-	var hp: int = 25 + m.player.lv * 7
+	var hp: int = 25 + m.foe_lv() * 7
 	m.enemies.append({"x": at.x, "z": at.y, "hp": float(hp), "max_hp": hp, "node": node, "shadow": m.blob(0.7), "t": m.rnd(0, 5),
 		"atk_cd": m.rnd(1.0, 2.5), "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"wolf": true, "cave": true, "wind": 0.0, "stun": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "rest": 0.0, "hit_done": false,
@@ -141,7 +141,7 @@ func update_wolf(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 		v = e.dir * 7.0
 		if not e.hit_done and d < 1.0:
 			e.hit_done = true
-			m.player_hit(int(round(m.rnd(7, 10) + m.player.lv)), Vector2(e.x, e.z), e)
+			m.player_hit(int(round(m.rnd(7, 10) + m.foe_lv())), Vector2(e.x, e.z), e)
 		if e.dash <= 0.0:
 			e.rest = 0.8
 	elif e.wind > 0.0:
@@ -209,7 +209,7 @@ func spawn_bat(at: Vector2) -> void:
 	root.set_meta("mats", mats)
 	root.set_meta("body", g)
 	m.add_child(root)
-	var hp: int = 15 + m.player.lv * 5
+	var hp: int = 15 + m.foe_lv() * 5
 	m.enemies.append({"x": at.x, "z": at.y, "hp": float(hp), "max_hp": hp, "node": root, "shadow": m.blob(0.4), "t": m.rnd(0, 5),
 		"atk_cd": m.rnd(1.5, 3.0), "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"bat": true, "cave": true, "wind": 0.0, "stun": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "hit_done": false})
@@ -230,7 +230,7 @@ func update_bat(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 		v = e.dir * 8.0
 		if not e.hit_done and d < 0.8:
 			e.hit_done = true
-			m.player_hit(int(round(m.rnd(6, 9) + m.player.lv)), Vector2(e.x, e.z), e)
+			m.player_hit(int(round(m.rnd(6, 9) + m.foe_lv())), Vector2(e.x, e.z), e)
 	elif e.wind > 0.0:
 		e.wind -= dt
 		if e.wind <= 0.0:
@@ -306,7 +306,7 @@ func make_hog() -> Node3D:
 func spawn_hog(at: Vector2) -> void:
 	var node := make_hog()
 	m.add_child(node)
-	var hp: int = 40 + m.player.lv * 9
+	var hp: int = 40 + m.foe_lv() * 9
 	m.enemies.append({"x": at.x, "z": at.y, "hp": float(hp), "max_hp": hp, "node": node, "shadow": m.blob(0.7), "t": m.rnd(0, 5),
 		"atk_cd": m.rnd(0.5, 1.5), "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"hog": true, "cave": true, "curl": 0.0, "dizzy": 0.0, "warned": false})
@@ -324,7 +324,7 @@ func update_hog(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 			m.burst(Vector3(e.x, 0.4, e.z), Color("#8a8a90"), 24, 4.0)
 			m.sfx(140, 0.2, "square", 0.2, -60)
 			if d < 1.8:
-				m.player_hit(8 + m.player.lv, Vector2(e.x, e.z), e)
+				m.player_hit(8 + m.foe_lv(), Vector2(e.x, e.z), e)
 			e.dizzy = 1.4
 			e.atk_cd = 2.4
 	elif e.dizzy > 0.0:
@@ -458,7 +458,7 @@ func update_enemies(dt: float, gy: float) -> void:
 			e.wind -= dt
 			if e.wind <= 0.0:
 				e.atk_cd = 1.6
-				var hitd := int(round(m.rnd(5, 9) + m.player.lv))
+				var hitd := int(round(m.rnd(5, 9) + m.foe_lv()))
 				if d < 1.3:
 					m.player_hit(hitd, Vector2(e.x, e.z), e)
 				else:
@@ -527,7 +527,7 @@ func update_boss(e: Dictionary, dt: float, d: float, to: Vector2, gy: float) -> 
 		var before: float = e.wave_r
 		e.wave_r += 5.0 * dt
 		if before < d and e.wave_r >= d and absf(d - e.wave_r) < 0.8:
-			m.player_hit(int(8 + m.player.lv), me, e)
+			m.player_hit(int(8 + m.foe_lv()), me, e)
 		if e.wave_r > 6.0:
 			e.wave_r = -1.0
 	if e.roar > 0.0:
@@ -542,7 +542,7 @@ func update_boss(e: Dictionary, dt: float, d: float, to: Vector2, gy: float) -> 
 		if e.stomp <= 0.0:
 			stomp_wave(Vector3(e.x, ground, e.z))
 			if d < 3.0:
-				m.player_hit(int(12 + m.player.lv * 2), me, e)
+				m.player_hit(int(12 + m.foe_lv() * 2), me, e)
 			if e.phase == 2:
 				e.wave_r = 0.0
 				ring_wave(Vector3(e.x, ground, e.z))
@@ -552,7 +552,7 @@ func update_boss(e: Dictionary, dt: float, d: float, to: Vector2, gy: float) -> 
 			m.effects.slash_fx(Vector3(e.x, ground + 0.4, e.z) + Vector3(e.face.x, 0, e.face.y) * 1.0, -atan2(e.face.y, e.face.x) - PI / 2.0 + 0.9, false)
 			m.sfx(110, 0.12, "sawtooth", 0.25, 200)
 			if d < 2.0 and (to / maxf(d, 0.01)).dot(e.face) > 0.5:
-				m.player_hit(int(8 + m.player.lv), me, e)
+				m.player_hit(int(8 + m.foe_lv()), me, e)
 	else:
 		if awake and d > 1.8:
 			ev = to / d * 1.4

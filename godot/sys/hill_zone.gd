@@ -192,7 +192,7 @@ func update_scarecrow(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 				m.burst(Vector3(e.x, 1.4, e.z), Color("#d8b04a"), 24, 4.0)
 				m.sfx(200, 0.4, "noise", 0.15, 300)
 				if d < 2.6:
-					m.player_hit(20 + m.player.lv, Vector2(e.x, e.z), e)
+					m.player_hit(20 + m.foe_lv(), Vector2(e.x, e.z), e)
 				if e.spins > 0:
 					e.spins -= 1
 					e.wind = 0.5
@@ -448,7 +448,7 @@ func spawn_mill_guard() -> void:
 	var at: Vector2 = m.hill.south_marks.K
 	m.spawn_enemy(at)
 	var e: Dictionary = m.enemies[m.enemies.size() - 1]
-	e.hp = 300.0 + m.player.lv * 30
+	e.hp = 300.0 + m.foe_lv() * 30
 	e.max_hp = int(e.hp)
 	e.size_k = 1.7
 	e.mill_guard = true

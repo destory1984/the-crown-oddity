@@ -82,7 +82,7 @@ func spawn_trial_wave() -> void:
 		if kind == "s":
 			m.give_shield(e)
 		if kind == "W":
-			e.hp = 300.0 + m.player.lv * 30
+			e.hp = 300.0 + m.foe_lv() * 30
 			e.max_hp = int(e.hp)
 			e.size_k = 1.7 # update_enemies sets the scale every frame, so the warden's size goes through this
 			var mats: Array = e.node.get_meta("mats")

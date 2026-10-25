@@ -155,7 +155,7 @@ func player_hit(dmg: int, src: Vector2, attacker: Dictionary) -> String:
 	var me2 := Vector2(m.player.x, m.player.z)
 	if m.sealed_between(src, me2) or (attacker.has("x") and m.sealed_between(Vector2(attacker.x, attacker.z), me2)):
 		return "none" # a shut wall or locked door stops every blow, ring and shot
-	if m.player.dodge > 0.0 and m.t - m.dodge_start <= 0.15 and m.flash_cd <= 0.0:
+	if m.player.dodge > 0.0 and m.t - m.dodge_start <= (0.2 if m.player.lv >= 10 else 0.15) and m.flash_cd <= 0.0:
 		m.slowmo = 2.0
 		m.flash_cd = 3.0
 		m.player.mp = minf(m.player.max_mp, m.player.mp + 20.0)

@@ -670,6 +670,10 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-25 저녁",
+	"· v0.0.68: 레벨이 오르면 실제로 강해진다.",
+	"    - 괴물의 체력과 때리는 힘이 소라 레벨을 그대로 따라와, Lv1과 Lv28 모두 벽돌 고블린 하나에 4번 베고 11대쯤 버텼다. 이제 괴물은 소라 레벨의 절반(Lv28이면 Lv14)에 맞춰 세진다. Lv28 고블린은 체력 310 → 170, 한 대 36 → 22.",
+	"    - Lv8 뒤로 새로 얻는 것이 없었다. Lv10 가벼운 발(구르기 기력 25 → 18, 섬광 피하기 틈 0.15 → 0.2초), Lv15 달빛 숨(기술 대기 20% 짧게), Lv20 세 갈래 빛 칼날, Lv25 든든한 약(회복약 30% 더), Lv30 꺼지지 않는 기세(때리지 않아도 기세가 줄지 않음)를 더했다. 이미 그 레벨을 넘었으면 바로 쓸 수 있다.",
+	"    - README를 지금 게임에 맞게 고쳤다(분량 322분, E 하나로 하는 일, 새 레벨 표, 시험 140개).",
 	"· v0.0.67: 동굴 남쪽 방 실마리와 더 자세한 조작 도움말.",
 	"    - 동굴 맨 남쪽 방의 창살 곁에 가면 무엇으로 열리는지 알려 준다. 물수제비 걸음이 있으면 '물웅덩이 섬의 수정 넷을 낮은 소리부터', 없으면 '섬에 건너갈 걸음부터 찾자'. 물길 아래에 있는 동안 할 일 줄 밑에 '섬 수정 넷을 낮은 소리부터 울리자 0/4'가 뜬다.",
 	"    - 설정의 Help 쪽 조작 도움말을 7줄에서 9줄로 늘리고 자세히 썼다. 베기(연속 베기, 돌진 베기, 모아 베기가 열리는 레벨), 구르기와 막기(기력, 섬광 피하기·섬광 막기가 되는 때), 기술마다 드는 기세, 팔찌의 달빛 눈금이 차는 법, 숨은 키(P, T, F8, F9). 음악 줄은 맨 위로 옮겼다.",
@@ -1936,7 +1940,7 @@ func _process(dt: float) -> void:
 	player.hurt_t -= dt
 	for i in 4:
 		player.cds[i] = maxf(0, player.cds[i] - dt)
-	if t - last_hit_t > 4.0:
+	if t - last_hit_t > 4.0 and player.lv < 30: # from Lv30 momentum keeps
 		player.mp = maxf(0.0, player.mp - 3.0 * dt)
 	# guard: L or middle mouse held; remember when it started for the flash-guard window
 	var g_now: bool = not intro and not shop_open and (key_down(KEY_L) or Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE)) and player.dodge <= 0
@@ -2299,6 +2303,7 @@ func faint() -> void: sora.faint()
 # sys/combat.gd
 func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_crit := false, stop := 0.05) -> void: combat.damage_enemy(e, amt, from, kb, force_crit, stop)
 func gain_xp(n: int) -> void: combat.gain_xp(n)
+func foe_lv() -> int: return combat.foe_lv()
 func attack() -> void: combat.attack()
 func skill_cost(i: int) -> int: return combat.skill_cost(i)
 func use_skill(i: int) -> void: combat.use_skill(i)

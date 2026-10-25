@@ -324,7 +324,7 @@ func update_knight(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 			e.dash = 0.0
 		if not e.hit_done and Vector2(m.player.x - e.x, m.player.z - e.z).length() < 1.3:
 			e.hit_done = true
-			if m.player_hit(22 + m.player.lv, Vector2(e.x, e.z) - e.dir, e) == "flash_guard":
+			if m.player_hit(22 + m.foe_lv(), Vector2(e.x, e.z) - e.dir, e) == "flash_guard":
 				e.stun = 2.0
 		if e.dash <= 0.0 and e.stun <= 0.0:
 			e.tired = 1.2
@@ -337,7 +337,7 @@ func update_knight(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 					m.burst(Vector3(e.x + e.face.x * 1.3, 1.0, e.z + e.face.y * 1.3), Color("#e8e8f0"), 10, 2.5)
 					m.sfx(240, 0.08, "sawtooth", 0.15, 300)
 					if d < 2.4 and dirn.dot(e.face) > 0.5:
-						if m.player_hit(14 + m.player.lv, Vector2(e.x, e.z), e) == "flash_guard":
+						if m.player_hit(14 + m.foe_lv(), Vector2(e.x, e.z), e) == "flash_guard":
 							e.stun = 2.0
 					var sx: float = e.x + e.face.x * 0.5
 					var sz: float = e.z + e.face.y * 0.5
@@ -364,7 +364,7 @@ func update_knight(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 					m.sfx(60, 0.4, "square", 0.3, -30)
 					m.burst(Vector3(e.x, 0.3, e.z), Color("#9a9284"), 30, 4.0)
 					if d < 3.0:
-						m.player_hit(24 + m.player.lv, Vector2(e.x, e.z), e)
+						m.player_hit(24 + m.foe_lv(), Vector2(e.x, e.z), e)
 					e.atk_cd = 1.2
 	else:
 		var want := atan2(dirn.y, dirn.x)
@@ -552,7 +552,7 @@ func shed_doll_bits() -> void:
 		e.shard = true
 		e.doll = true
 		e.cave = true # no respawn
-		e.hp = 18.0 + m.player.lv * 4
+		e.hp = 18.0 + m.foe_lv() * 4
 		e.max_hp = int(e.hp)
 		e.post = m.doll_at
 		for mm in e.node.get_meta("mats"):
@@ -921,7 +921,7 @@ func update_under(dt: float) -> void:
 			m.spawn_enemy(at)
 			var e: Dictionary = m.enemies[m.enemies.size() - 1]
 			e.cave = true
-			e.hp = 300.0 + m.player.lv * 30
+			e.hp = 300.0 + m.foe_lv() * 30
 			e.max_hp = int(e.hp)
 			e.size_k = 1.7
 			var mats: Array = e.node.get_meta("mats")

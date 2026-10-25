@@ -12,6 +12,11 @@ const LV_MOVES := {
 	4: "새 기술: 모아 베기 (L로 막으며 1초 모은 뒤 J)",
 	6: "새 기술: 5타 마무리 (다섯째 타는 땅 내려찍기)",
 	8: "새 기술: 빛 칼날 (연속기 마지막 타가 빛 칼날을 날린다)",
+	10: "가벼운 발: 구르기 기력 25 → 18, 섬광 피하기 틈 0.15 → 0.2초",
+	15: "달빛 숨: 기술을 다시 쓰기까지 20% 빨라진다",
+	20: "세 갈래 빛 칼날: 마지막 타의 빛 칼날이 셋으로 갈라진다",
+	25: "든든한 약: 회복약이 30% 더 채운다",
+	30: "꺼지지 않는 기세: 때리지 않아도 기세가 줄지 않는다",
 }
 const SKILL_MP := [30, 15, 60]
 
@@ -149,6 +154,11 @@ func gain_xp(n: int) -> void:
 		m.get_tree().create_timer(0.12).timeout.connect(func(): m.sfx(659, 0.15, "triangle", 0.3))
 		m.get_tree().create_timer(0.24).timeout.connect(func(): m.sfx(784, 0.3, "triangle", 0.3))
 
+# the level monsters are built and hit at: half of Sora's (Lv1 1, Lv10 5, Lv28 14), so each level up still makes her
+# stronger; at the full level a goblin took 4 cuts at Lv1 and still 4 at Lv28 (the owner, 2026-10-25)
+func foe_lv() -> int:
+	return int((m.player.lv + 1) / 2.0)
+
 func nearest_enemy(range_: float):
 	var best = null
 	var bd := range_
@@ -222,6 +232,9 @@ func attack() -> void:
 		m.burst(here + Vector3(0, 0.2, 0), Color("#d8c8a0"), 30, 3.5)
 	if last and m.player.lv >= 8:
 		light_blade(f)
+		if m.player.lv >= 20: # two more, 25 degrees to each side
+			light_blade(f.rotated(0.44))
+			light_blade(f.rotated(-0.44))
 	var lunge := 4.0 if last else 2.0
 	m.player.vx += f.x * lunge
 	m.player.vz += f.y * lunge
@@ -352,7 +365,7 @@ func use_skill(i: int) -> void:
 		m.toast("기세가 모자라다")
 		return
 	m.player.mp -= skill_cost(i)
-	m.player.cds[i] = Main.SKILL_CD[i] * (0.8 if m.has_shard else 1.0)
+	m.player.cds[i] = Main.SKILL_CD[i] * (0.8 if m.has_shard else 1.0) * (0.8 if m.player.lv >= 15 else 1.0)
 	var here := Vector3(m.player.x, m.height_at(m.player.x, m.player.z), m.player.z)
 	var me := Vector2(m.player.x, m.player.z)
 	match i:
@@ -413,7 +426,7 @@ func drink_potion() -> void:
 		return
 	m.player.pots -= 1
 	m.player.cds[3] = 2.0
-	var h := minf(m.player.max_hp - m.player.hp, 75.0 if m.has_sprout else (65.0 if m.has_acorn else 45.0))
+	var h := minf(m.player.max_hp - m.player.hp, (75.0 if m.has_sprout else (65.0 if m.has_acorn else 45.0)) * (1.3 if m.player.lv >= 25 else 1.0))
 	m.player.hp += h
 	if m.has_oil:
 		m.player.mp = minf(m.player.max_mp, m.player.mp + 20.0)
@@ -425,7 +438,7 @@ func drink_potion() -> void:
 func dodge() -> void:
 	if not m.dash.is_empty():
 		return
-	var cost := 15 if m.has_feather else 25
+	var cost := (15 if m.has_feather else 25) - (7 if m.player.lv >= 10 else 0)
 	if m.player.dodge > 0 or m.player.sp < cost:
 		return
 	m.player.sp -= cost

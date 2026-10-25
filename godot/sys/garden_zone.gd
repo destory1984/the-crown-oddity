@@ -378,7 +378,7 @@ func shed_shards() -> void:
 		var e: Dictionary = m.enemies[m.enemies.size() - 1]
 		e.shard = true
 		e.cave = true # no respawn
-		e.hp = 18.0 + m.player.lv * 4
+		e.hp = 18.0 + m.foe_lv() * 4
 		e.max_hp = int(e.hp)
 		e.post = Vector2(l.position.x, l.position.z)
 		var mats: Array = e.node.get_meta("mats")
@@ -613,7 +613,7 @@ func shed_clock_shards(i: int) -> void:
 		e.shard = true
 		e.cave = true # no respawn
 		e.gear = i
-		e.hp = 18.0 + m.player.lv * 4
+		e.hp = 18.0 + m.foe_lv() * 4
 		e.max_hp = int(e.hp)
 		e.post = to
 		for mm in e.node.get_meta("mats"):

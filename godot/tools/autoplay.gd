@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
 	run.call_deferred()
@@ -97,6 +97,12 @@ func calm_enemies(on: bool) -> void:
 				e.z = 2.0
 
 # 깨어난 물가: the bricks risen by the basket or a snag
+# companions hit as hard as Sora's level allows and foes only grow with half of it, so late in a full run they
+# downed fresh packs before a test could count them
+func hold_mates() -> void:
+	main.mate_cd = 9.0
+	main.mate2_cd = 9.0
+
 func shore_foes() -> Array:
 	return main.enemies.filter(func(e): return e.get("shore", false) and not e.dead)
 
@@ -439,6 +445,28 @@ func run() -> void:
 		gob.x = 2.0
 		gob.z = 2.0
 		gob.node.visible = false
+	if want.call("level_perks"):
+		var lv0: int = main.player.lv
+		var foes: Array = []
+		for lv in [1, 10, 28]:
+			main.player.lv = lv
+			foes.append(main.foe_lv())
+		# Lv15: skills come back 20% sooner; Lv10: a roll costs 7 less stamina
+		reset_to(Vector2(30, 30)) # the whirl only reaches close by; a fire bolt flew off and killed the next test's goblin
+		main.player.lv = 15
+		main.player.mp = 100.0
+		main.player.cds = [0.0, 0.0, 0.0, 0.0]
+		main.use_skill(0)
+		var cd15: float = main.player.cds[0]
+		main.player.lv = 1
+		main.player.mp = 100.0
+		main.player.cds = [0.0, 0.0, 0.0, 0.0]
+		main.use_skill(0)
+		var cd1: float = main.player.cds[0]
+		var quick: bool = absf(cd15 - cd1 * 0.8) < 0.01
+		main.player.lv = lv0
+		main.player.cds = [0.0, 0.0, 0.0, 0.0]
+		check("level_perks", foes == [1, 5, 14] and quick, "foe levels %s (want [1, 5, 14]) skill cd Lv15 %.2f vs Lv1 %.2f" % [str(foes), cd15, cd1])
 	if want.call("skill_cost"):
 		main.player.mp = 20.0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]
@@ -4336,7 +4364,7 @@ func run() -> void:
 		var wet: bool = main.player_can(hx + 20, 33.5)
 		main.skipping = false
 		var guards: Array = main.enemies.filter(func(e): return e.get("mill_guard", false) and not e.dead)
-		var guard_ok: bool = guards.size() == 1 and guards[0].max_hp == 300 + main.player.lv * 30
+		var guard_ok: bool = guards.size() == 1 and guards[0].max_hp == 300 + main.foe_lv() * 30
 		park_mates(true)
 		var g0: int = main.player.gold
 		if guards.size() == 1:
@@ -4960,6 +4988,7 @@ func run() -> void:
 		await wait(0.2)
 		var woke: bool = main.story_open and main.crown_pips == 6
 		main.close_story()
+		hold_mates()
 		await wait_for(func(): return shore_foes().size() == 2, 2.0)
 		var p1: Array = shore_foes()
 		var pack1: bool = p1.size() == 2 and p1.all(func(e): return e.cave and not e.archer)
@@ -4967,6 +4996,7 @@ func run() -> void:
 		var pots0: int = main.player.pots
 		main.player.inv = 120.0
 		knock_shore()
+		hold_mates()
 		await wait_for(func(): return shore_foes().size() == 2, 3.0)
 		var p2: Array = shore_foes()
 		var pack2: bool = p2.size() == 2 and p2.filter(func(e): return e.archer).size() == 1 and p2.all(func(e): return e.cave)
@@ -5016,6 +5046,7 @@ func run() -> void:
 		for i in 3:
 			reset_to(near[i])
 			main.player.inv = 120.0
+			hold_mates()
 			main.shore_float.d = float(main.marsh.snag_d[i]) - 0.05
 			await wait_for(func(): return shore_foes().size() == 2, 3.0)
 			var pk: Array = shore_foes()
@@ -5069,6 +5100,10 @@ func run() -> void:
 		await wait(2.0)
 		var hp_night: float = main.player.hp
 		var rested: bool = hp_night >= 56.5 and hp_night <= 59.5
+		var near_foe := 99.0
+		for e in main.enemies:
+			if not e.dead:
+				near_foe = minf(near_foe, Vector2(e.x - main.player.x, e.z - main.player.z).length())
 		main.hour = 13.0
 		main.player.hp = 50.0
 		await wait(1.0)
@@ -5119,7 +5154,7 @@ func run() -> void:
 		calm_enemies(false)
 		main.save_game()
 		check("shore", quiet and hint and blocks and seen and woke and pack1 and pack2 and out and once and bori and dam and day and floated and lit and flows and snags_ok and held and hushed and landed and silent and after and cushion and page and card and rested and by_day and kept and taken and round_ok,
-			"quiet before Bori=%s hint=%s blocks=%s basket lines=%s woke 1 pip=%s pack 2=%s pack 1+archer=%s out +30 +1=%s once=%s Bori lamp+pot=%s dam=%s day=%s floated 1 pip=%s lit=%s flows=%s snags=%s %s held/waits=%s shots gone=%s landed +10=%s hush=%s then toast=%s cushion=%s page=%s card=%s rest hp %.1f=%s by day=%s saved=%s float taken back=%s new round=%s" % [quiet, hint, blocks, seen, woke, pack1, pack2, out, once, bori, dam, day, floated, lit, flows, snags_ok, str(counts), held, hushed, landed, silent, after, cushion, page, card, hp_night, rested, by_day, kept, taken, round_ok])
+			"quiet before Bori=%s hint=%s blocks=%s basket lines=%s woke 1 pip=%s pack 2=%s pack 1+archer=%s out +30 +1=%s once=%s Bori lamp+pot=%s dam=%s day=%s floated 1 pip=%s lit=%s flows=%s snags=%s %s held/waits=%s shots gone=%s landed +10=%s hush=%s then toast=%s cushion=%s page=%s card=%s rest hp %.1f=%s (nearest foe %.1f, Lv%d) by day=%s saved=%s float taken back=%s new round=%s" % [quiet, hint, blocks, seen, woke, pack1, pack2, out, once, bori, dam, day, floated, lit, flows, snags_ok, str(counts), held, hushed, landed, silent, after, cushion, page, card, hp_night, rested, near_foe, main.player.lv, by_day, kept, taken, round_ok])
 	if want.call("quarters"):
 		# 달지기 숙소 (DESIGN.md): the knight's spring, the clockwork door, the six bricks once, the doorkeeper wound and
 		# seen to the bunk room past the heaps' bits, the ledger, the buckler's wider flash guard, the chest, saves and a
@@ -5183,6 +5218,7 @@ func run() -> void:
 		# 3. into the dining hall: six bricks (2 goblins, a shield goblin, an archer, 2 bats), once
 		reset_to(Vector2(465, 28))
 		main.player.inv = 120.0
+		hold_mates()
 		await wait_for(func(): return quarter_foes().size() == 6, 2.0)
 		var qf: Array = quarter_foes()
 		var six: bool = qf.size() == 6 and qf.all(func(e): return e.cave) and qf.filter(func(e): return e.get("bat", false)).size() == 2 \
@@ -5194,8 +5230,10 @@ func run() -> void:
 		await wait(0.3)
 		reset_to(Vector2(465, 28))
 		main.player.inv = 120.0
+		hold_mates()
 		await wait(0.5)
 		var once: bool = quarter_foes().size() == 6
+		var left_q: int = quarter_foes().size()
 		knock_quarters()
 		# the "!" (GPT playtest): the tally board until read, then the stand
 		var mkq: Dictionary = main.castle.marks
@@ -5351,7 +5389,7 @@ func run() -> void:
 		calm_enemies(false)
 		main.save_game()
 		check("quarters", shut and toast_only and spring and opened and six and told and once and marks_ok and stand and no_pip and wound and walks and three and knocked and rewalk and waits and bunk and signed and sat and hushed and toasted and guard_ok and chest and kept and mid and round_ok,
-			"shut=%s toast only=%s spring=%s opened=%s six=%s told=%s once=%s marker=%s stand=%s no pip=%s wound 1 pip=%s walks=%s bits 3=%s knocked=%s E walks on=%s waits=%s bunk open=%s ledger=%s sat+buckler=%s hush=%s toast=%s guard %s/%s=%s chest=%s saved=%s mid-walk load=%s new round=%s" % [shut, toast_only, spring, opened, six, told, once, marks_ok, stand, no_pip, wound, walks, three, knocked, rewalk, waits, bunk, signed, sat, hushed, toasted, r1, r2, guard_ok, chest, kept, mid, round_ok])
+			"shut=%s toast only=%s spring=%s opened=%s six=%s told=%s once=%s (%d left, Lv%d) marker=%s stand=%s no pip=%s wound 1 pip=%s walks=%s bits 3=%s knocked=%s E walks on=%s waits=%s bunk open=%s ledger=%s sat+buckler=%s hush=%s toast=%s guard %s/%s=%s chest=%s saved=%s mid-walk load=%s new round=%s" % [shut, toast_only, spring, opened, six, told, once, left_q, main.player.lv, marks_ok, stand, no_pip, wound, walks, three, knocked, rewalk, waits, bunk, signed, sat, hushed, toasted, r1, r2, guard_ok, chest, kept, mid, round_ok])
 	if want.call("oak"):
 		# 다람쥐 나무 (DESIGN.md): the big squirrel by the gap once the squirrels are free and the gate is open, the gap,
 		# the clearing's lines once, resting by the oak by day, three knots (1 pip each, the hedgehogs after the second),
@@ -5466,6 +5504,7 @@ func run() -> void:
 		await wait(0.2)
 		reset_to(kn[1].pos + Vector2(0.9, 0))
 		main.player.inv = 99.0
+		hold_mates()
 		main.crown_key()
 		await wait(0.1)
 		main.close_story()
@@ -5611,6 +5650,7 @@ func run() -> void:
 		var shut: bool = not main.player_can(g.x, g.y)
 		var north0: int = main.enemies.filter(func(e): return not e.dead and e.x > 170.0 and e.x < 230.0 and e.z < 21.5).size()
 		reset_to(g + Vector2(0, -1.0))
+		hold_mates()
 		tap(KEY_E)
 		await wait(0.2)
 		main.close_story()

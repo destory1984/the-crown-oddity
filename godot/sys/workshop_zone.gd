@@ -256,7 +256,7 @@ func update_frags(dt: float, f, me: Vector2) -> void:
 			m.burst(Vector3(at.x, 0.4, at.y), Color("#d8ccb4"), 14, 2.0)
 			m.sfx(120, 0.15, "noise", 0.12, -40)
 			if Vector2(m.player.x, m.player.z).distance_to(at) < 0.85 and f.char_at(m.player.x, m.player.z) != "n":
-				m.player_hit(10 + m.player.lv, at, {})
+				m.player_hit(10 + m.foe_lv(), at, {})
 	if m.story_open or m.work_q >= 5:
 		return
 	frag_t -= dt
@@ -312,7 +312,7 @@ func update_cradle(dt: float, f, me: Vector2) -> void:
 			(f.arms[arm_i] as Node3D).rotation.y = -a
 			if not arm_hit and in_sector(me, f, arm_i):
 				arm_hit = true
-				m.player_hit(12 + m.player.lv, o, {})
+				m.player_hit(12 + m.foe_lv(), o, {})
 			if arm_t <= 0.0:
 				(f.arms[arm_i] as Node3D).rotation.y = -float(f.latches[arm_i].angle)
 				arm_phase = "rest"
