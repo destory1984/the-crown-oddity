@@ -418,7 +418,8 @@ func wrap_label(parent: Control, text: String, pos: Vector2, width: float, size:
 	box.size = Vector2(width, 0)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(box)
-	var l := label(box, text, Vector2.ZERO, size, color)
+	var l := label(box, Main.Ko.keep_words(m.tr(text)), Vector2.ZERO, size, color)
+	l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED # translated here, before the words are joined
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	return l
 

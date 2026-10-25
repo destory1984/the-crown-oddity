@@ -50,3 +50,17 @@ static func josa(s: String) -> String:
 				pick = p[0] if fin[0] else p[1]
 			out = out.substr(0, at) + pick + out.substr(at + tok.length())
 	return out
+
+# Godot may break Korean between any two syllables, so wrapped help text split words ("dol|jin"), which read like
+# stray line breaks (the owner, 2026-10-26). A word joiner (U+2060, drawn as nothing) between the letters of each
+# word leaves the spaces as the only places a line can break.
+static func keep_words(text: String) -> String:
+	var out := ""
+	for i in text.length():
+		var c := text[i]
+		out += c
+		if i + 1 < text.length() and c != " " and c != "
+" and text[i + 1] != " " and text[i + 1] != "
+":
+			out += char(0x2060)
+	return out
