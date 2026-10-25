@@ -264,6 +264,20 @@ func post_bori_lines() -> Array:
 		lines.insert(i + 1, Main.STORY.POST_BORI_LAMP if m.shore_q >= 4 else Main.STORY.POST_BORI_LAMP_HELD)
 	return lines
 
+# the side step that is running now, one short line under the quest (empty when none; the journal lists the waiting ones)
+func side_step() -> String:
+	if not m.in_marsh() or m.story_open:
+		return ""
+	if m.shore_wave >= 0:
+		return "물가의 괴물을 물리치자"
+	if not m.shore_float.is_empty():
+		return tr("바구니를 따라가 걸림을 풀자 %d/3") % int(m.shore_float.snag)
+	match m.shore_q:
+		1: return "팔찌를 대 진흙을 풀자 (E)" if m.shore_seen else "물가에 걸린 것을 보자"
+		2: return "보리 할머니께 바구니를"
+		4: return "보리 할머니께 알리자"
+	return ""
+
 func shore_journal() -> String:
 	match m.shore_q:
 		1: return tr("팔찌를 대 진흙을 풀자 (E)") if m.shore_seen else tr("물가에 걸린 것을 보자")

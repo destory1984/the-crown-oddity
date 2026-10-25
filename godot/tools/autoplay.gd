@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -3569,9 +3569,9 @@ func run() -> void:
 		main.has_skip = sk0
 		# 9. the late hint after the first lamp leaves Bori's quest alone once she has been met
 		main.story_step = 3
-		main.set_quest("북쪽 벽돌왕을 쓰러뜨려 물길을 열어라 (상점에서 약을 챙기자)")
+		main.set_quest("북쪽 벽돌왕을 쓰러뜨려 물길을 열어라 (상점에서 약을 챙기자)") # an old save's line
 		main.lantern_quest_late()
-		var late_ok: bool = main.ui.quest.text == main.tr("북쪽 벽돌왕을 쓰러뜨려 물길을 열어라 (상점에서 약을 챙기자)")
+		var late_ok: bool = main.ui.quest.text == main.quest_shown(main.BORI_QUEST) and main.ui.quest.text.begins_with(main.tr(main.BORI_QUEST))
 		main.story_step = 2
 		main.lantern_quest_late()
 		late_ok = late_ok and main.ui.quest.text == main.tr("쪽지에 적힌 서쪽 오두막을 찾아가자")
@@ -6335,6 +6335,181 @@ func run() -> void:
 		main.crown_pips = main.pip_max
 		check("rest_wall", pips_wall >= 1 and not sees_through_wall and pips_room == 0 and clear_room and said_once,
 			"lamp rest 8.5 s with a monster behind a wall: pips 0->%d (sight through the wall=%s); with one in the room: pips %d, line clear=%s, reason toast said once=%s (%s)" % [pips_wall, sees_through_wall, pips_room, clear_room, said_once, behind_note])
+		main.return_to_start()
+	if want.call("lap7"):
+		# GPT hand-played lap 7: a locked door shuts the mole in, the journal pauses the world, the cave mouth is one place
+		# across a reload, a running side step shows under the quest, the prep hint follows potions and gold
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		await wait(0.1)
+		calm_enemies(true)
+		park_mates(true)
+		var bad7: Array = []
+		# 1. the mole behind the locked door
+		var keep_skip: bool = main.has_skip
+		var keep_open: bool = main.cave_door_open
+		var keep_key: bool = main.has_key
+		main.has_skip = false
+		main.cave_door_open = false
+		main.has_key = false
+		if not main.in_cave:
+			main.enter_cave()
+			await wait(0.3)
+		var moles: Array = main.enemies.filter(func(e): return e.get("mole", false) and not e.dead)
+		if moles.is_empty():
+			main.cave.spawn_mole()
+			moles = main.enemies.filter(func(e): return e.get("mole", false) and not e.dead)
+		var mo7: Dictionary = moles[0]
+		var door: Vector2 = main.cave_marks.D
+		mo7.hp = float(mo7.max_hp)
+		mo7.x = door.x + 0.5
+		mo7.z = door.y - 0.4
+		reset_to(Vector2(door.x - 0.9, door.y))
+		main.damage_enemy(mo7, 9999.0, Vector2(main.player.x, main.player.z))
+		var hp_shut: float = mo7.hp
+		calm_enemies(false)
+		mo7.atk_cd = 0.0
+		mo7.next = "charge"
+		await wait(2.5)
+		var held: bool = mo7.x >= door.x + 1.55 and not mo7.dead and mo7.wind <= 0.0 and mo7.dash <= 0.0
+		var hp_in: float = float(main.player.hp)
+		main.cave_door_open = true # opened: the same hit lands
+		main.damage_enemy(mo7, 10.0, Vector2(main.player.x, main.player.z))
+		var hit_open: bool = mo7.hp < hp_shut
+		main.cave_door_open = false
+		main.saw_painting = false
+		reset_to(main.cave_marks.P)
+		main.cave.check_painting()
+		main.close_story()
+		var painting_q: String = main.ui.quest.text
+		if hp_shut != float(mo7.max_hp) or not held or not hit_open or not painting_q.begins_with(main.tr("열쇠를 찾아")):
+			bad7.append("1 mole shut hp %s held=%s (x %.2f door %.2f, hp %s) open hit=%s quest=%s" % [hp_shut, held, mo7.x, door.x, hp_in, hit_open, painting_q])
+		mo7.hp = float(mo7.max_hp)
+		main.has_skip = keep_skip
+		main.cave_door_open = keep_open
+		main.has_key = keep_key
+		main.return_to_start()
+		await wait(0.3)
+		main.close_story()
+		calm_enemies(true)
+		# 2. the journal pauses the world
+		main.spawn_enemy(Vector2(main.player.x + 3.0, main.player.z))
+		var foe7: Dictionary = main.enemies[main.enemies.size() - 1]
+		var t0: float = main.t
+		var f0 := Vector2(foe7.x, foe7.z)
+		calm_enemies(false)
+		main.toggle_journal(true)
+		await wait(0.8)
+		var paused: bool = absf(main.t - t0) < 0.001 and Vector2(foe7.x, foe7.z).distance_to(f0) < 0.001
+		main.toggle_journal(false)
+		await wait(0.5)
+		var runs: bool = main.t - t0 > 0.3
+		foe7.dead = true
+		foe7.node.queue_free()
+		foe7.shadow.queue_free()
+		if not paused or not runs:
+			bad7.append("2 journal pauses=%s resumes=%s" % [paused, runs])
+		# 3. the cave mouth keeps its place across save and reload
+		calm_enemies(true)
+		var st7: int = main.story_step
+		main.story_step = 5
+		main.cave_pos = Vector2(-99, -99)
+		main.open_cave(Vector2(15.0, 8.88), false)
+		var mouth: Vector2 = main.cave_pos
+		var fake_node := Node3D.new() # a fallen Brick King that has not been cleared away yet: the load finds and removes it
+		var fake_shadow := Node3D.new()
+		main.add_child(fake_node)
+		main.add_child(fake_shadow)
+		var fake_boss := {"boss": true, "dead": true, "node": fake_node, "shadow": fake_shadow, "x": 22.0, "z": 3.0}
+		main.enemies.append(fake_boss)
+		main.save_game()
+		main.cave_pos = Vector2(-99, -99)
+		main.load_game()
+		main.enemies.erase(fake_boss)
+		var mouth2: Vector2 = main.cave_pos
+		if mouth.distance_to(mouth2) > 0.01 or mouth.x < 0.0:
+			bad7.append("3 cave mouth %s -> %s" % [mouth, mouth2])
+		main.story_step = maxi(st7, 5)
+		main.return_to_start()
+		await wait(0.3)
+		main.close_story()
+		# 4. a running side step shows under the quest, inside the ornament box, clear of the HUD
+		var sq7: String = main.quest_raw
+		var keep_q: int = main.shore_q
+		var keep_seen: bool = main.shore_seen
+		main.set_quest(main.BORI_QUEST)
+		main.shore_seen = true
+		main.shore_q = 1
+		await wait(0.3)
+		var root7: Window = main.get_tree().root
+		var scale7 := [root7.content_scale_mode, root7.content_scale_aspect, root7.content_scale_size]
+		root7.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root7.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		var side_bad: Array = []
+		for sz in [Vector2i(645, 480), Vector2i(960, 540), Vector2i(1600, 900)]:
+			root7.content_scale_size = sz
+			main.shore_wave = -1
+			main.shore_q = 1
+			await wait(0.4)
+			var sl: Label = main.hud_build.side_label
+			var dropped: bool = sz.x < 700 and not sl.visible and main.hud_build.side_want # a tiny screen may have no room: the quest alone
+			var vis1: bool = sl != null and (sl.visible or dropped) and "팔찌를 대" in sl.text
+			var box: Rect2 = main.hud_build.quest_deco
+			var vs7: Vector2 = main.get_viewport().get_visible_rect().size
+			var inside: bool = (dropped or box.encloses(sl.get_global_rect())) and Rect2(Vector2.ZERO, vs7).encloses(box) and box.encloses(main.ui.quest.get_global_rect().grow(-0.5))
+			var clear := true
+			for r in main.hud_build.quest_blocks(false):
+				if box.intersects((r as Rect2).abs()):
+					clear = false
+			main.shore_q = 3 # waiting, nothing running now
+			await wait(0.2)
+			var gone: bool = not sl.visible
+			main.shore_wave = 0
+			main.shore_q = 1
+			await wait(0.2)
+			var fight: bool = (sl.visible or (sz.x < 700 and main.hud_build.side_want)) and "괴물" in sl.text
+			main.shore_wave = -1
+			if not (vis1 and inside and clear and gone and fight):
+				side_bad.append("%s shown=%s inside=%s clear=%s gone=%s fight=%s box %s label %s" % [sz, vis1, inside, clear, gone, fight, box, sl.get_global_rect()])
+		root7.content_scale_mode = scale7[0]
+		root7.content_scale_aspect = scale7[1]
+		root7.content_scale_size = scale7[2]
+		await wait(0.2)
+		if not side_bad.is_empty():
+			bad7.append("4 side line: " + " | ".join(side_bad))
+		main.shore_q = keep_q
+		main.shore_seen = keep_seen
+		# 5. the prep hint follows potions and gold
+		var pots0: int = main.player.pots
+		var gold0: int = main.player.gold
+		main.player.pots = 3
+		main.player.gold = 10
+		await wait(0.2)
+		var h1: String = main.ui.quest.text
+		main.player.pots = 0
+		await wait(0.2)
+		var h2: String = main.ui.quest.text
+		main.player.gold = 50
+		await wait(0.2)
+		var h3: String = main.ui.quest.text
+		main.player.pots = 3
+		var tk: bool = main.touch_ui
+		var tw: bool = main.keys_last
+		main.touch_ui = true
+		main.keys_last = false
+		var h4: String = main.quest_shown(main.BORI_QUEST)
+		main.touch_ui = tk
+		main.keys_last = tw
+		if not ("4 키로" in h1 and "(3개)" in h1 and "금화는" in h2 and "상점에서 약을" in h3 and "초록 하트" in h4 and not "상점에서 약을" in h1):
+			bad7.append("5 hints: [%s] [%s] [%s] [%s]" % [h1, h2, h3, h4])
+		main.player.pots = pots0
+		main.player.gold = gold0
+		main.set_quest(sq7)
+		calm_enemies(false)
+		park_mates(false)
+		check("lap7", bad7.is_empty(), "locked door holds the mole, journal pause, cave mouth after reload, side line, prep hint" if bad7.is_empty() else "; ".join(bad7))
 		main.return_to_start()
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

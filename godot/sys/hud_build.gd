@@ -139,6 +139,10 @@ const STATUS_RECT := Rect2(0, 0, 472, 136) # portrait, the four bars with their 
 const DIAL_RECT := Rect2(0, 168, 240, 112) # sun and moon dial, zone name and sub-line
 const QUEST_PAD := 14.0 # the gold ornaments reach this far past the text sideways, 12 px up and down
 var quest_deco := Rect2() # the ornaments' box around the quest text, drawn by hud.gd
+var side_label: Label = null # the running side step, a small dim line under the quest
+var side_want := false # a side step is running; shown unless the layout drops it
+var side_off := false # the layout dropped the side line: no room for it beside the other boxes
+var side_h := 0.0 # its height with the gap, counted into the ornament box
 var quest_lines := 0 # lines the quest text wraps to (autoplay quest_layout)
 
 func mates_rect() -> Rect2:
@@ -188,6 +192,22 @@ func quest_blocks(with_player := true) -> Array:
 		for n in ["zoom_in", "zoom_out"]:
 			out.append(Rect2(tk[n][0] - Vector2.ONE * tk[n][1] * 1.1, Vector2.ONE * tk[n][1] * 2.2))
 	return out
+
+func update_side() -> void:
+	if side_label == null:
+		side_label = label(m.ui.quest, "", Vector2.ZERO, 14, Color(0.93, 0.88, 0.74, 0.72))
+		side_label.add_theme_constant_override("outline_size", 4)
+		side_label.add_theme_color_override("font_outline_color", Color("#02040b"))
+		side_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var s: String = m.shore.side_step() if m.ui.quest.visible and not m.intro else ""
+	var shown := m.touch_words(tr(s)) if s != "" else ""
+	if side_label.text != shown:
+		side_label.text = shown
+	side_want = shown != ""
+	side_label.visible = side_want and not side_off
+	var want := m.quest_shown(m.quest_raw) # the prep hint follows potions and gold
+	if m.quest_raw.begins_with(Main.BORI_QUEST) and m.ui.quest.text != want:
+		m.ui.quest.text = want
 
 func layout_top() -> void:
 	var vs := m.get_viewport().get_visible_rect().size
@@ -240,9 +260,28 @@ func layout_top() -> void:
 	if pr.size != Vector2.ZERO:
 		cands.append([8.0, gold_left, pr.end.y + 14.0, true])
 		cands.append([8.0, gold_left, pr.end.y + 2.0, true])
+	# first with Sora's middle kept clear (and the side line shown; a screen with no room for the extra line shows the quest
+	# alone), then the old way when a long text finds no such place (her middle may be crossed)
 	var best: Dictionary = {}
-	# first with Sora's middle kept clear; when a long text finds no such place, as before (her middle may be crossed)
-	for pass_blocks in [blocks, quest_blocks(false)]:
+	side_off = false
+	best = _pick_quest(cands, [blocks], vs)
+	if not best.ok and side_label != null and side_want:
+		side_off = true
+		best = _pick_quest(cands, [blocks], vs)
+		if not best.ok:
+			side_off = false
+	if not best.ok:
+		best = _pick_quest(cands, [blocks, quest_blocks(false)], vs)
+	var final := _fit_quest(best.xl, best.xr, best.y, best.centre, vs) # leave the label as the chosen candidate
+	quest_deco = final.deco
+	quest_lines = final.lines
+	if side_label != null:
+		side_label.visible = side_want and not side_off
+
+# the first candidate that fits with none of the given block lists crossed (else the best of the last list)
+func _pick_quest(cands: Array, block_lists: Array, vs: Vector2) -> Dictionary:
+	var best: Dictionary = {}
+	for pass_blocks in block_lists:
 		best = {}
 		for c in cands:
 			var fit := _fit_quest(c[0], c[1], c[2], c[3], vs)
@@ -260,9 +299,7 @@ func layout_top() -> void:
 				best = fit
 		if best.ok:
 			break
-	var final := _fit_quest(best.xl, best.xr, best.y, best.centre, vs) # leave the label as the chosen candidate
-	quest_deco = final.deco
-	quest_lines = final.lines
+	return best
 
 # put the quest label in one candidate band and return its ornament box and line count
 func _fit_quest(xl: float, xr: float, y: float, centre: bool, vs: Vector2) -> Dictionary:
@@ -282,8 +319,14 @@ func _fit_quest(xl: float, xr: float, y: float, centre: bool, vs: Vector2) -> Di
 	var lines := maxi(1, q.get_line_count())
 	var h := maxf(26.0, q.get_minimum_size().y) if w < tw else 26.0
 	q.offset_bottom = y + h
+	side_h = 0.0
+	if side_label != null and side_want and not side_off:
+		var sw := side_label.get_minimum_size().x + 2.0
+		side_label.size = Vector2(sw, 20.0)
+		side_label.position = Vector2((w - sw) / 2.0, h + 2.0)
+		side_h = 22.0
 	var half := maxf(w / 2.0 + QUEST_PAD, 60.0)
-	return {"xl": xl, "xr": xr, "y": y, "centre": centre, "lines": lines, "deco": Rect2(cx - half, y - 12.0, half * 2.0, h + 24.0)}
+	return {"xl": xl, "xr": xr, "y": y, "centre": centre, "lines": lines, "deco": Rect2(cx - half, y - 12.0, half * 2.0, h + 24.0 + side_h)}
 
 # a sheet in the middle of a small screen, shrunk to fit its height
 func fit_sheet(c: Control) -> void:

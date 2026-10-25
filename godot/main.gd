@@ -647,6 +647,14 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-25 아침",
+	"· v0.0.59: GPT 손 시험 7바퀴에서 찾은 다섯 가지를 고쳤다.",
+	"    - 열쇠 없이 잠긴 문 밖에서 친 공격이 문 안 수레두더지에게 닿아, 두더지가 쓰러지고 레벨 7 → 8과 물수제비를 얻었다. 문이 닫혀 있는 동안 두더지는 문에서 1.6칸 안으로 못 오고 맞지도 않는다('닫힌 문'이 뜬다).",
+	"    - 문 밖에서는 두더지가 깨어나 덤비지도 않는다. 열쇠로 문을 열면 전처럼 싸운다.",
+	"    - 일지(Q)를 열어도 세상이 멈추지 않아 읽는 동안 체력이 104 → 62로 깎였다. 이제 일지가 열려 있는 동안은 설정이나 상점처럼 시계와 괴물이 멈춘다.",
+	"    - 벽돌왕을 쓰러뜨리고 저장한 뒤 불러오면 동굴 입구가 (15.0, 7.4) → (16.0, 2.5)로 옮겨 갔다. 입구 자리를 저장 파일에 적어 두고, 불러올 때 그 자리에 그대로 세운다. 입구 자리가 없는 옛 저장은 전처럼 계산한다.",
+	"    - 보리 할머니와 이야기한 뒤 바구니와 물가 일이 벌어져도 할 일 줄에는 큰길만 있었다. 이제 지금 하는 곁 단계('팔찌를 대 진흙을 풀자', '물가의 괴물을 물리치자' 따위)가 할 일 줄 아래 작고 흐린 줄로 붙고, 그 단계가 끝나면 사라진다. 장식 상자도 한 줄 만큼 늘어 다른 칸과 겹치지 않는다.",
+	"    - 첫 할 일 줄의 '(상점에서 약을 챙기자)'가 가진 것과 맞지 않았다(회복약 3개, 금화 10인데 약값은 30). 약이 있으면 '회복약은 4 키로 마신다 (n개)', 약이 없고 금화가 30 이상이면 '상점에서 약을 챙기자', 금화가 모자라면 '금화는 괴물을 잡으면 모인다. 약값은 30'이 뜬다. 터치 화면에서는 4 키 대신 초록 하트라고 쓴다.",
+	"    - 자동 시험 lap7이 다섯 가지를 하나씩 확인한다(전체 137 → 138개). 놀 수 있는 분량은 약 322분 그대로다.",
 	"· v0.0.58: GPT 손 시험 6바퀴에서 찾은 다섯 가지를 고쳤다.",
 	"    - 설정의 Help 쪽이 6012px까지 늘어나 '다음 곡'이 휠 120번 아래에 있었다. 줄 높이를 글이 필요한 만큼으로 다시 재서 400px 안에 다 들어온다.",
 	"    - 645x480 같은 작은 화면에서 말하는 사람의 그림이 화면 위로 잘렸다. 그림 높이를 화면 높이에 맞춰(560px → 392px) 머리와 어깨가 대화 상자 위에 다 보인다.",
@@ -1620,9 +1628,24 @@ var touch_e := RegEx.create_from_string("(?<![A-Za-z])E(?![A-Za-z])") # the E ke
 var quest_raw := "" # the quest line as given, before the touch wording
 var keys_last := false # on a touch layout: the last input was a key or a real mouse, so the words stay keyboard words
 
+# the first road quest keeps its prep hint in step with what she carries (GPT lap 7: "buy potions" with 3 potions and 10 gold)
+const BORI_QUEST := "북쪽 벽돌왕을 쓰러뜨려 물길을 열어라"
+
+func prep_hint() -> String:
+	if player.pots > 0:
+		return tr("회복약은 4 키로 마신다 (%d개)") % player.pots
+	if player.gold >= SHOP[0].price:
+		return tr("상점에서 약을 챙기자")
+	return tr("금화는 괴물을 잡으면 모인다. 약값은 %d") % SHOP[0].price
+
+func quest_shown(raw: String) -> String:
+	if raw.begins_with(BORI_QUEST): # old saves kept the line with its old fixed hint
+		return touch_words(tr(BORI_QUEST) + " (" + prep_hint() + ")")
+	return touch_words(tr(raw))
+
 func set_quest(text: String) -> void:
 	quest_raw = text
-	ui.quest.text = touch_words(tr(text))
+	ui.quest.text = quest_shown(text)
 	ui.quest.visible = text != ""
 var story_lines: Array = []
 
@@ -1644,7 +1667,7 @@ func _input(event: InputEvent) -> void:
 		if (kb and not keys_last) or (tc and keys_last):
 			keys_last = kb
 			if quest_raw != "":
-				ui.quest.text = touch_words(tr(quest_raw))
+				ui.quest.text = quest_shown(quest_raw)
 	if (event is InputEventKey or event is InputEventMouseButton) and event.pressed:
 		last_input_t = t
 	# shop cards: a left click anywhere on a card buys it (handled here so no overlay can swallow it)
@@ -1742,6 +1765,8 @@ func _process(dt: float) -> void:
 		ui.shop_hint.visible = false
 		return
 	if settings_open: # and while the settings are open
+		return
+	if ui.journal.visible: # and while she reads the journal (GPT lap 7: 104 -> 62 HP over the guide)
 		return
 	if down_t > 0.0:
 		t += dt
@@ -2100,6 +2125,7 @@ func _process(dt: float) -> void:
 	ui.lv.text = str(player.lv)
 	if ui.story.visible:
 		fit_story()
+	hud_build.update_side() # the running side step under the quest, the prep hint in the quest
 	hud_build.layout_top() # the quest line and the boss bar from real rects
 	ui.hp.size.x = 200.0 * player.hp / player.max_hp
 	ui.mp.size.x = 200.0 * player.mp / player.max_mp

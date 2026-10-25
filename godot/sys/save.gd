@@ -21,7 +21,7 @@ func save_game() -> void:
 			boss_dead = true
 	var d := {"lv": m.player.lv, "xp": m.player.xp, "max_hp": m.player.max_hp, "hp": m.player.hp, "atk": m.player.atk,
 		"gold": m.player.gold, "pots": m.player.pots, "x": m.player.x, "z": m.player.z,
-		"story": m.story_step, "quest": (m.hill_zone.retry_quest() if m.mill_q == 2 else m.windrun_quest) if m.windrun_on else m.quest_raw, "boss_dead": boss_dead, "in_cave": m.in_cave, "in_village": m.in_village, "met": m.met.keys(), "pips": m.crown_pips, "errand": m.errand, "kid_q": m.kid_q, "doran_q": m.doran_q, "mul_q": m.mul_q, "night_q": m.night_q, "in_forest": m.in_forest, "in_garden": m.in_garden, "in_hill": m.in_hill, "hill_q": m.hill_q, "mills": m.hill.mills.map(func(mm): return mm.turning), "in_lake": m.in_lake, "lake_q": m.lake_q, "garden_q": m.garden_q, "forest_q": m.forest_q, "walls": m.forest.walls.map(func(w): return w.open), "stones": m.forest.stones.map(func(st): return st.phase), "grove": m.forest.solved, "grove_chest": m.forest.chest_open, "has_unbrick": m.has_unbrick, "vlit": m.village.dark.map(func(d): return d.lit), "cave_exit_seen": m.cave_exit_seen, "has_skip": m.has_skip, "has_key": m.has_key, "door_open": m.cave_door_open, "saw_painting": m.saw_painting, "hour": m.hour, "day": m.day,
+		"story": m.story_step, "quest": (m.hill_zone.retry_quest() if m.mill_q == 2 else m.windrun_quest) if m.windrun_on else m.quest_raw, "boss_dead": boss_dead, "in_cave": m.in_cave, "in_village": m.in_village, "met": m.met.keys(), "pips": m.crown_pips, "errand": m.errand, "kid_q": m.kid_q, "doran_q": m.doran_q, "mul_q": m.mul_q, "night_q": m.night_q, "in_forest": m.in_forest, "in_garden": m.in_garden, "in_hill": m.in_hill, "hill_q": m.hill_q, "mills": m.hill.mills.map(func(mm): return mm.turning), "in_lake": m.in_lake, "lake_q": m.lake_q, "garden_q": m.garden_q, "forest_q": m.forest_q, "walls": m.forest.walls.map(func(w): return w.open), "stones": m.forest.stones.map(func(st): return st.phase), "grove": m.forest.solved, "grove_chest": m.forest.chest_open, "has_unbrick": m.has_unbrick, "vlit": m.village.dark.map(func(d): return d.lit), "cave_exit_seen": m.cave_exit_seen, "has_skip": m.has_skip, "has_key": m.has_key, "cave_at": [m.cave_pos.x, m.cave_pos.y], "door_open": m.cave_door_open, "saw_painting": m.saw_painting, "hour": m.hour, "day": m.day,
 		"chests": m.chests.map(func(c): return c.open), "scraps": m.marsh.found, "moon_chest": m.marsh.chest_open,
 		"fly_q": m.fly_q, "flies": m.marsh.flies.map(func(f): return f.caught),
 		"grotto_q": m.grotto_q, "grotto_side": m.grotto_side, "has_pearl": m.has_pearl,
@@ -392,7 +392,11 @@ func load_game() -> void:
 				e.dead = true
 				e.node.queue_free()
 				e.shadow.queue_free()
-				m.open_cave(Vector2(e.x, e.z), false)
+				var mouth := Vector2(e.x, e.z) # an old save kept no mouth: the boss's spot, as before
+				var ca: Array = d.get("cave_at", [])
+				if ca.size() == 2 and float(ca[0]) > 0.0: # the saved mouth is the one place (GPT lap 7: it moved from 15, 7.4 to 16, 2.5 on reload)
+					mouth = Vector2(float(ca[0]), float(ca[1]) + 1.5) # open_cave puts the mouth 1.5 north of what it gets
+				m.open_cave(mouth, false)
 	# the key, the door and the painting scene come back wherever she saved: they used to come back only for a save made
 	# inside the cave, so a save outside replayed the first meeting with Noeul at every visit (the user, 2026-10-24)
 	m.has_key = bool(d.get("has_key", false))

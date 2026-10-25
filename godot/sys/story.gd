@@ -8,7 +8,7 @@ var m: Main
 
 const TOUCH_WORDS := [["Shift를 누르고 달리면", "막대를 끝까지 밀어 달리면"], ["Shift를 누르고", "막대를 끝까지 밀고"],
 	["Shift를 누른 채", "막대를 끝까지 민 채"], ["Shift로 달리며 J", "막대를 끝까지 밀며 칼 단추"], ["Shift로", "막대를 끝까지 밀어"],
-	["Space", "팔찌 단추"], ["손 단추", "팔찌 단추"]]
+	["회복약은 4 키로 마신다", "회복약은 초록 하트로 마신다"], ["Space", "팔찌 단추"], ["손 단추", "팔찌 단추"]]
 const STORY_MARGIN := 28.0
 
 func _init(main: Main) -> void:
@@ -66,7 +66,7 @@ func lantern_quest_late() -> void: # met Bori within these 5 s: her quest stays 
 func meet_bori() -> void:
 	m.story_step = 3
 	m.save_game()
-	m.set_quest("북쪽 벽돌왕을 쓰러뜨려 물길을 열어라 (상점에서 약을 챙기자)")
+	m.set_quest(Main.BORI_QUEST)
 	show_story("", Main.STORY.BORI)
 
 # clear grass and reeds inside a circle (e.g. around the cave mouth)

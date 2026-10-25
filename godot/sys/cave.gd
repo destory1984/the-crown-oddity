@@ -721,9 +721,15 @@ func spawn_mole() -> void:
 		"atk_cd": 2.0, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": b.x, "wz": b.y, "dead": false, "respawn": 0.0,
 		"mole": true, "cave": true, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "stun": 0.0, "next": "charge", "rings": []})
 
+# the mole's room is shut while the door is locked: nothing crosses it either way (GPT lap 7: hits through the door killed it)
+func mole_shut_out() -> bool:
+	return not m.cave_door_open and m.in_cave and m.player.x < m.cave_marks.D.x + 0.5
+
 func update_mole(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	var node: Node3D = e.node
-	var awake := d < 8.0
+	var awake := d < 8.0 and not mole_shut_out()
+	if not m.cave_door_open: # leashed inside: never nearer than 1.6 tiles to the door
+		e.x = maxf(e.x, m.cave_marks.D.x + 1.6)
 	m.ui.boss.visible = awake or (m.ui.boss.visible and d < 12.0)
 	m.ui.boss_name.text = "굴파기 수레두더지"
 	m.ui.boss_bar.size.x = 420.0 * maxf(0.0, e.hp) / e.max_hp
