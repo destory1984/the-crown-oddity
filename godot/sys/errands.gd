@@ -171,7 +171,7 @@ func hint_open(key: String) -> bool:
 		"magpie": return m.magpie_q < 3
 		"bottles": return m.village.bottles_got() < m.village.bottles.size()
 		"inn": return m.inn_nights == 0
-		"cupboards": return m.house_seen.count(true) < m.house_seen.size()
+		"cupboards": return not m.house_seen[4] # only the last house's picture is worth a look
 		"errands": return int(m.errand >= 3) + int(m.kid_q >= 3) + int(m.doran_q >= 3) + int(m.mul_q >= 3) + int(m.fly_q >= 3) < 5
 		"festival": return m.mail_got[1] and not m.fest_gift
 		"mail": return m.doran_q >= 3 and m.lake_q >= 4 and m.mail_q < 2

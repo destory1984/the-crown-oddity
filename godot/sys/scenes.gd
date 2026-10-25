@@ -66,13 +66,8 @@ const SCENES := {
 	"race": {"play": true, "village": true, "hill": true, "race": true, "hour": 10.0},
 	"moonflower": {"play": true, "at": Vector2(37.0, 24.5), "hour": 22.5, "day": 4},
 	"house": {"play": true, "village": true, "house": true, "hour": 15.0},
+	"house_picture": {"play": true, "village": true, "house": true, "picture": true, "hour": 15.0}, # the old painting, small in the corner
 	"sleep": {"play": true, "village": true, "sleep": true, "hour": 23.0, "day": 4}, # Doran asleep in his house
-	"sleep_drafts": {"play": true, "village": true, "sleep_drafts": 0, "hour": 23.0, "day": 4}, # five sleeping-villager drafts (sys/sleep_drafts.gd)
-	"sleep_draft1": {"play": true, "village": true, "sleep_drafts": 1, "hour": 23.0, "day": 4},
-	"sleep_draft2": {"play": true, "village": true, "sleep_drafts": 2, "hour": 23.0, "day": 4},
-	"sleep_draft3": {"play": true, "village": true, "sleep_drafts": 3, "hour": 23.0, "day": 4},
-	"sleep_draft4": {"play": true, "village": true, "sleep_drafts": 4, "hour": 23.0, "day": 4},
-	"sleep_draft5": {"play": true, "village": true, "sleep_drafts": 5, "hour": 23.0, "day": 4},
 	"folk6": {"play": true, "village": true, "vat": Vector2(38, 18), "folk6": true, "hour": 14.0}, # the six working villagers by day
 	"folk_day": {"play": true, "village": true, "vat": Vector2(38, 18), "folk6": true, "folk_day": true, "hour": 14.0}, # out on their rounds
 	"festival": {"play": true, "village": true, "festival": true, "hour": 22.0, "day": 4},
@@ -555,23 +550,15 @@ func apply_test_args(args: PackedStringArray) -> void:
 			m.player.x = Main.HOUSE_X + 3.6
 			m.player.z = 2.8
 			m.update_folk_sleep(0.0)
-		if sc.has("sleep_drafts"): # a night room with five sleeper drafts in a row; 1..5 is a close shot of one of them
-			var sd := preload("res://sys/sleep_drafts.gd").new(m)
-			var focus: int = int(sc.sleep_drafts) - 1
-			var look: Vector3 = sd.build(Vector2(Main.HOUSE_X + 70.0, 60.0), focus)
-			m.player.x = look.x
-			m.player.z = look.z
-			m.ground_y = 0.0
-			m.cam_dist = 14.0 if focus < 0 else 7.5
-			m.hero.visible = false
-			m.hero_shadow.visible = false
-			m.cfg.tilt = false # no blur: the drafts sit at the edge of the sharp band
-			m.apply_settings()
-			m.close_story()
 		if sc.get("house", false): # inside the last village house
 			m.enter_house(4)
 			m.player.x = Main.HOUSE_X + 5.5
 			m.player.z = 2.5
+			if sc.get("picture", false):
+				m.player.x = m.cupboard.position.x
+				m.player.z = m.cupboard.position.z + 1.0
+				m.folk.cupboard_key()
+				m.story.show_line(m.story_lines.pop_front()) # the second line, the writing on the back
 		if sc.get("festival", false): # the lantern festival on a full-moon night
 			m.mail_got = [true, true, true]
 			m.errand = 3

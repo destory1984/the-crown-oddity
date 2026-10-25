@@ -7,11 +7,15 @@ const Main := preload("res://main.gd")
 var m: Main
 
 const HOUSE_ROWS := ["#########", "#.......#", "#.......#", "#.......#", "#.......#", "#.......#", "####S####"]
-const HOUSE_LOOT := [["gold", 30], ["pots", 1], ["gold", 60], ["pots", 2], ["picture", 0]] # one per house, in build order
+# what each house keeps in its cupboard, in build order: Sora only looks (taking from a neighbour's cupboard would be
+# stealing; the owner, 2026-10-25), and the last house keeps the old moonkeeper picture
+const HOUSE_CUPBOARD := ["찬장에 이 집 사람의 찻잔과 그릇이 가지런히 놓여 있다. 소라는 문을 도로 닫았다.",
+	"찬장에 말린 약초 다발이 걸려 있다. 남의 살림이니 소라는 손대지 않았다.",
+	"찬장에 아이가 그린 등불 그림이 꽂혀 있다. 소라는 웃으며 문을 닫았다.",
+	"찬장에 꿀단지와 빵 바구니가 있다. 소라는 문을 살며시 닫았다.", ""]
 const HOUSE_WALLS := [Color("#e4dccc"), Color("#d8c8a8"), Color("#c8d8c8"), Color("#e0c8c0"), Color("#c8c8dc")]
 const SLEEP_ART := {"doran": [0, 0], "kongal": [0, 1], "mulgyeol": [0, 2], "kid": [0, 3], # [sheet, cell]
 	"dusol": [1, 0], "chadol": [1, 1], "saecham": [1, 2], "yeoul": [1, 3], "darae": [1, 4], "tori": [1, 5]}
-const SLEEP_LEAN := 0.55    # radians a sleeper's picture leans back from upright
 const FOLK_WALK := 1.8      # tiles a second on the way home
 const FOLK_NAME := {"doran": "도란", "kongal": "콩알", "mulgyeol": "물결", "dusol": "두솔", "chadol": "차돌", "saecham": "새참", "yeoul": "여울", "darae": "다래", "tori": "토리"}
 const ROUTE_WALK := 1.4     # tiles a second by day
@@ -82,9 +86,13 @@ func build_house_room() -> void:
 				b.position = Vector3(Main.HOUSE_X + x, -0.2, z)
 			m.add_child(b)
 	var wood: Material = m.mat_color(Color("#6a4a2e"))
-	var cloth: Material = m.mat_color(Color("#c85a5a"))
-	for part in [[Vector3(1.6, 0.4, 0.9), Vector3(Main.HOUSE_X + 1.8, 0.2, 1.6), cloth], [Vector3(0.6, 0.2, 0.9), Vector3(Main.HOUSE_X + 1.3, 0.5, 1.6), m.mat_color(Color("#f0e8d8"))],
-			[Vector3(1.2, 0.6, 0.8), Vector3(Main.HOUSE_X + 5.0, 0.3, 3.5), wood], [Vector3(0.9, 0.06, 0.9), Vector3(Main.HOUSE_X + 5.0, 0.62, 3.5), m.mat_color(Color("#e8dcc0"))]]:
+	var sb := preload("res://sys/sleep_bed.gd").new(m)
+	var room_bed := Node3D.new() # the house's own bed on the first spot (empty by day; a sleeper there adds only himself)
+	room_bed.position = Vector3(Main.HOUSE_X + Main.HOUSE_SPOTS[0].x, 0, Main.HOUSE_SPOTS[0].y)
+	room_bed.rotation.y = Main.CAM_YAW
+	sb.frame(room_bed)
+	m.add_child(room_bed)
+	for part in [[Vector3(1.2, 0.6, 0.8), Vector3(Main.HOUSE_X + 5.0, 0.3, 3.5), wood], [Vector3(0.9, 0.06, 0.9), Vector3(Main.HOUSE_X + 5.0, 0.62, 3.5), m.mat_color(Color("#e8dcc0"))]]:
 		var b := m.box(part[0], part[2])
 		b.position = part[1]
 		m.add_child(b)
@@ -106,54 +114,19 @@ func build_house_room() -> void:
 	hearth.omni_range = 8.0
 	hearth.position = Vector3(Main.HOUSE_X + 4.0, 2.5, 3.0)
 	m.add_child(hearth)
-	# the sleepers: one per villager, shown in his house at night (GPT pixel art: art/folk/sleepers.png for the first
-	# four, sleepers2.png for the six working villagers). place_sleeper puts each on his spot: the bed or a bedroll.
-	var sheets: Array = [load("res://art/folk/sleepers.png"), load("res://art/folk/sleepers2.png")]
-	var roll_mat: Material = m.mat_color(Color("#d8c8a8"))
+	# the sleepers: one per villager, shown in his house at night, in the bed the owner picked (draft 5 of
+	# 2026-10-25, sys/sleep_bed.gd): head picture cut from the GPT pixel art (art/folk/sleepers.png for the first four,
+	# sleepers2.png for the six working villagers), patchwork quilt from the same picture, headboard and a lit lamp.
+	# The first spot is the room's own bed; the other two get a bed of their own ("frame") while someone sleeps there.
+	var phase := 0.0
 	for id in SLEEP_ART:
-		var art: Array = SLEEP_ART[id]
 		var bed := Node3D.new()
-		bed.position = Vector3(Main.HOUSE_X + 1.8, 0, 1.6)
-		var roll := m.box(Vector3(1.5, 0.12, 0.9), roll_mat) # the floor spots get a bedroll; the first spot has the bed
-		roll.name = "roll"
-		roll.position = Vector3(0, 0.06, 0)
-		roll.visible = false
-		bed.add_child(roll)
-		var spr := Sprite3D.new()
-		spr.name = "spr"
-		spr.texture = sheets[art[0]]
-		spr.hframes = 4 if art[0] == 0 else 6
-		spr.frame = art[1]
-		# leaned back onto the bed or bedroll, the quilt's edge on its front edge (GPT playtest: they stood up like
-		# boards); place_sleeper turns the whole bed node to the camera, so picture, roll and shadow line up
-		spr.rotation.x = -SLEEP_LEAN
-		spr.scale = Vector3(1, 1.0 / cos(0.78 - SLEEP_LEAN), 1)
-		spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-		spr.shaded = false
-		spr.pixel_size = 1.25 / 256.0
-		spr.offset = Vector2(0, 128) # the quilt's bottom edge on the bed's front edge, so the bed box does not hide him
-		spr.position = Vector3(0, 0.25, 0.5)
-		bed.add_child(spr)
-		var sh := m.sora.soft_patch(1.3, 0.16, 0.55) # a contact shadow along the quilt's edge, and one on the floor round a bedroll
-		sh.name = "shadow"
-		bed.add_child(sh)
-		var fs := m.sora.soft_patch(1.9, 1.25, 0.5)
-		fs.name = "floor_shadow"
-		fs.position = Vector3(0, 0.005, 0.08)
-		bed.add_child(fs)
-		var z := Label3D.new() # the Z drifts up and fades, again and again
-		z.text = "z Z"
-		z.font = m.ui_font
-		z.font_size = 40
-		z.modulate = Color("#eef3ff")
-		z.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		z.no_depth_test = true
-		z.position = Vector3(0.45, 1.5, 0.5)
-		bed.add_child(z)
-		var tw := z.create_tween().set_loops()
-		tw.tween_property(z, "position:y", 2.0, 1.6).from(1.4)
-		tw.parallel().tween_property(z, "modulate:a", 0.0, 1.6).from(1.0)
+		var fr := Node3D.new()
+		fr.name = "frame"
+		sb.frame(fr)
+		bed.add_child(fr)
+		sb.sleeper(bed, SLEEP_ART[id], phase)
+		phase += 0.7
 		bed.visible = false
 		m.add_child(bed)
 		m.sleeper_nodes[id] = bed
@@ -203,11 +176,7 @@ func place_sleeper(id: String, on: bool) -> bool:
 	var at := bed_spot(id)
 	bed.position = Vector3(at.x, 0, at.y)
 	bed.rotation.y = Main.CAM_YAW # square to the fixed camera
-	bed.get_node("roll").visible = k > 0
-	var top := 0.4 if k == 0 else 0.12 # the bed's top or the bedroll's
-	(bed.get_node("spr") as Sprite3D).position = Vector3(0, top, 0.36)
-	(bed.get_node("shadow") as MeshInstance3D).position = Vector3(0, top + 0.008, 0.4)
-	bed.get_node("floor_shadow").visible = k > 0
+	bed.get_node("frame").visible = k > 0 # the first spot is the room's own bed
 	bed.visible = on
 	return on and k > 0
 
@@ -402,7 +371,7 @@ func update_folk_sleep(dt: float) -> void:
 		m.sleeper_nodes.kid.visible = false
 	for k in range(1, Main.HOUSE_SPOTS.size()):
 		if m.folk_rocks.has("spot%d" % k):
-			m.folk_rocks["spot%d" % k].r = 0.55 if rolls.has(k) else 0.0
+			m.folk_rocks["spot%d" % k].r = 0.8 if rolls.has(k) else 0.0
 
 func folk_hop_scale(id: String) -> float: # the hop follows the walker's height
 	return 0.85 if id in ["tori", "kongal"] else 1.0
@@ -489,23 +458,11 @@ func leave_house() -> void:
 func cupboard_key() -> bool:
 	if m.in_house < 0 or Vector2(m.player.x, m.player.z).distance_to(Vector2(m.cupboard.position.x, m.cupboard.position.z)) > 1.5:
 		return false
-	if m.house_seen[m.in_house]:
-		m.toast("찬장은 비어 있다")
-		return true
 	m.house_seen[m.in_house] = true
-	var loot: Array = HOUSE_LOOT[m.in_house % HOUSE_LOOT.size()]
-	match loot[0]:
-		"gold":
-			m.player.gold += loot[1]
-			m.toast(tr("찬장에서 금화 %d닢을 찾았다") % loot[1])
-		"pots":
-			m.player.pots += loot[1]
-			m.toast(tr("찬장에서 회복약 %d개를 찾았다") % loot[1])
-		"mp":
-			m.player.mp = minf(m.player.max_mp, m.player.mp + loot[1])
-			m.toast("찬장의 기세 사탕을 먹었다")
-		"picture":
-			m.show_story("", Main.STORY.HOUSE_PICTURE)
+	if m.in_house == HOUSE_CUPBOARD.size() - 1:
+		m.show_story("res://art/story/15_old_picture.jpg", Main.STORY.HOUSE_PICTURE, true)
+	else:
+		m.toast(tr(HOUSE_CUPBOARD[m.in_house % HOUSE_CUPBOARD.size()]))
 	m.sfx(784, 0.12, "triangle", 0.25)
 	m.save_game()
 	return true

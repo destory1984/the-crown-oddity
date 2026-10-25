@@ -11,6 +11,8 @@ const TOUCH_WORDS := [["Shift를 누르고 달리면", "막대를 끝까지 밀�
 	["회복약은 4 키로 마신다", "회복약은 초록 하트로 마신다"], ["Space", "팔찌 단추"], ["손 단추", "팔찌 단추"]]
 const STORY_MARGIN := 28.0
 
+var small_pic := false # the open story's picture is the small corner one
+
 func _init(main: Main) -> void:
 	m = main
 
@@ -130,13 +132,16 @@ func touch_words(t: String) -> String:
 		t = t.replace(w[0], w[1])
 	return m.touch_e.sub(t, "팔찌 단추", true)
 
-func show_story(path: String, lines: Array) -> void:
+# small: the picture sits small in the corner above the box and the game stays in view, as in a talk scene
+# (the old painting in the last house's cupboard; the owner, 2026-10-25)
+func show_story(path: String, lines: Array, small := false) -> void:
+	small_pic = small
 	fit_story()
 	m.story_lines = lines.duplicate()
 	var tex: Texture2D = load(path) if path != "" else null
 	m.ui.story_img.texture = tex
 	m.ui.story_frame.visible = tex != null
-	m.talk_mode = path == ""
+	m.talk_mode = path == "" or small
 	m.ui.story.color = Color(0.008, 0.016, 0.043, 0.35 if m.talk_mode else 0.6) # the game stays visible behind
 	for side in ["left", "right"]:
 		m.ui["por_" + side].texture = null
@@ -254,3 +259,12 @@ func fit_story() -> void:
 	m.ui.story_text.position.y = (ch - th) / 2.0
 	m.ui.story_face.position.y = (ch - m.ui.story_face.size.y) / 2.0
 	m.ui.story_hint.position.y = ch - 28.0
+	if small_pic: # a square at the top right, between the minimap and the HUD bars, its right edge in line with the box
+		var vh := m.get_viewport().get_visible_rect().size.y
+		var top := 30.0
+		var s := minf(vh * 0.6, vh + m.ui.story_cap.offset_top - 24.0 - top) # the owner: four times the first 268 px square
+		var right := cw / 2.0 - 12.0
+		m.ui.story_frame.offset_right = right
+		m.ui.story_frame.offset_left = right - s
+		m.ui.story_frame.offset_top = -vh / 2.0 + top
+		m.ui.story_frame.offset_bottom = -vh / 2.0 + top + s

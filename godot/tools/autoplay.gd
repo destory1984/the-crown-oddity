@@ -2791,7 +2791,7 @@ func run() -> void:
 		reset_to(Vector2(main.cupboard.position.x, main.cupboard.position.z + 1.0))
 		tap(KEY_SPACE)
 		await wait(0.2)
-		var picture: bool = main.story_open and main.house_seen[4]
+		var picture: bool = main.story_open and main.house_seen[4] and main.story.small_pic and main.ui.story_frame.visible # the small corner picture
 		main.close_story()
 		reset_to(Vector2(main.HOUSE_X + 4, 6))
 		await wait(1.0)
@@ -2826,7 +2826,7 @@ func run() -> void:
 		var p0: int = main.player.pots
 		tap(KEY_E)
 		await wait(0.2)
-		var e_cup: bool = main.house_seen[2]
+		var e_cup: bool = main.house_seen[2] and main.player.gold == g0 and main.player.pots == p0 # looked, took nothing
 		main.close_story()
 		reset_to(main.HOUSE_EXIT + Vector2(0, -0.85)) # beside the doorway, not on it
 		await wait(0.3)

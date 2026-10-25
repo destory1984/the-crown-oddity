@@ -577,7 +577,6 @@ func journal_lines() -> Array:
 	if m.marsh.picked_count() > 0 or m.has_tea:
 		side.call("늪의 달꽃", tr("끝") if m.has_tea else (tr("보리 할머니께 가져가자") if m.marsh.picked_count() == 3 else tr("%d/3 · 달이 반 넘게 찬 밤에만 핀다") % m.marsh.picked_count()))
 	if m.errand >= 1:
-		side.call("마을 집 찬장", tr("%d/5 열어 봄") % m.house_seen.count(true))
 		var done := int(m.errand >= 3) + int(m.kid_q >= 3) + int(m.doran_q >= 3) + int(m.mul_q >= 3) + int(m.fly_q >= 3)
 		side.call("마을 심부름", tr("%d/5 마침") % done)
 	if m.mail_got[1]:
