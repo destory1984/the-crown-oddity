@@ -24,8 +24,8 @@ func _init(main: Main) -> void:
 # finishes the hop in the air and settles. The sprite hops, never the node, so balloons (anchored to the node or to the
 # ground spot) stay put. `key` names the walker, `base_y` is the sprite's resting height, `alt` alternates frames 0 and 1.
 const HOP_H := 0.12 # a hop's height in world units (Mulgyeol's old 0.06 doubled)
-const HOP_STEP := 0.45 # tiles walked per hop
-const MATE_HOP_STEP := HOP_STEP * 4.0 # the companions run at Sora's pace, so they hop a quarter as often as villagers (the user, 2026-10-25: "너무 폴짝거리네", "인터벌 4배로")
+const HOP_STEP := 0.9 # tiles walked per hop (the user, 2026-10-25: 0.45 → 0.9, "npc들 뛰는 인터벌 지금의 2배로")
+const MATE_HOP_STEP := 1.8 # the companions run at Sora's pace, so they hop half as often as villagers (the user, 2026-10-25: "너무 폴짝거리네", "인터벌 4배로")
 const HOP_SQUASH_T := 0.06
 var hops := {} # key -> {last, p, base, scale, squash, n}
 

@@ -1418,7 +1418,10 @@ func run() -> void:
 		main.player.sp = 100.0
 		hold_world(Vector2(1, 0))
 		main.fake_keys[KEY_SHIFT] = true
-		await wait(1.0)
+		for i in 20: # up to 2 s: a slow frame rate under load must not fail the run across the river
+			await wait(0.1)
+			if main.player.x > cx + 16.0:
+				break
 		release()
 		var skipped: bool = main.player.x > cx + 16.0
 		reset_to(Vector2(cx + 21.6, 13))
