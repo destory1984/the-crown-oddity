@@ -167,7 +167,7 @@ func show_line(line: String) -> void:
 		for sd in ["left", "right"]:
 			var lit: bool = f != "" and sd == side
 			m.ui["por_" + sd].modulate = Color(1, 1, 1) if lit else Color(0.45, 0.45, 0.55)
-			m.ui["por_" + sd].offset_top = (-650.0 if lit else -630.0)
+			set_por_top(sd, lit)
 		m.ui.story_face.texture = null # the portrait already shows who is talking
 	m.ui.story_text.position.x = 140.0 if m.ui.story_face.texture else 40.0
 	m.ui.story_tab.visible = parts[0] != ""
@@ -220,7 +220,18 @@ func start_game(with_story := true) -> void:
 
 const STORY_PAD := 20.0 # least space above and below the text block
 
+# a standing portrait is as tall as the screen allows: 560 px at most, and never so tall that its head leaves the
+# screen (645x480: 382 px). The speaker stands 10 px taller than the listener.
+func por_height() -> float:
+	var vh := m.get_viewport().get_visible_rect().size.y
+	return clampf(vh - 80.0 - 10.0 - 8.0, 200.0, 560.0)
+
+func set_por_top(side: String, lit: bool) -> void:
+	m.ui["por_" + side].offset_top = -80.0 - por_height() - (10.0 if lit else -10.0)
+
 func fit_story() -> void:
+	for sd in ["left", "right"]:
+		set_por_top(sd, (m.ui["por_" + sd] as Control).modulate.r > 0.9)
 	var vw := m.get_viewport().get_visible_rect().size.x
 	var pw := minf(896.0, vw - 2.0 * (STORY_MARGIN + 12.0)) # the frame draws 10px outside its rect
 	var ph := pw * 504.0 / 896.0

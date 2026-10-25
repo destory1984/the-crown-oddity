@@ -155,9 +155,26 @@ func boss_rect() -> Rect2:
 	var b: Control = m.ui.boss
 	return Rect2(b.global_position, b.size * b.scale)
 
+# the middle of the screen where Sora stands: 240 x 180 px round her (the user's lap 6 report: on a 645x480 screen the quest
+# line sat over her and her companions)
+func player_rect() -> Rect2:
+	if m.camera == null or m.intro or m.touch_ui: # the touch layout keeps its own bands
+		return Rect2()
+	var at := Vector3(m.player.x, m.ground_y + 0.8, m.player.z)
+	if m.camera.is_position_behind(at):
+		return Rect2()
+	return Rect2(m.camera.unproject_position(at) - Vector2(120.0, 90.0), Vector2(240.0, 180.0))
+
 # every HUD box the quest line has to stay clear of
-func quest_blocks() -> Array:
+func quest_blocks(with_player := true) -> Array:
 	var out: Array = [STATUS_RECT, DIAL_RECT]
+	var pr := player_rect()
+	if with_player and pr.size != Vector2.ZERO:
+		out.append(pr)
+	if not m.touch_ui:
+		var vs0 := m.get_viewport().get_visible_rect().size
+		out.append(Rect2(vs0.x - 296.0, vs0.y - 104.0, 288.0, 100.0)) # the skill slots
+		out.append(Rect2(vs0.x - 80.0, vs0.y - 130.0, 66.0, 30.0)) # the gold box
 	if mates_rect().size != Vector2.ZERO:
 		out.append(mates_rect())
 	if m.ui.boss.visible:
@@ -217,21 +234,32 @@ func layout_top() -> void:
 	var low := maxf(maxf(mates.end.y, boss_end), 194.0) + 14.0
 	cands.append([DIAL_RECT.end.x + 4.0, vs.x - 8.0, low, false])
 	cands.append([8.0, vs.x - 8.0, DIAL_RECT.end.y + 14.0, false])
+	# a narrow screen has no free band at the top: the line goes under Sora, between her and the keys and skills
+	var pr := player_rect()
+	var gold_left := vs.x - 92.0 if not m.touch_ui else vs.x - 8.0
+	if pr.size != Vector2.ZERO:
+		cands.append([8.0, gold_left, pr.end.y + 14.0, true])
+		cands.append([8.0, gold_left, pr.end.y + 2.0, true])
 	var best: Dictionary = {}
-	for c in cands:
-		var fit := _fit_quest(c[0], c[1], c[2], c[3], vs)
-		var ok: bool = fit.deco.position.x >= 0.0 and fit.deco.end.x <= vs.x and fit.deco.position.y >= 0.0 and fit.deco.end.y <= vs.y
-		for r in blocks:
-			if fit.deco.intersects((r as Rect2).abs()):
-				ok = false
-		fit["ok"] = ok
-		if ok and fit.lines <= 2:
-			best = fit
+	# first with Sora's middle kept clear; when a long text finds no such place, as before (her middle may be crossed)
+	for pass_blocks in [blocks, quest_blocks(false)]:
+		best = {}
+		for c in cands:
+			var fit := _fit_quest(c[0], c[1], c[2], c[3], vs)
+			var ok: bool = fit.deco.position.x >= 0.0 and fit.deco.end.x <= vs.x and fit.deco.position.y >= 0.0 and fit.deco.end.y <= vs.y
+			for r in pass_blocks:
+				if fit.deco.intersects((r as Rect2).abs()):
+					ok = false
+			fit["ok"] = ok
+			if ok and fit.lines <= 2:
+				best = fit
+				break
+			if ok and (best.is_empty() or not best.ok or fit.lines < best.lines):
+				best = fit
+			elif best.is_empty():
+				best = fit
+		if best.ok:
 			break
-		if ok and (best.is_empty() or not best.ok or fit.lines < best.lines):
-			best = fit
-		elif best.is_empty():
-			best = fit
 	var final := _fit_quest(best.xl, best.xr, best.y, best.centre, vs) # leave the label as the chosen candidate
 	quest_deco = final.deco
 	quest_lines = final.lines
@@ -852,10 +880,16 @@ func update_pips(dt: float) -> void:
 	near_lamp = near_lamp or by_oak
 	var calm := true
 	for e in m.enemies:
-		if not e.dead and Vector2(e.x - me.x, e.z - me.z).length() < 6.0:
-			calm = false
+		if not e.dead and Vector2(e.x - me.x, e.z - me.z).length() < 6.0 and m.line_clear(Vector2(me.x, me.z), Vector2(e.x, e.z)):
+			calm = false # only a monster that can reach her sight counts, not one behind a wall
 	var jar := m.fly_q >= 3
 	var still := Vector2(m.player.vx, m.player.vz).length() < 0.3
+	if not calm and (near_lamp or jar) and still and m.crown_pips < m.pip_max:
+		if not m.rest_said:
+			m.rest_said = true
+			m.toast("가까이 괴물이 있어 쉴 수 없다")
+	else:
+		m.rest_said = false
 	# 갈대 방석: resting at night by a lit lantern (or with the jar) heals 4 HP a second, full crown or not
 	if heal and (near_lamp or jar) and calm and still:
 		m.player.hp = minf(float(m.player.max_hp), m.player.hp + 4.0 * dt)

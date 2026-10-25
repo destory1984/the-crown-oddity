@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -32,6 +32,13 @@ func click() -> void:
 	var up := e.duplicate()
 	up.pressed = false
 	Input.parse_input_event(up)
+
+# a picture of the window for the builder's eyes (windowed runs only; the headless renderer has none)
+func shot_png(n: String) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path("res://shots/%s.png" % n))
 
 func tap(key: int) -> void:
 	var e := InputEventKey.new()
@@ -1884,7 +1891,7 @@ func run() -> void:
 							var qr: Rect2 = main.ui.quest.get_global_rect()
 							var ok: bool = d.position.x >= 0.0 and d.end.x <= vs.x and d.position.y >= 0.0 and d.end.y <= vs.y and d.encloses(qr.grow(-0.5))
 							var why := ""
-							for r in main.hud_build.quest_blocks():
+							for r in main.hud_build.quest_blocks(false):
 								if d.intersects(r):
 									ok = false
 									why = str(r)
@@ -1898,7 +1905,7 @@ func run() -> void:
 							if not ok:
 								bad.append("%s %s mates %d boss %s text %d deco %s qr %s %s" % [touch, vs, n_mates, boss, ti, d, qr, why])
 				main.ui.boss.visible = false
-		var blocks_n: int = main.hud_build.quest_blocks().size()
+		var blocks_n: int = main.hud_build.quest_blocks(false).size()
 		main.disable_touch()
 		root.content_scale_mode = scale0[0]
 		root.content_scale_aspect = scale0[1]
@@ -6156,6 +6163,179 @@ func run() -> void:
 		check("workshop", shut and seen and opened and down and lamp1 and planks and plug and tag and to2 and up1 and covered and pulling and lid and drained and handle and to3 and frag and clamp1 and clamps and scratch and listed and out_castle and back3 and cradle_in and latch1 and swept and latches and released and once and simji and chat and loads_ok and kept and no_mates and waits,
 			"door shut before the knight=%s first look=%s opens=%s down to B1 arrival=%s lamp 1 pip+2 bricks=%s planks=%s plug=%s tag=%s B2 arrival=%s up to B1=%s lid covers=%s pull=%s/%s drained=%s handle=%s B3 arrival=%s fragment=%s clamp1=%s clamps open the door=%s scratch=%s list=%s to castle=%s back to B3=%s cradle story=%s latch=%s sweep keeps the latch=%s (%s) three latches=%s released +10=%s once=%s simji bench=%s chatter=%d loads:%s kept=%s no early lines=%s door waits=%s" % [shut, seen, opened, down, lamp1, planks, plug, tag, to2, up1, covered, pulling, lid, drained, handle, to3, frag, clamp1, clamps, scratch, listed, out_castle, back3, cradle_in, latch1, swept, swept_note, latches, released, once, simji, chat_n, load_note, kept, no_mates, waits])
 	calm_enemies(false)
+	if want.call("lap6"):
+		# GPT hand-played lap 6: the Help page is as tall as its rows, portraits fit a small screen, the quest line keeps off
+		# Sora, no rescue hop at the castle's river edge, resting counts only monsters that can see her
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		await wait(0.1)
+		# 1. the Help page: a stale 6000 px box height (what the web build showed) must not stretch the page
+		main.toggle_settings(true)
+		var help_ok := true
+		var help_note := ""
+		for touch in [false, true]:
+			if touch:
+				await main.enable_touch()
+			main.show_set_tab(1)
+			await wait(0.3)
+			var first_row: Array = main.ui.set_stacks[1][0]
+			var stale_box: Control = (first_row[1] as Label).get_parent()
+			stale_box.size = Vector2(504, 6000)
+			(first_row[1] as Label).size.y = 6000.0
+			main.menus.layout_settings()
+			await wait(0.5)
+			var page: Control = main.ui.set_pages[1]
+			var nbtn: Button = main.ui.music_rows[1 if touch else 0][2]
+			var bottom: float = nbtn.position.y + nbtn.size.y
+			help_ok = help_ok and page.custom_minimum_size.y < 1600.0 and bottom < 800.0
+			help_note += " %s page %.0f px, next-tune button bottom %.0f;" % ["touch" if touch else "keys", page.custom_minimum_size.y, bottom]
+		main.disable_touch()
+		main.toggle_settings(false)
+		check("help_height", help_ok, "Help page height under 1600 px with the music row inside 2 screens (800 px):" + help_note)
+		# 2 + 3. small screens: the standing portrait and the quest line
+		var root: Window = main.get_tree().root
+		var scale0 := [root.content_scale_mode, root.content_scale_aspect, root.content_scale_size]
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		var por_bad: Array = []
+		var quest_bad: Array = []
+		var quest0: String = main.quest_raw
+		for sz in [Vector2i(645, 480), Vector2i(900, 600), Vector2i(960, 540), Vector2i(1280, 720), Vector2i(1600, 900)]:
+			root.content_scale_size = sz
+			await wait(0.4)
+			main.show_story("", ["심지|simji|등불을 켜 주었구나.", "소라|calm|네."])
+			await wait(0.3)
+			var vs: Vector2 = main.get_viewport().get_visible_rect().size
+			var pr: TextureRect = main.ui.por_right
+			var tex: Texture2D = pr.texture
+			var rc: Rect2 = pr.get_global_rect()
+			var k: float = minf(rc.size.x / tex.get_width(), rc.size.y / tex.get_height()) # the picture sits in its box, centred, aspect kept
+			var dh: float = tex.get_height() * k
+			var top: float = rc.position.y + (rc.size.y - dh) / 2.0
+			var cap_top: float = (main.ui.story_cap as Control).get_global_rect().position.y
+			if sz == Vector2i(645, 480):
+				print("TEST LAP6 portrait 645x480: box %s picture top %.0f height %.0f story box top %.0f" % [rc, top, dh, cap_top])
+			if top < 0.0 or top + 0.35 * dh > cap_top:
+				por_bad.append("%s top %.0f face to %.0f box at %.0f" % [vs, top, top + 0.35 * dh, cap_top])
+			if sz == Vector2i(645, 480):
+				await shot_png("lap6_story_645")
+			main.close_story()
+			await wait(0.7)
+			for text in ["광장의 등불지기에게 말을 걸자 (E)", "우편배달부 도란에게 말을 걸어 보자 (E)"]:
+				main.set_quest(text)
+				await wait(0.2)
+				var d: Rect2 = main.hud_build.quest_deco
+				var pl: Rect2 = main.hud_build.player_rect()
+				if sz == Vector2i(645, 480):
+					print("TEST LAP6 quest 645x480: deco %s lines %d player %s" % [d, main.hud_build.quest_lines, pl])
+					await shot_png("lap6_quest_645_%d" % text.length())
+				if d.intersects(pl) or d.position.y < 0.0 or d.end.y > vs.y or d.end.x > vs.x or d.position.x < 0.0:
+					quest_bad.append("%s deco %s player %s" % [vs, d, pl])
+		root.content_scale_mode = scale0[0]
+		root.content_scale_aspect = scale0[1]
+		root.content_scale_size = scale0[2]
+		main.set_quest(quest0)
+		check("portrait_fits", por_bad.is_empty(), "the speaker's picture starts on screen and its face (top 35%) ends above the story box at 645x480 to 1600x900: " + str(por_bad.slice(0, 3)))
+		check("quest_off_sora", quest_bad.is_empty(), "the quest line stays off Sora's 240x180 middle at 5 sizes, the usual quest lines: " + str(quest_bad.slice(0, 3)))
+		# 4. the castle hall's river edge: a skipper who lets go of Shift beside the water is not "stuck"
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_hill = true
+		main.castle_q = maxi(main.castle_q, 3)
+		var skip0: bool = main.has_skip
+		main.has_skip = true
+		var edge := Vector2(445.657, 8.907)
+		main.skipping = false
+		var can_edge: bool = main.player_can(edge.x, edge.y)
+		main.has_skip = false
+		var cannot_plain: bool = not main.player_can(edge.x, edge.y) # without the skip the 0.35 margin still holds
+		main.has_skip = true
+		calm_enemies(true)
+		reset_to(edge)
+		main.unstick_log.clear()
+		await wait(0.5)
+		var edge_hops: int = main.unstick_log.size()
+		# walk and cut about that corner for 8 s
+		var rng6 := RandomNumberGenerator.new()
+		rng6.seed = 61025
+		reset_to(Vector2(447.0, 11.0))
+		main.player.lv = maxi(main.player.lv, 5)
+		main.player.max_hp = maxi(main.player.max_hp, 500)
+		var el6 := 0.0
+		while el6 < 8.0:
+			main.fake_keys.clear()
+			hold_world([Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1), Vector2(-1, -1), Vector2(-1, 1), Vector2.ZERO][rng6.randi() % 7])
+			if rng6.randf() < 0.5:
+				main.fake_keys[KEY_SHIFT] = true
+			if rng6.randf() < 0.4:
+				tap(KEY_J)
+			main.player.hp = float(main.player.max_hp)
+			var step6: float = rng6.randf_range(0.1, 0.4)
+			await wait(step6)
+			el6 += step6
+		release()
+		var stuck6 := 0
+		for e in main.unstick_log:
+			if e.reason == "stuck":
+				stuck6 += 1
+		main.has_skip = skip0
+		calm_enemies(false)
+		check("castle_edge", can_edge and cannot_plain and edge_hops == 0 and stuck6 == 0,
+			"river edge spot (445.66, 8.91) is open to a skipper=%s, shut without the skip=%s; %d rescue hops standing, %d while mashing 8 s beside it" % [can_edge, cannot_plain, edge_hops, stuck6])
+		# 5. resting: a monster behind a wall does not stop the lamp, one in the room does and says so once
+		main.hour = 23.0
+		main.has_tea = false
+		main.fly_q = mini(main.fly_q, 2)
+		var away: Array = []
+		for e in main.enemies:
+			if not e.dead and Vector2(e.x - 441.4, e.z - 6.0).length() < 9.0:
+				away.append([e, e.z])
+				e.z += 60.0
+		var lamp := OmniLight3D.new()
+		lamp.position = Vector3(441.4, 0.0, 6.0)
+		lamp.set_meta("dark", false)
+		main.add_child(lamp)
+		main.lanterns.append(lamp)
+		main.spawn_enemy(Vector2(441.0, 8.5)) # one room south, the wall row 7 between
+		var behind: Dictionary = main.enemies[main.enemies.size() - 1]
+		calm_enemies(true)
+		main.crown_pips = 0
+		park_mates(true) # Mulgyeol would cut the monster down
+		reset_to(Vector2(441.4, 6.4))
+		await wait(8.5)
+		var pips_wall: int = main.crown_pips
+		var sees_through_wall: bool = main.line_clear(Vector2(441.4, 6.4), Vector2(441.0, 8.5))
+		behind.x = 444.0 # now in her own hall
+		behind.z = 4.0
+		main.crown_pips = 0
+		main.rest_said = false
+		main.ui.toast.modulate.a = 0.0
+		reset_to(Vector2(441.4, 6.4))
+		await wait(1.0)
+		var said_once: bool = main.rest_said and "쉴 수 없다" in main.ui.toast.text
+		for pin in 14: # hold the monster in the hall while she tries to rest
+			behind.x = 444.0
+			behind.z = 4.0
+			await wait(0.5)
+		var pips_room: int = main.crown_pips
+		var clear_room: bool = main.line_clear(Vector2(441.4, 6.4), Vector2(444.0, 4.0))
+		main.lanterns.erase(lamp)
+		lamp.queue_free()
+		var behind_note := "monster dead=%s at %s" % [behind.dead, Vector2(behind.x, behind.z)]
+		behind.dead = true
+		for a in away:
+			a[0].z = a[1]
+		calm_enemies(false)
+		park_mates(false)
+		main.crown_pips = main.pip_max
+		check("rest_wall", pips_wall >= 1 and not sees_through_wall and pips_room == 0 and clear_room and said_once,
+			"lamp rest 8.5 s with a monster behind a wall: pips 0->%d (sight through the wall=%s); with one in the room: pips %d, line clear=%s, reason toast said once=%s (%s)" % [pips_wall, sees_through_wall, pips_room, clear_room, said_once, behind_note])
+		main.return_to_start()
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)

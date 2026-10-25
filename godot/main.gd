@@ -202,6 +202,18 @@ func walkable(x: float, z: float) -> bool:
 			return false
 	return true
 
+# a straight line between two spots with no wall between them (open river water does not count as a wall: shots cross it).
+# Resting counts only the monsters that can see her this way (GPT lap 6: one behind a wall 6 tiles off blocked the lamp)
+func line_clear(a: Vector2, b: Vector2) -> bool:
+	var n := maxi(1, int(ceil(a.distance_to(b) / 0.4)))
+	for i in range(1, n):
+		var p := a.lerp(b, float(i) / n)
+		if tile_at(p.x, p.y) == WATER and not skip_water(p.x, p.y):
+			return false
+	return true
+
+var rest_said := false # the "cannot rest, a monster is near" toast shows once per stay by the lamp
+
 # the nearest open spot to where Sora stands: first every 0.1 tile in rings up to 1.5 tiles round her (so a small overlap
 # moves her a hair, not to the next tile centre), then the old search over tile centres up to 11 tiles away
 func find_free_spot() -> Vector2:
@@ -299,7 +311,9 @@ func player_can(x: float, z: float) -> bool:
 		return skipping and skip_water(x, z)
 	if x >= CAVE_X - 0.5:
 		for d in [Vector2(0.35, 0), Vector2(-0.35, 0), Vector2(0, 0.35), Vector2(0, -0.35)]:
-			if not walkable(x + d.x, z + d.y) and not (skipping and skip_water(x + d.x, z + d.y)):
+			# a skipper's river edge counts as open on land too: Sora who runs along it and lets go of Shift stays where
+			# she is instead of being "stuck" within 0.35 of the water (GPT lap 6, castle hall corner)
+			if not walkable(x + d.x, z + d.y) and not ((skipping or has_skip) and skip_water(x + d.x, z + d.y)):
 				return false
 	return true
 
@@ -633,6 +647,13 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-25 아침",
+	"· v0.0.58: GPT 손 시험 6바퀴에서 찾은 다섯 가지를 고쳤다.",
+	"    - 설정의 Help 쪽이 6012px까지 늘어나 '다음 곡'이 휠 120번 아래에 있었다. 줄 높이를 글이 필요한 만큼으로 다시 재서 400px 안에 다 들어온다.",
+	"    - 645x480 같은 작은 화면에서 말하는 사람의 그림이 화면 위로 잘렸다. 그림 높이를 화면 높이에 맞춰(560px → 392px) 머리와 어깨가 대화 상자 위에 다 보인다.",
+	"    - 좁은 화면에서 할 일 줄이 소라와 동료 위에 놓였다. 소라 둘레 240x180px는 비우고, 자리가 없으면 소라 아래 키와 기술 칸 사이에 둔다. 창 크기가 바뀌면 다시 잰다.",
+	"    - 물수제비 걸음을 가진 채 성 큰 방 강가를 달리다 Shift를 놓으면 0.2칸 순간이동(정체 해소)이 일어났다. 강가 0.35칸 안에서도 서 있을 수 있게 고쳤다.",
+	"    - 벽 너머 6칸 안의 괴물 때문에 등불 곁 휴식이 막혔다. 이제 곧바로 볼 수 있는 괴물만 막고, 막히면 '가까이 괴물이 있어 쉴 수 없다'를 한 번 알린다.",
+	"    - 자동 시험 lap6이 다섯 가지를 하나씩 확인한다(전체 132 → 137개). 놀 수 있는 분량은 약 322분 그대로다.",
 	"· v0.0.57: 성 큰 방 밑에 지하 3층짜리 곁이야기 '끝내지 못한 등불'(달지기 작업장)이 생겼다.",
 	"    - 기사를 쓰러뜨리면 큰 방 북동쪽 구석에 손 둘이 새겨진 정비 문이 드러난다. 노을과 물결이 함께 있으면 E로 열린다.",
 	"    - 지하 1층 짝등 작업장에서는 작업등 둘을 다 켜야 겹친 빛 속에 널빤지 길이 드러난다. 건너편 벽돌 마개를 풀면 아래 계단이 열린다.",

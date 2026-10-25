@@ -215,7 +215,8 @@ func layout_settings() -> void:
 		for row in stack:
 			var box := (row[1] as Label).get_parent() as Control
 			box.position.x = x
-			box.size.x = 626.0 - x
+			box.size = Vector2(626.0 - x, 0.0) # a box never shrinks by itself: drop the height it took while the text was wrapped narrow
+			(row[1] as Label).size.y = 0.0
 			if row[2] != null:
 				(row[2] as Control).position.x = x
 		await m.get_tree().process_frame # the text wraps again at its new width
@@ -225,7 +226,7 @@ func layout_settings() -> void:
 			var text: Label = row[1]
 			title.position.y = y
 			(text.get_parent() as Control).position.y = y
-			var h: float = maxf(title.size.y, text.size.y)
+			var h: float = maxf(title.get_minimum_size().y, text.get_minimum_size().y) # what the text needs, not a stale size (GPT lap 6: the Help page was 6012 px tall)
 			if row[2] != null:
 				(row[2] as Control).position.y = y + h + 6.0
 				h += 6.0 + 34.0
