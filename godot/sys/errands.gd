@@ -237,6 +237,27 @@ func hf_gift(kind: String) -> void:
 		"gold": m.player.gold += 30
 		"bait": m.has_bait = true
 
+# the one short line under the quest for errands that are not the shore's: Hangyeol's letter still has to go back to Doran
+func letter_side_line() -> String:
+	if m.doran_q >= 3 and not m.letter_back and not m.story_open:
+		return "도란에게 한결의 편지를 돌려주자"
+	return ""
+
+# a quest line that names a villager who is asleep indoors says so instead (GPT lap 8: "Kongal is crying" at midnight)
+const QUEST_FOLK := [["콩알이 울고", "kongal"], ["콩알에게", "kongal"], ["도란에게", "doran"], ["물결에게", "mulgyeol"]]
+
+func quest_sleeper(raw: String) -> String:
+	for q in QUEST_FOLK:
+		if raw.contains(q[0]):
+			var id: String = q[1]
+			if m.folk_state.get(id, "out") == "in" and m.folk_awake_here(id):
+				return id
+			return ""
+	return ""
+
+func sleeping_quest(id: String) -> String:
+	return tr("%s은(는) 지금 집에서 잔다. 집에 들어가 침대 곁에서 E (아니면 아침에)") % tr(m.folk.FOLK_NAME[id])
+
 # errand 2: Kongal's kid goblin was dragged to the south field by three goblins
 func kongal_errand() -> void:
 	if m.kid_q == 0:
@@ -312,10 +333,10 @@ func deliver_letter() -> void:
 	m.save_game()
 
 # errand 4: Mulgyeol's oar floats in the middle of the half-hardened NW pond
-func mulgyeol_errand() -> void:
+func mulgyeol_errand(first := false) -> void:
 	if m.mul_q == 0:
 		m.mul_q = 1
-		m.show_story("", Main.STORY.MUL_ASK)
+		m.show_story("", Main.STORY.MUL_ASK_FIRST if first else Main.STORY.MUL_ASK)
 		m.set_quest("늪 북서쪽 연못 한가운데의 노를 건져 오자 (Shift로 물 위 달리기)")
 		place_oar()
 	elif m.mul_q == 2:

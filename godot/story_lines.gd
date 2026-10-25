@@ -183,6 +183,15 @@ const MUL_ASK := [
 	"||Shift를 누르고 달리면 물 위를 건널 수 있다. 멈추면 물가로 밀려난다.",
 ]
 
+# the same errand when Sora has never talked to him: no "again"
+const MUL_ASK_FIRST := [
+	"물결|mulgyeol_grumpy|처음 보는 얼굴이네. ……아, 도란 영감 편지를 풀었다는 손님이 너야?",
+	"물결|mulgyeol_grumpy|그럼 이것도 해 봐. 호수가 굳던 날, 내 노가 물살에 떠밀려 늪 북서쪽 연못까지 흘러갔어.",
+	"물결|mulgyeol|연못 한가운데 아직 떠 있는 게 보여. 그런데 그 연못도 반쯤 굳어서, 헤엄쳐 들어가면 몸이 벽돌처럼 굳어 버려.",
+	"소라|determined|물 위를 달리면 괜찮아요. 물수제비 걸음으로 가져올게요.",
+	"||Shift를 누르고 달리면 물 위를 건널 수 있다. 멈추면 물가로 밀려난다.",
+]
+
 const MUL_DONE := [
 	"물결|mulgyeol|……진짜 가져왔네. 백 년 동안 이 노 없이 어떻게 버텼나 몰라.",
 	"물결|mulgyeol_grumpy|고맙다는 말은 안 해. 대신 빚진 걸로 하지.",

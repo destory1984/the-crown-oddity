@@ -66,7 +66,7 @@ func buy_stall(key: String) -> void:
 	m.player.gold -= price
 	m.sfx(880, 0.08, "triangle", 0.18)
 	m.burst(Vector3(m.village.marks[key].x, 1.0, m.village.marks[key].y - 0.8), Color("#e8c050"), 10, 1.5)
-	m.toast(tr("상자에 금화 %d을 넣고 %s을(를) 집었다") % [price, tr(st.what)])
+	m.toast(tr("상자에 금화 %d을(를) 넣고 %s을(를) 집었다") % [price, tr(st.what)])
 	m.save_game()
 
 # the target yard: for 20 s a brick target stands up somewhere in the yard every 1.6 s and falls back after 2.4 s;
@@ -94,7 +94,7 @@ func market_hint() -> void:
 		m.toast("여관: 하룻밤 금화 10, 모두 회복 (E)")
 	elif near != "":
 		var price: int = 25 if near == "2" and m.magpie_q >= 3 else int(STALLS[near].price)
-		m.toast(tr("%s(%s): 금화 %d를 정직 상자에 넣고 가져간다 (E)") % [tr(STALLS[near].what), tr(STALL_DOES[near]), price])
+		m.toast(tr("%s(%s): 금화 %d을(를) 정직 상자에 넣고 가져간다 (E)") % [tr(STALLS[near].what), tr(STALL_DOES[near]), price])
 
 func update_market(dt: float) -> void:
 	market_hint()

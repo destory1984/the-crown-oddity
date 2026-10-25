@@ -212,6 +212,29 @@ func line_clear(a: Vector2, b: Vector2) -> bool:
 			return false
 	return true
 
+# one rule for every enemy and every attack: a closed brick wall (the forest) or the locked cave door lies between two spots,
+# so a blow, dash, ring or shot cannot cross it (GPT lap 8: the forest duel was fought through a shut wall). The duel
+# clearing counts as walled in while its wall is shut, since its other sides are trees.
+func sealed_between(a: Vector2, b: Vector2) -> bool:
+	if in_forest:
+		for w in forest.walls:
+			if w.open:
+				continue
+			var n := maxi(1, int(ceil(a.distance_to(b) / 0.2)))
+			for i in range(0, n + 1):
+				var p := a.lerp(b, float(i) / n)
+				if absf(p.x - w.pos.x) < 0.5 and absf(p.y - w.pos.y) < 0.5:
+					return true
+			if w.pos.is_equal_approx(Vector2(FOREST.FOREST_X + 28, 15)) and forest_arena(a) != forest_arena(b):
+				return true
+	elif in_cave and not cave_door_open:
+		var dx: float = cave_marks.D.x + 0.5
+		return (a.x < dx) != (b.x < dx)
+	return false
+
+func forest_arena(p: Vector2) -> bool:
+	return p.x > FOREST.FOREST_X + 22.5 and p.y > 15.5 and p.y < 21.0
+
 var rest_said := false # the "cannot rest, a monster is near" toast shows once per stay by the lamp
 
 # the nearest open spot to where Sora stands: first every 0.1 tile in rings up to 1.5 tiles round her (so a small overlap
@@ -647,6 +670,14 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-25 아침",
+	"· v0.0.60: GPT 손 시험 8바퀴에서 찾은 일곱 가지를 고쳤다.",
+	"    - 벽돌 벽 셋 중 하나가 닫혀 있는데도 가까이 가기만 하면 노을의 재대결이 시작됐고, 벽 너머로 서로 맞아 소라 체력이 187 → 107이 됐다. 닫힌 벽이나 잠긴 문이 사이에 있으면 이제 모든 괴물의 공격(베기, 돌진, 먼지 고리, 날아오는 것)과 소라의 공격이 둘 다 닿지 않는다('닫힌 벽'이 뜬다).",
+	"    - 재대결은 소라가 벽 안쪽 빈터에 들어와야 시작한다. 이긴 뒤에도 닫힌 벽이 남아 있으면 할 일 줄이 '닫힌 벽돌 벽을 팔찌로 풀며 동쪽 끝으로 가자 (벽 곁에서 E, 눈금이 모자라면 밤에 등불 곁에서 쉬자)'로 길을 알려 준다.",
+	"    - 집에서 자는 콩알, 도란, 물결을 찾으라는 할 일 줄이 한밤중에도 '콩알이 울고 있다'였다. 그 사람이 집 안에서 자는 동안에는 '콩알은 지금 집에서 잔다. 집에 들어가 침대 곁에서 E (아니면 아침에)'로 바뀌고, 일지도 같은 줄을 보여 준다.",
+	"    - '금화 5을 넣고 사과을(를) 집었다' 같은 글을 고쳤다. 낱말이나 숫자의 마지막 글자에 맞춰 을/를, 이/가, 은/는, 과/와, 으로/로가 정해진다(5 → 를, 10 → 을). 장터, 낚시, 문 그림, 동료 쓰러짐, 자는 사람 알림에 쓴다.",
+	"    - 도란 편지를 풀고 처음 만난 물결이 '또 왔어?'로 시작했다. 만난 적이 없으면 '처음 보는 얼굴이네'로 시작하고, '또 왔어?'는 두 번째 이야기부터 나온다.",
+	"    - 보리 할머니께 한결의 편지를 전한 뒤 '도란에게 돌려주자'가 어디에도 적혀 있지 않았다. 돌려줄 때까지 할 일 줄 아래 작은 줄로 '도란에게 한결의 편지를 돌려주자'가 붙는다(물가 괴물과 싸우는 동안은 그 줄이 우선한다).",
+	"    - 가끔 실패하던 동료 잡담 시험(folk_chat)이 동료의 무작위 잡담에 흔들리지 않게 시험 동안 동료 잡담을 멈췄다. 자동 시험 lap8이 일곱 가지를 하나씩 확인한다(전체 138 → 139개). 놀 수 있는 분량은 약 322분 그대로다.",
 	"· v0.0.59: GPT 손 시험 7바퀴에서 찾은 다섯 가지를 고쳤다.",
 	"    - 열쇠 없이 잠긴 문 밖에서 친 공격이 문 안 수레두더지에게 닿아, 두더지가 쓰러지고 레벨 7 → 8과 물수제비를 얻었다. 문이 닫혀 있는 동안 두더지는 문에서 1.6칸 안으로 못 오고 맞지도 않는다('닫힌 문'이 뜬다).",
 	"    - 문 밖에서는 두더지가 깨어나 덤비지도 않는다. 열쇠로 문을 열면 전처럼 싸운다.",
@@ -1179,6 +1210,7 @@ var cave_light: OmniLight3D
 const VILLAGE := preload("res://village.gd")
 var village = VILLAGE.new()
 const FOREST := preload("res://forest.gd")
+const Ko := preload("res://sys/korean.gd")
 var forest = FOREST.new()
 var in_forest := false
 const HILL := preload("res://hill.gd")
@@ -1370,8 +1402,9 @@ func crown_key() -> void:
 					errands.kongal_errand()
 					return
 				if id == "mulgyeol" and doran_q >= 3 and mul_q != 1:
+					var first := not met.has(id)
 					met[id] = true
-					errands.mulgyeol_errand()
+					errands.mulgyeol_errand(first)
 					return
 				if id == "doran" and kid_q >= 3 and doran_q < 2:
 					met[id] = true
@@ -1641,7 +1674,10 @@ func prep_hint() -> String:
 func quest_shown(raw: String) -> String:
 	if raw.begins_with(BORI_QUEST): # old saves kept the line with its old fixed hint
 		return touch_words(tr(BORI_QUEST) + " (" + prep_hint() + ")")
-	return touch_words(tr(raw))
+	var sleeper: String = errands.quest_sleeper(raw)
+	if sleeper != "":
+		return touch_words(Ko.josa(errands.sleeping_quest(sleeper)))
+	return touch_words(Ko.josa(tr(raw)))
 
 func set_quest(text: String) -> void:
 	quest_raw = text
@@ -1654,7 +1690,7 @@ var typing := 0.0 # characters shown so far, for the typewriter reveal
 var talk_mode := false
 
 func toast(msg: String) -> void:
-	ui.toast.text = touch_words(tr(msg))
+	ui.toast.text = touch_words(Ko.josa(tr(msg)))
 	ui.toast.modulate.a = 1.0
 	toast_t = 2.2
 

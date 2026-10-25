@@ -40,6 +40,10 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 		return
 	if e.dead or e.get("roar", 0.0) > 0.0:
 		return
+	if m.sealed_between(from, Vector2(e.x, e.z)):
+		m.pop_num(Vector3(e.x, 1.6, e.z), "닫힌 벽", Color("#c8c8d0"))
+		m.sfx(700, 0.06, "square", 0.15, -300)
+		return
 	if e.get("mole", false) and m.cave.mole_shut_out():
 		m.pop_num(Vector3(e.x, 1.6, e.z), "닫힌 문", Color("#c8c8d0"))
 		m.sfx(700, 0.06, "square", 0.15, -300)

@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7",
+const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "skill_cost", "goblin_telegraph", "boss_phase2"]
 
 func _ready() -> void:
@@ -3967,6 +3967,9 @@ func run() -> void:
 		main.close_story()
 		calm_enemies(true)
 		park_mates(true)
+		var chat_cd0: float = main.chat_cd
+		main.chat_cd = 1.0e9 # companions' random chatter must not touch the count this test reads
+		main.chatter.hush_talk() # and a talk left running by the test before (its timers) is cancelled
 		main.story_step = 8
 		main.night_q = 0
 		main.lake_q = 0
@@ -4052,6 +4055,7 @@ func run() -> void:
 		main.doran_q = int(st0[7])
 		main.mul_q = int(st0[8])
 		main.mail_got[1] = bool(st0[9])
+		main.chat_cd = chat_cd0
 		park_mates(false)
 		calm_enemies(false)
 		check("folk_chat", tags_ok and end_line and kid_hidden and pair_far and spoke and line_fits and no_mate_count and gap_ok and asleep and quiet_night and kid_back,
@@ -6510,6 +6514,138 @@ func run() -> void:
 		calm_enemies(false)
 		park_mates(false)
 		check("lap7", bad7.is_empty(), "locked door holds the mole, journal pause, cave mouth after reload, side line, prep hint" if bad7.is_empty() else "; ".join(bad7))
+		main.return_to_start()
+	if want.call("lap8"):
+		# GPT hand-played lap 8: a shut forest wall stops the duel and every blow, villagers asleep are not "crying",
+		# Korean particles follow the word, Mulgyeol's first meeting, Doran's letter line
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		await wait(0.1)
+		calm_enemies(true)
+		park_mates(true)
+		var bad8: Array = []
+		# 1. the forest: walls 1 and 2 open, the third (the duel clearing's) shut
+		main.night_q = 4
+		main.lake_q = 4
+		main.forest_q = 0
+		main.return_to_start()
+		main.forest_zone.enter_forest()
+		await wait(0.3)
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		var walls8: Array = main.forest.walls
+		var last8: Dictionary = walls8[0]
+		for w in walls8:
+			if w.pos.x > last8.pos.x or last8.pos.x == w.pos.x and w.pos.y > last8.pos.y:
+				last8 = w
+		for w in walls8:
+			if w != last8 and not w.open:
+				main.forest.open_wall(w)
+		var was_open: bool = last8.open
+		last8.open = false
+		reset_to(Vector2(last8.pos.x + 0.24, last8.pos.y - 2.3))
+		main.player.inv = 0.0
+		await wait(0.4)
+		var q_before: int = main.forest_q
+		main.close_story()
+		for old in main.enemies:
+			if old.get("noeul", false) and not old.dead:
+				old.dead = true # one left by an earlier test would keep the duel from spawning
+		main.village_life.spawn_noeul_duel(true)
+		var nl8: Dictionary = main.enemies.filter(func(e): return e.get("noeul", false) and not e.dead)[0]
+		nl8.hp = float(nl8.max_hp)
+		reset_to(Vector2(last8.pos.x + 0.77, last8.pos.y - 0.85))
+		main.damage_enemy(nl8, 500.0, Vector2(main.player.x, main.player.z))
+		var hp_n: float = nl8.hp
+		var hp_s0: float = float(main.player.hp)
+		var res: String = main.player_hit(20, Vector2(nl8.x, nl8.z), nl8)
+		var res2: String = main.player_hit(20, Vector2(nl8.x, nl8.z), {})
+		var hp_s1: float = float(main.player.hp)
+		await wait(2.5)
+		var still_shut: bool = hp_n == nl8.hp and hp_s1 == hp_s0 and res == "none" and res2 == "none" and float(main.player.hp) == hp_s0
+		reset_to(Vector2(last8.pos.x, last8.pos.y + 2.0)) # inside the clearing: blows land as before
+		main.damage_enemy(nl8, 10.0, Vector2(main.player.x, main.player.z))
+		var inside_hit: bool = nl8.hp < hp_n
+		var east_shut: String = main.forest_zone.east_quest()
+		last8.open = true
+		var east_open: String = main.forest_zone.east_quest()
+		last8.open = was_open
+		if q_before != 1 or not still_shut or not inside_hit or not east_shut.begins_with("닫힌 벽돌 벽") or east_open.begins_with("닫힌"):
+			bad8.append("1 forest q=%d shut holds=%s (npc hp %s->%s, hit %s/%s) inside hit=%s quests [%s] [%s]" % [q_before, still_shut, hp_n, nl8.hp, res, res2, inside_hit, east_shut, east_open])
+		nl8.dead = true
+		nl8.node.queue_free()
+		nl8.shadow.queue_free()
+		main.ui.boss.visible = false
+		main.forest_q = 3
+		main.return_to_start()
+		await wait(0.3)
+		main.close_story()
+		calm_enemies(true)
+		# 2. Kongal asleep at midnight
+		var raw8 := "광장 서쪽의 콩알이 울고 있다. 말을 걸어 보자 (E)"
+		var fs8: String = main.folk_state.get("kongal", "out")
+		main.folk_state["kongal"] = "in"
+		main.set_quest(raw8) # read at once: by day the sleep update would send her out again
+		var asleep_q: String = main.ui.quest.text
+		var asleep_j: String = ""
+		for l in main.menus.journal_lines():
+			if "잔다" in String(l):
+				asleep_j = String(l)
+		var night_other: String = main.quest_shown("우편배달부 도란에게 말을 걸어 보자 (E)")
+		main.folk_state["kongal"] = "out"
+		var awake_q: String = main.quest_shown(raw8)
+		main.folk_state["kongal"] = fs8
+		if not ("콩알은" in asleep_q and "잔다" in asleep_q and "울고" not in asleep_q) or asleep_j == "" or not ("잔다" in night_other or "도란" in night_other) or not ("울고" in awake_q):
+			bad8.append("2 quest asleep [%s] journal [%s] awake [%s]" % [asleep_q, asleep_j, awake_q])
+		main.set_quest("")
+		# 3. particles
+		var ko: GDScript = main.Ko
+		var cases := [["사과을(를)", "사과를"], ["금화 5을(를)", "금화 5를"], ["금화 10을(를)", "금화 10을"], ["금화 1을(를)", "금화 1을"], ["금화 2을(를)", "금화 2를"], ["금화 7을(를)", "금화 7을"], ["금화 9을(를)", "금화 9를"], ["금화 100을(를)", "금화 100을"], ["붕어을(를)", "붕어를"], ["잉어을(를)", "잉어를"], ["메기을(를)", "메기를"], ["송어이(가)", "송어가"], ["콩알이(가)", "콩알이"], ["물결이(가)", "물결이"], ["노을이(가)", "노을이"], ["소라은(는)", "소라는"], ["도란은(는)", "도란은"], ["사과과(와)", "사과와"], ["책과(와)", "책과"], ["마을으로(로)", "마을로"], ["집으로(로)", "집으로"], ["금화 3으로(로)", "금화 3으로"], ["금화 5으로(로)", "금화 5로"], ["문에 해 지는 그림이(가) 있다", "문에 해 지는 그림이 있다"], ["다람쥐 꼬리 그림이(가) 있다", "다람쥐 꼬리 그림이 있다"], ["초승달 그림이(가) 있다", "초승달 그림이 있다"], ["평범한 글", "평범한 글"]]
+		var bad_p: Array = []
+		for c in cases:
+			var got: String = ko.josa(c[0])
+			if got != c[1]:
+				bad_p.append("%s -> %s (want %s)" % [c[0], got, c[1]])
+		main.toast(main.tr("상자에 금화 %d을(를) 넣고 %s을(를) 집었다") % [5, main.tr("사과")])
+		var shown_t: String = main.ui.toast.text
+		if not ("금화 5를 넣고" in shown_t and "사과를 집었다" in shown_t):
+			bad_p.append("toast [%s]" % shown_t)
+		if not bad_p.is_empty():
+			bad8.append("3 particles " + "; ".join(bad_p))
+		# 4. Mulgyeol's first meeting
+		var dq8: int = main.doran_q
+		var mq8: int = main.mul_q
+		main.doran_q = 3
+		main.mul_q = 0
+		main.errands.mulgyeol_errand(true)
+		var first_line: String = main.ui.story_text.text
+		main.close_story()
+		main.mul_q = 0
+		main.errands.mulgyeol_errand(false)
+		var again_line: String = main.ui.story_text.text
+		main.close_story()
+		main.doran_q = dq8
+		main.mul_q = mq8
+		if "또 왔어" in first_line or not ("처음" in first_line) or not ("또 왔어" in again_line):
+			bad8.append("4 Mulgyeol first [%s] again [%s]" % [first_line, again_line])
+		# 5. Doran's letter
+		var lb8: bool = main.letter_back
+		main.doran_q = 3
+		main.letter_back = false
+		var side_a: String = main.errands.letter_side_line()
+		main.letter_back = true
+		var side_b: String = main.errands.letter_side_line()
+		main.letter_back = lb8
+		main.doran_q = dq8
+		if not side_a.begins_with("도란에게") or side_b != "":
+			bad8.append("5 letter line [%s] after [%s]" % [side_a, side_b])
+		main.close_story()
+		calm_enemies(false)
+		park_mates(false)
+		check("lap8", bad8.is_empty(), "shut wall holds duel and blows, sleeping villager line, particles, Mulgyeol first line, letter line" if bad8.is_empty() else "; ".join(bad8))
 		main.return_to_start()
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

@@ -200,13 +200,15 @@ func update_side() -> void:
 		side_label.add_theme_color_override("font_outline_color", Color("#02040b"))
 		side_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	var s: String = m.shore.side_step() if m.ui.quest.visible and not m.intro else ""
+	if m.ui.quest.visible and not m.intro and m.shore_wave < 0 and m.shore_float.is_empty() and m.errands.letter_side_line() != "":
+		s = m.errands.letter_side_line() # a running shore fight keeps the line; waiting shore steps give way to the letter
 	var shown := m.touch_words(tr(s)) if s != "" else ""
 	if side_label.text != shown:
 		side_label.text = shown
 	side_want = shown != ""
 	side_label.visible = side_want and not side_off
 	var want := m.quest_shown(m.quest_raw) # the prep hint follows potions and gold
-	if m.quest_raw.begins_with(Main.BORI_QUEST) and m.ui.quest.text != want:
+	if (m.quest_raw.begins_with(Main.BORI_QUEST) or m.errands.QUEST_FOLK.any(func(q): return m.quest_raw.contains(q[0]))) and m.ui.quest.text != want:
 		m.ui.quest.text = want
 
 func layout_top() -> void:

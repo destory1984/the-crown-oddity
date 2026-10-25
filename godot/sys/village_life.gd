@@ -220,7 +220,7 @@ func spawn_noeul_duel(second := false, cloak := false) -> void:
 func update_noeul(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	var node: Node3D = e.node
 	var spr: Sprite3D = node.get_child(0)
-	var awake := d < 9.0
+	var awake := d < 9.0 and not m.sealed_between(Vector2(e.x, e.z), Vector2(m.player.x, m.player.z))
 	m.ui.boss.visible = awake or (m.ui.boss.visible and d < 13.0)
 	var cloak: bool = e.get("cloak", false)
 	m.ui.boss_name.text = "빈 망토" if cloak else "노을"

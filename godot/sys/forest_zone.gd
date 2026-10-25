@@ -68,6 +68,8 @@ func try_unbrick() -> bool:
 			m.shake = 0.25
 			m.sfx(196, 0.5, "triangle", 0.3, -60)
 			m.toast("벽돌 벽이 흙으로 풀렸다")
+			if m.forest_q >= 3 and m.quest_raw.begins_with("닫힌 벽돌 벽을"):
+				m.set_quest(east_quest())
 			m.save_game()
 			return true
 	return false
@@ -166,7 +168,7 @@ func update_forest() -> void:
 	m.forest.update_looks(Vector2(m.player.x, m.player.z), m.is_night())
 	update_hollow()
 	update_oak()
-	if m.forest_q == 1 and not m.story_open and Vector2(m.player.x, m.player.z).distance_to(m.forest.marks.N) < 6.0:
+	if m.forest_q == 1 and not m.story_open and Vector2(m.player.x, m.player.z).distance_to(m.forest.marks.N) < 6.0 			and not m.sealed_between(Vector2(m.player.x, m.player.z), m.forest.marks.N):
 		m.forest_q = 2
 		m.show_story("", Main.STORY.NOEUL_DUEL2)
 		m.after_story = m.village_life.spawn_noeul_duel.bind(true)
@@ -297,7 +299,7 @@ func update_hollow() -> void:
 	if near != m.door_seen:
 		m.door_seen = near
 		if near >= 0:
-			m.toast(tr("문에 %s이 있다") % tr(m.forest.doors[near].pic))
+			m.toast(tr("문에 %s이(가) 있다") % tr(m.forest.doors[near].pic))
 
 func cloak_beaten() -> void:
 	m.hollow_q = 2
@@ -622,6 +624,12 @@ func load_oak(d: Dictionary) -> void:
 	if m.in_forest:
 		m.ui.mini.map_tex = forest_map()
 
+# the road east after Noeul: a wall still shut is named, with how to open it (GPT lap 8 saw "the road is open" behind one)
+func east_quest() -> String:
+	if m.forest.walls.any(func(w): return not w.open):
+		return "닫힌 벽돌 벽을 팔찌로 풀며 동쪽 끝으로 가자 (벽 곁에서 E, 눈금이 모자라면 밤에 등불 곁에서 쉬자)"
+	return "숲 동쪽 끝 길로, 바람 언덕에 가자"
+
 func noeul_turned() -> void:
 	m.forest_q = 3
 	m.join_noeul()
@@ -629,5 +637,5 @@ func noeul_turned() -> void:
 	m.player.gold += 150
 	m.gain_xp(250)
 	m.show_story("res://art/story/10_jae_turns.jpg", Main.STORY.NOEUL_TURNS)
-	m.set_quest("숲 동쪽 끝 길로, 바람 언덕에 가자")
+	m.set_quest(east_quest())
 	m.save_game()

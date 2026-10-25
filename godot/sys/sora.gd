@@ -152,6 +152,9 @@ func update_idle(dt: float) -> void:
 func player_hit(dmg: int, src: Vector2, attacker: Dictionary) -> String:
 	var gy := m.ground_y
 	var here := Vector3(m.player.x, gy, m.player.z)
+	var me2 := Vector2(m.player.x, m.player.z)
+	if m.sealed_between(src, me2) or (attacker.has("x") and m.sealed_between(Vector2(attacker.x, attacker.z), me2)):
+		return "none" # a shut wall or locked door stops every blow, ring and shot
 	if m.player.dodge > 0.0 and m.t - m.dodge_start <= 0.15 and m.flash_cd <= 0.0:
 		m.slowmo = 2.0
 		m.flash_cd = 3.0
