@@ -545,7 +545,8 @@ func build_hud() -> void:
 		card.add_child(icon)
 		label(card, "%d" % (i + 1), Vector2(10, 6), 12, Color("#a99d84"))
 		label(card, it.name, Vector2(118, 18), 17)
-		var dsc := label(card, it.desc, Vector2(118, 46), 13, Color("#a99d84"))
+		var dsc := label(card, Main.Ko.keep_words(m.tr(it.desc)), Vector2(118, 46), 13, Color("#a99d84"))
+		dsc.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED # translated here, before the words are joined
 		dsc.size = Vector2(140, 40)
 		dsc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var b := Button.new()

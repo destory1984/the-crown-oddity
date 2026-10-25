@@ -176,8 +176,11 @@ func show_line(line: String) -> void:
 		m.ui.story_face.texture = null # the portrait already shows who is talking
 	m.ui.story_text.position.x = 140.0 if m.ui.story_face.texture else 40.0
 	m.ui.story_tab.visible = parts[0] != ""
-	m.ui.story_text.text = touch_words(tr(parts[2])) # translated here so the typewriter counts the shown text
+	# translated here so the typewriter counts the shown text; lines wrap only at spaces (Ko.keep_words)
+	var said := touch_words(tr(parts[2]))
+	m.ui.story_text.text = Main.Ko.keep_words(said)
 	m.ui.story_text.visible_characters = 0
+	m.typing_k = float(m.ui.story_text.text.length()) / maxf(1.0, float(said.length()))
 	m.typing = 0.0
 
 func next_story() -> void:

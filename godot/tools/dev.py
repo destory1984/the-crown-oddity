@@ -253,6 +253,8 @@ def ship(message):
 
 
 def main():
+    # test lines carry U+2060 word joiners (Ko.keep_words); a Korean Windows console (cp949) cannot print them
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cmd", choices=["check", "shot", "scenes", "build", "ship", "kill", "test", "sound", "baseline"])
     ap.add_argument("names", nargs="*")

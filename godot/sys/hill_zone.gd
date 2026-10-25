@@ -390,7 +390,7 @@ func mill_key() -> bool:
 		m.windrun_on = true
 		m.windrun_left = windrun_time()
 		m.windrun_got = []
-		var cur: String = m.ui.quest.text
+		var cur: String = Main.Ko.plain(m.ui.quest.text)
 		if cur.begins_with(windrun_prefix()):
 			m.windrun_quest = m.main_road_quest()
 		elif cur.begins_with(retry_prefix()): # the line before the first try is kept through the retries

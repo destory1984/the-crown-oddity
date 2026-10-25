@@ -20,6 +20,10 @@ func _ready() -> void:
 func wait(sec: float) -> void:
 	await get_tree().create_timer(sec).timeout
 
+# a shown line without the word joiners Ko.keep_words puts in (story box, journal, quest line)
+func plain(s: String) -> String:
+	return s.replace(char(0x2060), "")
+
 func check(name: String, ok: bool, detail := "") -> void:
 	results.append(ok)
 	print("TEST %s %s %s" % [name, "PASS" if ok else "FAIL", detail])
@@ -278,7 +282,7 @@ func run() -> void:
 		main.story_step = 0
 		main.begin_opening()
 		var lamp: OmniLight3D = main.dark_lamp
-		var asked: bool = main.ui.quest.visible and main.ui.quest.text.contains("E")
+		var asked: bool = main.ui.quest.visible and plain(main.ui.quest.text).contains("E")
 		var n_before: int = main.enemies.size()
 		tap(KEY_E)
 		await wait(0.2)
@@ -528,7 +532,7 @@ func run() -> void:
 			var ok: bool = main.story_step == 5 and main.story_open and main.cave_pos.x > 0
 			main.close_story()
 			await wait(0.6)
-			var quest: String = main.ui.quest.text
+			var quest: String = plain(main.ui.quest.text)
 			var said: bool = quest == main.CAVE_QUEST and not quest.contains("다음 장에서 계속")
 			var mark: bool = main.quarters_mark != null and main.quarters_mark.visible and Vector2(main.step_target().x, main.step_target().z).distance_to(main.cave_pos) < 1.0
 			# an old save still holding the demo's text loads with the new line
@@ -541,7 +545,7 @@ func run() -> void:
 				fw.store_string(JSON.stringify(sv))
 				fw.close()
 				main.load_game()
-				old_ok = main.ui.quest.text == main.CAVE_QUEST
+				old_ok = plain(main.ui.quest.text) == main.CAVE_QUEST
 			check("boss_opens_cave", ok and said and mark and old_ok, "boss down -> story step %d, cave at %s, quest=%s mark over the cave=%s old save -> new line=%s" % [main.story_step, main.cave_pos, quest, mark, old_ok])
 
 	if want.call("save_load"):
@@ -799,7 +803,7 @@ func run() -> void:
 		var talk: bool = main.story_open
 		main.close_story()
 		await wait(0.6)
-		check("simji_talk", talk and main.errand == 1 and main.ui.quest.text.contains("0/3"), "talk=%s errand=%d quest=%s" % [talk, main.errand, main.ui.quest.text])
+		check("simji_talk", talk and main.errand == 1 and plain(main.ui.quest.text).contains("0/3"), "talk=%s errand=%d quest=%s" % [talk, main.errand, plain(main.ui.quest.text)])
 	if want.call("lamp_cost_night"):
 		main.hour = 23.0
 		main.crown_pips = 7
@@ -984,7 +988,7 @@ func run() -> void:
 		reset_to(main.village.folk_pos.doran + Vector2(1.0, 0))
 		tap(KEY_E)
 		await wait(0.3)
-		var said: String = main.ui.story_text.text
+		var said: String = plain(main.ui.story_text.text)
 		main.close_story()
 		check("folk_again", said.contains("배달을 마쳤"), "Doran after the letter: %s" % said.left(30))
 	if want.call("lake"):
@@ -1133,7 +1137,7 @@ func run() -> void:
 			reset_to(sl.pos + (main.garden.marks.C - sl.pos).normalized() * -1.2)
 			tap(KEY_E)
 			await wait(0.1)
-		var seal_quest: bool = main.ui.quest.text == main.tr("굳은달 거푸집의 심장을 노리자") # not left at 2/3
+		var seal_quest: bool = plain(main.ui.quest.text) == main.tr("굳은달 거푸집의 심장을 노리자") # not left at 2/3
 		var seals_ok: bool = asleep and main.garden.seals_open() == 3 and seal_quest
 		for e in main.enemies.filter(func(e): return not e.dead and e.x > main.GARDEN.GARDEN_X and not e.get("mold", false)):
 			e.dead = true
@@ -1573,18 +1577,18 @@ func run() -> void:
 		tap(KEY_Q)
 		await wait(0.1)
 		var shown: bool = main.ui.journal.visible
-		var txt: String = main.ui.journal_text.text + main.ui.journal_text2.text
+		var txt: String = plain(main.ui.journal_text.text) + plain(main.ui.journal_text2.text)
 		var has: bool = "지금 할 일" in txt and "늪의 옛 지도 조각" in txt and "곁이야기" in txt and "지닌 것" in txt
 		# the learnt moves: at Lv4 the first three and Lv6 next
 		main.toggle_journal(false)
 		var lv0: int = main.player.lv
 		main.player.lv = 4
 		main.toggle_journal(true)
-		var txt4: String = main.ui.journal_text2.text
+		var txt4: String = plain(main.ui.journal_text2.text)
 		var moves: bool = "익힌 기술" in txt4 and "4타 연속기, 달려 베기, 모아 베기" in txt4 and "다음: Lv6 5타 마무리" in txt4 and not "빛 칼날" in txt4
 		main.player.lv = 30
 		main.toggle_journal(true)
-		var txt30: String = main.ui.journal_text2.text
+		var txt30: String = plain(main.ui.journal_text2.text)
 		moves = moves and "꺼지지 않는 기세" in txt30 and not "다음:" in txt30
 		main.player.lv = lv0
 		tap(KEY_H)
@@ -1856,7 +1860,7 @@ func run() -> void:
 		main.enable_touch()
 		await wait(0.2)
 		vs = main.get_viewport().get_visible_rect().size
-		var quest0: String = main.ui.quest.text
+		var quest0: String = plain(main.ui.quest.text)
 		var boss0: bool = main.ui.boss.visible
 		main.ui.boss.visible = true
 		main.set_quest("벽돌 벽을 팔찌로 풀며 숲 동쪽 끝의 노을에게 가자. 길을 막은 회색 나무는 팔찌로 하나씩 풀 수 있다")
@@ -1900,10 +1904,10 @@ func run() -> void:
 		await wait(0.1)
 		var desk: bool = main.ui.help_rows == main.ui.help_keys_rows \
 			and not main.ui.shop_back.visible and main.ui.shop_board.scale == Vector2.ONE and main.ui.hint.visible
-		var q0: String = main.ui.quest.text
+		var q0: String = plain(main.ui.quest.text)
 		main.touch_ui = true # on phones the keyboard words read as the touch keys
 		main.set_quest("벽돌 벽을 풀자 (E)")
-		var words_ok: bool = "팔찌 단추" in main.ui.quest.text and not "(E)" in main.ui.quest.text
+		var words_ok: bool = "팔찌 단추" in plain(main.ui.quest.text) and not "(E)" in plain(main.ui.quest.text)
 		main.touch_ui = false
 		main.ui.quest.text = q0
 		calm_enemies(false)
@@ -1970,16 +1974,16 @@ func run() -> void:
 		# wording: a touch layout says the touch names until a key is pressed, then the key names, and back after a touch
 		main.enable_touch()
 		main.set_quest("벽돌 벽을 풀자 (E)")
-		var w_touch: bool = "팔찌 단추" in main.ui.quest.text
+		var w_touch: bool = "팔찌 단추" in plain(main.ui.quest.text)
 		var kev := InputEventKey.new()
 		kev.keycode = KEY_W
 		kev.pressed = true
 		main._input(kev)
-		var w_key: bool = "(E)" in main.ui.quest.text and main.quest_raw == "벽돌 벽을 풀자 (E)"
+		var w_key: bool = "(E)" in plain(main.ui.quest.text) and main.quest_raw == "벽돌 벽을 풀자 (E)"
 		var tev := InputEventScreenTouch.new()
 		tev.pressed = true
 		main._input(tev)
-		var w_back: bool = "팔찌 단추" in main.ui.quest.text
+		var w_back: bool = "팔찌 단추" in plain(main.ui.quest.text)
 		main.disable_touch()
 		main.set_quest(quest0)
 		await wait(0.1)
@@ -2538,7 +2542,7 @@ func run() -> void:
 		main.in_cave = false
 		main.hour = 12.0
 		var said := func() -> String:
-			var s: String = main.ui.story_who.text + ": " + main.ui.story_text.text
+			var s: String = main.ui.story_who.text + ": " + plain(main.ui.story_text.text)
 			main.close_story()
 			return s
 		# first meeting
@@ -2553,7 +2557,7 @@ func run() -> void:
 		main.has_bait = false
 		main.garden_q = 5
 		main.crown_key()
-		var bait_said: String = main.ui.story_text.text
+		var bait_said: String = plain(main.ui.story_text.text)
 		var bait_ok: bool = main.has_bait and main.story_lines.back() == STORY.HF_GIFT.bait and bait_said.contains("그물이 부드러워졌어")
 		main.close_story()
 		main.met["chadol"] = true
@@ -3210,7 +3214,7 @@ func run() -> void:
 		f.close()
 		main.load_game()
 		var pier: bool = main.lake_q == 2 and Vector2(main.player.x, main.player.z).distance_to(main.lake.marks.P) < 2.0 \
-			and main.ui.quest.text == main.tr("부두의 물결에게 말을 걸자 (E)") # not the island fight
+			and plain(main.ui.quest.text) == main.tr("부두의 물결에게 말을 걸자 (E)") # not the island fight
 		main.return_to_start()
 		check("stuck_fixes", west and marsh_ok and pier, "old save leaves the garden westward=%s F8 clears zones=%s turtle-fight save loads at the pier=%s" % [west, marsh_ok, pier])
 	if want.call("story_fixes"):
@@ -3241,7 +3245,7 @@ func run() -> void:
 		main.quest_before_cave = "" # a fresh start knows nothing but the save
 		main.load_game()
 		main.leave_cave()
-		var cave_q: bool = main.ui.quest.text == main.tr(q)
+		var cave_q: bool = plain(main.ui.quest.text) == main.tr(q)
 		main.enter_cave()
 		main.quest_before_cave = "" # an older save without it: the main road's step instead
 		var road0 := [main.forest_q, main.hill_q, main.castle_q, main.garden_q]
@@ -3250,7 +3254,7 @@ func run() -> void:
 		main.castle_q = 0
 		main.garden_q = 0
 		main.leave_cave()
-		cave_q = cave_q and main.ui.quest.text == main.tr("숲 동쪽 끝 길로, 바람 언덕에 가자")
+		cave_q = cave_q and plain(main.ui.quest.text) == main.tr("숲 동쪽 끝 길로, 바람 언덕에 가자")
 		main.forest_q = road0[0]
 		main.hill_q = road0[1]
 		main.castle_q = road0[2]
@@ -3345,7 +3349,7 @@ func run() -> void:
 					held.append(String(s).left(30))
 		var bare_e := RegEx.create_from_string("(?<![A-Za-z])E(?![A-Za-z])")
 		var touch0: bool = main.touch_ui
-		var q0: String = main.ui.quest.text
+		var q0: String = plain(main.ui.quest.text)
 		main.touch_ui = true
 		var shown: Array = []
 		await wait(0.15) # the shop hint is rewritten every frame
@@ -3357,14 +3361,14 @@ func run() -> void:
 		main.doran_q = dq
 		for q in ["팔목의 팔찌를 만져 보자 (E)", "도란의 편지에 팔찌를 대 보자 (E, 달빛 눈금 사용)", "끝. 다시 돌기 시작한 정원을 거닐자 (정원 한가운데서 E 두 번: 새 바퀴)", "깊은 틈 위 한결의 발자국을 따라가자 (E로 비추기)"]:
 			main.set_quest(q)
-			shown.append(main.ui.quest.text)
+			shown.append(plain(main.ui.quest.text))
 		shown.append(main.touch_words(main.tr("낚싯줄을 던졌다. 찌가 흔들리면 E!")))
 		shown.append(main.touch_words(main.tr("태엽이 튕겨 나왔다. 문지기 곁에서 E")))
 		for s in all_text: # every story line as show_line words it
 			if String(s).count("|") >= 2:
 				shown.append(main.touch_words(main.tr(String(s).split("|", true, 2)[2])))
 		main.toggle_journal(true)
-		shown.append(main.ui.journal_text.text)
+		shown.append(plain(main.ui.journal_text.text))
 		main.toggle_journal(false)
 		var bare: Array = []
 		for s in shown:
@@ -3401,7 +3405,7 @@ func run() -> void:
 		main.set_quest("열쇠를 찾아 잠긴 문을 열자")
 		reset_to(main.cave_marks.D + Vector2(0.8, 0))
 		main.cave_interact()
-		var door_q: bool = main.cave_door_open and main.ui.quest.text == main.tr(main.CAVE_DOOR_QUEST)
+		var door_q: bool = main.cave_door_open and plain(main.ui.quest.text) == main.tr(main.CAVE_DOOR_QUEST)
 		main.has_key = keep[0]
 		main.cave_door_open = keep[1]
 		main.has_skip = keep[2]
@@ -3418,14 +3422,14 @@ func run() -> void:
 		main.close_story()
 		main.set_quest("") # a fresh start knows nothing but the save
 		main.load_game()
-		var arrive_q: bool = main.in_village and main.ui.quest.text == main.tr(main.SIMJI_QUEST)
+		var arrive_q: bool = main.in_village and plain(main.ui.quest.text) == main.tr(main.SIMJI_QUEST)
 		main.return_to_start()
 		var m: Vector2 = main.village.marks.M
 		var f := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
 		f.store_string(JSON.stringify({"story": 8, "errand": 0, "in_village": true, "has_skip": true, "x": m.x - 3.0, "z": m.y, "quest": "동쪽 강을 물수제비 걸음으로 건너, 마을 불빛을 찾아라"}))
 		f.close()
 		main.load_game()
-		arrive_q = arrive_q and main.ui.quest.text == main.tr(main.SIMJI_QUEST)
+		arrive_q = arrive_q and plain(main.ui.quest.text) == main.tr(main.SIMJI_QUEST)
 		main.return_to_start()
 		main.errand = e0
 		# 7. a chase save loaded by day: no Noeul to chase, so the quest says to rest in the village till night
@@ -3435,7 +3439,7 @@ func run() -> void:
 		f.close()
 		main.load_game()
 		await wait(0.4)
-		var chase_q: bool = main.night_q == 0 and not main.is_night() and main.ui.quest.text == main.tr(main.NIGHT_REST_QUEST)
+		var chase_q: bool = main.night_q == 0 and not main.is_night() and plain(main.ui.quest.text) == main.tr(main.NIGHT_REST_QUEST)
 		main.return_to_start()
 		# 6. the postcard: after Bori's letter (doran_q 3) Sora knows who Hangyeol was
 		var dq0: int = main.doran_q
@@ -3549,8 +3553,8 @@ func run() -> void:
 		main.load_game()
 		if main.story_open:
 			main.close_story()
-		if not (main.garden_q == 1 and main.ui.quest.text == main.tr(main.GARDEN_RETRY_QUEST)):
-			bad.append("3 garden save quest=%s" % main.ui.quest.text)
+		if not (main.garden_q == 1 and plain(main.ui.quest.text) == main.tr(main.GARDEN_RETRY_QUEST)):
+			bad.append("3 garden save quest=%s" % plain(main.ui.quest.text))
 		main.return_to_start()
 		# 4. the mill run: the save keeps the quest from before the run; an older save with the timer loads without it
 		main.windrun_on = true
@@ -3565,8 +3569,8 @@ func run() -> void:
 		main.load_game()
 		if main.story_open:
 			main.close_story()
-		if not (mq == main.windrun_quest and not main.ui.quest.text.begins_with(main.windrun_prefix())):
-			bad.append("4 mill saved quest=%s old save quest=%s" % [mq, main.ui.quest.text])
+		if not (mq == main.windrun_quest and not plain(main.ui.quest.text).begins_with(main.windrun_prefix())):
+			bad.append("4 mill saved quest=%s old save quest=%s" % [mq, plain(main.ui.quest.text)])
 		main.return_to_start()
 		# 5. the cave revisited from the village: a faint inside gives the quest back, an empty line never replaces it
 		var st0: int = main.story_step
@@ -3574,28 +3578,28 @@ func run() -> void:
 		main.set_quest("콩알의 꼬마 고블린을 찾자")
 		main.enter_cave()
 		main.faint()
-		var cave_back: bool = main.ui.quest.text == main.tr("콩알의 꼬마 고블린을 찾자")
+		var cave_back: bool = plain(main.ui.quest.text) == main.tr("콩알의 꼬마 고블린을 찾자")
 		main.set_quest("")
 		main.enter_cave()
 		main.leave_cave()
 		if main.story_open:
 			main.close_story()
-		cave_back = cave_back and main.ui.quest.text == main.tr("콩알의 꼬마 고블린을 찾자")
+		cave_back = cave_back and plain(main.ui.quest.text) == main.tr("콩알의 꼬마 고블린을 찾자")
 		if not cave_back:
-			bad.append("5 cave quest after faint and re-entry=%s" % main.ui.quest.text)
+			bad.append("5 cave quest after faint and re-entry=%s" % plain(main.ui.quest.text))
 		main.return_to_start()
 		# 6. beaten by the turtle: back in the village the quest says how to row out again; at the lake, talk at the pier
 		main.in_village = false
 		main.in_lake = true
 		main.lake_q = 3
 		main.faint()
-		var lake_ok: bool = main.lake_q == 2 and main.ui.quest.text == main.tr(main.LAKE_RETRY_QUEST)
+		var lake_ok: bool = main.lake_q == 2 and plain(main.ui.quest.text) == main.tr(main.LAKE_RETRY_QUEST)
 		main.enter_lake()
 		if main.story_open:
 			main.close_story()
-		lake_ok = lake_ok and main.ui.quest.text == main.tr("부두의 물결에게 말을 걸자 (E)")
+		lake_ok = lake_ok and plain(main.ui.quest.text) == main.tr("부두의 물결에게 말을 걸자 (E)")
 		if not lake_ok:
-			bad.append("6 turtle faint quest=%s" % main.ui.quest.text)
+			bad.append("6 turtle faint quest=%s" % plain(main.ui.quest.text))
 		main.return_to_start()
 		# 7. the hedgehogs: a fight cut by a load comes back at the last knot, which waits until both are down
 		var oak0: Array = [main.oak_q, main.oak_hogs_beaten, main.oak_hogs_up, main.crown_pips]
@@ -3627,18 +3631,18 @@ func run() -> void:
 		main.has_skip = true
 		main.set_quest("물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자")
 		main.mole_defeated()
-		if main.story_open or main.ui.quest.text != main.tr("물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"):
-			bad.append("8 second mole win story=%s quest=%s" % [main.story_open, main.ui.quest.text])
+		if main.story_open or plain(main.ui.quest.text) != main.tr("물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"):
+			bad.append("8 second mole win story=%s quest=%s" % [main.story_open, plain(main.ui.quest.text)])
 		main.close_story()
 		main.has_skip = sk0
 		# 9. the late hint after the first lamp leaves Bori's quest alone once she has been met
 		main.story_step = 3
 		main.set_quest("북쪽 벽돌왕을 쓰러뜨려 물길을 열어라 (상점에서 약을 챙기자)") # an old save's line
 		main.lantern_quest_late()
-		var late_ok: bool = main.ui.quest.text == main.quest_shown(main.BORI_QUEST) and main.ui.quest.text.begins_with(main.tr(main.BORI_QUEST))
+		var late_ok: bool = plain(main.ui.quest.text) == plain(main.quest_shown(main.BORI_QUEST)) and plain(main.ui.quest.text).begins_with(main.tr(main.BORI_QUEST))
 		main.story_step = 2
 		main.lantern_quest_late()
-		late_ok = late_ok and main.ui.quest.text == main.tr("쪽지에 적힌 서쪽 오두막을 찾아가자")
+		late_ok = late_ok and plain(main.ui.quest.text) == main.tr("쪽지에 적힌 서쪽 오두막을 찾아가자")
 		main.story_step = maxi(st0, 8)
 		if not late_ok:
 			bad.append("9 late lamp hint")
@@ -3654,7 +3658,7 @@ func run() -> void:
 			reset_to(main.cave_marks.P)
 			main.check_painting()
 			main.close_story()
-			pq.append(main.ui.quest.text)
+			pq.append(plain(main.ui.quest.text))
 		main.saw_painting = pk[0]
 		main.has_key = pk[1]
 		main.cave_door_open = pk[2]
@@ -3668,8 +3672,8 @@ func run() -> void:
 		main.enter_forest()
 		if main.story_open:
 			main.close_story()
-		if main.ui.quest.text != main.tr("노을과 다시 겨루자"):
-			bad.append("11 forest re-entry quest=%s" % main.ui.quest.text)
+		if plain(main.ui.quest.text) != main.tr("노을과 다시 겨루자"):
+			bad.append("11 forest re-entry quest=%s" % plain(main.ui.quest.text))
 		main.forest_q = fq0
 		main.return_to_start()
 		# 13. village side lines before Mulgyeol and Noeul join: neither speaks; with Mulgyeol alone only he does
@@ -3927,7 +3931,7 @@ func run() -> void:
 		await wait(0.2)
 		main.close_story()
 		var th0: Node3D = main.thirteenth # the lantern scene hangs the thirteenth lantern; taken down again after
-		var kept0: Array = [main.pip_max, main.pip_awards.duplicate(), main.crown_pips, main.doran_q, main.lake_q, main.hollow_q, main.castle_q, main.post_q, main.player.gold, main.ui.quest.text]
+		var kept0: Array = [main.pip_max, main.pip_awards.duplicate(), main.crown_pips, main.doran_q, main.lake_q, main.hollow_q, main.castle_q, main.post_q, main.player.gold, plain(main.ui.quest.text)]
 		main.pip_max = 8
 		main.pip_awards = {}
 		main.crown_pips = 3
@@ -4455,9 +4459,9 @@ func run() -> void:
 				last = now
 				frames += 1
 			var d: float = last.distance_to(sm.P)
-			var line_ok: bool = main.ui.quest.text.begins_with(main.hill_zone.retry_prefix()) and ("%d번째" % (tryno + 2)) in main.ui.quest.text
+			var line_ok: bool = plain(main.ui.quest.text).begins_with(main.hill_zone.retry_prefix()) and ("%d번째" % (tryno + 2)) in plain(main.ui.quest.text)
 			if not (d < 1.2 and line_ok and not main.windrun_on and main.windrun_tries == tryno + 1):
-				bad.append("miss %d: %.2f tiles from the post, quest '%s', tries %d" % [tryno, d, main.ui.quest.text, main.windrun_tries])
+				bad.append("miss %d: %.2f tiles from the post, quest '%s', tries %d" % [tryno, d, plain(main.ui.quest.text), main.windrun_tries])
 		# leaving the hollow mid-run: the same line, no gust, and the run after it is 18 s (the cap)
 		reset_to(sm.P + Vector2(1.0, 0))
 		tap(KEY_E)
@@ -4467,7 +4471,7 @@ func run() -> void:
 		await wait(0.15)
 		var left_at := Vector2(main.player.x, main.player.z)
 		var stayed: bool = left_at.distance_to(Vector2(sm.P.x, float(main.HILL.MILL_Z) - 3.0)) < 0.3 and main.windrun_glide.is_empty()
-		var left_line: bool = not main.windrun_on and main.ui.quest.text.begins_with(main.hill_zone.retry_prefix()) and main.windrun_tries == 4
+		var left_line: bool = not main.windrun_on and plain(main.ui.quest.text).begins_with(main.hill_zone.retry_prefix()) and main.windrun_tries == 4
 		reset_to(sm.P + Vector2(1.0, 0))
 		tap(KEY_E)
 		await wait(0.1)
@@ -4780,7 +4784,7 @@ func run() -> void:
 			if main.story_open:
 				break
 			await wait(0.1)
-		var hint: bool = main.story_open and main.ui.story_text.text == tr("땅 밑 깊은 곳에서 톱니 소리가 아직 삐걱거린다.")
+		var hint: bool = main.story_open and plain(main.ui.story_text.text) == tr("땅 밑 깊은 곳에서 톱니 소리가 아직 삐걱거린다.")
 		main.close_story()
 		await wait(0.6)
 		# 2. down the hole
@@ -4880,7 +4884,7 @@ func run() -> void:
 			if main.story_open:
 				break
 			await wait(0.1)
-		var late: bool = main.story_open and main.ui.story_text.text == tr("닳은 손잡이 양옆 손잡이에도 물결과 노을이 손을 얹은 채 숨을 고른다.")
+		var late: bool = main.story_open and plain(main.ui.story_text.text) == tr("닳은 손잡이 양옆 손잡이에도 물결과 노을이 손을 얹은 채 숨을 고른다.")
 		main.close_story()
 		await wait(0.2)
 		late = late and not main.clock_still and main.garden.wound
@@ -4991,7 +4995,7 @@ func run() -> void:
 		# 2. after Bori the hint opens there; the basket blocks its spot only
 		main.story_step = 3
 		var hint: bool = await wait_for(func(): return main.story_open, 2.0)
-		hint = hint and main.shore_q == 1 and main.ui.story_text.text == tr(String(STORY.SHORE_HINT[0]).split("|")[2])
+		hint = hint and main.shore_q == 1 and plain(main.ui.story_text.text) == tr(String(STORY.SHORE_HINT[0]).split("|")[2])
 		var blocks: bool = not main.player_can(b.x, b.y) and main.player_can(19, 19)
 		main.close_story()
 		await wait(0.6)
@@ -5001,7 +5005,7 @@ func run() -> void:
 		main.player.inv = 120.0
 		main.crown_key()
 		await wait(0.2)
-		var seen: bool = main.story_open and main.crown_pips == 7 and main.ui.story_text.text == tr(String(STORY.SHORE_BASKET[0]).split("|")[2])
+		var seen: bool = main.story_open and main.crown_pips == 7 and plain(main.ui.story_text.text) == tr(String(STORY.SHORE_BASKET[0]).split("|")[2])
 		main.close_story()
 		await wait(0.4)
 		main.crown_key()
@@ -5387,7 +5391,7 @@ func run() -> void:
 		await wait(0.1)
 		main.close_story()
 		await wait_for(func(): return main.quarters_q == 5, 1.0)
-		round_ok = round_ok and main.ui.story_text.text == tr(String(STORY.QUARTERS_REST_AGAIN).split("|")[2]) \
+		round_ok = round_ok and plain(main.ui.story_text.text) == tr(String(STORY.QUARTERS_REST_AGAIN).split("|")[2]) \
 			and main.castle.doll.get_node("body/buckler").visible
 		main.close_story()
 		await wait(1.8)
@@ -5966,7 +5970,7 @@ func run() -> void:
 			await wait(0.1)
 		main.close_story()
 		var door: bool = main.stairs.door_open and main.player_can(sx + 11, 2) \
-			and main.ui.quest.text == main.tr(main.STAIRS_DONE_QUEST) # the top door, not the mold's heart yet
+			and plain(main.ui.quest.text) == main.tr(main.STAIRS_DONE_QUEST) # the top door, not the mold's heart yet
 		main.road_q = 4
 		reset_to(main.stairs.marks.N + Vector2(0, 0.3))
 		await wait(1.5)
@@ -6463,7 +6467,7 @@ func run() -> void:
 		reset_to(main.cave_marks.P)
 		main.cave.check_painting()
 		main.close_story()
-		var painting_q: String = main.ui.quest.text
+		var painting_q: String = plain(main.ui.quest.text)
 		if hp_shut != float(mo7.max_hp) or not held or not hit_open or not painting_q.begins_with(main.tr("열쇠를 찾아")):
 			bad7.append("1 mole shut hp %s held=%s (x %.2f door %.2f, hp %s) open hit=%s quest=%s" % [hp_shut, held, mo7.x, door.x, hp_in, hit_open, painting_q])
 		mo7.hp = float(mo7.max_hp)
@@ -6567,19 +6571,19 @@ func run() -> void:
 		main.player.pots = 3
 		main.player.gold = 10
 		await wait(0.2)
-		var h1: String = main.ui.quest.text
+		var h1: String = plain(main.ui.quest.text)
 		main.player.pots = 0
 		await wait(0.2)
-		var h2: String = main.ui.quest.text
+		var h2: String = plain(main.ui.quest.text)
 		main.player.gold = 50
 		await wait(0.2)
-		var h3: String = main.ui.quest.text
+		var h3: String = plain(main.ui.quest.text)
 		main.player.pots = 3
 		var tk: bool = main.touch_ui
 		var tw: bool = main.keys_last
 		main.touch_ui = true
 		main.keys_last = false
-		var h4: String = main.quest_shown(main.BORI_QUEST)
+		var h4: String = plain(main.quest_shown(main.BORI_QUEST))
 		main.touch_ui = tk
 		main.keys_last = tw
 		if not ("4 키로" in h1 and "(3개)" in h1 and "금화는" in h2 and "상점에서 약을" in h3 and "초록 하트" in h4 and not "상점에서 약을" in h1):
@@ -6665,14 +6669,14 @@ func run() -> void:
 		var fs8: String = main.folk_state.get("kongal", "out")
 		main.folk_state["kongal"] = "in"
 		main.set_quest(raw8) # read at once: by day the sleep update would send her out again
-		var asleep_q: String = main.ui.quest.text
+		var asleep_q: String = plain(main.ui.quest.text)
 		var asleep_j: String = ""
 		for l in main.menus.journal_lines():
 			if "잔다" in String(l):
 				asleep_j = String(l)
-		var night_other: String = main.quest_shown("우편배달부 도란에게 말을 걸어 보자 (E)")
+		var night_other: String = plain(main.quest_shown("우편배달부 도란에게 말을 걸어 보자 (E)"))
 		main.folk_state["kongal"] = "out"
-		var awake_q: String = main.quest_shown(raw8)
+		var awake_q: String = plain(main.quest_shown(raw8))
 		main.folk_state["kongal"] = fs8
 		if not ("콩알은" in asleep_q and "잔다" in asleep_q and "울고" not in asleep_q) or asleep_j == "" or not ("잔다" in night_other or "도란" in night_other) or not ("울고" in awake_q):
 			bad8.append("2 quest asleep [%s] journal [%s] awake [%s]" % [asleep_q, asleep_j, awake_q])
@@ -6697,11 +6701,11 @@ func run() -> void:
 		main.doran_q = 3
 		main.mul_q = 0
 		main.errands.mulgyeol_errand(true)
-		var first_line: String = main.ui.story_text.text
+		var first_line: String = plain(main.ui.story_text.text)
 		main.close_story()
 		main.mul_q = 0
 		main.errands.mulgyeol_errand(false)
-		var again_line: String = main.ui.story_text.text
+		var again_line: String = plain(main.ui.story_text.text)
 		main.close_story()
 		main.doran_q = dq8
 		main.mul_q = mq8

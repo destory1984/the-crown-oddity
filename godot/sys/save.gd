@@ -421,7 +421,7 @@ func load_game() -> void:
 	if m.story_step >= 6: # later chapters: the quest line as it was saved (older saves keep what the zone set)
 		if d.has("quest"):
 			m.set_quest(old_quest_words(String(d.quest)))
-		if m.ui.quest.text.begins_with(OLD_CAVE_QUEST) or m.ui.quest.text == Main.CAVE_QUEST: # written by the bug below: the main road's last step instead
+		if Main.Ko.plain(m.ui.quest.text).begins_with(OLD_CAVE_QUEST) or Main.Ko.plain(m.ui.quest.text) == Main.CAVE_QUEST: # written by the bug below: the main road's last step instead
 			m.set_quest(main_road_quest())
 	else:
 		m.set_quest(["", "팔목의 팔찌를 만져 보자 (E)", "서쪽 오두막으로 가 보자", "북쪽 벽돌왕이 늪의 물길을 막고 있다", "", Main.CAVE_QUEST][clampi(m.story_step, 0, 5)])
@@ -433,7 +433,7 @@ func load_game() -> void:
 		m.set_quest(Main.NIGHT_REST_QUEST)
 	if garden_cut: # the saved quest spoke of the shards or the winding that start over (GPT playtests 2 -> 9)
 		m.set_quest(Main.GARDEN_RETRY_QUEST)
-	if m.ui.quest.text.begins_with(m.windrun_prefix()): # an older save made mid-run: the frozen timer goes
+	if Main.Ko.plain(m.ui.quest.text).begins_with(m.windrun_prefix()): # an older save made mid-run: the frozen timer goes
 		m.set_quest(main_road_quest())
 		if m.mill_q >= 2:
 			m.toast("바람이 흩어졌다. 깃대에서 다시 해 보자")

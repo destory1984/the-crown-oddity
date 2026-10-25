@@ -234,6 +234,10 @@ func layout_settings() -> void:
 			y += h + (18.0 if row[2] != null else 14.0)
 		m.ui.set_pages[k].custom_minimum_size.y = maxf(400.0, y)
 
+# the first n lines of 바뀐 것, each translated, wrapping only at spaces (Ko.keep_words)
+func news_text(n: int) -> String:
+	return Main.Ko.keep_words("\n".join(Main.CHANGES.slice(0, n).map(func(s): return tr(s))))
+
 func scale_text(l: Control) -> void:
 	m.text_bases.append([l, l.get_theme_font_size("normal_font_size" if l is RichTextLabel else "font_size")])
 
@@ -376,7 +380,7 @@ func build_settings(root: Control) -> void:
 	var help_rows := [["이동", "WASD 또는 방향키. Shift를 누르고 있으면 달린다(기력이 준다). 물수제비 걸음을 얻으면 달려서 물 위도 건넌다"],
 		["베기", "J 또는 왼쪽 클릭. 이어 누르면 연속 베기(Lv2 회전 베기, Lv6 내려찍기). 달리며 J는 돌진 베기(Lv3, 기력 15), L로 1초 막은 뒤 J는 모아 베기(Lv4). Lv8 빛 칼날, Lv20 세 갈래"],
 		["구르기", "K 또는 오른쪽 클릭(기력 25, Lv10부터 18). 구르기를 시작하는 순간(0.15초 안, Lv10부터 0.2초)에 공격이 오면 섬광 피하기: 맞지 않고 기세 20, 기력 25를 얻는다"], ["막기", "L 또는 가운데 버튼을 누르고 있는 동안 막는다. 막으면 피해가 30%로 줄고 기력 15를 쓴다. 맞는 순간에 막기를 시작하면 섬광 막기"],
-		["기술", "U 회오리(기세 30), I 불씨탄(기세 15), O 빛파동(기세 60). 숫자 1 2 3도 같다. 기세는 괴물을 때릴 때 찬다(Lv30부터는 줄지 않는다). Lv15부터 다시 쓰기까지 20% 빠르다. 4는 회복약(체력 45, Lv25부터 30% 더)"],
+		["기술", "U 회오리(기세 30), I 불씨탄(기세 15), O 빛파동(기세 60). 1 2 3도 같다. 기세는 괴물을 때리면 차고 Lv30부터 줄지 않는다. Lv15부터 다시 쓰기가 20% 빠르다. 4는 회복약(체력 45, Lv25부터 30% 더)"],
 		["팔찌 E", "말 걸기, 상자와 문 열기, 집 들어가기, 등불 켜기, 벽돌 풀기, 길돌, 낚시. 등불과 벽돌은 달빛 눈금을 쓴다(낮 2, 밤 1). 밤에 켜진 등불 곁에 서 있으면 6초에 한 눈금 찬다"],
 		["메뉴", "Q 일지(할 일, 곁일, 모은 것), H 조작법, M 효과음, B 음악, T 시간 3시간 보내기, P 화면 글자 숨기기, Esc 이 창"],
 		["화면", "Z X 또는 휠로 확대·축소. F8 처음 자리로 돌아가기, F9 처음부터 새로 하기(저장이 지워진다)"], tips]
@@ -394,7 +398,7 @@ func build_settings(root: Control) -> void:
 		["베기", "칼 단추. 이어 누르면 연속 베기(Lv2 회전 베기, Lv6 내려찍기). 달리며 칼은 돌진 베기(Lv3, 기력 15), 방패를 1초 누른 채 칼은 모아 베기(Lv4). Lv8 빛 칼날, Lv20 세 갈래"],
 		["구르기", "화살표 단추(기력 25, Lv10부터 18). 구르기를 시작하는 순간(0.15초 안, Lv10부터 0.2초)에 공격이 오면 섬광 피하기: 맞지 않고 기세 20, 기력 25를 얻는다"],
 		["막기", "방패 단추를 누르고 있는 동안 막는다. 막으면 피해가 30%로 줄고 기력 15를 쓴다. 맞는 순간에 막기를 시작하면 섬광 막기"],
-		["기술", "오른쪽 아래 그림 셋은 회오리(기세 30), 불씨탄(기세 15), 빛파동(기세 60). 기세는 괴물을 때릴 때 찬다(Lv30부터는 줄지 않는다). Lv15부터 다시 쓰기까지 20% 빠르다. 초록 하트는 회복약(체력 45, Lv25부터 30% 더)"],
+		["기술", "오른쪽 아래 그림 셋: 회오리(기세 30), 불씨탄(기세 15), 빛파동(기세 60). 기세는 괴물을 때리면 차고 Lv30부터 줄지 않는다. Lv15부터 다시 쓰기가 20% 빠르다. 초록 하트는 회복약(체력 45, Lv25부터 30% 더)"],
 		["팔찌", "팔찌 단추 (E): 말 걸기, 상자와 문 열기, 집 들어가기, 등불 켜기, 벽돌 풀기, 길돌, 낚시. 등불과 벽돌은 달빛 눈금을 쓴다(낮 2, 밤 1). 밤에 켜진 등불 곁에 서 있으면 6초에 한 눈금 찬다"],
 		["화면", "돋보기 단추로 확대·축소. 미니맵 왼쪽 단추 넷: 조작법, 효과음, 일지, 설정"], tips]
 	m.ui.set_help_touch = []
@@ -433,7 +437,8 @@ func build_settings(root: Control) -> void:
 	var stack := VBoxContainer.new()
 	stack.add_theme_constant_override("separation", 8)
 	scroll.add_child(stack)
-	var news := m.hud_build.label(stack, "\n".join(Main.CHANGES.slice(0, Main.CHANGES_PAGE)), Vector2(0, 0), 18, ODD_MUTED)
+	var news := m.hud_build.label(stack, news_text(Main.CHANGES_PAGE), Vector2(0, 0), 18, ODD_MUTED)
+	news.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED # news_text translates each line before joining its words
 	news.custom_minimum_size = Vector2(620, 0)
 	news.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	scale_text(news)
@@ -444,7 +449,7 @@ func build_settings(root: Control) -> void:
 	more.pressed.connect(func():
 		var shown: int = mini(int(news.get_meta("shown", Main.CHANGES_PAGE)) + Main.CHANGES_PAGE, Main.CHANGES.size())
 		news.set_meta("shown", shown)
-		news.text = "\n".join(Main.CHANGES.slice(0, shown))
+		news.text = news_text(shown)
 		more.visible = shown < Main.CHANGES.size())
 	m.ui.news = news
 	m.ui.news_more = more
@@ -542,7 +547,7 @@ func journal_bbcode(lines: Array) -> String:
 	var heads := JOURNAL_HEADS.map(func(h): return tr(h))
 	var out: Array = []
 	for l in lines:
-		var line: String = m.touch_words(String(l)).replace("[", "[lb]")
+		var line: String = Main.Ko.keep_words(m.touch_words(String(l))).replace("[", "[lb]") # wraps only at spaces
 		if l in heads:
 			out.append("[color=#f6d27a][font_size=17]%s[/font_size][/color]" % line)
 		elif String(l).ends_with(tr("완료")) or String(l).ends_with(tr("끝")):
@@ -569,7 +574,7 @@ func journal_lines() -> Array:
 		out.append(tr("새 바퀴 %d (괴물이 %.1f배 단단하고 아프다)") % [m.ng, m.ng_mult()])
 		out.append("")
 	out.append(tr("지금 할 일"))
-	out.append("  " + (tr(m.ui.quest.text) if m.ui.quest.text != "" else tr("마음 가는 대로 둘러보자")))
+	out.append("  " + (tr(Main.Ko.plain(m.ui.quest.text)) if m.ui.quest.text != "" else tr("마음 가는 대로 둘러보자")))
 	out.append("")
 	out.append(tr("곁이야기"))
 	var side := func(name: String, state: String): out.append("  · " + tr(name) + "  —  " + state)

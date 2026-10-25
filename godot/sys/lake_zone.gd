@@ -32,7 +32,7 @@ func enter_lake() -> void:
 		m.lake_q = 1
 		m.show_story("", Main.STORY.LAKE_IN)
 		m.set_quest("수문의 벽돌을 팔찌로 풀자 (E)")
-	elif m.lake_q == 2 and m.ui.quest.text == m.touch_words(tr(Main.LAKE_RETRY_QUEST)):
+	elif m.lake_q == 2 and Main.Ko.plain(m.ui.quest.text) == m.touch_words(tr(Main.LAKE_RETRY_QUEST)):
 		m.set_quest("부두의 물결에게 말을 걸자 (E)")
 	m.save_game()
 

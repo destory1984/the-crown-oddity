@@ -670,6 +670,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-26 아침",
+	"· v0.0.74: 설정 창 말고도 이야기 상자, 일지, 할 일 줄, 상점 물건 설명, 바뀐 것 목록의 글이 띄어쓰기에서만 꺾인다(낱말 한가운데서 꺾이지 않는다). 도움말의 기술 줄을 4줄 → 3줄로 줄였다. 이야기 글은 그대로 1초에 40자씩 나온다.",
 	"· v0.0.73: 클라우드에서 찾은 잘못 9개를 고쳤다(자동 시험 141 → 150개).",
 	"    - 벽돌 매와 굳은달 거푸집이 제 자리를 벗어난 소라를 쫓아와, 마을과 달의 계단에서도 내리꽂기와 고리 공격(18 → 26)을 했다. 이제 매는 제 바위 14칸 안에서만, 거푸집은 정원 안에서만 싸운다.",
 	"    - 거푸집 체력이 12%를 조금 넘을 때 큰 한 방을 넣으면 고블린처럼 죽어 끝 장면으로 가지 못했다. 이제 그 싸움 중에는 체력 1에서 멈추고 굳는다.",
@@ -1718,13 +1719,14 @@ func prep_hint() -> String:
 		return tr("상점에서 약을 챙기자")
 	return tr("금화는 괴물을 잡으면 모인다. 약값은 %d") % SHOP[0].price
 
+# a narrow window wraps the line: it breaks only at spaces (Ko.keep_words), so code reading it back uses Ko.plain
 func quest_shown(raw: String) -> String:
 	if raw.begins_with(BORI_QUEST): # old saves kept the line with its old fixed hint
-		return touch_words(tr(BORI_QUEST) + " (" + prep_hint() + ")")
+		return Ko.keep_words(touch_words(tr(BORI_QUEST) + " (" + prep_hint() + ")"))
 	var sleeper: String = errands.quest_sleeper(raw)
 	if sleeper != "":
-		return touch_words(Ko.josa(errands.sleeping_quest(sleeper)))
-	return touch_words(Ko.josa(tr(raw)))
+		return Ko.keep_words(touch_words(Ko.josa(errands.sleeping_quest(sleeper))))
+	return Ko.keep_words(touch_words(Ko.josa(tr(raw))))
 
 func set_quest(text: String) -> void:
 	quest_raw = text
@@ -1734,6 +1736,7 @@ var story_lines: Array = []
 
 const STORY := preload("res://story_lines.gd")
 var typing := 0.0 # characters shown so far, for the typewriter reveal
+var typing_k := 1.0 # characters per letter in the shown line: the word joiners reveal with their letters, 40 letters a second
 var talk_mode := false
 
 func toast(msg: String) -> void:
@@ -1858,7 +1861,7 @@ func _process(dt: float) -> void:
 		return
 	if story_open:
 		if ui.story_text.visible_characters != -1:
-			typing += dt * 40.0
+			typing += dt * 40.0 * typing_k
 			ui.story_text.visible_characters = int(typing)
 			if ui.story_text.visible_characters >= ui.story_text.text.length():
 				ui.story_text.visible_characters = -1

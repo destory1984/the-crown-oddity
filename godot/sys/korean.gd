@@ -64,3 +64,7 @@ static func keep_words(text: String) -> String:
 ":
 			out += char(0x2060)
 	return out
+
+# the text as written, without the joiners keep_words put in: for code that reads a shown line back
+static func plain(text: String) -> String:
+	return text.replace(char(0x2060), "")
