@@ -10,6 +10,8 @@ const MATE_OFF := {"mulgyeol": Vector3(-1.3, 0, -0.6), "noeul": Vector3(1.3, 0, 
 const MATE_BACK := {"mulgyeol": 1.3, "noeul": 2.5}
 const MATE_REST := 10.0
 
+var trailing := {} # id -> following on her footsteps because she walks along his side spot's line
+
 func _init(main: Main) -> void:
 	m = main
 
@@ -111,6 +113,17 @@ func mate_goal(id: String) -> Vector3:
 	var side_ok := mate_way(me, goal) and (avoid == null or goal.distance_to(avoid) >= 1.0)
 	if side_ok and node != null and m.mate_idle < 0.6 and passes_her(node.position, goal, me):
 		side_ok = false # behind her in a corridor: no squeezing past
+	# walking along the line of his side spot (east or west: the spot is ahead of her or behind her), he falls in behind
+	# on her footsteps instead; the side spot flipped him from side to side to behind every few steps (the owner,
+	# 2026-10-25). Once behind he stays there until her heading turns well across it, or she stops.
+	var back1 = trail_spot(1.0) if m.mate_idle < 0.6 else null
+	var along := false
+	if back1 != null and (me - back1).length() > 0.01:
+		var lim := 0.35 if trailing.get(id, false) else 0.55
+		along = absf((MATE_OFF[id] as Vector3).normalized().dot((me - back1).normalized())) > lim
+	trailing[id] = along
+	if along:
+		side_ok = false
 	if not side_ok:
 		var back_at = trail_spot(MATE_BACK[id]) if m.mate_idle < 0.6 else null
 		goal = back_at if back_at != null else open_spot(id, avoid)

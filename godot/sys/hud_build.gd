@@ -177,7 +177,7 @@ func quest_blocks(with_player := true) -> Array:
 		out.append(pr)
 	if not m.touch_ui:
 		var vs0 := m.get_viewport().get_visible_rect().size
-		out.append(Rect2(vs0.x - 296.0, vs0.y - 104.0, 288.0, 100.0)) # the skill slots
+		out.append(Rect2(vs0.x - 304.0, vs0.y - 104.0, 296.0, 100.0)) # the skill slots
 		out.append(Rect2(vs0.x - 80.0, vs0.y - 130.0, 66.0, 30.0)) # the gold box
 	if mates_rect().size != Vector2.ZERO:
 		out.append(mates_rect())
@@ -349,12 +349,12 @@ func disable_touch() -> void:
 		m.touch_layer = null
 	var col := [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn]
 	for i in col.size():
-		place(col[i], Control.PRESET_BOTTOM_LEFT, Vector2(8 + i * 72, -72), Vector2(64, 64))
+		place(col[i], Control.PRESET_BOTTOM_LEFT, Vector2(8 + i * 76, -93), Vector2(68, 68))
 	for sheet in [m.ui.journal, m.ui.ways, m.ui.help, m.ui.set_card]:
 		sheet.scale = Vector2.ONE
 		m.menus.size_back_keys(sheet)
-	place(m.ui.journal, Control.PRESET_BOTTOM_LEFT, Vector2(8, -647), Vector2(800, 567))
-	place(m.ui.ways, Control.PRESET_BOTTOM_LEFT, Vector2(8, -324), Vector2(330, 244))
+	place(m.ui.journal, Control.PRESET_BOTTOM_LEFT, Vector2(8, -668), Vector2(800, 567))
+	place(m.ui.ways, Control.PRESET_BOTTOM_LEFT, Vector2(8, -345), Vector2(330, 244))
 	use_touch_help(false)
 	for c in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn, m.ui.mini.get_parent()]: # the touch layer hid them under sheets
 		c.visible = not m.intro
@@ -364,7 +364,8 @@ func disable_touch() -> void:
 	m.menus.layout_settings()
 
 # ---- the bottom-left buttons: gold diamond keys in the skills' family (draft 4 of five, double gold rim with a thin
-# line symbol, the user's pick 2026-10-24), 64 px, 8 px apart and 8 px from the edges; the key is in the tooltip
+# line symbol, the user's pick 2026-10-24), 68 px like the skills and 8 px apart, their centres on the skills' line
+# (59 px over the bottom edge; the owner, 2026-10-25); the key is in the tooltip
 func key_tex(kind: String) -> Texture2D:
 	return load("res://art/ui/key_%s.png" % kind)
 
@@ -381,7 +382,7 @@ func icon_button(root: Control, kind: String, key: String, tip: String, x: float
 	b.add_theme_color_override("icon_normal_color", Color(0.9, 0.9, 0.9))
 	b.add_theme_color_override("icon_hover_color", Color.WHITE)
 	b.add_theme_color_override("icon_pressed_color", Color(0.75, 0.75, 0.75))
-	place(b, Control.PRESET_BOTTOM_LEFT, Vector2(x, -72), Vector2(64, 64))
+	place(b, Control.PRESET_BOTTOM_LEFT, Vector2(x, -93), Vector2(68, 68)) # the skills' size, centres on their line (the owner, 2026-10-25)
 	b.pressed.connect(fn)
 	root.add_child(b)
 	return b
@@ -696,7 +697,7 @@ func build_hud() -> void:
 	m.ui.gold = label(gold, "◆ 0", Vector2(10, 4), 14, Color("#ffd84a"))
 
 	# controls help, starts hidden; H or the button toggles it
-	var help := m.menus.menu_panel(root, Vector2(8, -567), Vector2(340, 487), Control.PRESET_BOTTOM_LEFT) # ends 8 px above the buttons
+	var help := m.menus.menu_panel(root, Vector2(8, -588), Vector2(340, 487), Control.PRESET_BOTTOM_LEFT) # ends 8 px above the buttons
 	help.mouse_filter = Control.MOUSE_FILTER_STOP
 	var help_title := label(help, "조작법", Vector2(62, 20), 13, Color("#a99d84"))
 	var rows := [["WASD / 방향키", "이동"], ["Shift", "달리기"], ["J / 왼쪽 클릭", "공격 (연속기)"], ["K / 오른쪽 클릭", "구르기 (때맞추면 섬광)"], ["L / 가운데 클릭", "막기 (때맞추면 반격, Lv4부터 1초 모아 J)"],
@@ -735,7 +736,7 @@ func build_hud() -> void:
 	help.visible = false
 	m.ui.help = help
 	# the journal (Q): what to do now, the side stories found so far and the keepsakes Sora carries
-	var journal := m.menus.menu_panel(root, Vector2(8, -647), Vector2(800, 567), Control.PRESET_BOTTOM_LEFT)
+	var journal := m.menus.menu_panel(root, Vector2(8, -668), Vector2(800, 567), Control.PRESET_BOTTOM_LEFT)
 	journal.mouse_filter = Control.MOUSE_FILTER_STOP
 	var journal_title := label(journal, "일지", Vector2(62, 20), 14, Color("#a99d84"))
 	m.menus.menu_rule(journal, Vector2(14, 60), 772)
@@ -744,18 +745,18 @@ func build_hud() -> void:
 	m.menus.back_key(journal, func(): m.toggle_journal(false)).set_meta("title", journal_title)
 	journal.visible = false
 	m.ui.journal = journal
-	var ways := m.menus.menu_panel(root, Vector2(8, -324), Vector2(330, 244), Control.PRESET_BOTTOM_LEFT)
+	var ways := m.menus.menu_panel(root, Vector2(8, -345), Vector2(330, 244), Control.PRESET_BOTTOM_LEFT)
 	var wt := label(ways, "", Vector2(16, 12), 15, Color("#e9dfc4"))
 	wt.size = Vector2(300, 200)
 	wt.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	m.ui.ways_text = wt
 	ways.visible = false
 	m.ui.ways = ways
-	m.ui.hint = icon_button(root, "help", "H", "조작법", 8, func(): m.toggle_help(true)) # 64 px keys 8 px apart and 8 px from the edge
-	m.ui.sound_btn = icon_button(root, "sound", "M", "효과음", 80, m.toggle_sound)
+	m.ui.hint = icon_button(root, "help", "H", "조작법", 8, func(): m.toggle_help(true)) # 68 px keys 8 px apart, centred on the skills' line
+	m.ui.sound_btn = icon_button(root, "sound", "M", "효과음", 84, m.toggle_sound)
 	m.menus.refresh_sound_btn()
-	m.ui.journal_btn = icon_button(root, "journal", "Q", "일지", 152, func(): m.toggle_journal(not m.ui.journal.visible))
-	m.ui.settings_btn = icon_button(root, "gear", "Esc", "설정", 224, func(): m.toggle_settings(not m.settings_open))
+	m.ui.journal_btn = icon_button(root, "journal", "Q", "일지", 160, func(): m.toggle_journal(not m.ui.journal.visible))
+	m.ui.settings_btn = icon_button(root, "gear", "Esc", "설정", 236, func(): m.toggle_settings(not m.settings_open))
 	m.menus.build_settings(root)
 	if m.touch_ui:
 		enable_touch()
@@ -848,7 +849,7 @@ func build_hud() -> void:
 	face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
 	cap.add_child(face)
-	var cap_text := label(cap, "", Vector2(140, 34), 20)
+	var cap_text := label(cap, "", Vector2(140, 34), 23) # the owner, 2026-10-25: a little bigger than 20
 	cap_text.size = Vector2(760, 90)
 	cap_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cap_text.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING # wrapped as the whole line, so fit_story sees every line while it types

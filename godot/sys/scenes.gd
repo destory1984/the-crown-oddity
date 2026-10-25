@@ -64,6 +64,7 @@ const SCENES := {
 	"trial": {"play": true, "village": true, "trial": true, "hour": 21.0},
 	"cage": {"play": true, "village": true, "forest": true, "cage": true, "hour": 14.0},
 	"race": {"play": true, "village": true, "hill": true, "race": true, "hour": 10.0},
+	"east_bank": {"play": true, "at": Vector2(44.0, 20.0), "hour": 14.0}, # just outside the village gate
 	"moonflower": {"play": true, "at": Vector2(37.0, 24.5), "hour": 22.5, "day": 4},
 	"house": {"play": true, "village": true, "house": true, "hour": 15.0},
 	"house_picture": {"play": true, "village": true, "house": true, "picture": true, "hour": 15.0}, # the old painting, small in the corner

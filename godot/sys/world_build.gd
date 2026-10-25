@@ -487,6 +487,12 @@ func build_props() -> void:
 			continue
 		var v := m.rng.randf()
 		var kind := "pine" if v < 0.4 else ("autumn" if v < 0.55 else "leafy")
+		if Vector2(x, z).distance_to(Vector2(43.0, 21.5)) < 4.5: # the village gate's riverbank stays open (the owner, 2026-10-25:
+			var gone: Array = [] # the trees there hid Sora); built and thrown away so the random draws after it stay the same
+			voxel_tree(x, z, kind, [], gone)
+			gone[0].free()
+			m.rocks.pop_back()
+			continue
 		voxel_tree(x, z, kind, cubes, trunks)
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D

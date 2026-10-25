@@ -197,7 +197,7 @@ func layout_help() -> void:
 		(m.ui.help_rows[i][1] as Label).position = Vector2(14 + iw + kw + 24, top + i * step)
 	var w: float = maxf(340.0, 14 + iw + kw + 24 + dw + 22)
 	var h: float = top + m.ui.help_rows.size() * step + 18
-	m.place(m.ui.help, Control.PRESET_BOTTOM_LEFT, Vector2(8, -80 - h), Vector2(w, h)) # 8 px over the keys
+	m.place(m.ui.help, Control.PRESET_BOTTOM_LEFT, Vector2(8, -101 - h), Vector2(w, h)) # 8 px over the keys
 	if m.touch_ui:
 		m.hud_build.fit_sheet(m.ui.help)
 
@@ -348,10 +348,10 @@ func build_settings(root: Control) -> void:
 	for i in rows.size():
 		var r: Array = rows[i]
 		var y := i * 92
-		var t := m.hud_build.label(m.ui.set_pages[0], r[1], Vector2(0, y), 16, Color("#eef3ff"))
+		var t := m.hud_build.label(m.ui.set_pages[0], r[1], Vector2(0, y), 18, Color("#eef3ff"))
 		t.add_theme_font_override("font", m.ui_font)
 		t.size = Vector2(112, 20)
-		var dsc := m.hud_build.wrap_label(m.ui.set_pages[0], r[2], Vector2(122, y), 518, 16, ODD_MUTED)
+		var dsc := m.hud_build.wrap_label(m.ui.set_pages[0], r[2], Vector2(122, y), 518, 18, ODD_MUTED)
 		scale_text(dsc)
 		scale_text(t)
 		var key: String = r[0]
@@ -363,9 +363,9 @@ func build_settings(root: Control) -> void:
 			save_settings()
 			apply_settings())
 		m.ui.set_stacks[0].append([t, dsc, m.ui.set_rows[key]])
-	var lt := m.hud_build.label(m.ui.set_pages[0], "언어", Vector2(0, 4 * 92), 16, Color("#eef3ff"))
+	var lt := m.hud_build.label(m.ui.set_pages[0], "언어", Vector2(0, 4 * 92), 18, Color("#eef3ff"))
 	lt.size = Vector2(112, 20)
-	var lang := m.hud_build.wrap_label(m.ui.set_pages[0], "한국어. 영어, 일본어, 중국어는 번역 표만 준비되어 있다.", Vector2(122, 4 * 92), 518, 16, ODD_MUTED)
+	var lang := m.hud_build.wrap_label(m.ui.set_pages[0], "한국어. 영어, 일본어, 중국어는 번역 표만 준비되어 있다.", Vector2(122, 4 * 92), 518, 18, ODD_MUTED)
 	scale_text(lt)
 	scale_text(lang)
 	m.ui.set_stacks[0].append([lt, lang, null])
@@ -374,9 +374,9 @@ func build_settings(root: Control) -> void:
 		["기술", "U I O 또는 1 2 3, 회복약은 4"], ["팔찌", "E: 말 걸기, 열기, 들어가기, 등불, 벽돌 풀기, 길돌, 낚시"], ["메뉴", "Q 일지, H 조작법, M 소리, B 음악, T 3시간 보내기"],
 		["화면", "Z X 또는 휠로 확대·축소. F8 처음 자리로, F9 처음부터. Esc 이 창"], ["요령", "맞기 직전에 구르면 섬광 피하기, 막으면 섬광 막기. 괴물은 때리기 전에 빨갛게 부풀고 \"!\"가 뜬다"]]
 	for i in help_rows.size():
-		var ht := m.hud_build.label(m.ui.set_pages[1], help_rows[i][0], Vector2(0, i * 48), 16, Color("#eef3ff"))
+		var ht := m.hud_build.label(m.ui.set_pages[1], help_rows[i][0], Vector2(0, i * 48), 18, Color("#eef3ff"))
 		ht.size = Vector2(112, 20)
-		var hd := m.hud_build.wrap_label(m.ui.set_pages[1], help_rows[i][1], Vector2(122, i * 48), 518, 16, ODD_MUTED)
+		var hd := m.hud_build.wrap_label(m.ui.set_pages[1], help_rows[i][1], Vector2(122, i * 48), 518, 18, ODD_MUTED)
 		scale_text(hd)
 		scale_text(ht)
 		m.ui.set_stacks[1].append([ht, hd, null])
@@ -388,9 +388,9 @@ func build_settings(root: Control) -> void:
 		["화면", "돋보기 단추로 확대·축소. 미니맵 왼쪽 단추 넷: 조작법, 효과음, 일지, 설정"], help_rows[6]]
 	m.ui.set_help_touch = []
 	for i in touch_rows.size():
-		var tt := m.hud_build.label(m.ui.set_pages[1], touch_rows[i][0], Vector2(0, i * 48), 16, Color("#eef3ff"))
+		var tt := m.hud_build.label(m.ui.set_pages[1], touch_rows[i][0], Vector2(0, i * 48), 18, Color("#eef3ff"))
 		tt.size = Vector2(112, 20)
-		var td := m.hud_build.wrap_label(m.ui.set_pages[1], touch_rows[i][1], Vector2(122, i * 48), 518, 16, ODD_MUTED)
+		var td := m.hud_build.wrap_label(m.ui.set_pages[1], touch_rows[i][1], Vector2(122, i * 48), 518, 18, ODD_MUTED)
 		scale_text(td)
 		scale_text(tt)
 		tt.visible = false
@@ -399,9 +399,9 @@ func build_settings(root: Control) -> void:
 	# the tune that plays and the button for the next one: one row in the keyboard list and one in the touch list
 	m.ui.music_rows = []
 	for stack in [m.ui.set_help_keys, m.ui.set_help_touch]:
-		var mt := m.hud_build.label(m.ui.set_pages[1], "음악", Vector2(0, stack.size() * 48), 16, Color("#eef3ff"))
+		var mt := m.hud_build.label(m.ui.set_pages[1], "음악", Vector2(0, stack.size() * 48), 18, Color("#eef3ff"))
 		mt.size = Vector2(112, 20)
-		var md := m.hud_build.wrap_label(m.ui.set_pages[1], m.music.tune_line(), Vector2(122, stack.size() * 48), 518, 16, ODD_MUTED)
+		var md := m.hud_build.wrap_label(m.ui.set_pages[1], m.music.tune_line(), Vector2(122, stack.size() * 48), 518, 18, ODD_MUTED)
 		md.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		scale_text(md)
 		scale_text(mt)
@@ -422,7 +422,7 @@ func build_settings(root: Control) -> void:
 	var stack := VBoxContainer.new()
 	stack.add_theme_constant_override("separation", 8)
 	scroll.add_child(stack)
-	var news := m.hud_build.label(stack, "\n".join(Main.CHANGES.slice(0, Main.CHANGES_PAGE)), Vector2(0, 0), 16, ODD_MUTED)
+	var news := m.hud_build.label(stack, "\n".join(Main.CHANGES.slice(0, Main.CHANGES_PAGE)), Vector2(0, 0), 18, ODD_MUTED)
 	news.custom_minimum_size = Vector2(620, 0)
 	news.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	scale_text(news)
@@ -439,9 +439,9 @@ func build_settings(root: Control) -> void:
 	m.ui.news_more = more
 	# About
 	# About holds only the maker (the user cut the rest)
-	var at := m.hud_build.label(m.ui.set_pages[3], "만든 사람", Vector2(0, 0), 16, Color("#eef3ff"))
+	var at := m.hud_build.label(m.ui.set_pages[3], "만든 사람", Vector2(0, 0), 18, Color("#eef3ff"))
 	at.size = Vector2(112, 20)
-	var ad := m.hud_build.wrap_label(m.ui.set_pages[3], "우주한량", Vector2(122, 0), 518, 16, ODD_MUTED)
+	var ad := m.hud_build.wrap_label(m.ui.set_pages[3], "우주한량", Vector2(122, 0), 518, 18, ODD_MUTED)
 	scale_text(ad)
 	var foot := set_button(col, "놀이로 돌아가기", Vector2(0, 512), Vector2(640, 44), func(): toggle_settings(false))
 	foot.add_theme_font_size_override("font_size", 15)

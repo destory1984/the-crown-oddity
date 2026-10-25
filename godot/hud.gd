@@ -129,7 +129,7 @@ func _draw() -> void:
 	var cds: Array = p.cds
 	var cd_max := [main.SKILL_CD[0], main.SKILL_CD[1], main.SKILL_CD[2], 2.0]
 	for i in 4:
-		var sc := Vector2(vs.x - 264 + i * 74, vs.y - 59) # the last icon and the key tags 8 px from the right and bottom edges
+		var sc := Vector2(vs.x - 270 + i * 76, vs.y - 59) # 8 px apart, the last icon and the key tags 8 px from the right and bottom edges
 		draw_texture_rect(icons[i], Rect2(sc - Vector2(34, 34), Vector2(68, 68)), false)
 		var frac: float = cds[i] / cd_max[i]
 		var cant: bool = i < 3 and p.mp < main.skill_cost(i)

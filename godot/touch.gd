@@ -34,7 +34,7 @@ func keys() -> Dictionary:
 		"zoom_out": [Vector2(vs.x - 358, 100), 26.0],
 	}
 	for i in 4: # the skill icons hud.gd draws (U I O and the potion)
-		k["skill%d" % i] = [Vector2(vs.x - 264 + i * 74, vs.y - 59), 36.0]
+		k["skill%d" % i] = [Vector2(vs.x - 270 + i * 76, vs.y - 59), 36.0]
 	return k
 
 # the keys are for play only: a story, the shop, a sheet or the settings take taps as clicks

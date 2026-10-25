@@ -262,7 +262,7 @@ func fit_story() -> void:
 	if small_pic: # a square at the top right, between the minimap and the HUD bars, its right edge in line with the box
 		var vh := m.get_viewport().get_visible_rect().size.y
 		var top := 30.0
-		var s := minf(vh * 0.6, vh + m.ui.story_cap.offset_top - 24.0 - top) # the owner: four times the first 268 px square
+		var s := minf(vh * 0.45, vh + m.ui.story_cap.offset_top - 24.0 - top) # the owner: 268 px was too small, 540 too big; 405 px at 900 high
 		var right := cw / 2.0 - 12.0
 		m.ui.story_frame.offset_right = right
 		m.ui.story_frame.offset_left = right - s
