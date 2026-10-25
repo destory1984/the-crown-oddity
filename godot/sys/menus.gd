@@ -370,9 +370,15 @@ func build_settings(root: Control) -> void:
 	scale_text(lang)
 	m.ui.set_stacks[0].append([lt, lang, null])
 	# 도움말
-	var help_rows := [["이동", "WASD, 방향키. Shift로 달린다 (물수제비 걸음을 얻으면 물 위도)"], ["싸움", "J 또는 왼쪽 클릭 베기, K 또는 오른쪽 클릭 구르기, L 막기"],
-		["기술", "U I O 또는 1 2 3, 회복약은 4"], ["팔찌", "E: 말 걸기, 열기, 들어가기, 등불, 벽돌 풀기, 길돌, 낚시"], ["메뉴", "Q 일지, H 조작법, M 소리, B 음악, T 3시간 보내기"],
-		["화면", "Z X 또는 휠로 확대·축소. F8 처음 자리로, F9 처음부터. Esc 이 창"], ["요령", "맞기 직전에 구르면 섬광 피하기, 막으면 섬광 막기. 괴물은 때리기 전에 빨갛게 부풀고 \"!\"가 뜬다"]]
+	# the owner, 2026-10-25: more detail, so each row says what the key does, what it costs and when it opens up
+	var tips := ["요령", "괴물은 때리기 직전에 빨갛게 부풀고 \"!\"가 뜬다. 그때 구르면 섬광 피하기(잠깐 세상이 느려진다), 막으면 섬광 막기. 쓰러지면 금화와 레벨은 그대로 두고 건널목이나 광장에서 다시 깬다"]
+	var help_rows := [["이동", "WASD 또는 방향키. Shift를 누르고 있으면 달린다(기력이 준다). 물수제비 걸음을 얻으면 달려서 물 위도 건넌다"],
+		["베기", "J 또는 왼쪽 클릭. 이어 누르면 연속 베기: Lv2에 넷째 칼이 회전 베기, Lv6에 다섯째 칼이 내려찍기가 된다. Lv3부터 달리며 J는 돌진 베기(기력 15), Lv4부터 L로 1초 막은 뒤 J는 모아 베기"],
+		["구르기", "K 또는 오른쪽 클릭(기력 25). 구르기를 시작하는 순간(0.15초 안)에 공격이 오면 섬광 피하기: 맞지 않고 기세 20, 기력 25를 얻는다"], ["막기", "L 또는 가운데 버튼을 누르고 있는 동안 막는다. 막으면 피해가 30%로 줄고 기력 15를 쓴다. 맞는 순간에 막기를 시작하면 섬광 막기"],
+		["기술", "U 회오리(기세 30), I 불씨탄(기세 15), O 빛파동(기세 60). 숫자 1 2 3도 같다. 기세는 괴물을 때릴 때 찬다. 4는 회복약(체력 45)"],
+		["팔찌 E", "말 걸기, 상자와 문 열기, 집 들어가기, 등불 켜기, 벽돌 풀기, 길돌, 낚시. 등불과 벽돌은 달빛 눈금을 쓴다(낮 2, 밤 1). 밤에 켜진 등불 곁에 서 있으면 6초에 한 눈금 찬다"],
+		["메뉴", "Q 일지(할 일, 곁일, 모은 것), H 조작법, M 효과음, B 음악, T 시간 3시간 보내기, P 화면 글자 숨기기, Esc 이 창"],
+		["화면", "Z X 또는 휠로 확대·축소. F8 처음 자리로 돌아가기, F9 처음부터 새로 하기(저장이 지워진다)"], tips]
 	for i in help_rows.size():
 		var ht := m.hud_build.label(m.ui.set_pages[1], help_rows[i][0], Vector2(0, i * 48), 18, Color("#eef3ff"))
 		ht.size = Vector2(112, 20)
@@ -385,7 +391,7 @@ func build_settings(root: Control) -> void:
 	var touch_rows := [["이동", "화면 왼쪽에 엄지를 대면 막대가 생긴다. 끝까지 밀면 달린다 (물수제비 걸음을 얻으면 물 위도)"],
 		["싸움", "칼 단추로 베기, 화살표 단추로 구르기, 방패 단추를 누르고 있으면 막기"],
 		["기술", "오른쪽 아래 그림 셋은 회오리·불씨탄·빛파동, 초록 하트는 회복약"], ["팔찌", "팔찌 단추 (E): 말 걸기, 열기, 들어가기, 등불, 벽돌 풀기, 길돌, 낚시"],
-		["화면", "돋보기 단추로 확대·축소. 미니맵 왼쪽 단추 넷: 조작법, 효과음, 일지, 설정"], help_rows[6]]
+		["화면", "돋보기 단추로 확대·축소. 미니맵 왼쪽 단추 넷: 조작법, 효과음, 일지, 설정"], tips]
 	m.ui.set_help_touch = []
 	for i in touch_rows.size():
 		var tt := m.hud_build.label(m.ui.set_pages[1], touch_rows[i][0], Vector2(0, i * 48), 18, Color("#eef3ff"))
@@ -410,7 +416,7 @@ func build_settings(root: Control) -> void:
 			mt.visible = false
 			md.get_parent().visible = false
 			nb.visible = false
-		stack.append([mt, md, nb])
+		stack.insert(0, [mt, md, nb]) # first: below eight longer help rows it sat past two screens
 		m.ui.music_rows.append([mt, md, nb])
 	m.ui.set_stacks[1] = m.ui.set_help_keys
 	# 바뀐 것

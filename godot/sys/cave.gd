@@ -56,6 +56,14 @@ const CAVE_SPAWNS := [ # [x, z, archer] in cave tiles
 ]
 const CRYSTAL_AT := [Vector2(2, 18), Vector2(6, 18), Vector2(10, 18), Vector2(13, 19)] # cave tiles
 const NOTES := [262.0, 330.0, 392.0, 523.0]
+
+var gate_told := false # the grate's hint was shown while she stands by it
+
+# the line under the quest while she is down the stream with the grate still shut
+func post_side() -> String:
+	if not m.in_cave or m.story_open or m.post_q != 1 or m.player.z < 20.5:
+		return ""
+	return tr("섬 수정 넷을 낮은 소리부터 울리자 %d/4") % m.post_run
 const POST_CRYSTALS := [Vector2(2, 28), Vector2(9, 28), Vector2(7, 31), Vector2(2, 32)] # cave tiles, on the islands
 const POST_SPAWNS := [[17, 28, false], [22, 30, false], [28, 28, true]] # cave tiles, archer?
 const POST_AMBUSH := [[12, 28, false], [12, 32, false], [16, 30, true]]
@@ -590,6 +598,18 @@ func update_post() -> void:
 		m.ui.zone_sub.text = sub
 	if m.story_open:
 		return
+	# by the shut grate of the south room: say what opens it, once per visit to it (the owner, 2026-10-25: the room
+	# looked like one that could not be entered at all)
+	var at_gate := m.post_q < 2 and me.distance_to(m.cave_marks.G + Vector2(0.5, 0)) < 2.2
+	if at_gate and not gate_told:
+		if m.has_skip:
+			m.toast("창살이 잠겨 있다. 물웅덩이 섬의 수정 넷을 낮은 소리부터 울리면 열릴 것 같다")
+			if m.post_q == 0:
+				m.post_q = 1 # the journal and the line under the quest pick it up
+				m.save_game()
+		else:
+			m.toast("창살이 잠겨 있다. 물 위 섬에 건너갈 걸음부터 찾자 (수레두더지 너머)")
+	gate_told = at_gate or (gate_told and me.distance_to(m.cave_marks.G + Vector2(0.5, 0)) < 3.5)
 	if m.has_skip and m.post_q == 0 and me.distance_to(Vector2(Main.CAVE_X + 26, 20)) < 2.0:
 		m.post_q = 1
 		m.show_story("", Main.STORY.POST_STREAM)

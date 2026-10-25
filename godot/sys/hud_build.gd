@@ -202,6 +202,8 @@ func update_side() -> void:
 	var s: String = m.shore.side_step() if m.ui.quest.visible and not m.intro else ""
 	if m.ui.quest.visible and not m.intro and m.shore_wave < 0 and m.shore_float.is_empty() and m.errands.letter_side_line() != "":
 		s = m.errands.letter_side_line() # a running shore fight keeps the line; waiting shore steps give way to the letter
+	if s == "" and m.ui.quest.visible and not m.intro:
+		s = m.cave.post_side()
 	var shown := m.touch_words(tr(s)) if s != "" else ""
 	if side_label.text != shown:
 		side_label.text = shown
