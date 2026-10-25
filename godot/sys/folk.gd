@@ -25,10 +25,11 @@ func _init(main: Main) -> void:
 # ground spot) stay put. `key` names the walker, `base_y` is the sprite's resting height, `alt` alternates frames 0 and 1.
 const HOP_H := 0.12 # a hop's height in world units (Mulgyeol's old 0.06 doubled)
 const HOP_STEP := 0.45 # tiles walked per hop
+const MATE_HOP_STEP := HOP_STEP * 4.0 # the companions run at Sora's pace, so they hop a quarter as often as villagers (the user, 2026-10-25: "너무 폴짝거리네", "인터벌 4배로")
 const HOP_SQUASH_T := 0.06
 var hops := {} # key -> {last, p, base, scale, squash, n}
 
-func hop(key: String, spr: Sprite3D, dt: float, base_y := 0.0, height := HOP_H, alt := false) -> void:
+func hop(key: String, spr: Sprite3D, dt: float, base_y := 0.0, height := HOP_H, alt := false, step := HOP_STEP) -> void:
 	var g := Vector2(spr.global_position.x, spr.global_position.z)
 	if not hops.has(key) or not is_instance_valid(hops[key].get("spr")) or hops[key].spr != spr:
 		hops[key] = {"last": g, "p": 0.0, "scale": spr.scale, "squash": 0.0, "n": 0, "spr": spr}
@@ -39,7 +40,7 @@ func hop(key: String, spr: Sprite3D, dt: float, base_y := 0.0, height := HOP_H, 
 		d = 0.0
 	var p: float = s.p
 	if d > 0.002:
-		p += d / HOP_STEP
+		p += d / step
 	elif p > 0.0:
 		p += dt * 6.0 # settles at about a walking pace
 	if p >= 1.0:

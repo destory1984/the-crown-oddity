@@ -255,7 +255,7 @@ func update_mate2(dt: float) -> void:
 		spr.flip_h = m.screen_left(Vector2(to.x, to.z))
 	else:
 		spr.frame = 0
-	m.folk.hop("noeul", spr, dt)
+	m.folk.hop("noeul", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP)
 	if m.mate != null and m.mate.visible: # never on top of Mulgyeol
 		var apart := Vector3(m.mate2.position.x - m.mate.position.x, 0, m.mate2.position.z - m.mate.position.z)
 		if apart.length() < 0.7 and apart.length() > 0.01:
@@ -313,7 +313,7 @@ func update_mate(dt: float) -> void:
 	mulgyeol_sit(sit)
 	if sit: # sitting by her: nothing near, so nothing to fight
 		m.mate.position.y = 0.0
-		m.folk.hop("mulgyeol", spr, dt) # settles a hop that was still in the air
+		m.folk.hop("mulgyeol", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP) # settles a hop that was still in the air
 		return
 	if to.length() > stop:
 		m.mate.position = mate_step(m.mate.position, to.normalized() * minf(to.length() - stop, dt * 5.5))
@@ -321,7 +321,7 @@ func update_mate(dt: float) -> void:
 	else:
 		m.mate.position.y = 0.0
 	m.mate.position.y = 0.0
-	m.folk.hop("mulgyeol", spr, dt)
+	m.folk.hop("mulgyeol", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP)
 	spr.frame = 1 if fmod(m.t, 3.0) < 0.3 else 0
 	if target != null and best < 1.9 and m.mate_cd <= 0.0 and not m.story_open:
 		m.mate_cd = 1.0

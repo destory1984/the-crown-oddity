@@ -1,5 +1,7 @@
 # The Crown Oddity (Godot 4.7) 작업 안내
 
+> 시험과 일꾼 운용은 `TESTING.md` 를 따른다. 사용자 PC에서는 시험 놀이꾼과 고도 편집기를 띄우지 않는다(2026-10-25).
+
 ## 구성
 
 - 게임 전부를 코드로 짓는다. `main.tscn` 은 거의 비어 있다.
@@ -82,6 +84,22 @@
 
 Godot 창이 멈춰 남으면 다음 실행이 조용히 실패한다. `python tools/dev.py kill` 로 닫는다(다른 명령은 시작할 때 스스로 닫는다).
 사이트 폴더를 미리보기 서버가 물고 있으면 `index.wasm` 복사가 막힌다. 서버를 내리고 다시 한다.
+
+## 클라우드(리눅스)에서 시험하기
+
+- 클라우드 세션에서는 `check` 와 `test` 만 한다. `shot`, `build`, `ship`, 그림 주문, 푸시는 윈도우 PC에서 한다.
+- Godot 리눅스판을 저장소 밖에 한 번 받는다:
+
+```
+mkdir -p ~/.cache/godot && cd ~/.cache/godot
+curl -sSLfO https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+python3 -c "import zipfile; zipfile.ZipFile('Godot_v4.7.2-stable_linux.x86_64.zip').extractall('.')"
+chmod +x Godot_v4.7.2-stable_linux.x86_64
+```
+
+- `dev.py` 는 리눅스에서 `GODOT_BIN` 을, 없으면 `GODOT_DIR/Godot_v4.7.2-stable_linux.x86_64` 를 쓴다. `GODOT_DIR` 기본값은 `~/.cache/godot` 다.
+- 새로 받은 저장소에는 `.godot/` 가 없다. `check` 와 `test` 가 처음에 `--import` 를 스스로 한 번 돌린다(20초쯤). 이때 나오는 `open_godot_mcp` 의 Parse error 는 편집기 부록이라 시험과 상관없다.
+- 그다음은 윈도우와 같다: `python3 tools/dev.py check`, `python3 tools/dev.py test`. 클라우드에서 test 는 10분쯤 걸린다(139 통과, 2026-10-25).
 
 ## 그림
 

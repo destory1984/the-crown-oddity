@@ -13,6 +13,9 @@
     python tools/bgm.py [NAME ...]            re-render the background tunes into audio/bgm/ (needs numpy and ffmpeg)
 
 Paths can be overridden with the GODOT_DIR and SITE_REPO environment variables.
+On Linux (cloud sessions) the Godot binary is GODOT_BIN, else GODOT_DIR/Godot_v4.7.2-stable_linux.x86_64
+(GODOT_DIR defaults to ~/.cache/godot there). Only check, test, sound and scenes are meant for Linux;
+shot, build and ship stay Windows-only.
 """
 import argparse
 import os
@@ -27,9 +30,13 @@ import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-GODOT_DIR = Path(os.environ.get("GODOT_DIR", Path.home() / "Downloads" / "Godot_v4.7.2-stable_win64"))
-GODOT_GUI = GODOT_DIR / "Godot_v4.7.2-stable_win64.exe"
-GODOT_CLI = GODOT_DIR / "Godot_v4.7.2-stable_win64_console.exe"
+if os.name == "nt":
+    GODOT_DIR = Path(os.environ.get("GODOT_DIR", Path.home() / "Downloads" / "Godot_v4.7.2-stable_win64"))
+    GODOT_GUI = GODOT_DIR / "Godot_v4.7.2-stable_win64.exe"
+    GODOT_CLI = GODOT_DIR / "Godot_v4.7.2-stable_win64_console.exe"
+else:  # Linux cloud sessions: one binary for both
+    GODOT_DIR = Path(os.environ.get("GODOT_DIR", Path.home() / ".cache" / "godot"))
+    GODOT_GUI = GODOT_CLI = Path(os.environ.get("GODOT_BIN", GODOT_DIR / "Godot_v4.7.2-stable_linux.x86_64"))
 SITE = Path(os.environ.get("SITE_REPO", ROOT.parent / "rpg_demo"))
 PLAY = Path(os.environ.get("PLAY_DIR", ROOT.parent / "play"))  # the folder the user plays from
 SHOTS = ROOT / "shots"
@@ -42,6 +49,11 @@ def run(cmd, timeout=120, cwd=ROOT):
 
 def kill():
     """Close every Godot process; a stuck test window blocks the next run."""
+    if os.name != "nt":
+        pids = run(["pgrep", "-f", str(GODOT_CLI)]).stdout.split()
+        for pid in pids:
+            run(["kill", "-9", pid])
+        return len(pids)
     out = run(["tasklist", "/FO", "CSV", "/NH"]).stdout
     pids = [l.split('","')[1] for l in out.splitlines() if l.lower().startswith('"godot_v4')]
     for pid in pids:
@@ -49,8 +61,16 @@ def kill():
     return len(pids)
 
 
+def import_once():
+    """A fresh Linux clone has no .godot/ cache; without it fonts and textures fail to load."""
+    if os.name != "nt" and not (ROOT / ".godot" / "imported").exists():
+        print("first run: importing assets into .godot/ ...")
+        run([str(GODOT_CLI), "--headless", "--path", ".", "--import"], timeout=600)
+
+
 def check():
     kill()
+    import_once()
     tr = run([sys.executable, str(ROOT / "tools" / "i18n.py"), "--check"])
     if tr.returncode:
         print(tr.stdout.strip())
@@ -128,8 +148,9 @@ def baseline(names):
 
 def test(name):
     kill()
+    import_once()
     try:
-        r = run([str(GODOT_CLI), "--headless", "--path", ".", "--", f"--test={name or 'all'}"], timeout=600)
+        r = run([str(GODOT_CLI), "--headless", "--path", ".", "--", f"--test={name or 'all'}"], timeout=600 if os.name == "nt" else 1200)  # the cloud box is slower
     except subprocess.TimeoutExpired:
         kill()
         print("TESTS TIMED OUT (a script error usually stops the runner; run check, or read the Godot log)")
