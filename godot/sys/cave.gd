@@ -613,6 +613,7 @@ func cave_interact() -> bool:
 		m.sfx(784, 0.12, "triangle", 0.25)
 		m.toast("녹슨 열쇠를 얻었다")
 		m.ui.mini.map_tex = cave_map_tex()
+		m.save_game() # kept at once: a reload used to put the key back in the chest (the owner, 2026-10-25)
 		return true
 	if not m.cave_door_open and me.distance_to(m.cave_marks.D) < 1.6:
 		if m.has_key:
@@ -623,7 +624,7 @@ func cave_interact() -> bool:
 			m.ui.mini.map_tex = cave_map_tex()
 			if not m.has_skip: # the painting's "find the key" line used to stay up past the open door (GPT playtest 5)
 				m.set_quest(Main.CAVE_DOOR_QUEST)
-				m.save_game()
+			m.save_game() # always: with the mole already beaten the open door was never saved and locked again on a reload
 		else:
 			m.toast("잠겨 있다. 열쇠가 필요하다")
 		return true
