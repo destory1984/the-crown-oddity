@@ -314,7 +314,7 @@ func update_mate(dt: float) -> void:
 	var target = null
 	var best := 5.0
 	for e in m.enemies:
-		if not e.dead and not e.get("prop", false) and Vector2(e.x, e.z).distance_to(Vector2(m.mate.position.x, m.mate.position.z)) < best:
+		if not e.dead and not e.get("prop", false) and not e.get("air", false) and Vector2(e.x, e.z).distance_to(Vector2(m.mate.position.x, m.mate.position.z)) < best:
 			best = Vector2(e.x, e.z).distance_to(Vector2(m.mate.position.x, m.mate.position.z))
 			target = e
 	var goal := mate_goal("mulgyeol")

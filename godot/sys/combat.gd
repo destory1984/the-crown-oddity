@@ -80,6 +80,8 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 		e.wind = 0.0 # a hit interrupts a goblin's wind-up
 		e.atk_cd = 1.6
 	e.hp -= dmg
+	if e.get("mold", false) and m.garden_q == 2:
+		e.hp = maxf(e.hp, 1.0) # a big blow cannot skip the lock at 12% (the mold died like a goblin and the ending never came)
 	e.hurt = 0.12
 	var d := Vector2(e.x - from.x, e.z - from.y)
 	if d.length() < 0.01:

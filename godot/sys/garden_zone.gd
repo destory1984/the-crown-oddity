@@ -260,6 +260,8 @@ func mold_phase(e: Dictionary) -> int:
 # and wakes goblins (every third move). At 12% it locks and the last wind begins.
 func update_mold(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	var node: Node3D = e.node
+	if not m.in_garden: # she walked out mid-fight: it waits (it used to slam rings at her feet on the stairs)
+		return
 	m.ui.boss.visible = true
 	m.ui.boss_name.text = "굳은달 거푸집"
 	m.ui.boss_bar.size.x = 420.0 * maxf(0.0, e.hp) / e.max_hp

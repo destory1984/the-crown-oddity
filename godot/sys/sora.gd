@@ -309,6 +309,8 @@ func faint() -> void:
 		m.in_hill = false
 		m.in_village = true
 		m.gust_dir = Vector2.ZERO
+		if m.windrun_on: # the run counts as missed (its countdown stayed frozen on the quest line)
+			m.hill_zone.miss_windrun(false)
 		for e in m.enemies:
 			if e.get("hawk", false) and not e.dead:
 				e.hp = float(e.max_hp)
@@ -342,6 +344,7 @@ func faint() -> void:
 		m.ui.banner_title.text = "쓰러졌다"
 		m.ui.banner_sub.text = "광장에서 다시 눈을 떴다 · 금화와 레벨은 그대로"
 		m.ui.banner.modulate.a = 1.0
+		m.banner_t = 2.5 # held as long as the marsh's (it faded at once)
 		return
 	if m.in_cave: # wake outside: leave every bit of cave state behind
 		m.in_cave = false
@@ -369,6 +372,9 @@ func faint() -> void:
 			e.hp = float(e.max_hp)
 			e.x = e.home.x
 			e.z = e.home.y
+			e.phase = 1 # the rematch starts calm and roars again at half (it stayed enraged at full HP)
+			e.roar = 0.0
+			m.ui.boss_bar.color = Color("#9a4ad8")
 	m.ui.banner_title.text = "쓰러졌다"
 	m.ui.banner_sub.text = "건널목에서 다시 눈을 떴다 · 금화와 레벨은 그대로"
 	m.ui.banner.modulate.a = 1.0

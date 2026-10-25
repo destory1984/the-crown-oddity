@@ -21,7 +21,7 @@ func save_game() -> void:
 			boss_dead = true
 	var d := {"lv": m.player.lv, "xp": m.player.xp, "max_hp": m.player.max_hp, "hp": m.player.hp, "atk": m.player.atk,
 		"gold": m.player.gold, "pots": m.player.pots, "x": m.player.x, "z": m.player.z,
-		"story": m.story_step, "quest": (m.hill_zone.retry_quest() if m.mill_q == 2 else m.windrun_quest) if m.windrun_on else m.quest_raw, "boss_dead": boss_dead, "in_cave": m.in_cave, "in_village": m.in_village, "met": m.met.keys(), "pips": m.crown_pips, "errand": m.errand, "kid_q": m.kid_q, "doran_q": m.doran_q, "mul_q": m.mul_q, "night_q": m.night_q, "in_forest": m.in_forest, "in_garden": m.in_garden, "in_hill": m.in_hill, "hill_q": m.hill_q, "mills": m.hill.mills.map(func(mm): return mm.turning), "in_lake": m.in_lake, "lake_q": m.lake_q, "garden_q": m.garden_q, "forest_q": m.forest_q, "walls": m.forest.walls.map(func(w): return w.open), "stones": m.forest.stones.map(func(st): return st.phase), "grove": m.forest.solved, "grove_chest": m.forest.chest_open, "has_unbrick": m.has_unbrick, "vlit": m.village.dark.map(func(d): return d.lit), "cave_exit_seen": m.cave_exit_seen, "has_skip": m.has_skip, "has_key": m.has_key, "cave_at": [m.cave_pos.x, m.cave_pos.y], "door_open": m.cave_door_open, "saw_painting": m.saw_painting, "hour": m.hour, "day": m.day,
+		"story": m.story_step, "quest": (m.hill_zone.retry_quest() if m.mill_q == 2 else m.windrun_quest) if m.windrun_on else (m.race_quest if m.race_on else m.quest_raw), "boss_dead": boss_dead, "in_cave": m.in_cave, "in_village": m.in_village, "met": m.met.keys(), "pips": m.crown_pips, "errand": m.errand, "kid_q": m.kid_q, "doran_q": m.doran_q, "mul_q": m.mul_q, "night_q": m.night_q, "in_forest": m.in_forest, "in_garden": m.in_garden, "in_hill": m.in_hill, "hill_q": m.hill_q, "mills": m.hill.mills.map(func(mm): return mm.turning), "in_lake": m.in_lake, "lake_q": m.lake_q, "garden_q": m.garden_q, "forest_q": m.forest_q, "walls": m.forest.walls.map(func(w): return w.open), "stones": m.forest.stones.map(func(st): return st.phase), "grove": m.forest.solved, "grove_chest": m.forest.chest_open, "has_unbrick": m.has_unbrick, "vlit": m.village.dark.map(func(d): return d.lit), "cave_exit_seen": m.cave_exit_seen, "has_skip": m.has_skip, "has_key": m.has_key, "cave_at": [m.cave_pos.x, m.cave_pos.y], "door_open": m.cave_door_open, "saw_painting": m.saw_painting, "hour": m.hour, "day": m.day,
 		"chests": m.chests.map(func(c): return c.open), "scraps": m.marsh.found, "moon_chest": m.marsh.chest_open,
 		"fly_q": m.fly_q, "flies": m.marsh.flies.map(func(f): return f.caught),
 		"grotto_q": m.grotto_q, "grotto_side": m.grotto_side, "has_pearl": m.has_pearl,
@@ -162,6 +162,10 @@ func load_game() -> void:
 		m.player.z = vz
 		if m.kid_q > 0:
 			m.place_kid()
+	if m.kid_q > 0 and m.kid_node == null: # saved outside the village: the kid still waits there (it was gone, and Kongal's errand could not end)
+		m.place_kid()
+		if m.kid_q == 2:
+			m.kid_node.position = Vector3(m.village.marks.S.x - 0.8, 0, m.village.marks.S.y + 0.4)
 	m.grotto_q = int(d.get("grotto_q", 0))
 	if m.grotto_q == 2:
 		m.grotto_q = 1 # the crab fight starts over when she walks back into the last room

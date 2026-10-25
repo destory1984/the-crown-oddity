@@ -659,16 +659,18 @@ func spawn_hawk() -> void:
 func update_hawk(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	var node: Node3D = e.node
 	var body: Node3D = node.get_node("body")
-	m.ui.boss.visible = true
-	m.ui.boss_name.text = "벽돌 매"
-	m.ui.boss_bar.size.x = 420.0 * maxf(0.0, e.hp) / e.max_hp
+	var c: Vector2 = m.hill.marks.B
+	var near: bool = Vector2(m.player.x, m.player.z).distance_to(c) < 14.0 # it only hunts over its own ledge (it used to dive on her in the village after a faint)
+	if near:
+		m.ui.boss.visible = true
+		m.ui.boss_name.text = "벽돌 매"
+		m.ui.boss_bar.size.x = 420.0 * maxf(0.0, e.hp) / e.max_hp
 	e.t += dt
 	e.hurt -= dt
 	e.stun -= dt
 	var flap := sin(e.t * (14.0 if e.air else 3.0)) * 0.5
 	body.get_node("wing_l").rotation.z = flap
 	body.get_node("wing_r").rotation.z = -flap
-	var c: Vector2 = m.hill.marks.B
 	if e.dash > 0.0: # diving onto the marked spot
 		e.dash -= dt
 		var k: float = 1.0 - e.dash / 0.5
@@ -702,12 +704,12 @@ func update_hawk(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 		e.x = lerpf(e.x, goal.x, dt * 2.0)
 		e.z = lerpf(e.z, goal.y, dt * 2.0)
 		e.atk_cd -= dt
-		if e.atk_cd <= 0.0:
+		if e.atk_cd <= 0.0 and near:
 			e.wind = 1.0
 			e.target = Vector2(m.player.x, m.player.z)
 			m.warn_ring(Vector3(e.target.x, 0.0, e.target.y), 1.4, 1.5)
 			m.sfx(900, 0.4, "sawtooth", 0.15, -500)
-		if e.hp < e.max_hp / 2.0:
+		if e.hp < e.max_hp / 2.0 and near:
 			e.egg_cd -= dt
 			if e.egg_cd <= 0.0:
 				e.egg_cd = 1.3

@@ -11,7 +11,8 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "skill_cost", "goblin_telegraph", "boss_phase2"]
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
 
 func _ready() -> void:
 	run.call_deferred()
@@ -2737,6 +2738,13 @@ func run() -> void:
 		main.fish_kinds = [false, false, false, false, false]
 		reset_to(main.lake.marks.f)
 		var reach: bool = main.walkable(main.lake.marks.f.x, main.lake.marks.f.y)
+		calm_enemies(true) # once in a full run (cloud, 2026-10-25) the first cast did not happen: no foe, story, sheet or line left from before
+		main.fish_state = ""
+		if main.way_open:
+			main.waystones.toggle_ways(false)
+		await wait(0.1)
+		main.close_story()
+		var why := "story=%s down=%.1f ways=%s shop=%s settings=%s" % [main.story_open, main.down_t, main.way_open, main.shop_open, main.settings_open]
 		tap(KEY_E)
 		await wait(0.1)
 		var cast: bool = main.fish_state == "wait"
@@ -2757,7 +2765,7 @@ func run() -> void:
 				landed += 1
 			main.close_story()
 		main.in_lake = false
-		check("fishing", reach and cast and early and landed > 0, "spot reachable=%s cast=%s early pull loses it=%s landed=%d kinds=%d" % [reach, cast, early, landed, main.fish_kinds.count(true)])
+		check("fishing", reach and cast and early and landed > 0, "spot reachable=%s cast=%s early pull loses it=%s landed=%d kinds=%d%s" % [reach, cast, early, landed, main.fish_kinds.count(true), "" if cast else " (before the cast: %s)" % why])
 	if want.call("bat"):
 		var ok_spots := true
 		for b in main.BAT_SPOTS:
@@ -6715,6 +6723,175 @@ func run() -> void:
 		park_mates(false)
 		check("lap8", bad8.is_empty(), "shut wall holds duel and blows, sleeping villager line, particles, Mulgyeol first line, letter line" if bad8.is_empty() else "; ".join(bad8))
 		main.return_to_start()
+	# ---- cloud bug hunt (2026-10-25): bosses that followed her out of their zones, fights a faint left half reset,
+	# a big blow past the mold's lock, Mulgyeol under the hawk, the kid goblin lost on a reload, the race on the quest line
+	if want.call("hawk_leash") or want.call("mold_leash") or want.call("mold_no_skip") or want.call("king_calm") \
+			or want.call("faint_banner") or want.call("windrun_faint") or want.call("mate_skips_air") or want.call("kid_reload") or want.call("race_save"):
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		await wait(0.2)
+		calm_enemies(true)
+	if want.call("hawk_leash"):
+		# the hawk is alive (she fainted on the hill and woke in the village): it must not dive on her there
+		main.hill_zone.spawn_hawk()
+		var hk: Dictionary = main.enemies.filter(func(e): return e.get("hawk", false) and not e.dead)[0]
+		main.in_hill = false
+		main.in_village = true
+		reset_to(main.village.marks.M + Vector2(-1.5, 1.5))
+		main.ui.boss.visible = false
+		hk.atk_cd = 0.0
+		await wait(2.5)
+		var calm_hawk: bool = hk.air and hk.wind <= 0.0 and hk.dash <= 0.0
+		check("hawk_leash", calm_hawk and not main.ui.boss.visible,
+			"hawk stays on its ledge=%s (air=%s wind=%.1f dash=%.1f) boss bar hidden=%s" % [calm_hawk, hk.air, hk.wind, hk.dash, not main.ui.boss.visible])
+		hk.dead = true
+		hk.node.queue_free()
+		hk.shadow.queue_free()
+	if want.call("mold_leash") or want.call("mold_no_skip"):
+		var gq0: int = main.garden_q
+		main.garden_q = 2
+		main.garden_zone.spawn_mold()
+		var mo: Dictionary = main.enemies.filter(func(e): return e.get("mold", false) and not e.dead)[0]
+		if want.call("mold_leash"):
+			# she walked out of the garden mid-fight: the mold must not slam rings at her feet on the stairs
+			main.in_garden = false
+			main.in_hill = true
+			reset_to(main.stairs.marks.N + Vector2(0, 1.3))
+			main.ui.boss.visible = false
+			mo.atk_cd = 0.0
+			await wait(1.5)
+			check("mold_leash", (mo.rings as Array).is_empty() and mo.wind <= 0.0 and not main.ui.boss.visible,
+				"rings=%d wind=%.1f boss bar hidden=%s" % [(mo.rings as Array).size(), mo.wind, not main.ui.boss.visible])
+		if want.call("mold_no_skip"):
+			# one blow bigger than the last 12%: the mold must stop at 1 HP and lock, not die like a goblin
+			mo.hp = 300.0
+			main.damage_enemy(mo, 5000.0, Vector2(mo.x + 1.0, mo.z), 4.0, true)
+			check("mold_no_skip", not mo.dead and mo.hp >= 1.0 and main.garden_q == 2, "dead=%s hp=%.0f garden_q=%d" % [mo.dead, mo.hp, main.garden_q])
+		if not mo.dead:
+			mo.dead = true
+			mo.node.queue_free()
+			mo.shadow.queue_free()
+		main.garden_q = gq0
+		main.ui.boss.visible = false
+	if want.call("king_calm"):
+		# fainting to the enraged Brick King: the rematch starts in phase 1 with the bar back to purple
+		var kings: Array = main.enemies.filter(func(e): return e.get("boss", false) and not e.dead)
+		var spawned := kings.is_empty()
+		if spawned:
+			main.monsters.spawn_boss()
+			kings = main.enemies.filter(func(e): return e.get("boss", false) and not e.dead)
+		var kb: Dictionary = kings[0]
+		kb.phase = 2
+		kb.hp = 10.0
+		main.ui.boss_bar.color = Color("#d84a6a")
+		for f in ["in_village", "in_hill", "in_lake", "in_forest", "in_garden", "in_cave"]:
+			main.set(f, false) # a marsh faint
+		main.faint()
+		await wait(0.1)
+		check("king_calm", kb.phase == 1 and kb.hp == float(kb.max_hp) and main.ui.boss_bar.color == Color("#9a4ad8"),
+			"phase=%d hp=%.0f/%d bar=%s" % [kb.phase, kb.hp, kb.max_hp, main.ui.boss_bar.color.to_html(false)])
+		if spawned:
+			main.enemies.erase(kb)
+			kb.node.queue_free()
+			kb.shadow.queue_free()
+		main.ui.boss.visible = false
+	if want.call("faint_banner"):
+		# a faint that wakes her on the village square holds the banner as long as the marsh one
+		main.in_village = true
+		reset_to(main.village.marks.M + Vector2(3, 3))
+		main.banner_t = 0.0
+		main.faint()
+		await wait(1.2)
+		check("faint_banner", main.ui.banner.modulate.a > 0.5, "banner alpha after 1.2 s=%.2f" % main.ui.banner.modulate.a)
+	if want.call("windrun_faint"):
+		# a faint during the wind run: the run ends and its countdown leaves the quest line
+		var mq0: int = main.mill_q
+		main.mill_q = 2
+		main.in_village = false
+		main.in_hill = true
+		main.windrun_on = true
+		main.windrun_quest = main.quest_raw
+		main.set_quest(tr("바람 부르기 %d/4 · %d초") % [1, 5])
+		main.faint()
+		await wait(0.2)
+		var q: String = main.ui.quest.text
+		check("windrun_faint", not main.windrun_on and not q.begins_with(main.windrun_prefix()), "run on=%s quest=%s" % [main.windrun_on, q])
+		main.windrun_on = false
+		main.windrun_tries = 0
+		main.mill_q = mq0
+		main.set_quest(main.windrun_quest)
+	if want.call("mate_skips_air"):
+		# Mulgyeol does not run off under the hawk circling out of reach
+		if main.mate == null:
+			main.join_mate()
+		main.in_hill = false
+		main.in_village = true
+		reset_to(main.village.marks.M + Vector2(-1.5, 1.5))
+		main.snap_mates()
+		main.mate_cd = 0.0
+		main.hill_zone.spawn_hawk()
+		var ah: Dictionary = main.enemies.filter(func(e): return e.get("hawk", false) and not e.dead)[0]
+		var far := 0.0
+		for k in 20:
+			ah.x = main.mate.position.x + 3.0
+			ah.z = main.mate.position.z
+			ah.air = true
+			ah.wind = 5.0 # held in its wind-up, so it hangs where it is put
+			await wait(0.05)
+			far = maxf(far, Vector2(main.mate.position.x, main.mate.position.z).distance_to(Vector2(main.player.x, main.player.z)))
+		check("mate_skips_air", far < 1.8, "Mulgyeol's farthest from Sora with the hawk overhead=%.1f" % far)
+		ah.dead = true
+		ah.node.queue_free()
+		ah.shadow.queue_free()
+		main.ui.boss.visible = false
+	if want.call("kid_reload"):
+		# a save made outside the village while the kid goblin is lost: on loading, the kid and its guards are in the field
+		var kq0: int = main.kid_q
+		main.in_village = false
+		main.in_hill = false
+		main.in_lake = false
+		main.in_forest = false
+		main.in_garden = false
+		main.in_cave = false
+		reset_to(main.START)
+		main.save_game()
+		var sv = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		sv["kid_q"] = 1
+		var fw := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		fw.store_string(JSON.stringify(sv))
+		fw.close()
+		if main.kid_node != null:
+			main.kid_node.queue_free()
+			main.kid_node = null
+		var n0: int = main.enemies.size()
+		main.load_game()
+		var kid_there: bool = main.kid_node != null and main.kid_q == 1
+		var field := Vector2(main.VILLAGE.VILLAGE_X + main.village.KID_AT.x, main.village.KID_AT.y)
+		var guards: Array = main.enemies.slice(n0).filter(func(e): return not e.dead and Vector2(e.x, e.z).distance_to(field) < 4.0)
+		check("kid_reload", kid_there and guards.size() == 3, "kid placed=%s guards=%d" % [kid_there, guards.size()])
+		for e in guards:
+			e.dead = true
+			e.node.queue_free()
+			e.shadow.queue_free()
+		main.kid_q = kq0
+		if main.kid_node != null:
+			main.kid_node.queue_free()
+			main.kid_node = null
+		if kq0 > 0:
+			main.place_kid()
+		main.save_game()
+	if want.call("race_save"):
+		# a save made during the pinwheel race keeps the quest line from before it, not the race's countdown
+		main.race_quest = main.quest_raw
+		main.race_on = true
+		main.set_quest(tr("바람개비 경주 %d/5 · %d초") % [2, 13])
+		main.save_game()
+		var rs = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		main.race_on = false
+		main.set_quest(main.race_quest)
+		check("race_save", rs != null and String(rs.get("quest", "")) == main.race_quest, "saved quest=%s before=%s" % [rs.get("quest", "") if rs != null else "", main.race_quest])
+		main.save_game()
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)
