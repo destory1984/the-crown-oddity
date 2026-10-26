@@ -113,3 +113,64 @@ func spots_on(tiles: Array, y: float, per_tile: int, lo := 0.7, hi := 1.15) -> A
 		for k in per_tile:
 			out.append(Vector4(t.x + rnd(-0.5, 0.5), y, t.y + rnd(-0.5, 0.5), rnd(lo, hi)))
 	return out
+
+# ---------------------------------------------------------------- the marsh's far banks
+# Past the marsh's border water there was nothing: from the east bank the village side was an empty purple void
+# (the owner, 2026-10-26, with a picture). A ring of far land, 10 tiles wide, now stands beyond the water on all four
+# sides: speckled grass with low tufts and voxel trees, and on the east bank, across the river, the roofs and warm
+# windows of the village (Sora sees its lights from the cave exit). None of it is walkable: the marsh map ends at N.
+const FAR := 10
+
+func marsh_backdrop() -> void:
+	var n: int = Main.N
+	var ground: Array = []
+	var tiles: Array = []
+	var boxes: Array = [] # [Transform3D, Color] for trunks, leaves, walls and roofs
+	var windows: Array = []
+	for z in range(-FAR, n + FAR):
+		for x in range(-FAR, n + FAR):
+			if x >= 0 and x < n and z >= 0 and z < n:
+				continue
+			var top := 0.15 + 0.1 * sin(x * 0.4) * cos(z * 0.3)
+			ground.append([Transform3D(Basis().scaled(Vector3(1, 1.2, 1)), Vector3(x, top - 0.6, z)), tint(0.24, 0.2, 0.8, 1.0)])
+			tiles.append(Vector3(x, top, z))
+	ground_blocks(ground, -FAR, speckle_tex([Color("#5e8f30"), Color("#6b9c36"), Color("#6b9c36"), Color("#7dab3e")]))
+	# the village across the river: six small houses up the east bank, between the trees
+	var houses: Array = []
+	for i in 6:
+		houses.append(Vector2(n + 3.5 + rnd(0, 4.5), 6.0 + i * 6.5 + rnd(-1.5, 1.5)))
+	var near_house := func(x: float, z: float) -> bool:
+		for h in houses:
+			if Vector2(x, z).distance_to(h) < 2.6:
+				return true
+		return false
+	var spots: Array = []
+	for t in tiles:
+		if near_house.call(t.x, t.z):
+			continue
+		for k in 3:
+			spots.append(Vector4(t.x + rnd(-0.5, 0.5), t.y, t.z + rnd(-0.5, 0.5), rnd(0.7, 1.1)))
+		if rng.randf() < 0.07: # a tree: a trunk and two or three leaf cubes
+			var y: float = t.y
+			var sc := rnd(0.8, 1.2)
+			var th := rnd(1.2, 1.9) * sc
+			boxes.append([Transform3D(Basis().scaled(Vector3(0.3, th, 0.3) * Vector3(sc, 1, sc)), Vector3(t.x, y + th / 2.0, t.z)), Color("#5a3a22")])
+			var leaf := Color("#3f7a2a").lerp(Color("#6aa83a"), rng.randf())
+			for k in 2 + rng.randi() % 2:
+				var s := rnd(0.9, 1.4) * sc
+				boxes.append([Transform3D(Basis().scaled(Vector3.ONE * s), Vector3(t.x + rnd(-0.3, 0.3), y + th + s * 0.3 + k * 0.5 * sc, t.z + rnd(-0.3, 0.3))), leaf])
+	grass(tuft_tex(["#5e9a34", "#68a636", "#6eaa36", "#82ba3e", "#9ccb48", "#b8dc62", "#d8ee90"], 0.3, 2, ["#fff6d8", "#ffd24a"]), 0.8, 0.5, spots, 0.12)
+	for h in houses:
+		var y := 0.2
+		var wall := Color("#e6d6b0").lerp(Color("#c9b48a"), rng.randf())
+		var roof: Color = [Color("#b8503a"), Color("#8a5a3a"), Color("#5a6a8a")][rng.randi() % 3]
+		boxes.append([Transform3D(Basis().scaled(Vector3(2.0, 1.4, 1.6)), Vector3(h.x, y + 0.7, h.y)), wall])
+		boxes.append([Transform3D(Basis().scaled(Vector3(2.3, 0.35, 1.9)), Vector3(h.x, y + 1.55, h.y)), roof])
+		boxes.append([Transform3D(Basis().scaled(Vector3(1.6, 0.35, 1.3)), Vector3(h.x, y + 1.9, h.y)), roof])
+		windows.append(Vector3(h.x - 1.01, y + 0.85, h.y + rnd(-0.3, 0.3))) # on the west wall, facing the marsh
+	m.add_chunks(boxes, -FAR)
+	var glass: Material = m.glow_mat(Color("#ffc46a"), 2.0)
+	for w in windows:
+		var win: MeshInstance3D = m.box(Vector3(0.06, 0.4, 0.4), glass)
+		win.position = w
+		m.add_child(win)

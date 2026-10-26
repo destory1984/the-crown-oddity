@@ -612,6 +612,7 @@ func build_cottage() -> void:
 		if m.walkable(spot.x, spot.y) and m.walkable(spot.x - 1.5, spot.y) and m.walkable(spot.x + 1.5, spot.y) 				and spot.distance_to(Main.START) > 5.0:
 			break
 		spot = Vector2(m.rnd(5, 10), m.rnd(14, 22))
+	m.cottage_at = spot
 	var g := Node3D.new()
 	g.position = Vector3(spot.x, m.height_at(spot.x, spot.y), spot.y)
 	g.rotation.y = 0.2

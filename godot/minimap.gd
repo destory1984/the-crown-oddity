@@ -65,6 +65,9 @@ func _draw() -> void:
 		draw_rect(Rect2(wp.x, wp.y - 0.1, 1.2, 0.8), Color("#7ac8e8"))
 	draw_set_transform_matrix(Transform2D())
 	# the ways down (violet) and up (gold) as small upright stairs of three steps, drawn on screen over their tile
+	# Bori's cottage (her shop) as a small upright house with a red roof (the owner, 2026-10-26: it was not on the map)
+	if main.cottage_at.x >= 0.0:
+		draw_house(xf * (main.cottage_at + Vector2(0.5, 0.5)), s)
 	for st: Array in map_tex.get_meta("stairs", []):
 		draw_stairs(xf * (st[0] + Vector2(0.5, 0.5)), st[1], s)
 	if main.in_workshop(): # the deep workshop's floor, B1 to B3, on a small dark tab at the top
@@ -93,6 +96,16 @@ func _draw() -> void:
 		draw_colored_polygon(PackedVector2Array([q + Vector2(0, -5), q + Vector2(5, 0), q + Vector2(0, 5), q + Vector2(-5, 0)]), Color("#e8b018"))
 
 # three steps climbing to the right (up) or going down to the right (down) on a dark round back
+func draw_house(at: Vector2, s: float) -> void:
+	draw_circle(at, 6.5 * s, Color(0.04, 0.03, 0.08, 0.9))
+	draw_arc(at, 6.5 * s, 0.0, TAU, 24, Color("#f0a24a"), 1.0, true)
+	var w := 7.0 * s
+	var body := Rect2(at.x - w / 2.0, at.y - 0.4 * s, w, 3.6 * s)
+	draw_rect(body, Color("#f2e2b0"))
+	draw_rect(Rect2(at.x - 0.8 * s, at.y + 0.9 * s, 1.6 * s, 2.3 * s), Color("#6a4024")) # the door
+	draw_colored_polygon(PackedVector2Array([Vector2(at.x - w / 2.0 - 0.8 * s, at.y - 0.4 * s), Vector2(at.x + w / 2.0 + 0.8 * s, at.y - 0.4 * s),
+		Vector2(at.x, at.y - 4.2 * s)]), Color("#c8503a"))
+
 func draw_stairs(at: Vector2, up: bool, s: float) -> void:
 	var step := Color("#ffc23a") if up else Color("#b45cff")
 	var tread := Color("#fff4c8") if up else Color("#f2e6ff")
