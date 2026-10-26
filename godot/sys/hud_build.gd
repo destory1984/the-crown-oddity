@@ -959,7 +959,7 @@ func update_pips(dt: float) -> void:
 	if m.crown_pips >= m.pip_max or not night_now:
 		m.rest_t = 0.0
 		return
-	m.rest_need = (6.0 if near_lamp else 12.0) * (0.6 if m.has_tea else 1.0)
+	m.rest_need = (3.0 if near_lamp else 6.0) * (0.6 if m.has_tea else 1.0) # twice as fast as 6 / 12 (the owner, 2026-10-26)
 	if (near_lamp or jar) and calm and still:
 		m.rest_t += dt
 		if by_oak: # warm steam off the roots while she rests there

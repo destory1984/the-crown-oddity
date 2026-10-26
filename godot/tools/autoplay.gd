@@ -868,7 +868,7 @@ func run() -> void:
 		var lit_lamp = main.lanterns.filter(func(l): return l.position.x > 130.0 and not l.get_meta("dark", false))[0]
 		reset_to(Vector2(lit_lamp.position.x + 0.4, lit_lamp.position.z + 1.0))
 		await wait(15.0)
-		check("pip_rest", main.crown_pips == 2, "15 s resting by a lit lantern at night (6 s a pip): pips 0->%d" % main.crown_pips)
+		check("pip_rest", main.crown_pips >= 4, "15 s resting by a lit lantern at night (3 s a pip): pips 0->%d" % main.crown_pips)
 	if want.call("errand_done"):
 		main.crown_pips = 3
 		main.hour = 23.0
@@ -5532,17 +5532,17 @@ func run() -> void:
 		var apart: bool = file_ok and d1 >= 0.8 and d2 >= 0.8 and d12 >= 0.8 and m1.x > 195.5 and m2.x > 195.5
 		if not apart:
 			print("TEST note oak follow: file=%s d1=%.2f d2=%.2f d12=%.2f m1=%s m2=%s me=%s" % [file_ok, d1, d2, d12, m1, m2, me3])
-		# 4. noon, no pips: by the oak a pip in 6.5 s; by the clearing's lantern (3.5 tiles off) none by day
+		# 4. noon, no pips: by the oak a pip in 3.5 s; by the clearing's lantern (3.5 tiles off) none by day
 		main.hour = 12.0
 		main.crown_pips = 0
 		release()
 		reset_to(Vector2(199, 12))
 		main.rest_t = 0.0
-		await wait(6.5)
+		await wait(3.5)
 		var warm: bool = main.crown_pips == 1
 		reset_to(Vector2(204, 12.4))
 		main.rest_t = 0.0
-		await wait(6.5)
+		await wait(3.5)
 		var lamp_day: bool = main.crown_pips == 1
 		# 5. the west knot (1 pip), the east one (the hedgehogs roll out), the south one waits for them
 		main.crown_pips = 8

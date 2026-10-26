@@ -673,6 +673,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-26 저녁",
+	"· v0.0.80: 달빛 눈금이 2배 빨리 찬다. 밤에 켜진 등불 곁에서 쉬면 6 → 3초에 1칸, 반딧불 병 곁은 12 → 6초에 1칸, 달꽃 차를 마시면 그 0.6배(2초, 4초).",
 	"· v0.0.79: 화면 위 할 일 줄이 17 → 20px, 그 아래 곁 단계 줄이 14 → 17px로 커지고 더 밝아졌다(창 높이가 700px보다 작으면 예전 크기). 상자를 열면 뚜껑이 젖혀지고 속이 빈 그림으로 바뀐다(예전에는 같은 그림이 조금 어두워질 뿐이었다). 들판 상자, 동굴 열쇠 상자, 성 아래 상자 모두.",
 	"· v0.0.78: 늪 둘레가 비어 보이지 않는다. 늪 가장자리 물 너머가 보랏빛 허공이었는데, 이제 네 둘레에 10칸 너비의 먼 둑(늪과 같은 얼룩 무늬 풀밭, 낮은 풀, 나무)이 있고, 동쪽 강 건너에는 마을 집 6채의 지붕과 불 켜진 창이 보인다(걸어서 갈 수는 없다). 미니맵에 보리 할머니 오두막이 빨간 지붕 집 표시로 나온다.",
 	"· v0.0.77: 노을과 벽돌들, 굳은달 거푸집이 노리는 것이 왕관이 아니라 팔찌가 되었다. 왕관은 그대로 머리에 쓴 달지기 표식이고, 늪 아래 동굴에서 노을은 '그 팔찌, 네 것이 아니야' 하며 소라의 팔목으로 손을 뻗었다가 팔찌에 튕겨 나간다. 옛 명령은 '팔찌를 정원 한가운데로'이고, 한결은 팔찌를 왕관과 함께 갈대 바구니에 담아 늪으로 보냈다. 이야기 32줄을 고쳤다.",
@@ -1676,7 +1677,7 @@ var cushion_t := 0.0
 # rest beside a lit lantern at night with no monster near: one pip every 6 s. A night is 105 s (21 -> 4 at 15 s an
 # hour), so a full crown takes about half a night by a lantern and most of one with the jar alone (the user found
 # 10 s and 20 s never filled it in one night, 2026-10-23)
-var rest_need := 6.0         # seconds of rest for the next pip (lantern 6, jar 12, both x0.6 with the tea)
+var rest_need := 3.0         # seconds of rest for the next pip (lantern 3, jar 6, both x0.6 with the tea)
 
 var fade_rect: ColorRect
 
