@@ -201,7 +201,8 @@ def bump_version():
     m = re.search(r'config/version="(\d+)\.(\d+)\.(\d+)"', s)
     if not m:
         raise SystemExit("project.godot has no config/version")
-    v = f"{m[1]}.{m[2]}.{int(m[3]) + 1}"
+    # SHIP_VERSION=0.1.0 sets a milestone version instead of the next patch number (the owner, 2026-10-27: "0.1.0으로 올려볼까")
+    v = os.environ.get("SHIP_VERSION") or f"{m[1]}.{m[2]}.{int(m[3]) + 1}"
     day = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)).strftime("%Y-%m-%d")
     s = s[:m.start()] + f'config/version="{v}"' + s[m.end():]
     s = re.sub(r'config/updated="[^"]*"', f'config/updated="{day}"', s, count=1)

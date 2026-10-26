@@ -37,6 +37,19 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 		return
 	if e.get("dizzy", 0.0) > 0.0:
 		amt *= 1.3
+	if e.get("seam", 0.0) > 0.0 and not e.get("boss", false):
+		amt *= 1.5
+		e.pins = int(e.get("pins", 3)) - 1
+		m.burst(Vector3(e.x, 0.9, e.z), Color("#ffd84a"), 5, 2.4)
+		m.sfx(1300, 0.04, "square", 0.14, 200)
+		if e.pins <= 0: # the last pin: it comes loose
+			e.pins = 3
+			e.seam = 0.0
+			e.stun = 1.6
+			e.dizzy = 1.6
+			m.pop_num(Vector3(e.x, 1.7, e.z), "풀림!", Color("#ffd84a"))
+			m.player.mp = minf(m.player.max_mp, m.player.mp + 10.0)
+			m.shake = maxf(m.shake, 0.12)
 	if e.get("shield", 0) > 0 and e.get("wind", 0.0) <= 0.0:
 		e.shield -= 1
 		m.pop_num(Vector3(e.x, 1.4, e.z), "막음", Color("#c8c8d0"))
@@ -196,8 +209,25 @@ func combo_len() -> int:
 
 # one swing of the combo; the last swing of the chain is the finisher:
 # 3 hits: a heavy cut; 4 hits: a full spin; 5 hits: a ground slam
+const BUFFER := 0.18 # how early a J is kept before the swing it waits for ends
+const CHAIN := 0.5   # a swing this soon after a landed hit is a chained one
+var buffer_t := 0.0
+var last_hit_t := -9.0
+
+func update_buffer(dt: float) -> void:
+	if buffer_t <= 0.0:
+		return
+	buffer_t -= dt
+	if m.player.atk_cd <= 0.0 and m.player.dodge <= 0.0:
+		buffer_t = 0.0
+		attack()
+
 func attack() -> void:
-	if m.player.atk_cd > 0 or m.player.dodge > 0:
+	if m.player.dodge > 0:
+		return
+	if m.player.atk_cd > 0:
+		if m.player.atk_cd <= BUFFER:
+			buffer_t = BUFFER
 		return
 	if m.player.lv >= 4 and m.guarding and m.t - m.guard_since >= 1.0:
 		charged_slash()
@@ -239,11 +269,20 @@ func attack() -> void:
 			hit_any = true
 	if hit_any and m.counter_t > 0.0:
 		m.counter_t = 0.0
+	if hit_any:
+		if m.t - last_hit_t < CHAIN: # a chained cut: click, spark, a little momentum
+			m.player.mp = minf(m.player.max_mp, m.player.mp + 3.0)
+			m.burst(here + Vector3(f.x * reach * 0.8, 0.7, f.y * reach * 0.8), Color("#ffe28a"), 6, 1.6)
+			m.sfx(1500, 0.03, "square", 0.12)
+		last_hit_t = m.t
+		m.player.atk_cd *= 0.7
 	if m.in_cave:
 		for c in m.crystals:
 			var dc := Vector2(c.x - m.player.x, c.z - m.player.z)
 			if dc.length() < reach + 0.3 and (spin or slam or dc.normalized().dot(f) > cone):
 				m.crystal_hit(c)
+	if m.in_marsh():
+		m.world_build.chop_trees(reach, f, cone, spin or slam)
 	if slam:
 		m.shake = maxf(m.shake, 0.3)
 		m.burst(here + Vector3(0, 0.2, 0), Color("#d8c8a0"), 30, 3.5)
@@ -253,8 +292,13 @@ func attack() -> void:
 			light_blade(f.rotated(0.44))
 			light_blade(f.rotated(-0.44))
 	var lunge := 4.0 if last else 2.0
-	m.player.vx += f.x * lunge
-	m.player.vz += f.y * lunge
+	var held := Vector2(m.player.vx, m.player.vz)
+	var step := f
+	if m.t - last_hit_t < CHAIN + 0.1 and held.length() > 1.5 and absf(held.normalized().dot(f)) < 0.7: # side-step cut
+		step = held.normalized()
+		lunge = 4.5
+	m.player.vx += step.x * lunge
+	m.player.vz += step.y * lunge
 	m.sfx(180.0 + m.player.combo * 60.0, 0.07, "sawtooth", 0.12, 300.0)
 
 # Lv3: running with Shift, J dashes 3 m ahead and cuts everything along the way

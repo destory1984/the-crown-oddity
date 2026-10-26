@@ -135,7 +135,8 @@ func use_touch_help(on: bool) -> void:
 # ---- the top-centre blocks laid out from real rects (the user, 2026-10-25: the quest line ran over the companions' rows)
 # The status panel, the dial with the zone name and the companions' rows are fixed boxes in hud.gd and build_mate_hud;
 # the minimap, the menu keys, the zoom keys and the boss bar are read off their controls.
-const STATUS_RECT := Rect2(0, 0, 472, 136) # portrait, the four bars with their numbers, the moon gauge
+const STATUS_RECT := Rect2(0, 0, 472, 136)
+const PORTRAIT_RECT := Rect2(0, 0, 142, 158) # the bigger portrait ring and its level badge reach below the bars # portrait, the four bars with their numbers, the moon gauge
 const DIAL_RECT := Rect2(0, 168, 240, 112) # sun and moon dial, zone name and sub-line
 const QUEST_PAD := 14.0 # the gold ornaments reach this far past the text sideways, 12 px up and down
 var quest_deco := Rect2() # the ornaments' box around the quest text, drawn by hud.gd
@@ -184,7 +185,7 @@ func quest_blocks(with_player := true) -> Array:
 		out.append(mates_rect())
 	if m.ui.boss.visible:
 		out.append(boss_rect())
-	out.append(m.ui.mini.get_parent().get_global_rect())
+	out.append(m.ui.mini_bezel.get_global_rect() if m.ui.has("mini_bezel") else m.ui.mini.get_parent().get_global_rect()) # the brass teeth reach past the map
 	for b in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn]:
 		if (b as Control).visible:
 			out.append((b as Control).get_global_rect())
@@ -655,7 +656,7 @@ func build_hud() -> void:
 	circle.fill(Color(0, 0, 0, 0))
 	for y in 186:
 		for x in 186:
-			if Vector2(x - 92.5, y - 92.5).length() < 92:
+			if Vector2(x - 92.5, y - 92.5).length() < 73: # inside the brass bezel's hole
 				circle.set_pixel(x, y, Color.WHITE)
 	mask.texture = ImageTexture.create_from_image(circle)
 	mask.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
@@ -685,6 +686,14 @@ func build_hud() -> void:
 	m.ui.mini = mini
 	mini.main = m
 	mask.add_child(mini)
+	var bz := Control.new() # the brass bezel over the map (outside the clip)
+	bz.set_script(load("res://minimap_bezel.gd"))
+	bz.main = m
+	bz.mask = mask
+	bz.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	place(bz, Control.PRESET_TOP_RIGHT, Vector2(-194, 8), Vector2(186, 186)) # over the map, the same box
+	root.add_child(bz)
+	m.ui.mini_bezel = bz
 
 	# skills, bottom right
 	var names := ["회오리", "불씨탄", "빛파동", "×3"]
@@ -899,17 +908,21 @@ func build_hud() -> void:
 	col.anchor_top = 0.2
 	col.anchor_bottom = 1.0
 	var logo := TextureRect.new()
-	logo.texture = load("res://art/title/title.png")
+	logo.texture = load("res://art/title/title.png") # the pixel logo stays (the owner, 2026-10-27); only the words below take the serif
 	logo.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR # GPT logo is drawn at high resolution
 	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	logo.custom_minimum_size = Vector2(0, 300)
 	col.add_child(logo)
-	var tsub := label(col, "갈대 늪 너머, 이상한 것들이 깨어난다", Vector2.ZERO, 18, Color("#f6b951"))
+	var serif: FontFile = (load("res://fonts/noto_serif_kr/NotoSerifKR-SemiBold.title.woff2") as FontFile).duplicate()
+	serif.fallbacks = [m.ui_font] # the subtitle and hint in the logo's serif; other letters (translations) fall back
+	var tsub := label(col, "갈대 늪 너머, 이상한 것들이 깨어난다", Vector2.ZERO, 20, Color("#f6b951"))
+	tsub.add_theme_font_override("font", serif)
 	tsub.add_theme_constant_override("outline_size", 6)
 	tsub.add_theme_color_override("font_outline_color", Color("#02040b"))
 	tsub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var thint := label(col, "아무 키나 눌러 시작", Vector2.ZERO, 13, Color("#dfe6ff"))
+	var thint := label(col, "아무 키나 눌러 시작", Vector2.ZERO, 14, Color("#dfe6ff"))
+	thint.add_theme_font_override("font", serif)
 	m.ui.title_hint = thint
 	thint.add_theme_constant_override("outline_size", 6)
 	thint.add_theme_color_override("font_outline_color", Color("#02040b"))

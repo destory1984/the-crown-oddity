@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
 
 func _ready() -> void:
@@ -637,6 +637,76 @@ func run() -> void:
 		var garden: int = main.foe_lv()
 		main.player.x = keep_x
 		check("area_steps", marsh < forest and forest < garden, "foe level marsh %d < forest %d < garden %d" % [marsh, forest, garden])
+	if want.call("tree_chop"):
+		# a marsh tree falls after three sword hits, lets Sora through and is gone a moment later
+		main.close_story()
+		calm_enemies(true)
+		var t: Dictionary = main.world_build.marsh_trees.filter(func(tt): return not tt.down)[0]
+		reset_to(Vector2(t.x - 1.2, t.z))
+		main.player.face = Vector2(1, 0)
+		var rocks0: int = main.rocks.size()
+		for k in 3:
+			main.player.atk_cd = 0.0
+			main.player.combo_t = 0.0
+			main.player.face = Vector2(1, 0)
+			main.attack()
+			await wait(0.1)
+		var fell: bool = t.down and main.rocks.size() == rocks0 - 1
+		await wait(2.4)
+		var gone: bool = not (t.trunk as Node3D).visible
+		calm_enemies(false)
+		main.return_to_start()
+		check("tree_chop", fell and gone, "three hits fell it and freed its tile=%s gone after 2.4 s=%s (hits %d)" % [fell, gone, t.hits])
+	if want.call("lantern_toggle"):
+		# E beside a lit lantern puts it out and lights it again; one the story keeps dark is left alone
+		main.close_story()
+		var lit: Array = main.lanterns.filter(func(l): return l.has_meta("glass") and not l.get_meta("dark", false) and l != main.dark_lamp and l.position.x < 100.0)
+		var l: OmniLight3D = lit[0]
+		main.player.x = l.position.x - 0.3
+		main.player.z = l.position.z + 0.6
+		var off: bool = main.toggle_lantern() and l.get_meta("dark", false)
+		var on: bool = main.toggle_lantern() and not l.get_meta("dark", false)
+		var kept := true
+		if main.dark_lamp != null:
+			main.player.x = main.dark_lamp.position.x - 0.3
+			main.player.z = main.dark_lamp.position.z + 0.6
+			kept = not main.toggle_lantern() or main.dark_lamp.get_meta("dark", false) == false
+		main.return_to_start()
+		check("lantern_toggle", off and on, "off=%s on again=%s story lamp left alone=%s" % [off, on, kept])
+	if want.call("chain_cut"):
+		# a J pressed in a swing's last moment is kept and swung as soon as it ends; a landed swing recovers faster
+		main.close_story()
+		main.combat.last_hit_t = -9.0
+		main.player.atk_cd = 0.1
+		main.combat.buffer_t = 0.0
+		main.attack() # too early: kept, not swung
+		var kept: bool = main.combat.buffer_t > 0.0
+		main.player.combo_t = 0.0
+		await wait(0.2)
+		var swung: bool = main.combat.buffer_t <= 0.0 and main.player.atk_cd > 0.0
+		main.player.atk_cd = 0.5
+		main.combat.buffer_t = 0.0
+		main.attack() # far too early: dropped
+		var dropped: bool = main.combat.buffer_t <= 0.0
+		main.player.atk_cd = 0.0
+		check("chain_cut", kept and swung and dropped, "kept a late press=%s swung when the swing ended=%s an early press dropped=%s" % [kept, swung, dropped])
+	if want.call("seam_pins"):
+		# a goblin whose swing misses shows its seams: three cuts then pop its pins and it comes loose
+		main.close_story()
+		calm_enemies(false)
+		var gob = main.enemies.filter(func(e): return not e.get("boss", false) and not e.get("prop", false) and not e.dead and not e.get("archer", false))[0]
+		main.monsters.open_seam(gob)
+		var open: bool = gob.seam > 0.0 and gob.pins == 3
+		gob.hp = 9999.0
+		var hp0: float = gob.hp
+		main.player.inv = 5.0
+		for k in 3:
+			main.damage_enemy(gob, 10.0, Vector2(gob.x - 1.0, gob.z), 0.0)
+		var loose: bool = gob.get("stun", 0.0) > 1.0 and gob.pins == 3 and gob.seam <= 0.0
+		var harder: bool = hp0 - gob.hp > 30.0 * 1.2 # three cuts at 1.5x
+		gob.stun = 0.0
+		gob.seam = 0.0
+		check("seam_pins", open and loose and harder, "seam opened=%s three cuts unpinned it=%s cuts hit harder=%s (%.0f)" % [open, loose, harder, hp0 - gob.hp])
 	if want.call("skill_cost"):
 		main.player.mp = 20.0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]
@@ -2093,7 +2163,7 @@ func run() -> void:
 		main.ui.quest.text = q0
 		calm_enemies(false)
 		check("touch_controls", words_ok and moved > 1.5 and runs and swung and stopped and guards and unguards and no_swing and clear and backs and touch_help and shop_ok and keys_back and desk,
-			"stick walked %.1f tiles, runs at the rim=%s sword while walking=%s let go stops=%s shield held/let go=%s/%s a tap on the world does not swing=%s; layout clear=%s (quest %s boss %s) back keys 56=%s touch help=%s shop fits, keys aside=%s back after=%s desktop again=%s" % [moved, runs, swung, stopped, guards, unguards, no_swing, clear, quest_r, boss_r, backs, touch_help, shop_ok, keys_back, desk])
+			"stick walked %.1f tiles, runs at the rim=%s sword while walking=%s let go stops=%s shield held/let go=%s/%s a tap on the world does not swing=%s; layout clear=%s (quest %s boss %s vs %s) back keys 56=%s touch help=%s shop fits, keys aside=%s back after=%s desktop again=%s" % [moved, runs, swung, stopped, guards, unguards, no_swing, clear, quest_r, boss_r, [vs, mates_r, quest_r.intersects(mates_r), boss_r.intersects(mates_r), main.ui.quest.autowrap_mode], backs, touch_help, shop_ok, keys_back, desk])
 	if want.call("quest_layout"):
 		# the quest line is laid out from real rects: at every window size, with 0 - 2 companions and the boss bar on or
 		# off, its ornament box stays on screen and clear of the status panel, the dial, the companions' rows, the boss
@@ -7078,6 +7148,25 @@ func run() -> void:
 		main.set_quest(main.race_quest)
 		check("race_save", rs != null and String(rs.get("quest", "")) == main.race_quest, "saved quest=%s before=%s" % [rs.get("quest", "") if rs != null else "", main.race_quest])
 		main.save_game()
+	if want.call("stage_noeul"):
+		# ?stage=noeul: the preset save puts Sora in the village on the lantern night, and Noeul comes for the lamps
+		main.close_story()
+		var keep_nq: int = main.night_q
+		var f := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(JSON.stringify(main.STAGES["noeul"]))
+		f.close()
+		main.load_game()
+		main.close_story()
+		var began := false
+		for k in 12:
+			await wait(0.25)
+			if main.night_q == 1:
+				began = true
+				break
+		main.close_story()
+		check("stage_noeul", began and main.in_village, "in the village=%s Noeul's chase began=%s (night_q %d, hour %.1f)" % [main.in_village, began, main.night_q, main.hour])
+		main.night_q = keep_nq
+		main.return_to_start() # last: the loaded stage is left behind
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)

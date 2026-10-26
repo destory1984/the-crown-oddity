@@ -493,7 +493,9 @@ func build_props() -> void:
 			gone[0].free()
 			m.rocks.pop_back()
 			continue
+		var first := cubes.size()
 		voxel_tree(x, z, kind, cubes, trunks)
+		marsh_trees.append({"x": x, "z": z, "trunk": trunks[-1], "first": first, "count": cubes.size() - first, "hits": 0, "rock": m.rocks[-1], "down": false})
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -509,8 +511,58 @@ func build_props() -> void:
 	cm.roughness = 0.9
 	mmi.material_override = cm
 	m.add_child(mmi)
+	tree_mm = mm
 	for tr in trunks:
 		m.add_child(tr)
+
+# ---- the marsh's trees can be cut down (the owner, 2026-10-27: "나무는 베어지고 -> 이내 사라진다"): three sword hits
+# and a tree falls away from Sora, lies a moment, shrinks and is gone, and the way through it opens. They grow back
+# when the game is loaded again.
+var marsh_trees: Array = [] # {x, z, trunk, first, count (its cubes in tree_mm), hits, rock, down}
+var tree_mm: MultiMesh
+const TREE_HITS := 3
+
+func chop_trees(reach: float, f: Vector2, cone: float, all_round: bool) -> void:
+	for t in marsh_trees:
+		if t.down:
+			continue
+		var d := Vector2(t.x - m.player.x, t.z - m.player.z)
+		if d.length() > reach + 0.5 or not (all_round or d.normalized().dot(f) > cone):
+			continue
+		t.hits += 1
+		var y := m.height_at(t.x, t.z)
+		m.burst(Vector3(t.x, y + 0.7, t.z), Color("#a8743a"), 10, 2.2)
+		m.sfx(140.0 + t.hits * 30.0, 0.08, "square", 0.18, -60.0)
+		(t.trunk as Node3D).rotation.z = 0.04 * (1 if t.hits % 2 == 0 else -1) # a shiver at each cut
+		if t.hits >= TREE_HITS:
+			fell_tree(t, d.normalized() if d.length() > 0.01 else f)
+
+func fell_tree(t: Dictionary, away: Vector2) -> void:
+	t.down = true
+	m.rocks.erase(t.rock)
+	var pivot := Vector3(t.x, m.height_at(t.x, t.z), t.z)
+	var axis := Vector3(away.y, 0, -away.x).normalized() # falls away from Sora
+	var start: Array = []
+	for i in t.count:
+		start.append(tree_mm.get_instance_transform(t.first + i))
+	var trunk: Node3D = t.trunk
+	var trunk0 := trunk.transform
+	trunk0.basis = Basis().scaled(trunk.scale)
+	var pose := func(p: float, shrink: float):
+		var rot := Basis(axis, -p * PI * 0.47)
+		for i in t.count:
+			var o: Transform3D = start[i]
+			tree_mm.set_instance_transform(t.first + i, Transform3D(rot * o.basis.scaled(Vector3.ONE * shrink), pivot + rot * (o.origin - pivot) * lerpf(1.0, 0.6, 1.0 - shrink)))
+		trunk.transform = Transform3D(rot * trunk0.basis.scaled(Vector3.ONE * shrink), pivot + rot * (trunk0.origin - pivot))
+	m.sfx(90, 0.4, "sawtooth", 0.22, -40)
+	var tw := m.create_tween()
+	tw.tween_method(func(p: float): pose.call(p * p, 1.0), 0.0, 1.0, 0.7) # slow at first, then down
+	tw.tween_callback(func():
+		m.shake = maxf(m.shake, 0.2)
+		m.burst(pivot + Vector3(away.x * 1.6, 0.3, away.y * 1.6), Color("#8a9a5a"), 24, 3.0))
+	tw.tween_interval(1.0)
+	tw.tween_method(func(s: float): pose.call(1.0, s), 1.0, 0.0, 0.4)
+	tw.tween_callback(func(): trunk.visible = false)
 
 func voxel_tree(x: float, z: float, kind: String, cubes: Array, trunks: Array) -> void:
 	var y0 := m.height_at(x, z)

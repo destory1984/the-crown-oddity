@@ -357,6 +357,18 @@ func update_hog(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 		mm.emission_energy_multiplier = 0.9
 	e.shadow.position = Vector3(e.x, 0.02, e.z)
 
+# 이음새: the gold sparks at its joints say "hit now"
+func open_seam(e: Dictionary) -> void:
+	if e.get("boss", false):
+		return
+	e.seam = 1.4
+	if not e.has("pins"):
+		e.pins = 3
+	var y := m.height_at(e.x, e.z)
+	for k in 3:
+		m.burst(Vector3(e.x + cos(k * TAU / 3.0) * 0.35, y + 0.7, e.z + sin(k * TAU / 3.0) * 0.35), Color("#ffd84a"), 3, 0.8)
+	m.pop_num(Vector3(e.x, y + 1.5, e.z), "틈!", Color("#ffd84a"))
+
 func update_enemies(dt: float, gy: float) -> void:
 	for e in m.enemies.duplicate():
 		if e.dead and e.get("boss", false):
@@ -440,6 +452,8 @@ func update_enemies(dt: float, gy: float) -> void:
 		if e.hurt > 0 or e.get("stun", 0.0) > 0.0 or e.get("wind", 0.0) > 0.0:
 			ev = Vector2(e.kx, e.kz)
 		e.stun = e.get("stun", 0.0) - dt
+		e.seam = e.get("seam", 0.0) - dt
+		e.dizzy = e.get("dizzy", 0.0) - dt
 		var nx: float = e.x + ev.x * dt
 		var nz: float = e.z + ev.y * dt
 		if m.walkable(nx, e.z): e.x = nx
@@ -459,12 +473,16 @@ func update_enemies(dt: float, gy: float) -> void:
 			if e.wind <= 0.0:
 				e.atk_cd = 1.6
 				var hitd := int(round(m.rnd(5, 9) + m.foe_lv()))
+				var whiff := true
 				if d < 1.3:
-					m.player_hit(hitd, Vector2(e.x, e.z), e)
+					whiff = m.player_hit(hitd, Vector2(e.x, e.z), e) in ["flash_dodge", "flash_guard", "none"]
 				else:
 					var mid := m.mates.mate_near(Vector2(e.x, e.z), 1.3)
 					if mid != "":
 						m.hurt_mate(mid, hitd)
+						whiff = false
+				if whiff: # a miss leaves its joints open (이음새)
+					open_seam(e)
 		elif not e.get("archer", false) and not m.intro and (d < 1.1 or m.mates.mate_near(Vector2(e.x, e.z), 1.1) != "") and e.atk_cd <= 0 and e.hurt <= 0 and e.get("stun", 0.0) <= 0.0:
 			e.wind = 0.45
 			m.pop_num(Vector3(e.x, m.height_at(e.x, e.z) + 1.3, e.z), "!", Color("#ff5a4a"))

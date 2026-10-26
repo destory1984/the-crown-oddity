@@ -4,7 +4,7 @@
 extends Control
 
 var main: Node
-var portrait: Texture2D = preload("res://art/ui/portrait.png")
+var portrait: Texture2D = preload("res://art/ui/portrait_bust.png") # head and shoulders (the owner, 2026-10-27)
 var icons: Array = [preload("res://art/ui/skill_0.png"), preload("res://art/ui/skill_1.png"),
 	preload("res://art/ui/skill_2.png"), preload("res://art/ui/skill_3.png")]
 
@@ -53,25 +53,25 @@ func _draw() -> void:
 	var p: Dictionary = main.player
 	var vs := get_viewport_rect().size
 	# ---- portrait and level
-	var c := Vector2(59, 72) # the ring (r 51) 8 px from the left edge
-	draw_circle(c, 50, NAVY)
-	draw_texture_rect(portrait, Rect2(c - Vector2(44, 44), Vector2(88, 88)), false)
-	draw_arc(c, 46, 0, TAU, 64, GOLD, 2.5, true)
-	draw_arc(c, 51, 0, TAU, 64, GOLD_DIM, 1.0, true)
+	var c := Vector2(71, 82) # the ring (r 63) 8 px from the left edge; 51 -> 63 so her shoulders show (the owner, 2026-10-27)
+	draw_circle(c, 62, NAVY)
+	draw_texture_rect(portrait, Rect2(c - Vector2(56, 56), Vector2(112, 112)), false)
+	draw_arc(c, 58, 0, TAU, 64, GOLD, 2.5, true)
+	draw_arc(c, 63, 0, TAU, 64, GOLD_DIM, 1.0, true)
 	for ang in [-PI / 2, 0.0, PI]:
-		diamond(c + Vector2(cos(ang), sin(ang)) * 51, 5, GOLD)
-	diamond(c + Vector2(0, -62), 7, GOLD) # crown point
-	var lb := c + Vector2(0, 48)
+		diamond(c + Vector2(cos(ang), sin(ang)) * 63, 5, GOLD)
+	diamond(c + Vector2(0, -74), 7, GOLD) # crown point
+	var lb := c + Vector2(0, 60)
 	draw_circle(lb, 14, Color("#0b1530"))
 	draw_arc(lb, 14, 0, TAU, 32, GOLD, 2.0, true)
 	text(lb + Vector2(-20, 6), str(p.lv), 15, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	# ---- bars
-	var x0 := 170.0
-	bar(Vector2(x0, 34), 230, p.hp / p.max_hp, Color("#e03a44"), "체력", "%d/%d" % [ceili(p.hp), p.max_hp])
-	bar(Vector2(x0, 56), 230, p.mp / p.max_mp, Color("#f08a2a"), "기세", "%d/%d" % [int(p.mp), p.max_mp], p.mp >= 60.0)
-	bar(Vector2(x0, 78), 230, p.sp / 100.0, Color("#f2e2b0"), "기력", "%d/100" % int(p.sp))
+	var x0 := 182.0 # past the bigger portrait ring (170 -> 182; the bars 12 px shorter so the numbers still end by 472)
+	bar(Vector2(x0, 34), 218, p.hp / p.max_hp, Color("#e03a44"), "체력", "%d/%d" % [ceili(p.hp), p.max_hp])
+	bar(Vector2(x0, 56), 218, p.mp / p.max_mp, Color("#f08a2a"), "기세", "%d/%d" % [int(p.mp), p.max_mp], p.mp >= 60.0)
+	bar(Vector2(x0, 78), 218, p.sp / 100.0, Color("#f2e2b0"), "기력", "%d/100" % int(p.sp))
 	var need: int = p.lv * 25
-	bar(Vector2(x0, 100), 230, float(p.xp) / need, Color("#8de07a"), "경험", "%d/%d" % [p.xp, need])
+	bar(Vector2(x0, 100), 218, float(p.xp) / need, Color("#8de07a"), "경험", "%d/%d" % [p.xp, need])
 	# the bracelets' moon gauge: pip_max small diamonds (8 at the start, up to 12; 12 end at x 354, under the 400 px bars)
 	text(Vector2(x0 - 45, 130), "달빛", 15, DIM)
 	var spots := pip_spots()
@@ -138,7 +138,7 @@ func _draw() -> void:
 			var sweep := TAU * (frac if frac > 0.0 else 1.0)
 			for k in 25:
 				var a1: float = -PI / 2 + sweep * k / 24.0
-				pts.append(sc + Vector2(cos(a1), sin(a1)) * 22)
+				pts.append(sc + Vector2(cos(a1), sin(a1)) * 31) # over the moon-stone coin's gem (v0.0.101)
 			draw_colored_polygon(pts, Color(0, 0, 0, 0.6))
 		var kb := sc + Vector2(0, 42)
 		if main.touch_ui:
