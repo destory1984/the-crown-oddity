@@ -156,7 +156,7 @@ func update_road(dt: float) -> void:
 		m.show_story("", Main.STORY.ROAD_CAMP)
 		return
 	if m.road_q == 3 and me.y > 21.5 and me.y < 26.5 and me.x > Main.GARDEN.GARDEN_X + 8.5 and me.x < Main.GARDEN.GARDEN_X + 18.5 \
-			and not m.enemies.any(func(e): return e.get("echo", false) and not e.dead):
+			and not m.enemies.any(func(e): return e.get("echo", false)): # a downed one too, for the second before road_q moves on
 		m.show_story("", road_echo_lines())
 		m.after_story = m.spawn_knight.bind(true)
 

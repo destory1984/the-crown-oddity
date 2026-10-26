@@ -233,9 +233,9 @@ def ship(message):
     shutil.copy2(ROOT / "art" / "ui" / "portrait.png", SITE / "og.png")
     # project source under godot/, exactly what is committed here
     dst = SITE / "godot"
-    if dst.exists():
-        shutil.rmtree(dst)
-    dst.mkdir()
+    # a folder held open (an Explorer window on godot/art/story) cannot be removed: drop what can go and write over the rest
+    shutil.rmtree(dst, ignore_errors=True)
+    dst.mkdir(exist_ok=True)
     archive = subprocess.run(["git", "archive", "HEAD"], cwd=ROOT, capture_output=True, check=True).stdout
     tarfile.open(fileobj=io.BytesIO(archive)).extractall(dst, filter="data")
     (dst / "LICENSE").unlink(missing_ok=True)  # the site repo has its own LICENSE

@@ -616,7 +616,8 @@ func update_hill(dt: float) -> void:
 		if mill.turning:
 			mill.blades.rotation.z += dt * 1.6
 	if m.hill_q == 2 and not m.story_open and Vector2(m.player.x, m.player.z).distance_to(m.hill.marks.B) < 6.0 \
-			and not m.enemies.any(func(e): return e.get("hawk", false) and not e.dead):
+			and not m.enemies.any(func(e): return e.get("hawk", false)): # a downed hawk too: hill_q turns 3 only 1 s after the blow,
+			# and standing by its ledge in that second called a second hawk (the owner, 2026-10-26)
 		m.show_story("", Main.STORY.HAWK_IN)
 		m.after_story = spawn_hawk
 

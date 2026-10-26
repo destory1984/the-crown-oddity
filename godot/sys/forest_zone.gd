@@ -288,7 +288,7 @@ func update_hollow() -> void:
 		m.show_story("", Main.STORY.HOLLOW_STREAM)
 		return
 	if m.hollow_q == 1 and m.forest.mem_lamps.all(func(l): return l.lit) and me.distance_to(m.forest.marks.C) < 5.0 \
-			and not m.enemies.any(func(e): return e.get("cloak", false) and not e.dead):
+			and not m.enemies.any(func(e): return e.get("cloak", false)): # a downed one too, for the second before hollow_q moves on
 		m.show_story("", Main.STORY.HOLLOW_CLOAK)
 		m.after_story = m.village_life.spawn_noeul_duel.bind(false, true)
 		return
