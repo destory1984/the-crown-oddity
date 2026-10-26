@@ -680,6 +680,9 @@ func step_target() -> Vector3:
 		# the unseen cloud path: the gold "!" at the entry island's south edge, where E lights it, until the shard is found
 	if at == Vector3.INF and m.in_cloud() and m.cloud_q >= 1 and not m.has_shard and not m.story_open 			and Vector2(m.player.x, m.player.z).distance_to(Vector2(Main.CLOUD.CLOUD_X + 2.0, 12.0)) < 9.0:
 		at = Vector3(Main.CLOUD.CLOUD_X + 2.0, 1.6, 12.2)
+	# the island's north landing after the turtle, while the quest heads back to the village
+	if at == Vector3.INF and not m.story_open and m.quest_raw.contains("동쪽 문") 			and m.lake_zone.on_island(Vector2(m.player.x, m.player.z)):
+		at = Vector3(m.lake.marks.Q.x, 1.6, m.lake.marks.Q.y)
 	return at
 
 # who the quest line or the side line sends Sora to (the owner, 2026-10-26: "가져가야할 아이템이나 미션이 있으면 해당 물체

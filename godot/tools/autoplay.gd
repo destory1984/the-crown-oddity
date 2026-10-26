@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "island_landing", "bori_away", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
 
 func _ready() -> void:
@@ -526,6 +526,46 @@ func run() -> void:
 		main.quest_raw = q0
 		main.in_village = v0
 		check("folk_mark", over_mul and none and over_cot, "over Mulgyeol=%s none for a quest naming nobody=%s over Bori's cottage=%s" % [over_mul, none, over_cot])
+	if want.call("island_landing"):
+		# on the island after the turtle: the gold "!" over the north landing, and the shore says where the boat leaves
+		var keep := [main.in_lake, main.lake_q, main.quest_raw, main.player.x, main.player.z, main.player.face, main.in_village]
+		main.close_story()
+		main.in_village = false
+		main.in_lake = true
+		main.lake_q = 4
+		main.quest_raw = "물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"
+		main.player.x = main.LAKE.LAKE_X + 12.0
+		main.player.z = 18.0
+		var tg: Vector3 = main.step_target()
+		var over_q: bool = tg != Vector3.INF and Vector2(tg.x, tg.z).distance_to(main.lake.marks.Q) < 0.5
+		main.player.x = main.LAKE.LAKE_X + 7.0
+		main.player.z = 17.0
+		main.player.face = Vector2(-1, 0)
+		main.lake_zone.at_shore = false
+		main.toast_t = 0.0
+		main.ui.toast.text = ""
+		main.lake_zone.shore_hint(Vector2(main.player.x, main.player.z))
+		var said: bool = main.ui.toast.text.contains("나루")
+		main.quest_raw = "굳은 숲으로"
+		var gone: bool = main.step_target() == Vector3.INF
+		check("island_landing", over_q and said and gone, "! over the landing=%s shore toast=%s ('%s') none on another quest=%s" % [over_q, said, main.ui.toast.text, gone])
+		main.in_lake = keep[0]
+		main.lake_q = keep[1]
+		main.quest_raw = keep[2]
+		main.player.x = keep[3]
+		main.player.z = keep[4]
+		main.player.face = keep[5]
+		main.in_village = keep[6]
+		main.lake_zone.at_shore = false
+		main.ui.toast.text = ""
+	if want.call("bori_away"):
+		# Bori has no figure outside her shop: scenes where she is not standing give her no face line
+		var faced := []
+		for name in ["CLOCK_HUB", "CLOCK_LATE", "CLOCK_WOUND", "FINAL_SHORT"]:
+			for line in main.STORY.get(name):
+				if String(line).contains("|bori"):
+					faced.append(name)
+		check("bori_away", faced.is_empty(), "Bori face lines where she is not: %s" % [faced])
 	if want.call("skill_cost"):
 		main.player.mp = 20.0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]

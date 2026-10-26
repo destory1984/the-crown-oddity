@@ -307,7 +307,7 @@ const GARDEN_IN := [
 const FINAL_SHORT := [
 	"||거푸집이 땅을 끌어당기자, 팔찌의 눈금이 하나씩 꺼져 갔다.",
 	"소라|sad|안 돼…… 눈금이 모자라. 혼자서는 감을 수가 없어……",
-	"보리 할머니|bori|소라야, 팔찌를 찼다고 혼자 감는 건 아니라고 했지? 옆 사람 손을 빌리렴.",
+	"||보리 할머니의 목소리가 귓가에 되살아났다. '팔찌를 찼다고 혼자 감는 건 아니란다. 옆 사람 손을 빌리렴.'",
 	"||소라는 빈 두 손을 높이 들어 올렸다. 팔찌가 푸르게 빛났다.",
 	"||빈터를 둘러싼 낡은 등불 기둥에 하나, 또 하나 불이 켜졌다. 마을 사람들이 등불을 들고 와 있었다.",
 	"심지|simji|백 년 동안 등불을 켜던 손이오. 여덟 개쯤이야!",
@@ -1671,7 +1671,7 @@ const CLOCK_HUB := [
 	"심지|simji|감는 밤엔 늘 이렇게 다 모였단다. 백 년 만이로군.",
 	"콩알|kongal|여기가 너희 집이었구나! 언니, 얘 손잡이는 여기야?",
 	"도란|doran|손잡이 하나는 이 늙은이 몫이오.",
-	"보리 할머니|bori|소라야, 네 옆에도 다들 섰니?",
+	"물결|mulgyeol|소라, 네 옆자리도 다 찼어?",
 	"소라|determined|한결 손잡이는 내가 잡을게. 다 같이, 하나 둘에!",
 ]
 
@@ -1683,11 +1683,13 @@ const CLOCK_WOUND := [
 	"소라|laugh|응. 여덟 밤 뒤에도 다 같이 오자.",
 ]
 
-# after 1.6 s of only the gears' sound: the worn handle with someone on each side, then Bori from the stairs
+# after 1.6 s of only the gears' sound: the worn handle with someone on each side, then Simji (Bori has no figure in
+# the world, only her shop picture, so she does not speak where she is not standing: the owner, 2026-10-27)
 const CLOCK_LATE := [
 	"||닳은 손잡이 양옆 손잡이에도 물결과 노을이 손을 얹은 채 숨을 고른다.",
 	"||땅 위 어딘가에서 물소리가 한층 커졌다.",
-	"보리 할머니|bori|다음 감는 밤에도 이렇게 모이면 되겠구나.",
+	"심지|simji|다음 감는 밤에도 이렇게 모이면 되겠구나.",
+	"소라|calm|늪의 보리 할머니께도 알려 드려야지.",
 ]
 
 const CLOCK_CHEST := [

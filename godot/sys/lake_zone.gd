@@ -445,6 +445,7 @@ func update_lake_south(dt: float) -> void:
 			south_latch()
 	if m.story_open:
 		return
+	shore_hint(me)
 	if m.lake_q >= 4 and m.south_q == 0 and not m.south_hint_seen and me.distance_to(m.lake.marks.Y) < 3.0:
 		m.south_hint_seen = true
 		m.show_story("", Main.STORY.SOUTH_HINT)
@@ -454,6 +455,21 @@ func update_lake_south(dt: float) -> void:
 	if m.south_q == 2 and m.south_ambush_on and m.south_latch_t < 0.0 \
 			and not m.enemies.any(func(e): return e.get("south_ambush", false) and not e.dead):
 		m.south_latch_t = 1.2
+
+# on the island after the turtle (the owner, 2026-10-26: stuck at the water's edge on "물결과 함께 마을 동쪽 문으로"):
+# the lake does not take the water skip, so walking up to the island's shore says once per visit to the edge that
+# the boat leaves from the north landing (Q); the gold "!" over the landing is in castle_zone.step_target
+var at_shore := false
+
+func on_island(me: Vector2) -> bool:
+	return m.in_lake and not in_grotto() and m.lake_q >= 4 and me.y > 12.0 and me.y < Main.LAKE.SOUTH_Z
+
+func shore_hint(me: Vector2) -> void:
+	var ahead: Vector2 = me + Vector2(m.player.face).normalized() * 0.8
+	var near := on_island(me) and m.lake.char_at(ahead.x, ahead.y) == "X"
+	if near and not at_shore:
+		m.toast("섬 북쪽 나루에서 E를 누르면 물결이 배를 저어 준다")
+	at_shore = near
 
 # ---- 물빛 동굴 under the island (after the turtle): water-skip runs, archers, the brick crab and the water pearl
 func in_grotto() -> bool:
