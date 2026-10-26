@@ -51,20 +51,20 @@ func build_mate_hud(root: Control) -> void:
 		face.size = Vector2(28, 28)
 		face.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(face)
-		label(row, ["물결", "노을"][i], Vector2(34, 0), 13, Color("#f6d27a"))
+		label(row, ["물결", "노을"][i], Vector2(34, -2), 15, Color("#f6d27a")) # 13 -> 15, the state 11 -> 13 (the owner, 2026-10-27)
 		var back := ColorRect.new()
 		back.color = Color(0.1, 0.1, 0.15, 0.8)
-		back.position = Vector2(34, 19)
+		back.position = Vector2(34, 21)
 		back.size = Vector2(110, 6)
 		back.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(back)
 		var fill := ColorRect.new()
 		fill.color = Color("#7ac8ff") if i == 0 else Color("#c8c8d0")
-		fill.position = Vector2(34, 19)
+		fill.position = Vector2(34, 21)
 		fill.size = Vector2(110, 6)
 		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(fill)
-		var act := label(row, "", Vector2(82, 1), 11, Color("#c9bfa6"))
+		var act := label(row, "", Vector2(82, 0), 13, Color("#c9bfa6"))
 		act.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		row.visible = false
 		m.ui.mate_rows.append({"row": row, "fill": fill, "act": act})

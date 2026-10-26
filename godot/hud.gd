@@ -35,8 +35,8 @@ func bar(at: Vector2, w: float, frac: float, col: Color, label: String, value: S
 	draw_rect(Rect2(at - Vector2(1, 1), Vector2(w + 2, h + 2)), GOLD_DIM, false, 1.0)
 	diamond(at + Vector2(-6, h / 2.0), 5, GOLD)
 	diamond(at + Vector2(w + 6, h / 2.0), 5, GOLD)
-	text(at + Vector2(-44, 9), label, 11, DIM)
-	text(at + Vector2(w + 16, 10), value, 12, TEXT)
+	text(at + Vector2(-44, 10), label, 14, DIM) # 11 -> 14 and the numbers 12 -> 14 (the owner, 2026-10-27: too small)
+	text(at + Vector2(w + 16, 11), value, 14, TEXT)
 
 var pips_drawn := 0 # diamonds in the moon gauge at the last draw (autoplay pips)
 
@@ -73,7 +73,7 @@ func _draw() -> void:
 	var need: int = p.lv * 25
 	bar(Vector2(x0, 100), 230, float(p.xp) / need, Color("#8de07a"), "경험", "%d/%d" % [p.xp, need])
 	# the bracelets' moon gauge: pip_max small diamonds (8 at the start, up to 12; 12 end at x 354, under the 400 px bars)
-	text(Vector2(x0 - 44, 129), "달빛", 11, DIM)
+	text(Vector2(x0 - 44, 130), "달빛", 14, DIM)
 	var spots := pip_spots()
 	pips_drawn = spots.size()
 	for i in spots.size():
@@ -110,8 +110,8 @@ func _draw() -> void:
 		if ph.x < 0.98:
 			draw_circle(sp + Vector2(11.0 * 2.0 * ph.x * ph.y, -1.0), 10.8, Color("#0b1530"))
 	# zone name, small, under the dial
-	text(Vector2(10, 254), main.ui.zone_name.text, 14, TEXT)
-	text(Vector2(10, 272), main.ui.zone_sub.text, 11, DIM)
+	text(Vector2(10, 254), main.ui.zone_name.text, 17, TEXT) # 14 / 11 -> 17 / 14 (the owner, 2026-10-27)
+	text(Vector2(10, 275), main.ui.zone_sub.text, 14, DIM)
 	# ---- quest ornaments: from the box hud_build laid the quest text out in, so no line crosses the text
 	if main.ui.quest.visible and main.hud_build.quest_deco.size != Vector2.ZERO:
 		var d: Rect2 = main.hud_build.quest_deco
