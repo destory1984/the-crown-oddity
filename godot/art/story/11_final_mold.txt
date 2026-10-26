@@ -1,5 +1,14 @@
 Use your image generation tool to create ONE image and save it as 11_final_mold.png in the current directory.
 
+ATTACHMENTS (these override any other description of the attached images further below):
+1 = ref_sora35.jpg, Sora's character turnaround at the RIGHT proportion (3.5 heads tall): copy her design AND her body proportion from it.
+2 = the CURRENT version of this very illustration: keep its scene, composition, camera, background, lighting, colors and style; redraw it with the characters at the new proportion.
+3 = Sora's face sheet: keep exactly this face.
+4 = ref_jae35.jpg, Jae (Noeul) turnaround at 3.5 heads: copy his design and proportion.
+5 = ref_kongal35.jpg, Kongal turnaround at 3.5 heads: copy her design and proportion.
+6 = Grandma Bori: keep her exactly like it (she is an adult, not a child).
+PROPORTIONS: every CHILD (Sora, Jae, Kongal) is a cute chibi-anime child exactly 3.5 HEADS TALL, exactly like images 1, 4 and 5: the head from top of hair to chin, times 3.5, equals the standing height. Jae stands about 10% taller than Sora, Kongal about 10% shorter. Adults (Bori, Doran, Simji, Hangyeol) and animal folk (Mulgyeol the otter) keep their own look. Sitting or kneeling children keep the same head-to-body ratio.
+
 The first attached image is the official character turnaround of Sora, the heroine. Keep her design exactly: lavender-silver short wavy hair, small gold crown with a blue diamond gem, blue ribbon with gold diamond charms on one side, gold diamond earrings, deep blue eyes, white dress with royal-blue panels and gold trim, detached white sleeves with blue-and-gold cuffs, blue tassels ending in gold diamonds, white stockings, blue boots.
 The third attached image shows Sora's FACE: keep exactly this face (big round deep-blue eyes, small nose, soft round cheeks, child-like proportions, lavender-silver wavy bob with side ribbon) in every picture.
 If a fourth image is attached it is Grandma Bori: keep her EXACTLY like it (old woman about 75, wrinkles, silver bun, rust shawl, olive dress, cream apron).
@@ -10,7 +19,7 @@ Scene: at the heart of the garden, a colossal crescent-moon-shaped grey brick mo
 World: a hand-made garden land whose ground is slowly hardening into toy-like plastic brick (LEGO-like studded bricks), with golden reed marshes, cattails, wooden bridges, old lantern posts. Brick creatures are cute chunky toy-brick goblins (red body, blue head, glowing amber eyes, studs on top), not scary.
 STYLE (match the second attached image exactly): classic 1990s TV anime cel. Clean uniform dark ink outlines, flat colors with exactly one hard-edged shadow tone, no gradients, no texture, simple flat painted background, slightly faded film colors. 16:9 landscape.
 AVOID the typical AI-illustration look: no golden backlight or rim light, no sparkles, no glitter particles, no bokeh light orbs, no lens flare, no glow halos, no over-saturated colors, no glossy airbrushed shading, no symmetric centered poster composition. Keep the background simpler and quieter than the characters.
-ANATOMY MUST BE CORRECT: every character has exactly two arms and two legs, a natural unbroken spine and waist (no twisted or bent-back torso), each clearly attached, natural proportions, five fingers per hand, no extra or merged limbs.
+ANATOMY MUST BE CORRECT: every character has exactly two arms and two legs, a natural unbroken spine and waist (no twisted or bent-back torso), each clearly attached, five fingers per hand, no extra or merged limbs.
 MODESTY: wholesome and family-friendly; underwear is never visible, no view under skirts; camera at eye level or slightly above, never a low angle looking up at a skirt; in action poses the skirt and petticoat stay down over the thighs.
 No text, no logo, no watermark, no frame.
 When done, reply with only the file path.

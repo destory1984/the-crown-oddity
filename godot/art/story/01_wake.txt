@@ -1,10 +1,19 @@
 The attached image is the official character turnaround of Sora, the heroine. Keep her design exactly: lavender-silver short wavy hair, small gold crown with a blue diamond gem, blue ribbon with gold diamond charms on one side, gold diamond earrings, deep blue eyes, white dress with royal-blue panels and gold trim, detached white sleeves with blue-and-gold cuffs, blue tassels ending in gold diamonds, white stockings, blue boots.
 
+ATTACHMENTS (these override any other description of the attached images further below):
+1 = ref_sora35.jpg, Sora's character turnaround at the RIGHT proportion (3.5 heads tall): copy her design AND her body proportion from it.
+2 = the CURRENT version of this very illustration: keep its scene, composition, camera, background, lighting, colors and style; redraw it with the characters at the new proportion.
+3 = Sora's face sheet: keep exactly this face.
+4 = ref_jae35.jpg, Jae (Noeul) turnaround at 3.5 heads: copy his design and proportion.
+5 = ref_kongal35.jpg, Kongal turnaround at 3.5 heads: copy her design and proportion.
+6 = Grandma Bori: keep her exactly like it (she is an adult, not a child).
+PROPORTIONS: every CHILD (Sora, Jae, Kongal) is a cute chibi-anime child exactly 3.5 HEADS TALL, exactly like images 1, 4 and 5: the head from top of hair to chin, times 3.5, equals the standing height. Jae stands about 10% taller than Sora, Kongal about 10% shorter. Adults (Bori, Doran, Simji, Hangyeol) and animal folk (Mulgyeol the otter) keep their own look. Sitting or kneeling children keep the same head-to-body ratio.
+
 Use your image generation tool to create ONE illustration and save it as 01_wake.png in the current directory.
 
 Scene (story illustration for a cozy fantasy action RPG, shown full screen between gameplay):
 Sora has just woken up among tall golden reeds and cattails at the edge of a quiet marsh at dusk. She kneels on the grass in a simple, natural pose (seiza-like, sitting back on her heels), knees together and pointing toward the viewer, her full skirt spread out around her and covering her legs down to the boots. One hand gently touches the crown on her head as if noticing it for the first time; the other hand rests on the grass beside her. She looks up with a curious, gentle, slightly wistful expression. Warm low sunlight, drifting fireflies and dandelion fluff, a small wooden bridge and soft water reflections far behind, a faint glint of something strange (a tiny toy-like brick figure peeking between the reeds) in the background.
 
-ANATOMY MUST BE CORRECT: exactly two legs and two arms, each limb clearly connected to the body, natural proportions, five fingers per hand, no extra or merged limbs, no twisted legs. MODESTY IS MANDATORY: underwear must never be visible in any way; no upskirt angle, no view under the skirt, no lifted hem, no raised knees in front of the skirt; the skirt fully covers her lap and thighs. Wholesome, family-friendly.
+ANATOMY MUST BE CORRECT: exactly two legs and two arms, each limb clearly connected to the body, five fingers per hand, no extra or merged limbs, no twisted legs. MODESTY IS MANDATORY: underwear must never be visible in any way; no upskirt angle, no view under the skirt, no lifted hem, no raised knees in front of the skirt; the skirt fully covers her lap and thighs. Wholesome, family-friendly.
 Make Sora as beautiful, lovely and endearing as possible: soft delicate face, big sparkling eyes, gentle blush, graceful pose, beautifully rendered hair and fabric. Polished high-quality anime illustration, painterly soft lighting, rich warm colors, cinematic composition, 16:9 landscape, Sora as the clear focal point. No text, no logo, no watermark, no frame.
 When done, reply with only the file path.
