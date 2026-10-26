@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
 
 func _ready() -> void:
@@ -501,6 +501,31 @@ func run() -> void:
 						near_clear += 1
 		var mesh: bool = main.veg_meshes.any(func(mm): return mm.instance_count == tiles.size() * 6)
 		check("hill_dressing", tiles.size() > 400 and near_clear == 0 and mesh, "hill grass tiles %d, next to the path or a used spot %d, tuft mesh of six a tile=%s" % [tiles.size(), near_clear, mesh])
+	if want.call("folk_mark"):
+		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
+		var q0: String = main.quest_raw
+		var v0: bool = main.in_village
+		var mate0 = main.mate
+		main.close_story()
+		main.in_village = true
+		main.mate = null
+		main.quest_raw = "마을의 뱃사공 물결에게 가 보자 (E)"
+		var mp: Vector2 = main.folk.folk_talk_at("mulgyeol")
+		reset_to(mp + Vector2(4, 0))
+		var at: Vector3 = main.castle_zone.folk_target()
+		var over_mul: bool = at != Vector3.INF and Vector2(at.x, at.z).distance_to(mp) < 0.1 and at.y > 2.0
+		main.quest_raw = "숲에 가자"
+		var none: bool = main.castle_zone.folk_target() == Vector3.INF
+		main.in_village = false
+		main.mate = mate0
+		reset_to(main.cottage_at + Vector2(3, 0))
+		main.quest_raw = q0
+		main.quest_raw = "서쪽 오두막의 보리 할머니에게 가 보자"
+		var at2: Vector3 = main.castle_zone.folk_target()
+		var over_cot: bool = at2 != Vector3.INF and Vector2(at2.x, at2.z).distance_to(main.cottage_at) < 0.1
+		main.quest_raw = q0
+		main.in_village = v0
+		check("folk_mark", over_mul and none and over_cot, "over Mulgyeol=%s none for a quest naming nobody=%s over Bori's cottage=%s" % [over_mul, none, over_cot])
 	if want.call("skill_cost"):
 		main.player.mp = 20.0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]

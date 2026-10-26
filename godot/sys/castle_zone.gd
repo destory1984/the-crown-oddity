@@ -675,7 +675,31 @@ func step_target() -> Vector3:
 		at = under_target()
 	if at == Vector3.INF and m.story_step == 5 and m.cave_pos.x > 0 and m.in_marsh() and not m.intro:
 		at = Vector3(m.cave_pos.x, 1.5, m.cave_pos.y + 0.6) # over the steps, nearer the camera's focus
+	if at == Vector3.INF:
+		at = folk_target()
 	return at
+
+# who the quest line or the side line sends Sora to (the owner, 2026-10-26: "가져가야할 아이템이나 미션이 있으면 해당 물체
+# 위에 느낌표", walking past Mulgyeol on "물결에게 가 보자"): the gold "!" over that villager in the village, or over
+# Bori's cottage in the marsh; not while a story box is open, and only within 30 tiles
+const MARK_FOLK := ["도란", "콩알", "물결", "두솔", "차돌", "새참", "여울", "다래", "토리"]
+
+func folk_target() -> Vector3:
+	if m.intro or m.story_open:
+		return Vector3.INF
+	var lines: String = m.quest_raw + " " + m.errands.letter_side_line()
+	var me := Vector2(m.player.x, m.player.z)
+	if m.in_village:
+		for name in MARK_FOLK:
+			if not lines.contains(name + "에게") and not lines.contains(name + "을") and not lines.contains(name + "를"):
+				continue
+			var id: String = m.folk.FOLK_NAME.find_key(name)
+			var p: Vector2 = m.folk.folk_talk_at(id)
+			if p.x != INF and p.distance_to(me) < 30.0:
+				return Vector3(p.x, m.folk_height(id) / cos(0.78) + 0.7, p.y)
+	if m.in_marsh() and lines.contains("보리") and m.cottage_at.x >= 0.0 and m.cottage_at.distance_to(me) < 30.0:
+		return Vector3(m.cottage_at.x, 3.4, m.cottage_at.y)
+	return Vector3.INF
 
 func update_quarters_mark() -> void:
 	var at := step_target()
