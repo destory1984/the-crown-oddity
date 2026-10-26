@@ -418,6 +418,7 @@ func _ready() -> void:
 		get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 		get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
 		get_tree().root.content_scale_size = Vector2i(ch * 16 / 9, ch)
+	world_build.chest_textures()
 	world_build.build_environment()
 	world_build.build_map()
 	world_build.build_terrain()
@@ -672,6 +673,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-26 저녁",
+	"· v0.0.79: 화면 위 할 일 줄이 17 → 20px, 그 아래 곁 단계 줄이 14 → 17px로 커지고 더 밝아졌다(창 높이가 700px보다 작으면 예전 크기). 상자를 열면 뚜껑이 젖혀지고 속이 빈 그림으로 바뀐다(예전에는 같은 그림이 조금 어두워질 뿐이었다). 들판 상자, 동굴 열쇠 상자, 성 아래 상자 모두.",
 	"· v0.0.78: 늪 둘레가 비어 보이지 않는다. 늪 가장자리 물 너머가 보랏빛 허공이었는데, 이제 네 둘레에 10칸 너비의 먼 둑(늪과 같은 얼룩 무늬 풀밭, 낮은 풀, 나무)이 있고, 동쪽 강 건너에는 마을 집 6채의 지붕과 불 켜진 창이 보인다(걸어서 갈 수는 없다). 미니맵에 보리 할머니 오두막이 빨간 지붕 집 표시로 나온다.",
 	"· v0.0.77: 노을과 벽돌들, 굳은달 거푸집이 노리는 것이 왕관이 아니라 팔찌가 되었다. 왕관은 그대로 머리에 쓴 달지기 표식이고, 늪 아래 동굴에서 노을은 '그 팔찌, 네 것이 아니야' 하며 소라의 팔목으로 손을 뻗었다가 팔찌에 튕겨 나간다. 옛 명령은 '팔찌를 정원 한가운데로'이고, 한결은 팔찌를 왕관과 함께 갈대 바구니에 담아 늪으로 보냈다. 이야기 32줄을 고쳤다.",
 	"· v0.0.76: 바람 언덕이 갈대늪처럼 보인다. 단색 판이던 바닥에 늪의 풀과 같은 방식으로 바람에 눕는 황록 풀이 638칸에 6포기씩 자라고(간간이 흰·노랑·보라 꽃), 블록 윗면에 얼룩 무늬가, 길에는 흙빛 무늬가 생겼다. 풀은 길, 골짜기, 물길, 풍차, 등불, 바람개비 둘레 1칸은 비운다. 휴대폰은 늪처럼 절반만 그린다. 다른 지역도 같은 바닥 꾸밈을 차례로 입힌다.",
@@ -1213,7 +1215,7 @@ func interact() -> void:
 	for c in chests:
 		if not c.open and Vector2(c.x - player.x, c.z - player.z).length() < 1.5:
 			c.open = true
-			c.node.modulate = Color(0.55, 0.55, 0.55)
+			c.node.texture = chest_open_tex
 			var g := 15 + rng.randi() % 15
 			player.gold += g
 			player.pots += 1
@@ -1246,6 +1248,8 @@ var dark_glass_mat: Material = null
 # story step 5: the Brick King falls, the blocked waterway breaks free and a cave mouth opens
 var cave_pos := Vector2(-99, -99)
 var veg_meshes: Array = []
+var chest_shut_tex: Texture2D = null
+var chest_open_tex: Texture2D = null # the field chests' opened picture (world_build.build_chests)
 var cottage_at := Vector2(-1, -1) # Bori's cottage in the marsh, for its minimap mark
 
 # the quest line after the Brick King (GPT playtest 2: the old demo's "next chapter" text made players stop at an

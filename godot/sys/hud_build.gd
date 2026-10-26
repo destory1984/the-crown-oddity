@@ -143,6 +143,7 @@ var side_label: Label = null # the running side step, a small dim line under the
 var side_want := false # a side step is running; shown unless the layout drops it
 var side_off := false # the layout dropped the side line: no room for it beside the other boxes
 var side_h := 0.0 # its height with the gap, counted into the ornament box
+var quest_big := true # the bigger quest text (a screen 700 px tall or more): lines 30 px, side 26 px
 var quest_lines := 0 # lines the quest text wraps to (autoplay quest_layout)
 
 func mates_rect() -> Rect2:
@@ -195,7 +196,7 @@ func quest_blocks(with_player := true) -> Array:
 
 func update_side() -> void:
 	if side_label == null:
-		side_label = label(m.ui.quest, "", Vector2.ZERO, 14, Color(0.93, 0.88, 0.74, 0.72))
+		side_label = label(m.ui.quest, "", Vector2.ZERO, 17, Color(0.95, 0.9, 0.78, 0.92)) # 14 px at 72% was too small to read (the owner, 2026-10-26)
 		side_label.add_theme_constant_override("outline_size", 4)
 		side_label.add_theme_color_override("font_outline_color", Color("#02040b"))
 		side_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -244,6 +245,13 @@ func layout_top() -> void:
 		quest_deco = Rect2()
 		quest_lines = 0
 		return
+	# 20 px quest and 17 px side line on a big screen (the owner, 2026-10-26: too small); a small window or the
+	# phones' smaller canvas keeps 17 / 15 so the line still finds a free band beside the bars and the boss bar
+	var big := vs.y >= 700.0
+	quest_big = big
+	m.ui.quest.add_theme_font_size_override("font_size", 20 if big else 17)
+	if side_label != null:
+		side_label.add_theme_font_size_override("font_size", 17 if big else 14)
 	var blocks := quest_blocks()
 	var boss_end := boss_rect().end.y if b.visible else 0.0
 	# candidates: [left limit, right limit, top, centre on the screen instead of the band]
@@ -319,16 +327,17 @@ func _fit_quest(xl: float, xr: float, y: float, centre: bool, vs: Vector2) -> Di
 	q.offset_left = cx - w / 2.0 - vs.x / 2.0
 	q.offset_right = cx + w / 2.0 - vs.x / 2.0
 	q.offset_top = y
-	q.offset_bottom = y + 26.0
+	var lh := 30.0 if quest_big else 26.0
+	q.offset_bottom = y + lh
 	var lines := maxi(1, q.get_line_count())
-	var h := maxf(26.0, q.get_minimum_size().y) if w < tw else 26.0
+	var h := maxf(lh, q.get_minimum_size().y) if w < tw else lh
 	q.offset_bottom = y + h
 	side_h = 0.0
 	if side_label != null and side_want and not side_off:
 		var sw := side_label.get_minimum_size().x + 2.0
-		side_label.size = Vector2(sw, 20.0)
+		side_label.size = Vector2(sw, 24.0 if quest_big else 20.0)
 		side_label.position = Vector2((w - sw) / 2.0, h + 2.0)
-		side_h = 22.0
+		side_h = 26.0 if quest_big else 22.0
 	var half := maxf(w / 2.0 + QUEST_PAD, 60.0)
 	return {"xl": xl, "xr": xr, "y": y, "centre": centre, "lines": lines, "deco": Rect2(cx - half, y - 12.0, half * 2.0, h + 24.0 + side_h)}
 
@@ -614,8 +623,8 @@ func build_hud() -> void:
 	m.hud.add_child(m.fade_rect)
 
 	# quest line, top centre under the boss bar
-	m.ui.quest = label(root, "", Vector2.ZERO, 17, Color("#fff1c8"))
-	place(m.ui.quest, Control.PRESET_CENTER_TOP, Vector2(-300, 62), Vector2(600, 26))
+	m.ui.quest = label(root, "", Vector2.ZERO, 20, Color("#fff1c8")) # 17 -> 20 px (the owner, 2026-10-26: too small)
+	place(m.ui.quest, Control.PRESET_CENTER_TOP, Vector2(-300, 62), Vector2(600, 30))
 	m.ui.quest.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	m.ui.quest.add_theme_constant_override("outline_size", 6)
 	m.ui.quest.add_theme_color_override("font_outline_color", Color("#02040b"))

@@ -335,7 +335,7 @@ func cave_map_tex() -> ImageTexture:
 func build_cave_props() -> void:
 	var k: Vector2 = m.cave_marks.K
 	m.key_chest = Sprite3D.new()
-	m.key_chest.texture = m.chests[0].node.texture if not m.chests.is_empty() else null
+	m.key_chest.texture = m.chest_open_tex if m.has_key else m.chest_shut_tex
 	m.key_chest.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	m.key_chest.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	m.key_chest.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
@@ -343,7 +343,7 @@ func build_cave_props() -> void:
 	m.key_chest.pixel_size = 0.05
 	m.key_chest.offset = Vector2(0, 7)
 	m.key_chest.scale = Vector3(1, 1.0 / cos(0.78), 1)
-	m.key_chest.modulate = Color(0.55, 0.55, 0.55) if m.has_key else Color("#9fd4ff")
+	m.key_chest.modulate = Color.WHITE if m.has_key else Color("#9fd4ff")
 	m.key_chest.position = Vector3(k.x, 0.0, k.y)
 	m.add_child(m.key_chest)
 	var d: Vector2 = m.cave_marks.D
@@ -628,7 +628,8 @@ func cave_interact() -> bool:
 		return true
 	if not m.has_key and me.distance_to(m.cave_marks.K) < 1.5:
 		m.has_key = true
-		m.key_chest.modulate = Color(0.55, 0.55, 0.55)
+		m.key_chest.texture = m.chest_open_tex
+		m.key_chest.modulate = Color.WHITE
 		m.burst(m.key_chest.position + Vector3(0, 0.6, 0), Color("#ffd84a"), 24, 2.5)
 		m.sfx(784, 0.12, "triangle", 0.25)
 		m.toast("녹슨 열쇠를 얻었다")

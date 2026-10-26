@@ -769,7 +769,8 @@ func update_lights() -> void:
 	for b in m.sunbeams:
 		b[1].albedo_color = Color(1, 1, 1, m.beams * (0.55 + 0.45 * sin(m.t * 0.5 + b[2])))
 
-func build_chests() -> void:
+# the field chests' shut and opened pictures, made before any map builds a chest from them (no random draws)
+func chest_textures() -> void:
 	var tex := m.make_tex(16, 14, func(img: Image):
 		m.px(img, 1, 3, 14, 11, Color("#7a4a24"))
 		m.px(img, 1, 3, 14, 4, Color("#9a6232"))
@@ -777,6 +778,20 @@ func build_chests() -> void:
 		m.px(img, 0, 3, 1, 11, Color("#d9b04a"))
 		m.px(img, 15, 3, 1, 11, Color("#d9b04a"))
 		m.px(img, 7, 6, 2, 3, Color("#ffd84a")))
+	# opened: the lid tipped back above the box, the inside dark and empty (the owner, 2026-10-26: an opened chest
+	# still looked shut, only greyer)
+	var open_tex := m.make_tex(16, 14, func(img: Image):
+		m.px(img, 2, 0, 12, 3, Color("#9a6232")) # the lid, tipped back
+		m.px(img, 2, 2, 12, 1, Color("#3a2312"))
+		m.px(img, 1, 5, 14, 9, Color("#7a4a24"))
+		m.px(img, 2, 5, 12, 3, Color("#1e120a")) # the empty inside
+		m.px(img, 0, 5, 1, 9, Color("#d9b04a"))
+		m.px(img, 15, 5, 1, 9, Color("#d9b04a")))
+	m.chest_open_tex = open_tex
+	m.chest_shut_tex = tex
+
+func build_chests() -> void:
+	var tex: Texture2D = m.chest_shut_tex
 	for p in [Vector2(17, 21), Vector2(24, 39), Vector2(40, 8), Vector2(7, 40), Vector2(42, 30)]:
 		if not m.walkable(p.x, p.y):
 			continue

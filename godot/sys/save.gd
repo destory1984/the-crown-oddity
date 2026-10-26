@@ -311,7 +311,8 @@ func load_game() -> void:
 		m.castle_zone.open_under_chest_look()
 	if bool(d.get("under_side", false)):
 		m.under_side_open = true
-		m.under.side_chest.modulate = Color(0.55, 0.55, 0.55)
+		m.under.side_chest.texture = m.chest_open_tex
+		m.under.side_chest.modulate = Color.WHITE
 	if bool(d.get("stairs_wall", false)):
 		m.stairs.open_wall()
 	var sl: Array = d.get("stairs_lamps", [])
@@ -385,7 +386,7 @@ func load_game() -> void:
 	for i in mini(opened.size(), m.chests.size()):
 		if opened[i]:
 			m.chests[i].open = true
-			m.chests[i].node.modulate = Color(0.55, 0.55, 0.55)
+			m.chests[i].node.texture = m.chest_open_tex
 	if m.story_step >= 2 and m.dark_lamp != null: # the first lamp was already lit
 		var glass: MeshInstance3D = m.dark_lamp.get_meta("glass")
 		glass.material_override = m.dark_glass_mat

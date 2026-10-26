@@ -794,7 +794,7 @@ func under_shut() -> bool:
 
 func chest_sprite(at: Vector2, tint: Color) -> Sprite3D:
 	var s := Sprite3D.new()
-	s.texture = m.chests[0].node.texture
+	s.texture = m.chest_shut_tex
 	s.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	s.scale = Vector3(1, 1.0 / cos(0.78), 1)
 	s.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
@@ -961,7 +961,8 @@ func under_guards_clear() -> void:
 
 func open_under_chest_look() -> void:
 	m.under_chest_open = true
-	m.under.chest.modulate = Color(0.55, 0.55, 0.55)
+	m.under.chest.texture = m.chest_open_tex
+	m.under.chest.modulate = Color.WHITE
 
 func under_key() -> bool:
 	var me := Vector2(m.player.x, m.player.z)
@@ -1020,7 +1021,8 @@ func under_key() -> bool:
 		return true
 	if not m.under_side_open and me.distance_to(m.under.marks.p) < 1.5:
 		m.under_side_open = true
-		m.under.side_chest.modulate = Color(0.55, 0.55, 0.55)
+		m.under.side_chest.texture = m.chest_open_tex
+		m.under.side_chest.modulate = Color.WHITE
 		m.player.pots += 2
 		m.player.gold += 60
 		m.burst(m.under.side_chest.position + Vector3(0, 0.8, 0), Color("#e8c050"), 24, 2.5)
