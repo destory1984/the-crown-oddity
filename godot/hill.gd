@@ -69,6 +69,7 @@ var gate_node: Node3D
 var water: MeshInstance3D
 var sparrows: Node3D
 var chest_node: Node3D
+var grass_tiles: Array = [] # world tiles that got wind grass (dress)
 
 func _init() -> void:
 	for line in ROWS.split("\n"):
@@ -90,8 +91,32 @@ func blocked(x: float, z: float) -> bool:
 		return not gate_open
 	return c == "#" or c == "r" or c == "M" or c in "Qbkc~" # the channel: only the water skip crosses it, once filled
 
+# the marsh's look in the hill's own colours (DESIGN.md, section 다른 지역도 늪만큼 보기 좋게): wind-combed yellow-green
+# grass over speckled tops, a pale dusty path; tufts stay off the path, the gorge, the channel and every spot that is
+# used (windmills, lamps, pinwheels, the wind post, the updraft, the trial stones, the mill's things)
+const GRASS_CLEAR := "=_~GQPKbkcvLMSXBUR"
+
+func _open_round(x: int, z: int) -> bool:
+	for dz in range(-1, 2):
+		for dx in range(-1, 2):
+			var tz := z + dz
+			var tx := x + dx
+			if tz >= 0 and tz < H and tx >= 0 and tx < W and grid[tz][tx] in GRASS_CLEAR:
+				return false
+	return true
+
+func dress(m: Node, ground: Array, path: Array, tiles: Array) -> void:
+	var d = m.dressing
+	d.ground_blocks(ground, HILL_X, d.speckle_tex([Color("#7aa84a"), Color("#88b656"), Color("#88b656"), Color("#9cc464")]))
+	d.ground_blocks(path, HILL_X, d.speckle_tex([Color("#b0a178"), Color("#c2b48a"), Color("#c2b48a"), Color("#d4c79e")]))
+	var tuft: Texture2D = d.tuft_tex(["#6c9638", "#7aa440", "#88b048", "#9cbf54", "#b4cf68", "#cde08a", "#e6efb2"], 0.7, 3,
+		["#fff6d8", "#ffe36a", "#c9b8ff"])
+	d.grass(tuft, 0.8, 0.5, d.spots_on(tiles, 0.0, 6), 0.2)
+
 func build(m: Node) -> void:
 	var blocks: Array = []
+	var ground: Array = []
+	var path: Array = []
 	var lamp_spots: Array = []
 	for z in H:
 		for x in W:
@@ -126,9 +151,18 @@ func build(m: Node) -> void:
 				hgt = m.rnd(0.9, 1.4)
 			if (x + z * 3) % 7 == 0 and c == ".":
 				col = Color("#9cc868")
-			col = col.lightened(m.rnd(0, 0.07))
-			blocks.append([Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y)), col])
+			col = col.lightened(m.rnd(0, 0.07)) # drawn for every tile still, so the world's random stream stays as it was
+			var xf := Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y))
+			if c == "#" or c == "r":
+				blocks.append([xf, col])
+			elif c == "=":
+				path.append([xf, m.dressing.tint(0.1, 0.08, 0.9, 1.0)])
+			else: # hill floor: the speckled top brings the colour, a few tiles a shade lighter as before
+				ground.append([xf, m.dressing.tint(0.2, 0.1, 0.96, 1.0) if (x + z * 3) % 7 == 0 else m.dressing.tint(0.2, 0.12, 0.84, 0.95)])
+				if c in ".sagwj" and _open_round(x, z):
+					grass_tiles.append(w)
 	m.add_chunks(blocks, HILL_X)
+	dress(m, ground, path, grass_tiles)
 	var post_mat: Material = m.mat_color(Color("#3b2a1e"))
 	var glass: Material = m.glow_mat(Color("#ffc46a"), 4.0)
 	glass.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED

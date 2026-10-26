@@ -43,6 +43,7 @@ var scenes := preload("res://sys/scenes.gd").new(self)
 var sound := preload("res://sys/sound.gd").new(self)
 var effects := preload("res://sys/effects.gd").new(self)
 var world_build := preload("res://sys/world_build.gd").new(self)
+var dressing := preload("res://sys/ground_dressing.gd").new(self)
 var shop := preload("res://sys/shop.gd").new(self)
 var sora := preload("res://sys/sora.gd").new(self)
 var combat := preload("res://sys/combat.gd").new(self)
@@ -670,6 +671,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-26 저녁",
+	"· v0.0.76: 바람 언덕이 갈대늪처럼 보인다. 단색 판이던 바닥에 늪의 풀과 같은 방식으로 바람에 눕는 황록 풀이 638칸에 6포기씩 자라고(간간이 흰·노랑·보라 꽃), 블록 윗면에 얼룩 무늬가, 길에는 흙빛 무늬가 생겼다. 풀은 길, 골짜기, 물길, 풍차, 등불, 바람개비 둘레 1칸은 비운다. 휴대폰은 늪처럼 절반만 그린다. 다른 지역도 같은 바닥 꾸밈을 차례로 입힌다.",
 	"· v0.0.75: 보리 할머니 가게에서 산 칼과 갑옷이 화면에 보인다. 벼린 칼날을 1 → 2개 사면 베기 줄이 옅은 하늘빛, 3 → 4개면 푸른빛, 5개부터 금빛이 되고, 단계마다 줄이 6%씩 커지고 불티가 3개씩 는다(닿는 거리는 그대로). 튼튼한 갑옷을 사면 소라 발밑에 은빛 고리가 생겨 단계마다 밝아지고(5개부터 금빛), 맞을 때 어깨에서 은빛 조각이 튄다.",
 	"",
 	"2026-10-26 아침",

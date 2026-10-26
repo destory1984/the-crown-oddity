@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
 
 func _ready() -> void:
@@ -489,6 +489,18 @@ func run() -> void:
 		main.shop_bought = sb0
 		await wait(0.1)
 		check("gear_look", tiers == [0, 1, 2, 3] and no_ring and ring_on and gold, "blade tiers %s none->no ring=%s five armours ring=%s gold=%s" % [str(tiers), no_ring, ring_on, gold])
+	if want.call("hill_dressing"):
+		# the hill's wind grass: hundreds of tiles get six tufts each, none on or next to the path, the gorge or a used
+		# spot (windmill, lamp, marks); a headless run cannot read tuft positions back, so this checks the tiles
+		var tiles: Array = main.hill.grass_tiles
+		var near_clear := 0
+		for t in tiles:
+			for dz in range(-1, 2):
+				for dx in range(-1, 2):
+					if main.hill.char_at(t.x + dx, t.y + dz) in main.hill.GRASS_CLEAR:
+						near_clear += 1
+		var mesh: bool = main.veg_meshes.any(func(mm): return mm.instance_count == tiles.size() * 6)
+		check("hill_dressing", tiles.size() > 400 and near_clear == 0 and mesh, "hill grass tiles %d, next to the path or a used spot %d, tuft mesh of six a tile=%s" % [tiles.size(), near_clear, mesh])
 	if want.call("skill_cost"):
 		main.player.mp = 20.0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]
