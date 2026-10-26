@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
 
 func _ready() -> void:
@@ -472,6 +472,23 @@ func run() -> void:
 		main.player.lv = lv0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]
 		check("level_perks", foes == [1, 5, 14] and quick, "foe levels %s (want [1, 5, 14]) skill cd Lv15 %.2f vs Lv1 %.2f" % [str(foes), cd15, cd1])
+	if want.call("gear_look"):
+		# bought blades tint the swing, bought armour rings her feet: tiers at 0, 1-2, 3-4, 5+
+		var sb0: Array = main.shop_bought.duplicate()
+		var tiers: Array = []
+		for n in [0, 1, 3, 5]:
+			main.shop_bought[2] = n
+			tiers.append(main.effects.gear_tier(2))
+		main.shop_bought[3] = 0
+		await wait(0.1)
+		var no_ring: bool = main.effects.armour_ring == null or not main.effects.armour_ring.visible
+		main.shop_bought[3] = 5
+		await wait(0.1)
+		var ring_on: bool = main.effects.armour_ring != null and main.effects.armour_ring.visible
+		var gold: bool = ring_on and (main.effects.armour_ring.material_override as StandardMaterial3D).albedo_color.b < 0.8
+		main.shop_bought = sb0
+		await wait(0.1)
+		check("gear_look", tiers == [0, 1, 2, 3] and no_ring and ring_on and gold, "blade tiers %s none->no ring=%s five armours ring=%s gold=%s" % [str(tiers), no_ring, ring_on, gold])
 	if want.call("skill_cost"):
 		main.player.mp = 20.0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]

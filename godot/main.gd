@@ -669,6 +669,9 @@ const CHANGES_PAGE := 100 # lines of 바뀐 것 shown before the 더 읽기 butt
 const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
+	"2026-10-26 저녁",
+	"· v0.0.75: 보리 할머니 가게에서 산 칼과 갑옷이 화면에 보인다. 벼린 칼날을 1 → 2개 사면 베기 줄이 옅은 하늘빛, 3 → 4개면 푸른빛, 5개부터 금빛이 되고, 단계마다 줄이 6%씩 커지고 불티가 3개씩 는다(닿는 거리는 그대로). 튼튼한 갑옷을 사면 소라 발밑에 은빛 고리가 생겨 단계마다 밝아지고(5개부터 금빛), 맞을 때 어깨에서 은빛 조각이 튄다.",
+	"",
 	"2026-10-26 아침",
 	"· v0.0.74: 설정 창 말고도 이야기 상자, 일지, 할 일 줄, 상점 물건 설명, 바뀐 것 목록의 글이 띄어쓰기에서만 꺾인다(낱말 한가운데서 꺾이지 않는다). 도움말의 기술 줄을 4줄 → 3줄로 줄였다. 이야기 글은 그대로 1초에 40자씩 나온다.",
 	"· v0.0.73: 클라우드에서 찾은 잘못 9개를 고쳤다(자동 시험 141 → 150개).",
@@ -2017,6 +2020,7 @@ func _process(dt: float) -> void:
 	lit = lit.lerp(Color(1.0, 0.95, 0.86), warm * night)
 	hero.modulate = Color(1, 0.5, 0.5) if player.hurt_t > 0 else Color(lit.r, lit.g, lit.b, 0.3 if blink else 1.0)
 	hero_shadow.position = Vector3(player.x, gy + 0.02, player.z)
+	effects.update_armour_ring(hero_shadow.position, hero_shadow.visible and hero.visible)
 
 	monsters.update_enemies(dt * (SLOWMO if slowmo > 0 else 1.0), gy)
 	if in_stairs() and not stairs.door_open and fade_rect.color.a == 0.0:

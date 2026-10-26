@@ -206,10 +206,10 @@ func attack() -> void:
 	var f: Vector2 = m.player.face
 	var here := Vector3(m.player.x, m.height_at(m.player.x, m.player.z), m.player.z)
 	if spin or slam:
-		m.effects.slash_fx(here, 0.0, true)
+		m.effects.slash_fx(here, 0.0, true, 1.8, true)
 	else:
 		var ang := -atan2(f.y, f.x) - 0.9 * (-1.0 if m.player.combo == 1 else 1.0) + 0.9
-		m.effects.slash_fx(Vector3(m.player.x + f.x * 0.5, here.y, m.player.z + f.y * 0.5), ang, false, slash_span())
+		m.effects.slash_fx(Vector3(m.player.x + f.x * 0.5, here.y, m.player.z + f.y * 0.5), ang, false, slash_span(), true)
 	var cone := cos(slash_span() / 2.0 + 0.45)
 	var reach := 2.6 if slam else (2.0 if spin else 1.7)
 	var mult: float = 2.4 if slam else (1.6 if spin else ([1.0, 1.15, 1.4][mini(m.player.combo, 2)] if not last else 1.8))
@@ -308,7 +308,7 @@ func update_dash(dt: float) -> void:
 		m.player.vx = f.x * 3.0
 		m.player.vz = f.y * 3.0
 		m.dash = {}
-		m.effects.slash_fx(Vector3(end.x, m.height_at(end.x, end.y), end.y), -atan2(f.y, f.x), false)
+		m.effects.slash_fx(Vector3(end.x, m.height_at(end.x, end.y), end.y), -atan2(f.y, f.x), false, 1.8, true)
 		m.burst(Vector3((d.from.x + end.x) / 2.0, 0.6, (d.from.y + end.y) / 2.0), Color("#bfe7ff"), 16, 2.5)
 
 # a fading copy of Sora's picture left where she passed
@@ -338,7 +338,7 @@ func charged_slash() -> void:
 	m.player.atk_cd = 0.5
 	var f: Vector2 = m.player.face
 	var here := Vector3(m.player.x, m.height_at(m.player.x, m.player.z), m.player.z)
-	m.effects.slash_fx(here + Vector3(f.x * 0.8, 0, f.y * 0.8), -atan2(f.y, f.x), true)
+	m.effects.slash_fx(here + Vector3(f.x * 0.8, 0, f.y * 0.8), -atan2(f.y, f.x), true, 1.8, true)
 	for e in m.enemies:
 		if e.dead:
 			continue
@@ -377,7 +377,7 @@ func use_skill(i: int) -> void:
 		0: # whirl (woken: wider and harder)
 			var woke := m.skill_up == 0
 			m.sfx(140, 0.3, "sawtooth", 0.2, 400)
-			m.effects.slash_fx(here, 0.0, true)
+			m.effects.slash_fx(here, 0.0, true, 1.8, true)
 			if woke: # the woken whirl throws a wider ring of wind
 				m.burst(here + Vector3(0, 0.5, 0), Color("#9fd4ff"), 30, 5.0)
 			for e in m.enemies:

@@ -29,6 +29,7 @@ const SCENES := {
 	"house_designs": {"play": true, "village": true, "house_designs": true, "hour": 14.0},
 	"swing_designs": {"play": true, "village": true, "swing_designs": true, "hour": 14.0},
 	"swing": {"play": true, "village": true, "swing": true, "hour": 14.0},
+	"gear": {"gear": true, "play": true, "village": true, "swing": true, "hour": 14.0},
 	"far": {"play": true, "village": true, "far": true, "hour": 14.0},
 	"pier": {"play": true, "village": true, "vat": Vector2(32, 29), "hour": 14.0},
 	"inn": {"play": true, "village": true, "vat": Vector2(8, 30), "hour": 14.0},
@@ -660,6 +661,9 @@ func apply_test_args(args: PackedStringArray) -> void:
 			m.folk_route_state(id).wait = randf_range(0.0, 4.0)
 		for k in 300:
 			m.update_folk_sleep(0.1)
+	if sc.get("gear", false): # five blades and five armours bought: a gold swing and the gold ring at her feet
+		m.shop_bought[2] = 5
+		m.shop_bought[3] = 5
 	if sc.get("swing", false): # a swing caught mid-sweep, just before the picture at 4 s
 		m.cam_dist = 11.0
 		m.player.face = Vector2(1, 0)

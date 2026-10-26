@@ -5,6 +5,17 @@ extends RefCounted
 const Main := preload("res://main.gd")
 
 var m: Main
+var armour_ring: MeshInstance3D = null # the silver ring at Sora's feet once she has bought armour
+
+# what Bori's shop gear looks like (the owner, 2026-10-26: bought blades and armour never showed): tier 0 none,
+# 1 for one or two bought, 2 for three or four, 3 for five or more
+const BLADE_TINT := [Color(1, 1, 1), Color("#bfe6ff"), Color("#7cc8ff"), Color("#ffd86a")]
+const BLADE_SPARK := [Color("#ffb21a"), Color("#9fd8ff"), Color("#4aa8ff"), Color("#ffcf3a")]
+const ARMOUR_TINT := [Color(1, 1, 1), Color("#cfdcec"), Color("#e6f0ff"), Color("#ffe6a8")]
+
+func gear_tier(i: int) -> int:
+	var n: int = m.shop_bought[i]
+	return 0 if n <= 0 else (1 if n <= 2 else (2 if n <= 4 else 3))
 
 func _init(main: Main) -> void:
 	m = main
@@ -170,12 +181,17 @@ func swing_line(arc: float, r: float) -> ArrayMesh:
 			return [r - 0.06, r + 0.06, Color(1.0, 0.66, 0.1, a), Color(1.0, 0.82, 0.32, a)])
 	return m.swing_line_cache[key]
 
-func slash_fx(pos: Vector3, ang: float, big: bool, span := 1.8) -> void:
+# gear: one of Sora's own swings, drawn in the colour of the blades she has bought (tier 1 to 3 also a little wider
+# and with more sparks; only the picture grows, not the reach)
+func slash_fx(pos: Vector3, ang: float, big: bool, span := 1.8, gear := false) -> void:
 	if m.spark_mats.is_empty():
 		m.spark_mats = [m.glow_mat(Color("#ffb21a"), 1.6), m.glow_mat(Color("#ffe9a8"), 1.6)]
+	var tier := gear_tier(2) if gear else 0
+	var sparks: Array = m.spark_mats if tier == 0 else [m.glow_mat(BLADE_SPARK[tier], 1.8), m.glow_mat(BLADE_TINT[tier], 1.8)]
+	var tint: Color = BLADE_TINT[tier] * 1.6
 	ang += (1.8 - span) / 2.0 # keep the arc centred where the 1.8-rad arc was
 	var arc := TAU if big else span
-	var r := 1.66 if big else 1.2
+	var r := (1.66 if big else 1.2) * (1.0 + 0.06 * tier)
 	var mm := MeshInstance3D.new()
 	mm.mesh = swing_line(arc, r)
 	var mat := strip_mat(1.6)
@@ -185,15 +201,15 @@ func slash_fx(pos: Vector3, ang: float, big: bool, span := 1.8) -> void:
 	mm.rotation.y = ang - sweep
 	add_fx(mm, 0.3, func(n: Node3D, k: float, _dt: float):
 		n.rotation.y = ang - sweep * maxf(0.0, 1.0 - k * 3.0)
-		mat.albedo_color = Color(1.6, 1.6, 1.6, clampf(k * 8.0, 0.0, 1.0) * (1.0 - maxf(0.0, k - 0.35) / 0.65))
+		mat.albedo_color = Color(tint.r, tint.g, tint.b, clampf(k * 8.0, 0.0, 1.0) * (1.0 - maxf(0.0, k - 0.35) / 0.65))
 		if big:
 			n.scale = Vector3.ONE * (1.0 + k * 0.3))
-	var count := 14 if big else 7
+	var count := (14 if big else 7) + 3 * tier
 	for i in count:
 		var u := (i + 0.5) / count
 		var a := arc * u - ang # a point at angle a on the strip sits at world angle a - rotation.y
 		var dir := Vector3(cos(a), 0, sin(a))
-		var d := m.box(Vector3.ONE * (0.07 + 0.06 * u), m.spark_mats[i % 2])
+		var d := m.box(Vector3.ONE * (0.07 + 0.06 * u), sparks[i % 2])
 		d.position = mm.position + dir * (r + 0.1)
 		d.rotation = Vector3(PI / 4.0, m.rnd(0, TAU), PI / 4.0)
 		var speed := m.rnd(1.6, 2.8)
@@ -245,3 +261,28 @@ func fade_then(fn: Callable) -> void:
 	tw.tween_property(m.fade_rect, "color:a", 1.0, 0.4)
 	tw.tween_callback(fn)
 	tw.tween_property(m.fade_rect, "color:a", 0.0, 0.4)
+
+# the armour ring: a thin glowing ring round Sora's shadow that brightens with each tier, breathing slowly
+func update_armour_ring(pos: Vector3, shown: bool) -> void:
+	var tier := gear_tier(3)
+	if tier == 0:
+		if armour_ring != null:
+			armour_ring.visible = false
+		return
+	if armour_ring == null:
+		armour_ring = MeshInstance3D.new()
+		armour_ring.mesh = m.ring_mesh(0.46, 0.54, 0.0, TAU, 32)
+		armour_ring.material_override = m.glow_mat(Color.WHITE, 1.2)
+		armour_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		m.add_child(armour_ring)
+	armour_ring.visible = shown
+	armour_ring.position = pos + Vector3(0, 0.03, 0)
+	var c: Color = ARMOUR_TINT[tier]
+	c.a = [0.0, 0.3, 0.45, 0.6][tier] * (0.8 + 0.2 * sin(m.t * 2.0))
+	(armour_ring.material_override as StandardMaterial3D).albedo_color = c
+
+# a blow on armour: a few silver (tier 3: gold) flakes off her shoulders
+func armour_shimmer(pos: Vector3) -> void:
+	var tier := gear_tier(3)
+	if tier > 0:
+		m.burst(pos + Vector3(0, 0.9, 0), ARMOUR_TINT[tier], 4 + 4 * tier, 2.0)

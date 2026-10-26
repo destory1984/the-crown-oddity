@@ -200,6 +200,7 @@ func hurt_player(dmg: int, gy: float) -> void:
 	if m.has_armour:
 		dmg = maxi(1, int(round(dmg * 0.85)))
 	m.player.hp -= dmg
+	m.effects.armour_shimmer(Vector3(m.player.x, gy, m.player.z))
 	m.player.hurt_t = 0.2
 	m.player.inv = 0.8
 	m.shake = maxf(m.shake, 0.2)
