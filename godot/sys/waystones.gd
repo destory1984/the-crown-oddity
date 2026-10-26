@@ -75,7 +75,7 @@ func toggle_ways(show: bool) -> void:
 	if show:
 		var lines: Array = [tr("달빛 길돌: 숫자 키로 건너가기 (Esc 닫기)"), ""]
 		for i in Main.WAY_NAMES.size():
-			lines.append("%d   %s" % [i + 1, tr(Main.WAY_NAMES[i]) if way_known(i) else "? ? ?"])
+			lines.append("%d   %s" % [i + 1, tr(Main.WAY_NAMES[i]) if way_known(i) else tr("(아직 찾지 못한 길돌)")])
 		m.ui.ways_text.text = "\n".join(lines)
 		if not m.touch_ui: # the sheet grows with the text size, its bottom kept 8 px over the keys
 			var wt: Label = m.ui.ways_text

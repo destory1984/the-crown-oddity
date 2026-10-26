@@ -1,4 +1,5 @@
-# Background music: nine looping tunes made by tools/bgm.py, two buses (Sfx, Music), a 1 s crossfade, the music switch.
+# Background music: nine places, five looping tunes each, made by tools/bgm.py; two buses (Sfx, Music), a 1 s crossfade,
+# the music switch. A place's tunes take turns: after ROTATE seconds the next of its five fades in.
 # `m` is the main node (main.gd), its state and helpers are reached as m.x.
 extends RefCounted
 
@@ -12,10 +13,15 @@ const TUNE_NAMES := {"title": "제목", "field_marsh": "늪과 호수", "field_w
 const MUSIC_DB := -14.0 # the Music bus under the effects (Master stays at 0 dB)
 const OFF_DB := -80.0
 const FADE := 1.0 # the crossfade between two tunes, and the fade of the music switch
+const VARIANTS := 5 # <name>.ogg, <name>_2.ogg .. <name>_5.ogg (the owner, 2026-10-27: 5 per place)
+const ROTATE := 100.0 # about two loops of a tune, then the place's next one
 
 var players: Array = []
 var cur := "" # the tune that is playing (or being faded in)
 var cur_i := 0 # which of the two players has it
+var turn := {} # place -> which of its five tunes plays next
+var cur_file := "" # the file playing, e.g. "village_3"
+var played := 0.0 # seconds the current file has played
 var forced := "" # "다음 곡": stays until the area's own pick changes
 var forced_from := ""
 var pending := false # a "다음 곡" is waiting for its 0.35 s gap
@@ -93,7 +99,9 @@ func pick() -> String:
 	if (m.in_garden and m.garden_q >= 5) or m.festival_now() or m.ending_due:
 		return "ending"
 	var indoors: bool = m.in_cave or m.in_castle() or m.in_workshop() or m.in_house >= 0
-	if m.is_night() and not indoors:
+	# each field keeps its own tune by night too (the owner, 2026-10-27: back from the village, the marsh tune again);
+	# the night tune plays while Sora rests outdoors after dark
+	if m.is_night() and not indoors and m.mates.sora_resting():
 		return "night"
 	if m.in_cave or m.in_castle() or m.in_workshop():
 		return "dungeon"
@@ -105,17 +113,28 @@ func pick() -> String:
 
 func tune(name: String) -> AudioStream:
 	if not cache.has(name):
-		cache[name] = load("res://audio/bgm/%s.ogg" % name)
+		var s: AudioStream = load("res://audio/bgm/%s.ogg" % name)
+		if s is AudioStreamOggVorbis:
+			(s as AudioStreamOggVorbis).loop = true
+		cache[name] = s
 	return cache[name]
+
+# the next of the place's five files; the first visit starts at a random one
+func file_for(name: String) -> String:
+	var k: int = turn.get(name, randi() % VARIANTS)
+	turn[name] = (k + 1) % VARIANTS
+	return name if k == 0 else "%s_%d" % [name, k + 1]
 
 # crossfade from the tune that is playing to `name` (not restarted when it already plays)
 func play(name: String) -> void:
-	if name == cur:
+	if name == "" or (name == cur and played < ROTATE):
 		return
 	var old: AudioStreamPlayer = players[cur_i]
 	cur_i = 1 - cur_i
 	var nu: AudioStreamPlayer = players[cur_i]
-	nu.stream = tune(name)
+	cur_file = file_for(name)
+	nu.stream = tune(cur_file)
+	played = 0.0
 	nu.volume_db = -40.0
 	nu.play()
 	var tw := m.create_tween().set_parallel(true)
@@ -145,6 +164,7 @@ func next_tune() -> void:
 # every frame, before the world waits for a sheet or a story: the music keeps going
 func update(dt: float) -> void:
 	warm += dt
+	played += dt
 	if warm < 1.0:
 		return # the first second is silent: a run that quits at once (the dev.py check) never leaves a stream in use
 	pick_t -= dt
@@ -160,7 +180,11 @@ func update(dt: float) -> void:
 		refresh_help()
 
 func tune_line() -> String:
-	var line: String = "♪ " + tr(TUNE_NAMES.get(cur if cur != "" else forced, ""))
+	var name: String = cur if cur != "" else forced
+	var line: String = "♪ " + tr(TUNE_NAMES.get(name, ""))
+	if cur_file != "" and cur_file.begins_with(name) and name != "":
+		var k := 1 if cur_file == name else int(cur_file.get_slice("_", cur_file.get_slice_count("_") - 1))
+		line += " %d/%d  (%s)" % [k, VARIANTS, cur_file]
 	if not m.music_on:
 		line += " " + tr("(배경 음악이 꺼져 있습니다)")
 	return line
@@ -170,3 +194,5 @@ func refresh_help() -> void:
 		return
 	for r in m.ui.music_rows:
 		(r[1] as Label).text = tune_line()
+	if m.ui.has("now_tune") and (m.ui.now_tune as LineEdit).text != tune_line() and not (m.ui.now_tune as LineEdit).has_selection():
+		(m.ui.now_tune as LineEdit).text = tune_line()

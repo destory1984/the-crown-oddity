@@ -58,6 +58,7 @@ const PAINTING := [
 	"||동굴 벽 가득 오래된 그림이 새겨져 있다.",
 	"||여덟 개의 달. 그 아래 왕관 쓴 사람들이 팔찌 찬 손을 모아 커다란 태엽을 함께 감고 있다.",
 	"소라|surprised|저 팔찌…… 내 것과 똑같아.",
+	"@res://art/story/06_cave_rival.jpg", # the mural alone first, then Noeul (the owner, 2026-10-27)
 	"???|jae|그 팔찌, 네 것이 아니야.",
 	"소라|determined|누구야? 이 팔찌에 대해 뭘 알아?",
 	"노을|jae_smirk|내 이름은 노을. 다음 달지기는 나였어. 백 년을 기다렸다고.",
@@ -67,6 +68,9 @@ const PAINTING := [
 	"||회색 망토가 벽돌 가루가 되어 흩어지고, 소년은 사라졌다.",
 	"소라|sad|……혼자서라도 가야 해.",
 ]
+
+# E at the mural after its scene: the picture alone
+const MURAL_AGAIN := "||여덟 개의 달 아래, 왕관 쓴 달지기들이 손을 모아 커다란 태엽을 감고 있다."
 
 # the painting seen only after Noeul has already shown himself (the village lamps night or later): no first meeting
 const PAINTING_LATE := [

@@ -135,7 +135,7 @@ func load_settings() -> void:
 	var d = JSON.parse_string(FileAccess.get_file_as_string(SETTINGS_PATH))
 	if typeof(d) != TYPE_DICTIONARY:
 		return
-	for k in m.cfg:
+	for k in ["text"]: # shake, tilt and nums are no longer options: an old "off" in the file is ignored
 		if d.has(k):
 			m.cfg[k] = d[k]
 	m.cfg.text = clampi(int(m.cfg.text), 0, Main.TEXT_SIZES.size() - 1)
@@ -214,17 +214,17 @@ func layout_settings() -> void:
 		for row in stack:
 			x = maxf(x, (row[0] as Label).get_minimum_size().x + 16.0)
 		for row in stack:
-			var box := (row[1] as Label).get_parent() as Control
+			var box := (row[1] as Control).get_parent() as Control
 			box.position.x = x
 			box.size = Vector2(626.0 - x, 0.0) # a box never shrinks by itself: drop the height it took while the text was wrapped narrow
-			(row[1] as Label).size.y = 0.0
+			(row[1] as Control).size.y = 0.0
 			if row[2] != null:
 				(row[2] as Control).position.x = x
 		await m.get_tree().process_frame # the text wraps again at its new width
 		var y := 0.0
 		for row in stack:
 			var title: Label = row[0]
-			var text: Label = row[1]
+			var text: Control = row[1]
 			title.position.y = y
 			(text.get_parent() as Control).position.y = y
 			var h: float = maxf(title.get_minimum_size().y, text.get_minimum_size().y) # what the text needs, not a stale size (GPT lap 6: the Help page was 6012 px tall)
@@ -234,9 +234,16 @@ func layout_settings() -> void:
 			y += h + (18.0 if row[2] != null else 14.0)
 		m.ui.set_pages[k].custom_minimum_size.y = maxf(400.0, y)
 
-# the first n lines of 바뀐 것, each translated, wrapping only at spaces (Ko.keep_words)
+# the first n lines of 바뀐 것, each translated, wrapping only at spaces (Ko.keep_words); an empty line before every
+# "· " entry that follows another line of text, so each fix stands apart (the owner, 2026-10-27)
 func news_text(n: int) -> String:
-	return Main.Ko.keep_words("\n".join(Main.CHANGES.slice(0, n).map(func(s): return tr(s))))
+	var out: Array = []
+	for s in Main.CHANGES.slice(0, n):
+		var line: String = tr(s)
+		if line.begins_with("· ") and not out.is_empty() and out[-1] != "":
+			out.append("")
+		out.append(line)
+	return Main.Ko.keep_words("\n".join(out))
 
 func scale_text(l: Control) -> void:
 	m.text_bases.append([l, l.get_theme_font_size("normal_font_size" if l is RichTextLabel else "font_size")])
@@ -346,10 +353,9 @@ func build_settings(root: Control) -> void:
 	# 설정: rows of label (90 px) and description with a small button under it
 	m.ui.set_rows = {}
 	m.ui.set_stacks = [[], [], [], []] # per page: [title, wrapped text, button or null], laid out top to bottom by height
-	var rows := [["shake", "화면 흔들림", "벨 때와 보스가 내려찍을 때 화면이 흔들린다. 어지러우면 끄세요."],
-		["tilt", "미니어처 흐림", "화면 위아래를 흐리게 하고 색을 입혀 작은 정원처럼 보이게 한다. 흐린 게 불편하면 끄세요."],
-		["nums", "피해 숫자", "때리고 맞을 때 숫자를 띄운다. 공격 직전의 \"!\" 표시는 늘 보인다."],
-		["sound", "효과음", "위의 스피커 단추, M 키, 화면 왼쪽 아래 단추로도 켜고 끈다."]]
+	# only the sound effects and the language are left here (the owner, 2026-10-27: the other options went; screen
+	# shake, the miniature blur and the damage numbers stay on), and the tune that plays, in a box the mouse can copy
+	var rows := [["sound", "효과음", "위의 스피커 단추, M 키, 화면 왼쪽 아래 단추로도 켜고 끈다."]]
 	for i in rows.size():
 		var r: Array = rows[i]
 		var y := i * 92
@@ -368,12 +374,33 @@ func build_settings(root: Control) -> void:
 			save_settings()
 			apply_settings())
 		m.ui.set_stacks[0].append([t, dsc, m.ui.set_rows[key]])
-	var lt := m.hud_build.label(m.ui.set_pages[0], "언어", Vector2(0, 4 * 92), 18, Color("#eef3ff"))
+	var lt := m.hud_build.label(m.ui.set_pages[0], "언어", Vector2(0, rows.size() * 92), 18, Color("#eef3ff"))
 	lt.size = Vector2(112, 20)
-	var lang := m.hud_build.wrap_label(m.ui.set_pages[0], "한국어. 영어, 일본어, 중국어는 번역 표만 준비되어 있다.", Vector2(122, 4 * 92), 518, 18, ODD_MUTED)
+	var lang := m.hud_build.wrap_label(m.ui.set_pages[0], "한국어. 영어, 일본어, 중국어는 번역 표만 준비되어 있다.", Vector2(122, rows.size() * 92), 518, 18, ODD_MUTED)
 	scale_text(lt)
 	scale_text(lang)
 	m.ui.set_stacks[0].append([lt, lang, null])
+	var nt := m.hud_build.label(m.ui.set_pages[0], "지금 음악", Vector2(0, (rows.size() + 1) * 92), 18, Color("#eef3ff"))
+	nt.size = Vector2(112, 20)
+	scale_text(nt)
+	var now := LineEdit.new() # read-only but selectable: drag over it and Ctrl+C copies the tune's name
+	now.editable = false
+	now.selecting_enabled = true
+	now.context_menu_enabled = true
+	var now_box := Control.new() # the layout moves each row's box, as wrap_label's
+	now_box.position = Vector2(122, (rows.size() + 1) * 92)
+	now_box.mouse_filter = Control.MOUSE_FILTER_PASS
+	m.ui.set_pages[0].add_child(now_box)
+	now.custom_minimum_size = Vector2(0, 36)
+	now.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	now.add_theme_font_override("font", m.ui_font)
+	now.add_theme_font_size_override("font_size", 18)
+	now.add_theme_color_override("font_uneditable_color", Color("#eef3ff"))
+	now.add_theme_stylebox_override("read_only", flat(Color("#0d1a3a"), Color("#53718b"), 1, 8, 8.0))
+	now.text = m.music.tune_line()
+	now_box.add_child(now)
+	m.ui.now_tune = now
+	m.ui.set_stacks[0].append([nt, now, null])
 	# 도움말
 	# the owner, 2026-10-25: more detail, so each row says what the key does, what it costs and when it opens up
 	var tips := ["요령", "괴물은 때리기 직전에 빨갛게 부풀고 \"!\"가 뜬다. 그때 구르면 섬광 피하기(잠깐 세상이 느려진다), 막으면 섬광 막기. 쓰러지면 금화와 레벨은 그대로 두고 건널목이나 광장에서 다시 깬다"]
@@ -563,6 +590,7 @@ func toggle_journal(show: bool) -> void:
 		var cut: int = lines.find(tr("도전 과제"))
 		m.ui.journal_text.text = journal_bbcode(lines.slice(0, cut))
 		m.ui.journal_text2.text = journal_bbcode(lines.slice(cut))
+		m.ui.ending_btn.visible = m.garden_zone.ending_seen()
 	m.ui.journal.visible = show
 	if show:
 		m.ui.journal.move_to_front()

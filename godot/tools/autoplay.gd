@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
 
 func _ready() -> void:
@@ -575,6 +575,57 @@ func run() -> void:
 			for k in [1, 2]:
 				names.append(str(lay.get("bus/%d/name" % k)))
 		check("bus_layout", names == ["Sfx", "Music"], "buses in default_bus_layout.tres: %s" % [names])
+	if want.call("ending_replay"):
+		# the journal's 엔딩 다시 보기: hidden before the ending, after it the festival picture and lines again, nothing paid
+		var keep_step: int = main.story_step
+		var keep_ng: int = main.ng
+		main.close_story()
+		main.story_step = 11
+		main.ng = 0
+		main.toggle_journal(true)
+		var hidden_before: bool = not main.ui.ending_btn.visible
+		main.garden_zone.replay_ending()
+		var none_before: bool = not main.story_open
+		main.toggle_journal(false)
+		main.story_step = 12
+		main.toggle_journal(true)
+		var shown_after: bool = main.ui.ending_btn.visible
+		var gold0: int = main.player.gold
+		main.ui.ending_btn.pressed.emit()
+		var pic: bool = main.story_open and main.ui.story_img.texture != null and main.ui.story_img.texture.resource_path.ends_with("12_festival.jpg")
+		var closed: bool = not main.ui.journal.visible
+		main.close_story()
+		var unpaid: bool = main.player.gold == gold0 and main.story_step == 12
+		main.story_step = keep_step
+		main.ng = keep_ng
+		check("ending_replay", hidden_before and none_before and shown_after and pic and closed and unpaid,
+			"hidden before=%s nothing before=%s shown after=%s festival picture=%s journal closed=%s unpaid=%s" % [hidden_before, none_before, shown_after, pic, closed, unpaid])
+	if want.call("mural_split"):
+		# the cave painting: the mural alone first, Noeul's picture from his first line on
+		main.close_story()
+		main.show_story(main.MURAL_PICTURE, main.STORY.PAINTING)
+		var first: String = main.ui.story_img.texture.resource_path
+		var seen := ""
+		for k in 8:
+			main.ui.story_text.visible_characters = -1
+			main.story.next_story()
+			if main.ui.story_who.text == "???":
+				seen = main.ui.story_img.texture.resource_path
+				break
+		main.close_story()
+		# E at the mural afterwards: the picture alone, one line, no Noeul
+		var keep_seen: bool = main.saw_painting
+		var keep_cave: bool = main.in_cave
+		main.saw_painting = true
+		main.in_cave = true
+		main.player.x = main.cave_marks.P.x
+		main.player.z = main.cave_marks.P.y
+		var again: bool = main.cave_interact() and main.story_open and main.ui.story_img.texture.resource_path.ends_with("06_cave_mural.jpg") and main.story_lines.is_empty()
+		main.close_story()
+		main.saw_painting = keep_seen
+		main.in_cave = keep_cave
+		main.return_to_start()
+		check("mural_split", first.ends_with("06_cave_mural.jpg") and seen.ends_with("06_cave_rival.jpg") and again, "first %s, at Noeul's line %s, again=%s" % [first.get_file(), seen.get_file(), again])
 	if want.call("skill_cost"):
 		main.player.mp = 20.0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]
@@ -749,7 +800,7 @@ func run() -> void:
 		await wait(0.3)
 		var late_open: bool = main.story_open
 		var no_intro: bool = not "내 이름은 노을" in "
-".join(main.story_lines) and not main.ui.story_frame.visible
+".join(main.story_lines) and main.ui.story_img.texture != null and main.ui.story_img.texture.resource_path.ends_with("06_cave_mural.jpg") # the mural alone (v0.0.92)
 		main.close_story()
 		main.night_q = nq0
 		await wait(0.3)
@@ -1877,13 +1928,13 @@ func run() -> void:
 	if want.call("news_more"):
 		# 바뀐 것 shows CHANGES_PAGE lines; the 더 읽기 button is there only past that and brings the rest
 		var n: int = main.CHANGES.size()
-		var first: int = main.ui.news.text.split("\n").size()
+		var first: int = main.ui.news.text.split("\n", false).size() # an empty line now stands between entries (v0.0.90)
 		var btn_ok: bool = main.ui.news_more.visible == (n > main.CHANGES_PAGE)
 		main.ui.news_more.pressed.emit()
 		await wait(0.1)
-		var after: int = main.ui.news.text.split("\n").size()
-		check("news_more", first == mini(n, main.CHANGES_PAGE) and btn_ok and after == mini(n, 2 * main.CHANGES_PAGE),
-			"lines %d of %d at first, button only past %d=%s, after 더 읽기 %d" % [first, n, main.CHANGES_PAGE, btn_ok, after])
+		var after: int = main.ui.news.text.split("\n", false).size()
+		check("news_more", first == main.menus.news_text(main.CHANGES_PAGE).split("\n", false).size() and btn_ok and after == main.menus.news_text(2 * main.CHANGES_PAGE).split("\n", false).size(),
+			"lines %d (want %d) of %d at first, button only past %d=%s, after 더 읽기 %d (want %d)" % [first, main.menus.news_text(main.CHANGES_PAGE).split("\n", false).size(), n, main.CHANGES_PAGE, btn_ok, after, main.menus.news_text(2 * main.CHANGES_PAGE).split("\n", false).size()])
 	if want.call("touch_controls"):
 		# phones: a finger on the left grabs the stick and walks her (pushed to the rim she runs), another finger on the
 		# sword key swings at the same time, the shield key guards while held; taps on the world do not swing
@@ -2349,7 +2400,7 @@ func run() -> void:
 		main.in_village = true
 		expect.call("village by day", "village")
 		main.hour = 23.0
-		expect.call("village by night", "night")
+		expect.call("village by night", "village")
 		main.in_house = 0
 		expect.call("a house at night", "village")
 		base.call()
@@ -2360,7 +2411,7 @@ func run() -> void:
 		main.in_forest = true
 		expect.call("forest", "field_wild")
 		main.hour = 23.0
-		expect.call("forest at night", "night")
+		expect.call("forest at night", "field_wild")
 		base.call()
 		main.in_cave = true
 		expect.call("cave", "dungeon")
@@ -2419,11 +2470,17 @@ func run() -> void:
 			header = header and b.size == Vector2(44, 40) and b.position.x + b.size.x <= 640.0
 			if i > 0:
 				header = header and absf(b.position.x - (hb[i - 1].position.x + hb[i - 1].size.x) - 8.0) < 0.01
-		# the nine loops
+		# the nine places' five loops each, and a place's next tune after ROTATE seconds
 		var loops := true
 		for n in main.music.TUNES:
-			var st = load("res://audio/bgm/%s.ogg" % n)
-			loops = loops and st is AudioStreamOggVorbis and st.loop
+			for k in main.music.VARIANTS:
+				var st = load("res://audio/bgm/%s.ogg" % (n if k == 0 else "%s_%d" % [n, k + 1]))
+				loops = loops and st is AudioStreamOggVorbis and st.loop
+		main.music.play("village")
+		var f0: String = main.music.cur_file
+		main.music.played = main.music.ROTATE + 1.0
+		main.music.play("village")
+		loops = loops and main.music.cur_file != f0 and main.music.cur_file.begins_with(main.music.cur)
 		# put the state back
 		for k in keep:
 			main.set(k, keep[k])
@@ -3939,17 +3996,12 @@ func run() -> void:
 		var h0: float = main.hour
 		await wait(0.5)
 		var paused: bool = main.hour == h0
-		main.ui.set_rows.tilt.emit_signal("pressed")
-		var tilt_off: bool = not main.tilt_rect.visible and not main.cfg.tilt
-		main.ui.set_rows.tilt.emit_signal("pressed")
+		var tilt_off: bool = main.ui.set_rows.keys() == ["sound"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
+			and main.ui.now_tune.text.begins_with("♪") and not main.ui.now_tune.editable
 		main.ui.set_plus.emit_signal("pressed")
 		var bigger: bool = main.ui.story_text.get_theme_font_size("font_size") > 20
 		main.ui.set_minus.emit_signal("pressed")
-		main.ui.set_rows.nums.emit_signal("pressed")
-		var n0: int = main.get_child_count()
-		main.pop_num(Vector3(20, 1, 30), "12")
-		var hidden_nums: bool = main.get_child_count() == n0
-		main.ui.set_rows.nums.emit_signal("pressed")
+		var hidden_nums := true
 		main.show_set_tab(2)
 		var tab_ok: bool = main.ui.set_pages[2].visible and not main.ui.set_pages[0].visible
 		tap(KEY_ESCAPE)

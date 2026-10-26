@@ -1,0 +1,8 @@
+Use your image generation tool to create ONE image and save it as 06_cave_mural.png (then 1600 x 900 jpg) in the current directory.
+
+The attached image is a scene from the same story: a dark blue cave whose wall holds an old carved mural (upper left), with two children in front. Make a NEW picture that shows ONLY that mural, close up, filling the frame: no people standing in front of it, no children, nobody in the cave.
+The mural, carved into rough blue-grey cave rock and painted in faded pale chalk lines: along the top a row of eight moons going through their phases (thin crescent -> full -> thin crescent); under them eight robed people with small crowns, each with a bracelet on the wrist, standing in a row and all holding one long bar together, with a big old clockwork key with a round bow in the middle of the row, small rays around the key. A few stars carved between. Old, chipped, some parts worn away, a crack running through it, a little moss in the cracks; at the bottom edge a few fallen toy-like grey bricks (LEGO-like studded bricks) on the cave floor. A faint cool light falls on the wall from the left.
+Keep the mural's design exactly as in the attached image (same moons, same eight figures, same key), only seen up close and straight on, slightly from below eye level, so it feels big and ancient.
+STYLE: match the attached image exactly: classic 1990s TV anime cel, clean uniform dark ink outlines, flat colors with one hard-edged shadow tone, slightly faded film colors, deep blue cave palette. 16:9 landscape.
+AVOID: no glow halos, no sparkles, no lens flare, no bokeh, no glossy AI shading, no text or letters, no logo, no watermark, no frame.
+When done, reply with only the file path.

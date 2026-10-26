@@ -756,6 +756,7 @@ func build_hud() -> void:
 	m.ui.journal_text = m.menus.journal_column(journal, Vector2(14, 70), Vector2(420, 487))
 	m.ui.journal_text2 = m.menus.journal_column(journal, Vector2(450, 70), Vector2(336, 487)) # the right column: feats and keepsakes
 	m.menus.back_key(journal, func(): m.toggle_journal(false)).set_meta("title", journal_title)
+	m.ui.ending_btn = m.menus.set_button(journal, "엔딩 다시 보기", Vector2(626, 515), Vector2(160, 38), func(): m.garden_zone.replay_ending())
 	journal.visible = false
 	m.ui.journal = journal
 	var ways := m.menus.menu_panel(root, Vector2(8, -401), Vector2(400, 300), Control.PRESET_BOTTOM_LEFT)

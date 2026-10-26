@@ -478,12 +478,7 @@ func mold_breaks() -> void:
 	m.player.gold += 500
 	m.gain_xp(400)
 	m.story_step = 12
-	var record: String = tr("||여기까지 걸린 시간 %s, 물리친 괴물 %d마리, 이룬 도전 과제 %d/6.") % [m.errands.play_time_text(), m.stats.kills, m.feats_done.count(true)]
-	var ending: Array = Main.STORY.ENDING.duplicate()
-	if m.road_q >= 3: # before "그래서, 찾았니?"
-		var at := ending.find("보리 할머니|bori|그래서, 찾았니?")
-		ending.insert(at if at >= 0 else ending.size(), Main.STORY.ENDING_ROAD)
-	m.show_story("res://art/story/12_festival.jpg", ending + [record])
+	m.show_story(ENDING_PICTURE, ending_lines())
 	m.set_quest("끝. 다시 돌기 시작한 정원을 거닐자 (정원 한가운데서 E 두 번: 새 바퀴)")
 	m.clock_q = maxi(m.clock_q, 1) # where the mold sat a hole opens down to the clock room (a side story after the end)
 	m.clock_hint_told = true
@@ -492,6 +487,28 @@ func mold_breaks() -> void:
 		m.ui.mini.map_tex = garden_map()
 	m.after_story = clock_hint
 	m.save_game()
+
+const ENDING_PICTURE := "res://art/story/12_festival.jpg"
+
+# the ending's lines with the record of this run at the end
+func ending_lines() -> Array:
+	var record: String = tr("||여기까지 걸린 시간 %s, 물리친 괴물 %d마리, 이룬 도전 과제 %d/6.") % [m.errands.play_time_text(), m.stats.kills, m.feats_done.count(true)]
+	var ending: Array = Main.STORY.ENDING.duplicate()
+	if m.road_q >= 3: # before "그래서, 찾았니?"
+		var at := ending.find("보리 할머니|bori|그래서, 찾았니?")
+		ending.insert(at if at >= 0 else ending.size(), Main.STORY.ENDING_ROAD)
+	return ending + [record]
+
+# 엔딩 다시 보기 (the owner, 2026-10-27: "엔딩은 어떻게 보는거야?"): once the ending has played, the journal's button
+# shows it again, the festival picture and the same lines with today's record; nothing is paid or saved
+func ending_seen() -> bool:
+	return m.story_step >= 12 or m.ng > 0
+
+func replay_ending() -> void:
+	if not ending_seen() or m.story_open:
+		return
+	m.toggle_journal(false)
+	m.show_story(ENDING_PICTURE, ending_lines())
 
 func in_clock() -> bool:
 	return m.in_garden and m.player.z > Main.GARDEN.CLOCK_Z - 0.5

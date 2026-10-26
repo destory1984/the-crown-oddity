@@ -6,7 +6,9 @@ Two families, as the user chose (2026-10-25):
 - slow lyrical pieces for the title, the village, night and the ending.
 
 Every track is one seamless loop. Run: python tools/bgm.py [names...]
-Writes audio/bgm/<name>.wav, then ffmpeg turns each into <name>.ogg (Vorbis q4) if ffmpeg is on PATH."""
+Every place has five tunes (the owner, 2026-10-27): <slot>.ogg and <slot>_2 .. <slot>_5.ogg; the five village tunes are
+the Lantern Village set (music-box twinkles for the lamp flames). Writes audio/bgm/<name>.wav, then ffmpeg turns each
+into a mono 48 kbps <name>.ogg if ffmpeg is on PATH (45 tunes, about 12 MB)."""
 import os
 import shutil
 import subprocess
@@ -37,9 +39,9 @@ def env(n, a, d, s, r):
 class Track:
     """A loop of `bars` 4/4 bars; add() wraps sound that runs past the end back to the start."""
 
-    def __init__(self, bpm, bars, seed):
-        self.beat = 60.0 / bpm
-        self.n = int(bars * 4 * self.beat * SR)
+    def __init__(self, bpm, bars, seed, bpb=4):
+        self.beat = 60.0 / bpm; self.bpb = bpb
+        self.n = int(bars * bpb * self.beat * SR)
         self.L = np.zeros(self.n); self.R = np.zeros(self.n)
         self.rng = np.random.default_rng(seed)
 
@@ -54,13 +56,17 @@ class Track:
     def save(self, name, drive=1.4):
         mix = np.stack([self.L, self.R], 1)
         mix = np.tanh(mix / np.max(np.abs(mix)) * drive) / np.tanh(drive) * 0.85
+        mono = (mix[:, 0] + mix[:, 1]) * 0.7071  # what ffmpeg -ac 1 makes of it
+        rms_db = 20 * np.log10(np.sqrt(np.mean(mono ** 2)) + 1e-9)
+        g = min(10 ** ((-17.0 - rms_db) / 20), 0.65 / np.max(np.abs(mono)))  # mono mean about -17 dB, peak at most -3.7 dB
+        mix = mix * g
         OUT.mkdir(parents=True, exist_ok=True)
         path = OUT / f"{name}.wav"
         with wave.open(str(path), "wb") as w:
             w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
             w.writeframes((mix * 32767).astype(np.int16).tobytes())
         if shutil.which("ffmpeg"):
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(path), "-c:a", "libvorbis", "-q:a", "4",
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(path), "-ac", "1", "-c:a", "libvorbis", "-b:a", "48k",
                             str(OUT / f"{name}.ogg")], check=True)
             path.unlink()
         print(f"{name}: {self.n / SR:.1f} s")
@@ -184,9 +190,9 @@ def play(tr, mel, voice, pan=0.05, gain=0.3, echo=(0.75, 0.22), shift=0, legato=
     return t
 
 
-def check(mel, bars):
+def check(mel, bars, bpb=4):
     total = sum(b for _, b in mel)
-    assert abs(total - bars * 4) < 1e-6, f"melody has {total} beats, needs {bars * 4}"
+    assert abs(total - bars * bpb) < 1e-6, f"melody has {total} beats, needs {bars * bpb}"
 
 
 # ---------------------------------------------------------------- chords
@@ -335,11 +341,289 @@ def ending():  # the clock room, the festival, after the ending: G major, 80, ha
     tr.save("ending", drive=1.1)
 
 
+# ---------------------------------------------------------------- generated variants (<slot>_2 .. _5)
+# Each variant has its own key, mode, tempo, chord loop and melody. The melody is composed from the
+# chord loop: phrases of 4 bars (A, B, C), strong beats snap to chord tones, the rest walks the scale.
+import math
+
+NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6, "G": 7, "Ab": 8, "A": 9, "Bb": 10, "B": 11}
+MODES = {"min": [0, 2, 3, 5, 7, 8, 10], "dor": [0, 2, 3, 5, 7, 9, 10], "maj": [0, 2, 4, 5, 7, 9, 11],
+         "mix": [0, 2, 4, 5, 7, 9, 10], "harm": [0, 2, 3, 5, 7, 8, 11]}
+DEG = {"i": (0, "m"), "I": (0, "M"), "bII": (1, "M"), "ii": (2, "m"), "II": (2, "M"), "bIII": (3, "M"), "iii": (4, "m"),
+       "IV": (5, "M"), "iv": (5, "m"), "V": (7, "M"), "v": (7, "m"), "bVI": (8, "M"), "vi": (9, "m"), "bVII": (10, "M")}
+RHY = {
+    "fast": ([1, 1, 1, 1], [1.5, .5, 1, 1], [.5, .5, 1, 2], [1, .5, .5, 1, 1], [.5, .5, .5, .5, 1, 1], [1, 1, .5, .5, 1],
+             [2, 1, .5, .5], [.5, .5, 1, 1, 1], [1.5, .5, .5, .5, 1]),
+    "boss": ([.5] * 8, [.5, .5, 1, .5, .5, 1], [1, .5, .5, .5, .5, 1], [.5, .5, .5, .5, 1, 1], [1.5, .5, 1.5, .5],
+             [1, 1, .5, .5, .5, .5], [1.5, .5, 1, 1]),
+    "sparse": ([2, 1, 1], [2, 2], [1, 1, 2], [1, -1, 2], [1.5, .5, 2], [-1, 1, 2], [3, 1], [1, 1, 1, 1]),
+    "mid": ([1, 1, 1, 1], [1.5, .5, 1, 1], [1, 1, 2], [2, 1, 1], [1, .5, .5, 1, 1], [.5, .5, 1, 2], [1.5, .5, 2], [1, 2, 1]),
+    "waltz": ([1, 1, 1], [2, 1], [1, .5, .5, 1], [1.5, .5, 1], [1, 2], [.5, .5, 1, 1], [1, 1, .5, .5]),
+    "slow": ([2, 2], [2, 1, 1], [1, 1, 2], [3, 1], [1, 1, 1, 1], [1.5, .5, 2], [2, 1.5, .5], [4]),
+}
+CAD = {
+    "fast": ([1, 1, 2], [.5, .5, 1, 2], [1.5, .5, 2], [1, 1, 1, -1], [2, 2], [1, .5, .5, 2]),
+    "mid": ([1, 1, 2], [2, 2], [1.5, .5, 2], [3, 1], [2, 1, -1]),
+    "slow": ([2, 2], [3, -1], [2, 1, 1], [1, 3], [4]),
+}
+CAD["waltz"] = ([1, 2], [2, 1], [3], [1.5, .5, 1])
+CAD["boss"] = CAD["sparse"] = CAD["fast"]
+STEPS = {"fast": [-3, -2, -1, -1, 0, 1, 1, 2, 3], "boss": [-3, -2, -1, -1, 0, 1, 1, 2, 3, 4, -4],
+         "sparse": [-3, -2, -1, -1, 1, 1, 2, 3], "mid": [-2, -1, -1, 0, 1, 1, 2, 3, -3], "slow": [-2, -1, -1, 1, 1, 2, -3, 3], "waltz": [-2, -1, -1, 0, 1, 1, 2, 3, -3]}
+PLANS = {3: "ABA", 4: "ABAC", 5: "AABAC", 6: "AABACA", 7: "AABACBA", 8: "AABBACBA", 9: "AABBACBAC", 10: "AABBACBBAC"}
+
+
+def chord_of(tonic, tok):
+    off, q = DEG[tok]
+    return (NOTE[tonic] + off) % 12, q
+
+
+def chord_name(pc, q):
+    return f"{pc}{q}"
+
+
+def chord_tones(pc, q):
+    b = 28 + ((pc - 28) % 12)
+    return [b, b + 7, b + 12, b + 12 + (3 if q == "m" else 4), b + 19]
+
+
+def compose(spec, fam, lo, hi, intro=False, min_s=40.5):
+    bpb = spec.get("bpb", 4)
+    """Returns (chord names, tones table, melody, bars) for a spec."""
+    tonic, mode, bpm = spec["key"], spec["mode"], spec["bpm"]
+    bars = spec.get("bars") or 4 * math.ceil(min_s * bpm / (60 * bpb) / 4)
+    n_ph = bars // 4
+    plan = ("-" + PLANS[n_ph - 1]) if intro else PLANS[n_ph]
+    progs = dict(zip("ABC", spec["prog"]))
+    tones = {}; chords = []
+    for letter in plan:
+        toks = progs.get(letter if letter != "-" else "A").split()
+        for tk in toks:
+            pc, q = chord_of(tonic, tk)
+            tones[chord_name(pc, q)] = chord_tones(pc, q); chords.append((pc, q))
+    chords[-1] = chord_of(tonic, "I" if mode in ("maj", "mix") else "i")  # end on the tonic chord
+    tones[chord_name(*chords[-1])] = chord_tones(*chords[-1])
+    names = [chord_name(*c) for c in chords]
+    tpc = NOTE[tonic]
+    scale = {(tpc + x) % 12 for x in MODES[mode]}
+    grid = [m for m in range(lo, hi + 1) if m % 12 in scale]
+    center = len(grid) // 2
+    pats, cads, steps = RHY[fam], CAD[fam], STEPS[fam]
+    seed = spec["seed"]; memo = {}; occ = {}; mel = []; idx = center
+    for p, letter in enumerate(plan):
+        if letter == "-":
+            mel.append((None, 16)); continue
+        occ[letter] = occ.get(letter, 0) + 1
+        if letter not in memo:
+            r = np.random.default_rng(seed * 131 + ord(letter))
+            tpl = []
+            for k in range(3):
+                rh = list(pats[r.integers(len(pats))])
+                tpl.append((rh, [int(r.choice(steps)) for _ in rh]))
+            memo[letter] = (tpl, int(r.integers(-3, 4)))
+        tpl, off = memo[letter]
+        r2 = np.random.default_rng(seed * 977 + ord(letter) * 13 + occ[letter])
+        crh = list(cads[r2.integers(len(cads))])
+        tpl4 = tpl + [(crh, [int(r2.choice(steps)) for _ in crh])]
+        idx = max(0, min(len(grid) - 1, center + off))
+        for k, (rh, st) in enumerate(tpl4):
+            bar = p * 4 + k; pc, q = chords[bar]
+            cpcs = {pc, (pc + (3 if q == "m" else 4)) % 12, (pc + 7) % 12}
+            t = 0.0
+            if bar == bars - 1:
+                near = min(range(len(grid)), key=lambda g: (grid[g] % 12 != tpc, abs(g - idx)))
+                nb = min(range(len(grid)), key=lambda g: (grid[g] % 12 not in cpcs or g == near, abs(g - idx)))
+                mel += [(grid[nb], 1), (grid[near], 2), (None, 1)] if bpb == 4 else [(grid[nb], 1), (grid[near], 2)]
+                continue
+            for d, s in zip(rh, st):
+                dur = abs(d)
+                if d < 0:
+                    mel.append((None, dur)); t += dur; continue
+                idx += s
+                if idx > center + 6 and s > 0: idx -= 2 * s
+                if idx < center - 7 and s < 0: idx -= 2 * s
+                idx = max(0, min(len(grid) - 1, idx))
+                if (t % 2 == 0 if bpb == 4 else t == 0) or dur >= 2:
+                    cand = [g for g in (idx, idx - 1, idx + 1, idx - 2, idx + 2) if 0 <= g < len(grid) and grid[g] % 12 in cpcs]
+                    if cand: idx = cand[0]
+                mel.append((grid[idx], dur)); t += dur
+    return names, tones, mel, bars
+
+
+def fm_variant(name, spec, fam="fast", lo=69, hi=91, boss_like=False, final=False, dungeon=False, lead_gain=0.30):
+    ch, tones, mel, bars = compose(spec, fam, lo, hi, intro=dungeon)
+    check(mel, bars)
+    tr = Track(spec["bpm"], bars, spec["seed"])
+    BASS = [(0, 0, 12, 0, 7, 0, 12, 10), (0, 12, 0, 12, 7, 12, 0, 10), (0, 0, 0, 12, 0, 0, 10, 7), (0, 12, 0, 12, 0, 12, 7, 10),
+            (0, 7, 12, 7, 0, 7, 12, 10), (0, 0, 7, 0, 12, 0, 7, 5), (0, 12, 7, 12, 0, 12, 10, 12)]
+    KICK = [(0.0, 2.0, 2.5), (0.0, 0.5, 2.0, 2.5), (0.0, 2.0), (0.0, 1.5, 2.5), (0.0, 0.5, 2.0, 2.5, 3.5), (0.0, 1.0, 2.0, 3.0)]
+    STAB = [(0.0, 1.5), (0.0,), (0.0, 2.0), (0.0, 1.5, 3.0), (0.0, 0.5, 2.0)]
+    o = spec["band"]
+    fills = tuple(b for b in range(bars) if b % 8 == 7 or b == bars - 1)
+    if boss_like:
+        kick, stabs = KICK[4 - o[1] % 2], STAB[3 if o[2] % 2 else 0]
+    else:
+        kick, stabs = KICK[o[1] % len(KICK)], STAB[o[2] % len(STAB)]
+    if dungeon:
+        kick, stabs = (0.0, 2.5), (0.0,)
+    rock_band(tr, ch, tones, kick=kick, fills=fills, bass_pat=BASS[o[0] % len(BASS)], stabs=stabs)
+    play(tr, mel, fm_lead, gain=0.24 if dungeon else (0.32 if boss_like else lead_gain),
+         echo=(1.0, 0.3) if dungeon else ((0.5, 0.18) if boss_like else (0.75, 0.22)))
+    if final:
+        for bar, c in enumerate(ch):
+            tr.add(strings([x + 24 for x in tones[c][1:4]], 4 * tr.beat + 0.6), bar * 4 * tr.beat, 0, 0.16)
+    tr.save(name, drive=1.6 if boss_like else 1.4)
+
+
+def village_variant(name, spec):
+    ch, tones, mel, bars = compose(spec, "mid", 65, 86)
+    check(mel, bars); tr = Track(spec["bpm"], bars, spec["seed"])
+    VA = [[0, 1, 2, 1, 3, 1, 2, 1], [0, 1, 2, 3, 2, 1, 2, 1], [0, 2, 1, 2, 0, 2, 1, 2], [0, 1, 3, 2, 1, 2, 3, 2], [0, 2, 3, 2, 1, 3, 2, 1]]
+    pat = VA[spec["band"][0] % len(VA)]
+    for bar, c in enumerate(ch):
+        t0 = bar * 4 * tr.beat; tn = tones[c]
+        tr.add(pad([x + 12 for x in tn[1:4]], 4 * tr.beat + 1.0, 0.5, 0.8), t0, 0, 0.07)
+        P = [tn[0], tn[2], tn[3], tn[1] + 12]
+        for i in range(8):
+            tr.add(pluck(P[pat[i]] + 12, 1.0, tr.rng, 0.993), t0 + i * tr.beat / 2 + tr.rng.uniform(0, 0.006), -0.3 + 0.15 * (i % 2), 0.17)
+        tr.add(pluck(tn[0], 2.0, tr.rng), t0, 0.1, 0.20); tr.add(pluck(tn[0] + 7, 1.5, tr.rng), t0 + 2 * tr.beat, 0.1, 0.14)
+        for i in range(4):
+            n = int(0.1 * SR)
+            tr.add(tr.rng.normal(0, 1, n) * np.exp(-np.arange(n) / SR * 45), t0 + i * tr.beat + tr.beat / 2, 0.4, 0.04)
+    play(tr, mel, accordion, pan=0.1, gain=0.22, echo=None)
+    tr.save(name, drive=1.2)
+
+
+def lantern_variant(name, spec):
+    """Lantern Village: music-box twinkles over accordion or flute, guitar arpeggio, soft pad."""
+    bpb = spec["bpb"]; fam = "waltz" if bpb == 3 else "mid"
+    ch, tones, mel, bars = compose(spec, fam, 65, 86)
+    check(mel, bars, bpb); tr = Track(spec["bpm"], bars, spec["seed"], bpb)
+    VA = {4: [[0, 1, 2, 1, 3, 1, 2, 1], [0, 1, 2, 3, 2, 1, 2, 1], [0, 2, 1, 2, 0, 2, 1, 2], [0, 1, 3, 2, 1, 2, 3, 2]],
+          3: [[0, 1, 2, 3, 2, 1], [0, 2, 1, 3, 1, 2], [0, 1, 3, 2, 3, 1], [0, 2, 3, 1, 3, 2]]}[bpb]
+    pat = VA[spec["band"][0] % len(VA)]
+    for bar, c in enumerate(ch):
+        t0 = bar * bpb * tr.beat; tn = tones[c]
+        tr.add(pad([x + 12 for x in tn[1:4]], bpb * tr.beat + 1.0, 0.5, 0.8), t0, 0, 0.07)
+        P = [tn[0], tn[2], tn[3], tn[1] + 12]
+        for i in range(2 * bpb):
+            tr.add(pluck(P[pat[i]] + 12, 1.0, tr.rng, 0.993), t0 + i * tr.beat / 2 + tr.rng.uniform(0, 0.006), -0.3 + 0.15 * (i % 2), 0.15)
+        tr.add(pluck(tn[0], 2.0, tr.rng), t0, 0.1, 0.20); tr.add(pluck(tn[0] + 7, 1.5, tr.rng), t0 + (2 if bpb == 4 else 1) * tr.beat, 0.1, 0.13)
+        Tw = [tn[2], tn[3], tn[1] + 12, tn[4]]  # the lamp flames: bell tones, some of them each half beat
+        for i in range(2 * bpb):
+            if tr.rng.random() < 0.55:
+                nt = Tw[int(tr.rng.integers(4))] + 24 + 12 * int(tr.rng.integers(0, 2))
+                tr.add(musicbox(nt, 2.0), t0 + i * tr.beat / 2 + tr.beat / 4 * (i % 2), float(tr.rng.uniform(-0.6, 0.6)), 0.075)
+    if spec["lead"] == "flute":
+        play(tr, mel, lambda nt, d: flute(nt, d, tr.rng), pan=0.1, gain=0.22, echo=(1.0, 0.25))
+    else:
+        play(tr, mel, accordion, pan=0.1, gain=0.22, echo=None)
+    tr.save(name, drive=1.2)
+
+
+def night_variant(name, spec, voice="flute"):
+    ch, tones, mel, bars = compose(spec, "slow", 69 if voice == "flute" else 66, 88 if voice == "flute" else 84)
+    check(mel, bars); tr = Track(spec["bpm"], bars, spec["seed"])
+    NA = [[0, 1, 2, 1], [0, 2, 1, 2], [2, 1, 0, 1], [0, 1, 2, 0]]
+    pat = NA[spec["band"][0] % len(NA)]
+    for bar, c in enumerate(ch):
+        t0 = bar * 4 * tr.beat; tn = tones[c]
+        tr.add(pad([x + 12 for x in tn[1:4]], 4 * tr.beat + 2.0, 1.6, 1.6, 0.2), t0, 0, 0.09)
+        tr.add(np.sin(2 * np.pi * hz(tn[0]) * np.arange(int(4 * tr.beat * SR)) / SR) * env(int(4 * tr.beat * SR), 0.8, 0, 1, 0.8), t0, 0, 0.08)
+        P = [tn[2], tn[3], tn[1] + 12]
+        for i in range(4):
+            tr.add(musicbox(P[pat[i]] + 24, 2.5), t0 + i * tr.beat + tr.rng.uniform(0, 0.01), 0.3 - 0.2 * (i % 2), 0.08)
+    if voice == "flute":
+        play(tr, mel, lambda nt, d: flute(nt, d, tr.rng), pan=0.1, gain=0.20, echo=(1.0, 0.3))
+    else:
+        play(tr, mel, lambda nt, d: musicbox(nt + 12, d + 1.5), pan=0.1, gain=0.16, echo=(0.5, 0.3), legato=1.0)
+    n = tr.n; bed = np.convolve(tr.rng.normal(0, 1, n), np.ones(700) / 700, mode="same") * 0.25
+    tr.L += bed; tr.R += np.roll(bed, SR // 3)
+    tr.save(name, drive=1.1)
+
+
+def ending_variant(name, spec):
+    ch, tones, mel, bars = compose(spec, "mid", 67, 86)
+    check(mel, bars); tr = Track(spec["bpm"], bars, spec["seed"])
+    HA = [[0, 1, 2, 3, 4, 5], [0, 2, 3, 4, 3, 2], [0, 1, 3, 5, 3, 1], [0, 2, 1, 3, 5, 4]]
+    pat = HA[spec["band"][0] % len(HA)]
+    for bar, c in enumerate(ch):
+        t0 = bar * 4 * tr.beat; tn = tones[c]
+        tr.add(strings([x + 12 for x in tn[1:4]], 4 * tr.beat + 1.2), t0, 0, 0.18)
+        Q = [tn[0], tn[1], tn[2], tn[3], tn[2] + 12, tn[3] + 12]
+        for i in range(6):
+            tr.add(pluck(Q[pat[i]] + 12, 2.5, tr.rng, 0.998), t0 + i * tr.beat * 2 / 3, 0.35 - 0.1 * i, 0.13)
+    play(tr, mel, lambda nt, d: flute(nt, d, tr.rng), pan=0.1, gain=0.22, echo=(1.0, 0.25))
+    tr.save(name, drive=1.1)
+
+
+def S(key, mode, bpm, a, b, c, seed, band=(0, 0, 0), **kw):
+    return dict(key=key, mode=mode, bpm=bpm, prog=(a, b, c), seed=seed, band=band, **kw)
+
+
+SPECS = {
+    "field_marsh": [S("G", "dor", 148, "i IV bVII i", "bVI bVII i v", "IV bVII i i", 201, (1, 1, 1)),
+                    S("A", "harm", 126, "i iv V i", "bVI iv V V", "i bIII bVII V", 202, (2, 3, 0)),
+                    S("C", "min", 155, "i bIII bVII bVI", "iv bVI bVII i", "bVI bVII bVII i", 203, (4, 4, 3)),
+                    S("E", "min", 132, "i bVII bVI bVII", "bIII bVII iv i", "bVI bVII i i", 204, (5, 5, 2))],
+    "field_wild": [S("F#", "dor", 125, "i bVII IV i", "bVI bVII i bVII", "IV bVII i i", 211, (3, 2, 1)),
+                   S("D", "maj", 140, "I V vi IV", "IV I V V", "vi IV I V", 212, (6, 0, 4)),
+                   S("G", "harm", 118, "i bVI bVII i", "iv bVI V V", "i bIII iv V", 213, (0, 3, 0)),
+                   S("A", "mix", 150, "I bVII IV I", "vi IV bVII I", "IV bVII I I", 214, (1, 4, 3))],
+    "dungeon": [S("F#", "harm", 108, "i bVI iv i", "bII bVII i i", "iv bVI V V", 221),
+                S("Bb", "min", 126, "i bVI bVII i", "iv i bVI bVII", "bII bVII i i", 222, (3, 0, 0)),
+                S("D", "harm", 114, "i bVII bVI V", "iv bVI bVII i", "i iv V V", 223, (2, 0, 0)),
+                S("C#", "min", 132, "i bIII bVI bVII", "iv bVI bVII i", "bVI bVII i i", 224, (6, 0, 0))],
+    "boss": [S("A", "harm", 176, "i bVI bVII V", "iv i bVI V", "i bIII bVII V", 231, (1, 0, 0)),
+             S("D", "harm", 150, "i bVII bVI V", "bIII bVII iv V", "i i bVI V", 232, (3, 1, 1)),
+             S("B", "harm", 168, "i iv bVI V", "bVI bVII i V", "bII bVII bVI V", 233, (4, 0, 0)),
+             S("C", "harm", 182, "i bII i V", "iv bVI bVII V", "bVI V i i", 234, (6, 1, 1))],
+    "boss_final": [S("G", "harm", 160, "i bVI bVII V", "iv bVI i V", "bIII bVII bVI V", 241, (1, 0, 1)),
+                   S("F#", "harm", 170, "i bVII bVI V", "iv bVI bVII V", "i bIII bVI V", 242, (4, 1, 0)),
+                   S("Bb", "harm", 142, "i bVI iv V", "bIII bVII bVI V", "bII V i i", 243, (0, 0, 1)),
+                   S("Eb", "harm", 136, "i iv bVII bVI", "bVI bVII i V", "bII bVII bVI V", 244, (6, 1, 0))],
+    "village": [S("G", "maj", 88, "I vi IV V", "IV I ii V", "vi IV I V", 251, (1,), bpb=4, lead="flute", bars=20),
+                S("Bb", "maj", 88, "I V vi iii", "IV I V vi", "ii V I I", 252, (2,), bpb=3, lead="accordion", bars=20),
+                S("A", "maj", 100, "I IV I V", "vi IV ii V", "I vi IV V", 253, (3,), bpb=4, lead="accordion", bars=20),
+                S("C", "maj", 84, "I vi ii V", "IV iii vi V", "IV V I I", 254, (0,), bpb=3, lead="flute", bars=20)],
+    "night": [S("D", "harm", 58, "i bVI bIII bVII", "iv i bVI V", "bVI bVII i i", 261, (1,)),
+              S("E", "dor", 72, "i IV i bVII", "bVI bVII i i", "IV bVII i i", 262, (2,)),
+              S("B", "min", 62, "i bVII bVI bVII", "bIII bVII iv i", "bVI iv i i", 263, (3,)),
+              S("F#", "min", 75, "i bIII bVII iv", "bVI bVII i v", "iv bVII i i", 264, (1,))],
+    "title": [S("F", "min", 54, "i bVI bIII bVII", "iv i bVI bVII", "bVI bVII i i", 271, (1,)),
+              S("D", "dor", 66, "i IV bVII i", "bVI bVII i v", "IV bVII i i", 272, (2,)),
+              S("G", "maj", 57, "I iii IV V", "vi IV I V", "IV I V I", 273, (3,)),
+              S("Eb", "maj", 69, "I V vi IV", "IV I V V", "vi IV I I", 274, (0,))],
+    "ending": [S("D", "maj", 72, "I V vi IV", "IV I V vi", "ii V I I", 281, (1,)),
+               S("A", "maj", 88, "I IV I V", "vi IV I V", "ii V I I", 282, (2,)),
+               S("Eb", "maj", 76, "I vi IV V", "iii IV I V", "IV V I I", 283, (3,)),
+               S("C", "maj", 91, "I iii vi IV", "IV I ii V", "vi IV I I", 284, (0,))],
+}
+BUILD = {
+    "field_marsh": lambda n, s: fm_variant(n, s), "field_wild": lambda n, s: fm_variant(n, s),
+    "dungeon": lambda n, s: fm_variant(n, s, fam="sparse", lo=67, hi=89, dungeon=True),
+    "boss": lambda n, s: fm_variant(n, s, fam="boss", lo=71, hi=93, boss_like=True),
+    "boss_final": lambda n, s: fm_variant(n, s, fam="boss", lo=71, hi=93, boss_like=True, final=True),
+    "village": lantern_variant, "night": night_variant,
+    "title": lambda n, s: night_variant(n, s, "musicbox"), "ending": ending_variant,
+}
+FAMILY = {"dungeon": "sparse", "boss": "boss", "boss_final": "boss", "village": "mid", "night": "slow", "title": "slow", "ending": "mid"}
+
+
+def _mk(slot, k):
+    return lambda: BUILD[slot](f"{slot}_{k + 2}", SPECS[slot][k])
+
+
+TRACKS_NEW = {f"{s}_{k + 2}": _mk(s, k) for s in SPECS for k in range(4)}
+TRACKS_NEW["village"] = lambda: lantern_variant("village", S("D", "maj", 96, "I V vi IV", "vi iii IV V", "IV I V I", 250, (0,), bpb=3, lead="accordion", bars=24))
+
+
 TRACKS = {
     "field_marsh": field_marsh, "field_wild": field_wild, "dungeon": dungeon,
     "boss": lambda: boss("boss"), "boss_final": lambda: boss("boss_final", shift=-2, bpm=150, seed=9),
     "village": village, "night": night, "title": lambda: night("title", "musicbox", 60), "ending": ending,
 }
+TRACKS.update(TRACKS_NEW)
 
 if __name__ == "__main__":
     for name in sys.argv[1:] or TRACKS:

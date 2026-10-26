@@ -626,6 +626,10 @@ func cave_interact() -> bool:
 	var me := Vector2(m.player.x, m.player.z)
 	if shrine_key():
 		return true
+	# the mural again, once its scene has played: the picture alone with one line (the owner, 2026-10-27)
+	if m.saw_painting and me.distance_to(m.cave_marks.P) < 2.0:
+		m.show_story(Main.MURAL_PICTURE, [Main.STORY.MURAL_AGAIN])
+		return true
 	if not m.has_key and me.distance_to(m.cave_marks.K) < 1.5:
 		m.has_key = true
 		m.key_chest.texture = m.chest_open_tex
@@ -656,9 +660,9 @@ func check_painting() -> void:
 		return
 	m.saw_painting = true
 	if m.night_q >= 1: # Noeul has already come for the crown: his first meeting would come twice (the owner, 2026-10-25)
-		m.show_story("", Main.STORY.PAINTING_LATE + (Main.STORY.PAINTING_WITH_NOEUL if m.mate2 != null else []))
+		m.show_story(Main.MURAL_PICTURE, Main.STORY.PAINTING_LATE + (Main.STORY.PAINTING_WITH_NOEUL if m.mate2 != null else []))
 	else:
-		m.show_story("res://art/story/06_cave_rival.jpg", Main.STORY.PAINTING)
+		m.show_story(Main.MURAL_PICTURE, Main.STORY.PAINTING)
 	if m.has_skip: # seen on a later visit: the quest she has stays (GPT playtests 2 -> 9)
 		pass
 	elif m.cave_door_open:

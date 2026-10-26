@@ -152,6 +152,10 @@ func show_story(path: String, lines: Array, small := false) -> void:
 	m.create_tween().tween_property(m.ui.story, "modulate:a", 1.0, 0.6)
 
 func show_line(line: String) -> void:
+	if line.begins_with("@"): # "@res://art/story/x.jpg": the picture changes here, then the next line shows
+		m.ui.story_img.texture = load(line.substr(1))
+		show_line(m.story_lines.pop_front())
+		return
 	var parts := line.split("|", true, 2)
 	if parts.size() < 3:
 		parts = PackedStringArray(["", "", line])

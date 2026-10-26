@@ -778,15 +778,22 @@ func chest_textures() -> void:
 		m.px(img, 0, 3, 1, 11, Color("#d9b04a"))
 		m.px(img, 15, 3, 1, 11, Color("#d9b04a"))
 		m.px(img, 7, 6, 2, 3, Color("#ffd84a")))
-	# opened: the lid tipped back above the box, the inside dark and empty (the owner, 2026-10-26: an opened chest
-	# still looked shut, only greyer)
+	# opened, draft 5 of 5 (the owner, 2026-10-27: the tipped-back lid floated above the box): wide open, the lid fallen
+	# back behind on two gold hinges, its gold rim on top, the inside dark under a lit back wall, the hasp hanging loose
 	var open_tex := m.make_tex(16, 14, func(img: Image):
-		m.px(img, 2, 0, 12, 3, Color("#9a6232")) # the lid, tipped back
-		m.px(img, 2, 2, 12, 1, Color("#3a2312"))
-		m.px(img, 1, 5, 14, 9, Color("#7a4a24"))
-		m.px(img, 2, 5, 12, 3, Color("#1e120a")) # the empty inside
-		m.px(img, 0, 5, 1, 9, Color("#d9b04a"))
-		m.px(img, 15, 5, 1, 9, Color("#d9b04a")))
+		m.px(img, 1, 0, 14, 3, Color("#5a3618")) # the lid's inner face
+		m.px(img, 1, 0, 14, 1, Color("#d9b04a"))
+		m.px(img, 3, 2, 2, 1, Color("#d9b04a")) # hinges
+		m.px(img, 11, 2, 2, 1, Color("#d9b04a"))
+		m.px(img, 1, 3, 14, 11, Color("#7a4a24"))
+		m.px(img, 2, 3, 12, 1, Color("#9a6232"))
+		m.px(img, 2, 4, 12, 5, Color("#1e120a")) # the empty inside
+		m.px(img, 2, 4, 12, 1, Color("#4a2c16"))
+		m.px(img, 1, 9, 14, 1, Color("#3a2312"))
+		m.px(img, 0, 3, 1, 11, Color("#d9b04a"))
+		m.px(img, 15, 3, 1, 11, Color("#d9b04a"))
+		m.px(img, 7, 10, 2, 3, Color("#ffd84a")) # the hasp, hanging
+		m.px(img, 7, 10, 2, 1, Color("#d9b04a")))
 	m.chest_open_tex = open_tex
 	m.chest_shut_tex = tex
 

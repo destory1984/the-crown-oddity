@@ -571,7 +571,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 			m.kid_q = 2
 			m.place_kid()
 	if sc.get("scene", false):
-		m.show_story("res://art/story/06_cave_rival.jpg", Main.STORY.PAINTING)
+		m.show_story(Main.MURAL_PICTURE, Main.STORY.PAINTING)
 		for k in 6:
 			m.story.next_story()
 	if sc.get("mole", false):
