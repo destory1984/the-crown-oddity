@@ -175,6 +175,8 @@ func show_line(line: String) -> void:
 			set_por_top(sd, lit)
 		m.ui.story_face.texture = null # the portrait already shows who is talking
 	m.ui.story_text.position.x = 140.0 if m.ui.story_face.texture else 40.0
+	if m.ui.story_cap.size.x > 0.0: # the width follows the start, so a centred line sits in the middle of the box
+		m.ui.story_text.size.x = m.ui.story_cap.size.x - m.ui.story_text.position.x - 40.0
 	m.ui.story_tab.visible = parts[0] != ""
 	# translated here so the typewriter counts the shown text; lines wrap only at spaces (Ko.keep_words)
 	var said := touch_words(tr(parts[2]))

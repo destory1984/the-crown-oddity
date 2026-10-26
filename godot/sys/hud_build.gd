@@ -865,6 +865,7 @@ func build_hud() -> void:
 	var cap_text := label(cap, "", Vector2(140, 34), 23) # the owner, 2026-10-25: a little bigger than 20
 	cap_text.size = Vector2(760, 90)
 	cap_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cap_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER # the owner, 2026-10-27: centre the lines in the box
 	cap_text.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING # wrapped as the whole line, so fit_story sees every line while it types
 	var cap_hint := label(cap, "▼", Vector2(905, 116), 13, Color("#e8b018"))
 	cap_hint.size = Vector2(20, 18)
