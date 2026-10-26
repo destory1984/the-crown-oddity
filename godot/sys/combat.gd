@@ -161,8 +161,20 @@ func gain_xp(n: int) -> void:
 
 # the level monsters are built and hit at: half of Sora's (Lv1 1, Lv10 5, Lv28 14), so each level up still makes her
 # stronger; at the full level a goblin took 4 cuts at Lv1 and still 4 at Lv28 (the owner, 2026-10-25)
+# Monsters grow with the land, as in the Ys games (the owner, 2026-10-27: "서쪽 늪보다 동쪽 숲의 몹이 더 세다"): each
+# area adds its own step on top of a smaller share of Sora's level, so an area she has outgrown gets easier and the
+# next one is harder. Steps follow the story's road; the area is the one Sora stands in (monsters spawn near her).
+const AREA_STEP := [[620, 9], [560, 2], [530, 8], [500, 8], [480, 2], [430, 7], [390, 6], [350, 5], [310, 5], [270, 3],
+	[230, 9], [180, 4], [100, 1], [0, 0]] # x from: workshop, village, undercroft, stairs, houses, castle, cloud, grotto, hill, lake, garden, forest, cave, marsh
+
+func area_step(x: float) -> int:
+	for a in AREA_STEP:
+		if x >= float(a[0]) - 0.5:
+			return a[1]
+	return 0
+
 func foe_lv() -> int:
-	return int((m.player.lv + 1) / 2.0)
+	return int((m.player.lv + 1) / 2.0 * 0.6) + area_step(m.player.x)
 
 func nearest_enemy(range_: float):
 	var best = null

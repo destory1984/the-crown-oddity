@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
 
 func _ready() -> void:
@@ -471,7 +471,7 @@ func run() -> void:
 		var quick: bool = absf(cd15 - cd1 * 0.8) < 0.01
 		main.player.lv = lv0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]
-		check("level_perks", foes == [1, 5, 14] and quick, "foe levels %s (want [1, 5, 14]) skill cd Lv15 %.2f vs Lv1 %.2f" % [str(foes), cd15, cd1])
+		check("level_perks", foes == [0, 3, 8] and quick, "foe levels in the marsh %s (want [0, 3, 8]: 30%% of the old level share, area step 0) skill cd Lv15 %.2f vs Lv1 %.2f" % [str(foes), cd15, cd1])
 	if want.call("gear_look"):
 		# bought blades tint the swing, bought armour rings her feet: tiers at 0, 1-2, 3-4, 5+
 		var sb0: Array = main.shop_bought.duplicate()
@@ -626,6 +626,17 @@ func run() -> void:
 		main.in_cave = keep_cave
 		main.return_to_start()
 		check("mural_split", first.ends_with("06_cave_mural.jpg") and seen.ends_with("06_cave_rival.jpg") and again, "first %s, at Noeul's line %s, again=%s" % [first.get_file(), seen.get_file(), again])
+	if want.call("area_steps"):
+		# monsters grow with the land: at one level, the forest's foe level is above the marsh's, the garden's above both
+		var keep_x: float = main.player.x
+		main.player.x = 20.0
+		var marsh: int = main.foe_lv()
+		main.player.x = 190.0
+		var forest: int = main.foe_lv()
+		main.player.x = 240.0
+		var garden: int = main.foe_lv()
+		main.player.x = keep_x
+		check("area_steps", marsh < forest and forest < garden, "foe level marsh %d < forest %d < garden %d" % [marsh, forest, garden])
 	if want.call("skill_cost"):
 		main.player.mp = 20.0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]
@@ -891,12 +902,28 @@ func run() -> void:
 		main.has_skip = true
 		main.cave_exit_seen = false
 		main.in_cave = true
+		# the first way out waits for the cave's errands and says which are left
+		var keep_saw: bool = main.saw_painting
+		var keep_up: int = main.skill_up
+		main.saw_painting = true
+		main.skill_up = -1
+		main.toast_t = 0.0
 		reset_to(main.cave_marks.E + Vector2(-0.5, 0))
-		await wait(1.2)
-		var talk: bool = main.story_open
-		main.close_story()
-		await wait(0.6)
-		check("cave_exit", talk and not main.in_cave and main.story_step == 7, "exit -> outside=%s step=%d" % [not main.in_cave, main.story_step])
+		await wait(0.8)
+		var held: bool = main.in_cave and main.ui.toast.text.contains("기술")
+		main.skill_up = maxi(keep_up, 0)
+		var talk := false
+		for k in 12: # the fade out, then the way-out story (close whatever opens on the way)
+			await wait(0.3)
+			if main.story_open:
+				talk = talk or main.ui.story_text.text.contains("밤")
+				main.close_story()
+		await wait(0.3)
+		# outside, the stone stair stays beside her and leads back down
+		var stair: bool = main.cave.exit_built and not main.in_cave
+		main.skill_up = keep_up
+		main.saw_painting = keep_saw
+		check("cave_exit", held and talk and not main.in_cave and main.story_step == 7 and stair, "held inside with a skill left=%s exit -> outside=%s step=%d stair kept=%s" % [held, not main.in_cave, main.story_step, stair])
 	if want.call("water_skip"):
 		main.in_cave = false
 		main.has_skip = true

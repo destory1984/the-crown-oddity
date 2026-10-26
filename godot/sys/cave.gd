@@ -703,6 +703,77 @@ func enter_cave() -> void:
 	m.ui.zone_sub.text = "벽 그림이 있는 동굴"
 	m.save_game()
 
+var exit_built := false
+
+func exit_mouth_pos() -> Vector2:
+	for c in [Vector2(36, 18.2), Vector2(34.2, 20), Vector2(37.8, 20), Vector2(36, 21.8)]:
+		if m.walkable(c.x, c.y):
+			return c
+	return Vector2(36, 18.2)
+
+func build_exit_mouth() -> void:
+	if exit_built:
+		return
+	exit_built = true
+	var at := exit_mouth_pos()
+	m.story.clear_vegetation(at, 1.8)
+	var g := Node3D.new()
+	g.position = Vector3(at.x, m.height_at(at.x, at.y), at.y)
+	m.add_child(g)
+	var pit := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.9
+	cyl.bottom_radius = 0.9
+	cyl.height = 0.05
+	pit.mesh = cyl
+	pit.material_override = m.mat_color(Color("#07070c"))
+	pit.position = Vector3(0, 0.03, 0)
+	g.add_child(pit)
+	var stone := m.mat_color(Color("#6a6e7a"))
+	for k in 10:
+		var a := TAU * k / 10.0
+		var b := m.box(Vector3(0.42, 0.3, 0.42), stone)
+		b.position = Vector3(cos(a) * 1.1, 0.15, sin(a) * 1.1)
+		b.rotation.y = -a
+		g.add_child(b)
+	for k in 3:
+		var st := m.box(Vector3(0.7, 0.06, 0.24), m.mat_color(Color("#4a4e5a").darkened(k * 0.25)))
+		st.position = Vector3(0, 0.06 - k * 0.02, 0.55 - k * 0.27)
+		g.add_child(st)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color("#6aa8ff")
+	glow.light_energy = 1.2
+	glow.omni_range = 2.5
+	glow.position = Vector3(0, 0.3, 0)
+	g.add_child(glow)
+	var outside: ImageTexture = m.ui.outside_map if m.ui.has("outside_map") else m.ui.mini.map_tex
+	if outside != null and (m.ui.has("outside_map") or not m.in_cave):
+		outside.set_image(m.with_stair_marks(outside, [at]).get_image())
+
+# walking onto the stair outside: back down at the cave's far end, a little inside from the way out
+func enter_from_exit() -> void:
+	m.enter_cave()
+	var e: Vector2 = m.cave_marks.E
+	var inward: Vector2 = (m.cave_marks.S - e).normalized()
+	m.player.x = e.x + inward.x * 2.2
+	m.player.z = e.y + inward.y * 2.2
+	m.snap_mates()
+
+# what still keeps her in on the first way out ("" = free to go)
+func exit_blocker() -> String:
+	if not m.has_skip:
+		return "바깥 빛이 보인다. 하지만 수레두더지가 길을 막고 있다"
+	if m.cave_exit_seen:
+		return ""
+	var left: Array = []
+	if not m.saw_painting:
+		left.append(tr("벽 그림 보기"))
+	if m.skill_up < 0:
+		left.append(tr("세 돌단에서 기술 깨우기"))
+	if left.is_empty():
+		return ""
+	return tr("아직 나갈 수 없다. 동굴에서 남은 일: %s") % ", ".join(left)
+
 func leave_cave() -> void:
 	m.in_cave = false
 	var first_time := m.story_step <= 7
@@ -720,6 +791,7 @@ func leave_cave() -> void:
 	m.save_game()
 	var first := not m.cave_exit_seen
 	m.cave_exit_seen = true
+	build_exit_mouth()
 	if first:
 		m.show_story("", Main.STORY.CAVE_EXIT)
 
@@ -746,7 +818,7 @@ func spawn_mole() -> void:
 		wheel.position = Vector3(side, 0.12, 0.18)
 		g.add_child(wheel)
 	m.add_child(node)
-	m.enemies.append({"x": b.x, "z": b.y, "hp": 650.0, "max_hp": 650, "node": node, "shadow": m.blob(1.8), "t": 0.0,
+	m.enemies.append({"x": b.x, "z": b.y, "hp": 1100.0, "max_hp": 1100, "node": node, "shadow": m.blob(1.8), "t": 0.0,
 		"atk_cd": 2.0, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": b.x, "wz": b.y, "dead": false, "respawn": 0.0,
 		"mole": true, "cave": true, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "stun": 0.0, "next": "charge", "rings": []})
 
@@ -768,16 +840,24 @@ func update_mole(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	var me := Vector2(e.x, e.z)
 	if e.dash > 0.0:
 		e.dash -= dt
-		var nx: float = e.x + e.dir.x * 9.0 * dt
-		var nz: float = e.z + e.dir.y * 9.0 * dt
+		var nx: float = e.x + e.dir.x * 11.0 * dt
+		var nz: float = e.z + e.dir.y * 11.0 * dt
 		if m.walkable(nx, nz):
 			e.x = nx
 			e.z = nz
 			if Vector2(m.player.x - e.x, m.player.z - e.z).length() < 1.1:
-				m.player_hit(25, me - e.dir, e)
-		else: # crashed into the wall
+				m.player_hit(34, me - e.dir, e)
+		else: # crashed into the wall; hurt, it turns and charges once more before it reels
 			e.dash = 0.0
-			e.stun = 1.5
+			if e.hp < e.max_hp / 2.0 and not e.get("again", false):
+				e.again = true
+				e.wind = 0.45
+				e.dir = to / maxf(d, 0.01)
+				e.next = "charge"
+				m.pop_num(Vector3(e.x, 2.6, e.z), "!", Color("#ff5a4a"))
+			else:
+				e.again = false
+				e.stun = 1.1
 			m.shake = 0.35
 			m.sfx(80, 0.3, "square", 0.3, -40)
 			m.burst(Vector3(e.x, 0.6, e.z), Color("#8a7a6a"), 20, 3.0)
@@ -788,15 +868,27 @@ func update_mole(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 		if e.wind <= 0.0:
 			if e.next == "charge":
 				e.dash = 1.2
+				e.next = "burrow" if e.hp < e.max_hp / 2.0 and not e.get("again", false) else "dirt"
+			elif e.next == "burrow": # up from under the ring it hid beneath
+				var r: Vector2 = e.rings[0]
+				e.x = r.x
+				e.z = r.y
+				node.visible = true
+				e.shadow.visible = true
+				m.burst(Vector3(r.x, 0.3, r.y), Color("#8a6a4a"), 30, 4.5)
+				m.shake = 0.4
+				m.sfx(60, 0.3, "square", 0.3, -20)
+				if Vector2(m.player.x, m.player.z).distance_to(r) < 1.4:
+					m.player_hit(30, r, e)
 				e.next = "dirt"
 			else:
 				for r in e.rings:
 					m.burst(Vector3(r.x, 0.3, r.y), Color("#8a6a4a"), 18, 3.5)
 					if Vector2(m.player.x, m.player.z).distance_to(r) < 1.2:
-						m.player_hit(18, r, e)
+						m.player_hit(24, r, e)
 				m.sfx(70, 0.25, "square", 0.25, -30)
 				e.next = "charge"
-			e.atk_cd = 1.4
+			e.atk_cd = 0.8 if e.hp < e.max_hp / 2.0 else 1.1
 	elif awake:
 		e.atk_cd -= dt
 		if e.atk_cd <= 0.0:
@@ -805,16 +897,25 @@ func update_mole(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 				e.dir = to / maxf(d, 0.01)
 				m.pop_num(Vector3(e.x, 2.6, e.z), "!", Color("#ff5a4a"))
 				m.sfx(120, 0.5, "sawtooth", 0.2, 120)
+			elif e.next == "burrow": # dives into the earth; a ring marks where it will come up
+				e.wind = 0.9
+				e.rings = [Vector2(m.player.x, m.player.z)]
+				node.visible = false
+				e.shadow.visible = false
+				m.burst(Vector3(e.x, 0.3, e.z), Color("#8a6a4a"), 20, 3.0)
+				m.warn_ring(Vector3(m.player.x, 0.0, m.player.z), 1.4, 0.9)
 			else:
 				e.wind = 0.7
-				e.rings = [Vector2(m.player.x, m.player.z)]
-				if e.hp < e.max_hp / 2.0:
-					e.rings.append(Vector2(m.player.x, m.player.z) + Vector2(m.rnd(-2, 2), m.rnd(-2, 2)))
+				var me2 := Vector2(m.player.x, m.player.z)
+				e.rings = [me2]
+				for k in (4 if e.hp < e.max_hp / 2.0 else 2): # around her, so a dodge must pick its way out
+					var a := TAU * k / (4.0 if e.hp < e.max_hp / 2.0 else 2.0) + m.rnd(0.0, 1.0)
+					e.rings.append(me2 + Vector2(cos(a), sin(a)) * m.rnd(1.8, 2.6))
 				for r in e.rings:
 					m.warn_ring(Vector3(r.x, 0.0, r.y), 1.2, 0.7)
 		elif d > 2.0: # trundle toward Sora
-			var nx: float = e.x + to.x / d * 1.2 * dt
-			var nz: float = e.z + to.y / d * 1.2 * dt
+			var nx: float = e.x + to.x / d * 1.8 * dt
+			var nz: float = e.z + to.y / d * 1.8 * dt
 			if m.walkable(nx, e.z): e.x = nx
 			if m.walkable(e.x, nz): e.z = nz
 	node.position = Vector3(e.x, absf(sin(e.t * (12.0 if e.dash > 0 else 3.0))) * 0.08, e.z)

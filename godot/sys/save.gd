@@ -373,6 +373,8 @@ func load_game() -> void:
 		m.player.z = fz
 	m.has_skip = bool(d.get("has_skip", false))
 	m.cave_exit_seen = bool(d.get("cave_exit_seen", false))
+	if m.cave_exit_seen:
+		m.cave.build_exit_mouth()
 	m.marsh.restore(d.get("scraps", []), bool(d.get("moon_chest", false)))
 	m.load_shore(d)
 	m.fly_q = int(d.get("fly_q", 0))

@@ -173,6 +173,7 @@ func show_line(line: String) -> void:
 		var side := "left" if is_sora else "right"
 		if f != "" and ResourceLoader.exists(por):
 			m.ui["por_" + side].texture = load(por)
+			m.ui["por_" + side].set_meta("scale", POR_SCALE.get(f.get_slice("_", 0), 1.0))
 		for sd in ["left", "right"]:
 			var lit: bool = f != "" and sd == side
 			m.ui["por_" + sd].modulate = Color(1, 1, 1) if lit else Color(0.45, 0.45, 0.55)
@@ -240,8 +241,11 @@ func por_height() -> float:
 	var vh := m.get_viewport().get_visible_rect().size.y
 	return clampf(vh - 80.0 - 10.0 - 8.0, 200.0, 560.0)
 
+const POR_SCALE := {"kongal": 0.82} # portraits drawn smaller than Sora's height: the little ones
+
 func set_por_top(side: String, lit: bool) -> void:
-	m.ui["por_" + side].offset_top = -80.0 - por_height() - (10.0 if lit else -10.0)
+	var k: float = m.ui["por_" + side].get_meta("scale", 1.0)
+	m.ui["por_" + side].offset_top = -80.0 - por_height() * k - (10.0 if lit else -10.0)
 
 func fit_story() -> void:
 	for sd in ["left", "right"]:

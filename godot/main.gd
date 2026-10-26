@@ -673,6 +673,11 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-27 새벽",
+	"· v0.0.100: 괴물이 지역을 따라 세진다(이스 시리즈처럼). 괴물 단계가 '소라 레벨의 절반'이던 것을 '소라 레벨의 30% + 지역 단계'로 바꿨다. 지역 단계는 이야기 길을 따라 늪 0, 동굴 1, 마을 2, 호수 3, 숲 4, 바람 언덕과 물빛 동굴 5, 구름 6, 성 7, 계단과 지하 등불 회랑 8, 정원과 깊은 공방 9다. 같은 레벨이면 지난 지역은 쉬워지고 다음 지역은 더 세다.",
+	"· v0.0.99: 동굴에서 늪으로 나온 자리에 굴로 내려가는 돌계단이 남는다(예전에는 '모래에 묻혀 닫혔다'며 사라졌다). 밟으면 동굴 출구 쪽으로 다시 들어가고, 미니맵에도 계단 표시가 뜬다. 처음 나갈 때는 동굴에서 할 일(수레두더지, 벽 그림 보기, 세 돌단에서 기술 깨우기)을 다 해야 나갈 수 있고, 남은 일이 있으면 출구에서 '아직 나갈 수 없다. 동굴에서 남은 일: …'이라고 알려 준다.",
+	"· v0.0.98: 굴파기 수레두더지가 세졌다. 체력 650 → 1100, 돌진 속도 9 → 11칸/초, 돌진 피해 25 → 34, 흙 솟기 고리 1 → 3개(반피 아래 2 → 5개, 소라 둘레에 퍼진다), 흙 피해 18 → 24, 다음 공격까지 1.4 → 1.1초(반피 아래 0.8초). 반피 아래에서는 벽에 부딪힌 뒤 한 번 더 돌진하고, 땅속으로 숨었다가 소라 발밑에서 튀어나온다(피해 30, 빨간 고리로 미리 보인다).",
+	"· v0.0.97: 콩알의 대화 그림을 소라의 82% 크기로 줄였다. 같은 크기라 콩알이 소라의 언니처럼 보였다.",
+	"· v0.0.96: 심지 할아버지가 마을 광장 한가운데에서 서쪽 문 바로 안쪽(문에서 4칸)으로 옮겼다. 마을에 들어서자마자 보인다. 심지에게 말 거는 자리, 등불 축제, 곁의 달빛 길돌도 함께 옮겨졌다.",
 	"· v0.0.95: 설정 창의 Settings 쪽에는 효과음과 언어만 남겼다. 화면 흔들림, 미니어처 흐림, 피해 숫자 옵션은 지우고 늘 켜 둔다(예전에 꺼 둔 값도 다시 켜진다). 그 아래 '지금 음악' 칸에 나오는 곡 이름이 '♪ 마을 3/5 (village_3)'처럼 보이고, 마우스로 긁어 복사할 수 있다.",
 	"· v0.0.94: 배경 음악이 9곡 → 45곡이 되었다. 아홉 자리(늪과 호수, 바람 부는 들, 마을, 밤, 동굴과 성, 우두머리, 마지막 싸움, 제목, 끝맺음)마다 5곡이고, 한 곡을 100초쯤 들으면 그 자리의 다음 곡으로 넘어간다. 마을 5곡은 모두 새로 지은 '등불 마을' 곡이다(오르골 소리가 등불처럼 반짝이고 셋은 3박자). 옛 마을 곡은 지웠다. 밤에도 들판은 들판 곡, 마을은 마을 곡이 나오고, 밤 곡은 밤에 밖에서 쉴 때만 나온다. 곡은 모노 48kbps라 45곡이 12MB다.",
 	"· v0.0.93: 왼쪽 위 막대 이름과 숫자, 달빛 글자를 14 → 15px로 키웠다.",
@@ -2199,10 +2204,14 @@ func _process(dt: float) -> void:
 	if in_cave:
 		check_painting()
 		cave.update_post()
-	if in_cave and not has_skip and Vector2(player.x, player.z).distance_to(cave_marks.E) < 1.6 and toast_t <= 0.0:
-		toast("바깥 빛이 보인다. 하지만 수레두더지가 길을 막고 있다")
-	if in_cave and has_skip and Vector2(player.x, player.z).distance_to(cave_marks.E) < 1.0 and fade_rect.color.a == 0.0:
-		fade_then(leave_cave)
+	if in_cave and Vector2(player.x, player.z).distance_to(cave_marks.E) < 1.6:
+		var held: String = cave.exit_blocker()
+		if held != "" and toast_t <= 0.0:
+			toast(held)
+		elif held == "" and Vector2(player.x, player.z).distance_to(cave_marks.E) < 1.0 and fade_rect.color.a == 0.0:
+			fade_then(leave_cave)
+	if not in_cave and cave_exit_seen and cave.exit_built and Vector2(player.x, player.z).distance_to(cave.exit_mouth_pos()) < 0.8 and fade_rect.color.a == 0.0 and not intro:
+		fade_then(cave.enter_from_exit)
 	daynight.update_daylight(dt)
 	world_build.update_lights()
 	save_t += dt
