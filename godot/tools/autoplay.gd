@@ -3738,7 +3738,7 @@ func run() -> void:
 		await wait(0.15)
 		shown.append(main.ui.shop_hint.text)
 		main.doran_q = dq
-		for q in ["팔목의 팔찌를 만져 보자 (E)", "도란의 편지에 팔찌를 대 보자 (E, 달빛 눈금 사용)", "이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)", "깊은 틈 위 한결의 발자국을 따라가자 (E로 비추기)"]:
+		for q in ["팔목의 팔찌를 만져 보자 (E)", "도란의 편지에 팔찌를 대 보자 (E, 달빛 눈금 사용)", "이야기 끝 · 정원 한가운데 구멍으로 내려가 시계방에 가 보자", "깊은 틈 위 한결의 발자국을 따라가자 (E로 비추기)"]:
 			main.set_quest(q)
 			shown.append(plain(main.ui.quest.text))
 		shown.append(main.touch_words(main.tr("낚싯줄을 던졌다. 찌가 흔들리면 E!")))
@@ -5173,7 +5173,7 @@ func run() -> void:
 			await wait(0.1)
 		await wait(0.5)
 		var down: bool = main.in_clock() and Vector2(main.player.x, main.player.z).distance_to(main.garden.clock_marks.U) < 2.0 \
-			and main.clock_q == 2 and main.garden.clock_screen.visible
+			and main.clock_q == 2 and main.garden.clock_screen.visible and plain(main.ui.quest.text).begins_with("시계방의 굳은 톱니")
 		main.close_story()
 		# 3. one gear at a time; a scrap that reaches its gear hardens it again
 		var hard: bool = not main.player_can(236, 53)
@@ -5226,7 +5226,7 @@ func run() -> void:
 			main.close_story()
 		var tending: int = main.workers.filter(func(w): return w.job >= 0 and w.job <= 2).size()
 		var gears_ok: bool = counts == [2, 3, 4] and main.clock_gears == [true, true, true] and main.clock_q == 3 \
-			and main.crown_pips == 4 and tending == 6
+			and main.crown_pips == 4 and tending == 6 and plain(main.ui.quest.text).begins_with("태엽 열쇠 한가운데")
 		# 6. the crown into the key: Sora at Hangyeol's spoke, everyone at one
 		reset_to(Vector2(243, 56))
 		main.player.inv = 120.0
@@ -5236,7 +5236,7 @@ func run() -> void:
 		await wait(0.3)
 		var mp := Vector2(main.mate.position.x, main.mate.position.z)
 		var hub: bool = main.clock_q == 4 and Vector2(main.player.x, main.player.z).distance_to(main.garden.clock_marks.J) < 0.35 \
-			and absf(mp.x - 241.0) <= 1.0 and absf(mp.y - 55.0) <= 1.0 and main.garden.crown_rim.visible and main.clock_folk.size() == 4
+			and absf(mp.x - 241.0) <= 1.0 and absf(mp.y - 55.0) <= 1.0 and main.garden.crown_rim.visible and main.clock_folk.size() == 4 and plain(main.ui.quest.text).begins_with("한결의 손잡이")
 		# 7. eight pushes on the beat (the ring is set directly); an early press does not count
 		for i in 20:
 			if not main.beat.is_empty():
@@ -5254,7 +5254,7 @@ func run() -> void:
 			main.beat.hit = false
 			tap(KEY_E)
 			await wait(0.08)
-		var wound: bool = main.clock_q == 5 and main.story_open and main.ui.story_frame.visible and main.beat.is_empty()
+		var wound: bool = main.clock_q == 5 and plain(main.ui.quest.text).begins_with("이야기 끝 · 정원을 마음껏") and main.story_open and main.ui.story_frame.visible and main.beat.is_empty()
 		main.close_story()
 		await wait(1.0)
 		var hush: bool = not main.story_open # 1.6 s of only the gears' sound
@@ -7434,7 +7434,7 @@ func run() -> void:
 			["hill", "in_hill", main.hill.marks.S + Vector2(2.0, -1.5), "언덕 동쪽 끝 길로, 달지기들의 성에 가자", main.hill.marks.X],
 			["castle", "in_hill", main.castle.marks.S + Vector2(2.5, 1.5), "옥좌의 방으로 가자", Vector2.INF],
 			["stairs", "in_hill", main.stairs.marks.S + Vector2(0, -1.3), main.STAIRS_DONE_QUEST, Vector2.INF],
-			["garden", "in_garden", main.garden.marks.S + Vector2(1.5, 0), "이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)", main.garden.marks.C]]
+			["garden", "in_garden", main.garden.marks.S + Vector2(1.5, 0), "이야기 끝 · 정원 한가운데 구멍으로 내려가 시계방에 가 보자", main.garden.marks.C]]
 		var bad_q: Array = []
 		var rim_ok := false
 		for c in cases:

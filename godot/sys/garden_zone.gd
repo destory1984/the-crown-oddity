@@ -53,6 +53,15 @@ func enter_garden() -> void:
 	m.monsters.refill_field("garden")
 	m.save_game()
 
+# after the ending: the clock room first, step by step, then the second round (the owner, 2026-10-28)
+func clock_quest() -> String:
+	match m.clock_q:
+		0, 1: return "이야기 끝 · 정원 한가운데 구멍으로 내려가 시계방에 가 보자"
+		2: return tr("시계방의 굳은 톱니를 팔찌로 풀자 (E) %d/3") % m.clock_gears.count(true)
+		3: return "태엽 열쇠 한가운데에 팔찌를 대자 (E)"
+		4: return "한결의 손잡이에서 박자에 맞춰 다 같이 밀자 (E)"
+	return "이야기 끝 · 정원을 마음껏 둘러보자 (정원 한가운데 태엽에서 E 두 번: 2회차)"
+
 func road_quest() -> String:
 	match m.road_q:
 		1: return "뿌리 벽돌을 팔찌로 풀자 (E)"
@@ -493,8 +502,8 @@ func mold_breaks() -> void:
 	m.gain_xp(400)
 	m.story_step = 12
 	m.show_story(ENDING_PICTURE, ending_lines())
-	m.set_quest("이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)") # the owner, 2026-10-27: say where the centre is and what a new round is
 	m.clock_q = maxi(m.clock_q, 1) # where the mold sat a hole opens down to the clock room (a side story after the end)
+	m.set_quest(clock_quest())
 	m.clock_hint_told = true
 	m.garden.open_hatch()
 	if m.in_garden:
@@ -560,6 +569,7 @@ func enter_clock() -> void:
 	m.snap_mates()
 	if m.clock_q == 1:
 		m.clock_q = 2
+		m.set_quest(clock_quest())
 		m.show_story("", Main.STORY.CLOCK_IN)
 	m.save_game()
 
@@ -701,10 +711,12 @@ func clock_gear_freed(i: int) -> void:
 		m.clock_q = maxi(m.clock_q, 3)
 		m.clock_say = Main.STORY.CLOCK_GEARS
 		m.clock_say_t = 2.0
+	m.set_quest(clock_quest())
 	m.save_game()
 
 func crown_into_key() -> void:
 	m.clock_q = 4
+	m.set_quest(clock_quest())
 	m.garden.crown_in(true)
 	var o: Vector2 = m.garden.clock_marks.O
 	m.burst(Vector3(o.x, 1.2, o.y), Color("#9fd4ff"), 40, 3.5)
@@ -880,7 +892,7 @@ func beat_key() -> void:
 	beat_clear()
 	m.shake = 0.3
 	m.show_story("res://art/story/14_clock_together.jpg", Main.STORY.CLOCK_WOUND)
-	m.set_quest("이야기 끝 · 정원을 마음껏 둘러보자") # the side story is done too
+	m.set_quest(clock_quest()) # the side story is done too
 	m.after_story = clock_hush
 	m.save_game()
 

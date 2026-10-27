@@ -105,6 +105,7 @@ func line_target(raw: String) -> Vector3:
 		"castle": at = castle_target(raw)
 		"stairs": at = stairs_target(raw)
 		"garden": at = garden_target(raw)
+		"clock": at = clock_target(raw)
 	if at == Vector3.INF and road_goal(raw) != "":
 		at = road_way(road_goal(raw))
 	return at
@@ -247,8 +248,23 @@ func garden_target(raw: String) -> Vector3:
 		return either(nearest(shut), Vector2.INF)
 	if raw.contains("거푸집의 심장"):
 		return either(foe_at("mold"), gm.C, 4.6)
-	if raw.begins_with("두 팔을 높이") or raw.begins_with("이야기 끝 · 위 정원"): # the new round's key; after the clock room the free-roam line has no mark
+	if raw.begins_with("두 팔을 높이") or raw.begins_with("이야기 끝 · 정원 한가운데 구멍"): # the hole down to the clock room; the free-roam line has no mark
 		return over(gm.C, 2.6)
+	return Vector3.INF
+
+# the clock room's steps: the nearest hard gear, the key, then Hangyeol's handle
+func clock_target(raw: String) -> Vector3:
+	var cm: Dictionary = m.garden.clock_marks
+	if led(raw, "시계방의 굳은 톱니를 팔찌로 풀자 (E) %d/3"):
+		var hard: Array = []
+		for i in m.garden.gears.size():
+			if not m.clock_gears[i]:
+				hard.append(m.garden.gears[i].pos)
+		return either(nearest(hard), Vector2.INF, 1.8)
+	if raw.begins_with("태엽 열쇠 한가운데"):
+		return over(cm.O, 2.4)
+	if raw.begins_with("한결의 손잡이"):
+		return over(cm.J, 1.9)
 	return Vector3.INF
 
 # the shore's side step under the quest (the owner hit "물가에 걸린 것을 보자" with nothing on the minimap)

@@ -424,6 +424,8 @@ func load_game() -> void:
 	if m.story_step >= 6: # later chapters: the quest line as it was saved (older saves keep what the zone set)
 		if d.has("quest"):
 			m.set_quest(old_quest_words(String(d.quest)))
+		if m.garden_q >= 5 and m.story_step >= 12 and Main.Ko.plain(m.ui.quest.text).begins_with("이야기 끝"): # older ending lines
+			m.set_quest(main_road_quest())
 		if Main.Ko.plain(m.ui.quest.text).begins_with(OLD_CAVE_QUEST) or Main.Ko.plain(m.ui.quest.text) == Main.CAVE_QUEST: # written by the bug below: the main road's last step instead
 			m.set_quest(main_road_quest())
 	else:
@@ -463,7 +465,7 @@ func old_quest_words(q: String) -> String:
 	return q
 
 func main_road_quest() -> String:
-	if m.garden_q >= 5: return "이야기 끝 · 정원을 마음껏 둘러보자" if m.clock_q >= 5 else "이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)"
+	if m.garden_q >= 5: return m.garden_zone.clock_quest()
 	if m.castle_q >= 3: return "동쪽 문을 지나 정원 한가운데로 가자"
 	if m.hill_q >= 3: return "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
 	if m.forest_q >= 3: return "숲 동쪽 끝 길로, 바람 언덕에 가자"
