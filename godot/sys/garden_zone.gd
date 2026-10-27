@@ -198,6 +198,7 @@ func update_garden(dt: float) -> void:
 	if in_clock():
 		update_clock(dt)
 		return
+	m.garden.show_bloom(m.garden_q >= 5) # the garden turns again: grass and flowers on the arena
 	var me := Vector2(m.player.x, m.player.z)
 	if m.clock_q >= 1 and not m.story_open and m.fade_rect.color.a == 0.0 and me.distance_to(m.garden.marks.C) < 0.9:
 		m.fade_then(enter_clock)
@@ -492,7 +493,7 @@ func mold_breaks() -> void:
 	m.gain_xp(400)
 	m.story_step = 12
 	m.show_story(ENDING_PICTURE, ending_lines())
-	m.set_quest("끝. 다시 돌기 시작한 정원을 거닐자 (정원 한가운데서 E 두 번: 새 바퀴)")
+	m.set_quest("이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)") # the owner, 2026-10-27: say where the centre is and what a new round is
 	m.clock_q = maxi(m.clock_q, 1) # where the mold sat a hole opens down to the clock room (a side story after the end)
 	m.clock_hint_told = true
 	m.garden.open_hatch()
@@ -879,6 +880,7 @@ func beat_key() -> void:
 	beat_clear()
 	m.shake = 0.3
 	m.show_story("res://art/story/14_clock_together.jpg", Main.STORY.CLOCK_WOUND)
+	m.set_quest("이야기 끝 · 정원을 마음껏 둘러보자") # the side story is done too
 	m.after_story = clock_hush
 	m.save_game()
 

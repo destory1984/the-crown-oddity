@@ -247,7 +247,7 @@ func garden_target(raw: String) -> Vector3:
 		return either(nearest(shut), Vector2.INF)
 	if raw.contains("거푸집의 심장"):
 		return either(foe_at("mold"), gm.C, 4.6)
-	if raw.begins_with("두 팔을 높이") or raw.begins_with("끝. 다시"):
+	if raw.begins_with("두 팔을 높이") or raw.begins_with("이야기 끝 · 위 정원"): # the new round's key; after the clock room the free-roam line has no mark
 		return over(gm.C, 2.6)
 	return Vector3.INF
 

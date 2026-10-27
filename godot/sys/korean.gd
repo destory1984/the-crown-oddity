@@ -59,9 +59,9 @@ static func keep_words(text: String) -> String:
 	for i in text.length():
 		var c := text[i]
 		out += c
-		if i + 1 < text.length() and c != " " and c != "
-" and text[i + 1] != " " and text[i + 1] != "
-":
+		# not after a line's first letter: Godot dropped that letter when a joiner followed it ("금까지", the owner 2026-10-27)
+		var first := i == 0 or text[i - 1] == "\n"
+		if i + 1 < text.length() and not first and c != " " and c != "\n" and text[i + 1] != " " and text[i + 1] != "\n":
 			out += char(0x2060)
 	return out
 

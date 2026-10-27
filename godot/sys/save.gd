@@ -7,7 +7,7 @@ const Main := preload("res://main.gd")
 var m: Main
 
 const OLD_CAVE_QUEST := "땅 아래로 가는 동굴이 열렸다"
-const OLD_QUEST_WORDS := [["왕관 단추", "팔찌 단추"], ["왕관을 만져 보자", "팔목의 팔찌를 만져 보자"], ["왕관으로", "팔찌로"], ["왕관을 대", "팔찌를 대"], ["왕관을 높이 들어", "두 팔을 높이 들어"]]
+const OLD_QUEST_WORDS := [["끝. 다시 돌기 시작한 정원을 거닐자 (정원 한가운데서 E 두 번: 새 바퀴)", "이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)"], ["왕관 단추", "팔찌 단추"], ["왕관을 만져 보자", "팔목의 팔찌를 만져 보자"], ["왕관으로", "팔찌로"], ["왕관을 대", "팔찌를 대"], ["왕관을 높이 들어", "두 팔을 높이 들어"]]
 
 func _init(main: Main) -> void:
 	m = main
@@ -463,7 +463,7 @@ func old_quest_words(q: String) -> String:
 	return q
 
 func main_road_quest() -> String:
-	if m.garden_q >= 5: return "끝. 다시 돌기 시작한 정원을 거닐자 (정원 한가운데서 E 두 번: 새 바퀴)"
+	if m.garden_q >= 5: return "이야기 끝 · 정원을 마음껏 둘러보자" if m.clock_q >= 5 else "이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)"
 	if m.castle_q >= 3: return "동쪽 문을 지나 정원 한가운데로 가자"
 	if m.hill_q >= 3: return "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
 	if m.forest_q >= 3: return "숲 동쪽 끝 길로, 바람 언덕에 가자"

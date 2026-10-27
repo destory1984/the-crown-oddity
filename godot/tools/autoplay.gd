@@ -1091,7 +1091,7 @@ func run() -> void:
 		main.fake_keys[KEY_SHIFT] = true
 		hold_world(Vector2(1, 0))
 		main.fake_keys[KEY_SHIFT] = true
-		await wait(1.6)
+		await wait_for(func(): return main.player.x > 27.0, 3.0) # was a fixed 1.6 s, short by 0.2 tiles on a slow frame
 		release()
 		await wait(0.2)
 		check("water_skip", main.player.x > 27.0, "with Shift held Sora runs across the river: x 19.0 -> %.1f" % main.player.x)
@@ -2428,16 +2428,21 @@ func run() -> void:
 		release()
 		calm_enemies(true) # the pack goblins now hang back nearby, and a companion who sees one keeps going
 		var mrest := false
-		for i in 30: # he walks up to Sora first (late in a full run he may trail further), then stands still
+		var still := 0
+		var mwhy := ""
+		for i in 50: # he walks up to Sora first (late in a full run he may trail further), then stands still for 0.4 s
 			calm_enemies(true) # parked foes walk back (pack goblins since v0.1.8), and he would chase them
 			await wait(0.1)
-			if mspr.position.y < 0.001 and Vector2(main.mate.position.x - main.player.x, main.mate.position.z - main.player.z).length() < 2.5:
-				await wait(0.3)
-				mrest = mspr.position.y < 0.001
+			var md := Vector2(main.mate.position.x - main.player.x, main.mate.position.z - main.player.z).length()
+			still = still + 1 if mspr.position.y < 0.001 and md < 2.5 else 0
+			var near: int = main.enemies.filter(func(e): return not e.dead and not e.get("prop", false) and not e.get("air", false) and Vector2(e.x, e.z).distance_to(Vector2(main.mate.position.x, main.mate.position.z)) < 5.0).size()
+			mwhy = "dist %.2f y %.3f idle %.1f goal %s at %s job %s foes<5 %d" % [md, mspr.position.y, main.mate_idle, main.mate_aim.get("mulgyeol"), main.mate.position, main.mate_job, near]
+			if still >= 4:
+				mrest = true
 				break
 		calm_enemies(false)
 		check("folk_hop", peak > 0.1 and peak <= 0.1201 and peak_first > 0.1 and lows >= 4 and settled and node_flat and mpeak > 0.1 and mpeak <= 0.1201 and mnode < 0.001 and mrest,
-			"peak %.3f (first hop %.3f), landed %d times, settled in %.2f s, node on the ground=%s; Mulgyeol peak %.3f node %.3f, rests %s" % [peak, peak_first, lows, stopped_t, node_flat, mpeak, mnode, mrest])
+			"peak %.3f (first hop %.3f), landed %d times, settled in %.2f s, node on the ground=%s; Mulgyeol peak %.3f node %.3f, rests %s%s" % [peak, peak_first, lows, stopped_t, node_flat, mpeak, mnode, mrest, "" if mrest else " (" + mwhy + ")"])
 	if want.call("folk_height"):
 		# the villagers' heights come from one table (the user, 2026-10-25: the children looked big next to Noeul)
 		if main.intro:
@@ -3733,7 +3738,7 @@ func run() -> void:
 		await wait(0.15)
 		shown.append(main.ui.shop_hint.text)
 		main.doran_q = dq
-		for q in ["팔목의 팔찌를 만져 보자 (E)", "도란의 편지에 팔찌를 대 보자 (E, 달빛 눈금 사용)", "끝. 다시 돌기 시작한 정원을 거닐자 (정원 한가운데서 E 두 번: 새 바퀴)", "깊은 틈 위 한결의 발자국을 따라가자 (E로 비추기)"]:
+		for q in ["팔목의 팔찌를 만져 보자 (E)", "도란의 편지에 팔찌를 대 보자 (E, 달빛 눈금 사용)", "이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)", "깊은 틈 위 한결의 발자국을 따라가자 (E로 비추기)"]:
 			main.set_quest(q)
 			shown.append(plain(main.ui.quest.text))
 		shown.append(main.touch_words(main.tr("낚싯줄을 던졌다. 찌가 흔들리면 E!")))
@@ -7429,7 +7434,7 @@ func run() -> void:
 			["hill", "in_hill", main.hill.marks.S + Vector2(2.0, -1.5), "언덕 동쪽 끝 길로, 달지기들의 성에 가자", main.hill.marks.X],
 			["castle", "in_hill", main.castle.marks.S + Vector2(2.5, 1.5), "옥좌의 방으로 가자", Vector2.INF],
 			["stairs", "in_hill", main.stairs.marks.S + Vector2(0, -1.3), main.STAIRS_DONE_QUEST, Vector2.INF],
-			["garden", "in_garden", main.garden.marks.S + Vector2(1.5, 0), "끝. 다시 돌기 시작한 정원을 거닐자 (정원 한가운데서 E 두 번: 새 바퀴)", main.garden.marks.C]]
+			["garden", "in_garden", main.garden.marks.S + Vector2(1.5, 0), "이야기 끝 · 위 정원 한가운데 태엽에서 E 두 번: 처음부터 더 세게 (2회차)", main.garden.marks.C]]
 		var bad_q: Array = []
 		var rim_ok := false
 		for c in cases:

@@ -134,6 +134,10 @@ const YARD_Z := ROAD_Z + 10 # the yard's wall row; the yard lies below it
 const GRASS_CLEAR := "RAYkjcLh,G"
 var grass_tiles: Array = [] # world tiles that got moss tufts
 var dress_meshes: Array = []
+# the arena after the ending (the owner, 2026-10-27: "무슨 정원에 풀 하나도 없어?"): while the mold holds it the ground is
+# grey brick; once the garden turns again green grass and flowers come up on it, shown by show_bloom
+var bloom_tiles: Array = []
+var bloom_meshes: Array = []
 
 func dress(m: Node, yard: Array) -> void:
 	var d = m.dressing
@@ -146,7 +150,39 @@ func dress(m: Node, yard: Array) -> void:
 	grass_tiles = d.pick_tiles(at, GARDEN_X, W, YARD_Z + 1, CLOCK_Z, ".wsa", GRASS_CLEAR, [])
 	var tuft: Texture2D = d.tuft_tex(["#4a5a4a", "#546454", "#5e6e5a", "#6a7a64", "#7c8a74", "#96a28c"], 0.3, 2, ["#b88aff", "#d8c8ff"])
 	dress_meshes.append(d.grass(tuft, 0.7, 0.36, d.spots_on(grass_tiles, 0.0, 3, 0.65, 1.0), 0.08, false))
+	# the arena's bloom: clear of the road in, the hole at the heart, the three seals and the eight posts
+	var keep: Array = []
+	for z in ROAD_Z:
+		for x in W:
+			var p := Vector2(x, z)
+			if p.distance_to(CENTER) < 2.6:
+				keep.append(Vector2i(x, z))
+	for k in 8:
+		var a1 := TAU * k / 8.0 + PI / 8.0
+		var pp := CENTER + Vector2(cos(a1), sin(a1)) * (RADIUS - 1.5)
+		keep.append(Vector2i(roundi(pp.x - 0.3), roundi(pp.y)))
+	for k in 3:
+		var a2 := TAU * k / 3.0 - PI / 2.0
+		var sp := CENTER + Vector2(cos(a2), sin(a2)) * 5.0
+		keep.append(Vector2i(roundi(sp.x), roundi(sp.y)))
+	bloom_tiles = d.pick_tiles(at, GARDEN_X, W, 0, ROAD_Z - 1, ".", "=#", keep)
+	var lawn: Texture2D = d.tuft_tex(["#3f7a2a", "#4a862e", "#569234", "#62a03a", "#72ae44", "#8cc458"], 0.2, 2, ["#fff6d8", "#ffd24a"])
+	var flowers: Texture2D = d.tuft_tex(["#45802e", "#528c34", "#5e983a"], 0.1, 8, ["#ff8aa8", "#ffd24a", "#fff6d8", "#c98aff", "#8ad8ff"])
+	var bloom_beds: Array = bloom_tiles.filter(func(t): return int(t.x * 7.0 + t.y * 3.0) % 5 == 0)
+	bloom_meshes = [d.grass(lawn, 0.7, 0.36, d.spots_on(bloom_tiles, 0.0, 4, 0.7, 1.05), 0.08, false),
+		d.grass(flowers, 0.75, 0.42, d.spots_on(bloom_beds, 0.0, 2, 0.75, 1.05), 0.06, false)]
+	show_bloom(false)
 	d.end()
+
+var bloom_on := true
+
+func show_bloom(on: bool) -> void:
+	if on == bloom_on:
+		return
+	bloom_on = on
+	for mm in bloom_meshes:
+		if mm != null:
+			mm.visible_instance_count = -1 if on else 0
 
 func build(m: Node) -> void:
 	marks.S = Vector2(GARDEN_X + 1, CENTER.y)

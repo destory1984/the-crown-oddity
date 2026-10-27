@@ -36,6 +36,7 @@ const SCENES := {
 	"forest": {"play": true, "village": true, "forest": true, "hour": 16.0},
 	"forest_night": {"play": true, "village": true, "forest": true, "hour": 22.0},
 	"mold": {"play": true, "village": true, "mold": true, "hour": 21.0},
+	"garden_bloom": {"play": true, "village": true, "bloom": true, "hour": 15.0}, # the arena after the ending: grass and flowers
 	"turtle": {"play": true, "village": true, "turtle": true, "hour": 15.0},
 	"hill": {"play": true, "village": true, "hill": true, "hour": 10.0},
 	"kid": {"play": true, "village": true, "kid": true, "hour": 20.5},
@@ -336,6 +337,13 @@ func apply_test_args(args: PackedStringArray) -> void:
 			m.garden_zone.spawn_mold()
 			m.player.x = m.garden.marks.C.x - 4.5
 			m.player.z = m.garden.marks.C.y + 1.5
+		if sc.get("bloom", false):
+			m.night_q = 4
+			m.forest_q = 3
+			m.garden_q = 5
+			m.enter_garden()
+			m.player.x = m.garden.marks.C.x - 5.5
+			m.player.z = m.garden.marks.C.y + 2.5
 		if sc.get("turtle", false): # Sora and Mulgyeol against the brick turtle on the island
 			m.night_q = 4
 			m.lake_q = 1
