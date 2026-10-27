@@ -580,8 +580,8 @@ func run() -> void:
 			tufts += mm.instance_count
 		var per: Array = {"village_dressing": [3, 3], "lake_dressing": [5, 3], "forest_dressing": [4, 0], "stairs_dressing": [3, 0], "garden_dressing": [3, 0]}[area[0]]
 		var want_tufts: int = zone.grass_tiles.size() * per[0]
-		if zone == main.village: # cosmos only, two clumps a tile (no grass since v0.1.29)
-			want_tufts = zone.cosmos_tiles.size() * 2
+		if zone == main.village: # cosmos only (no grass since v0.1.29): beds, fields and street borders (v0.1.34)
+			want_tufts = zone.cosmos_spots
 		elif zone == main.lake:
 			want_tufts += zone.weed_tiles.size() * per[1]
 		elif zone == main.forest:
