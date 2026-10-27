@@ -26,12 +26,8 @@ func enter_forest() -> void:
 	m.ui.zone_sub.text = "회색 오솔길"
 	if m.forest_q == 0:
 		m.forest_q = 1
-		for g in m.forest.goblins:
-			m.spawn_enemy(g)
-			m.enemies[m.enemies.size() - 1].cave = true
-		for w in m.forest.wolves:
-			m.spawn_wolf(w)
 		m.show_story("", Main.STORY.FOREST_IN)
+	m.monsters.refill_field("forest") # the first visit spawns them, a later one brings back the beaten
 	spawn_cages()
 	place_big_squirrel()
 	if m.hollow_q == 1:

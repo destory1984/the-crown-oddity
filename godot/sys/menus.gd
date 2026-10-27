@@ -545,6 +545,10 @@ func refresh_sound_btn() -> void:
 		m.ui.set_music.icon = odd_icon("music" if m.music_on else "music_off")
 		m.ui.set_music.modulate = Color.WHITE if m.music_on else Color(1, 1, 1, 0.6)
 		m.ui.set_music.tooltip_text = (tr("배경 음악 켜짐") + " (B)") if m.music_on else (tr("배경 음악 꺼짐") + " (B)")
+	if is_instance_valid(m.ui.get("title_music")): # gone with the title once the game starts
+		m.ui.title_music.icon = odd_icon("music" if m.music_on else "music_off")
+		m.ui.title_music.modulate = Color.WHITE if m.music_on else Color(1, 1, 1, 0.6)
+		m.ui.title_music.tooltip_text = (tr("배경 음악 켜짐") + " (B)") if m.music_on else (tr("배경 음악 꺼짐") + " (B)")
 	m.music.refresh_help()
 
 func toggle_help(show: bool) -> void:

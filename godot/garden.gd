@@ -126,10 +126,33 @@ func open_seal(sl: Dictionary) -> void:
 	sl.open = true
 	sl.node.visible = false
 
+# the marsh's look, low and grey, for Hangyeol's camp yard only (DESIGN.md, section 다른 지역도 늪만큼 보기 좋게): a
+# mossy speckle on the pressed brick and sparse grey-green moss tufts with a few violet buds. The arena, the gap,
+# the brick Hangyeol's ground and the clock room stay bare; in the yard nothing grows on or next to the way in, the
+# way stone, the root bricks, the camp's hook, diary and blanket, a lamp or a footprint.
+const YARD_Z := ROAD_Z + 10 # the yard's wall row; the yard lies below it
+const GRASS_CLEAR := "RAYkjcLh,G"
+var grass_tiles: Array = [] # world tiles that got moss tufts
+var dress_meshes: Array = []
+
+func dress(m: Node, yard: Array) -> void:
+	var d = m.dressing
+	d.begin(2301)
+	var tops: Array = []
+	for g in yard:
+		tops.append([g[0], (g[1] as Color).lightened(0.12)])
+	d.ground_blocks(tops, GARDEN_X, d.speckle_tex([Color("#b4bcae"), Color("#c6ccc0"), Color("#c6ccc0"), Color("#d8dcd2")]), Color(0.36, 0.34, 0.4))
+	var at := func(x: int, z: int) -> String: return char_at(GARDEN_X + x, z)
+	grass_tiles = d.pick_tiles(at, GARDEN_X, W, YARD_Z + 1, CLOCK_Z, ".wsa", GRASS_CLEAR, [])
+	var tuft: Texture2D = d.tuft_tex(["#4a5a4a", "#546454", "#5e6e5a", "#6a7a64", "#7c8a74", "#96a28c"], 0.3, 2, ["#b88aff", "#d8c8ff"])
+	dress_meshes.append(d.grass(tuft, 0.7, 0.36, d.spots_on(grass_tiles, 0.0, 3, 0.65, 1.0), 0.08, false))
+	d.end()
+
 func build(m: Node) -> void:
 	marks.S = Vector2(GARDEN_X + 1, CENTER.y)
 	marks.C = Vector2(GARDEN_X + CENTER.x, CENTER.y)
 	var blocks: Array = []
+	var yard: Array = [] # [Transform3D, Color] of the camp yard's floor, drawn by dress
 	for z in H:
 		for x in W:
 			var w := Vector2(GARDEN_X + x, z)
@@ -149,7 +172,12 @@ func build(m: Node) -> void:
 			elif (x + z) % 3 == 0:
 				col = Color("#7a7a82") # cracks
 			col = col.lightened(m.rnd(0, 0.06))
-			blocks.append([Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y)), col])
+			var xf := Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y))
+			if z >= YARD_Z and c != "#":
+				yard.append([xf, col]) # the camp yard's floor: speckled by dress
+			else:
+				blocks.append([xf, col])
+	dress(m, yard)
 	var chunks := {}
 	for bl in blocks:
 		var o: Vector3 = bl[0].origin

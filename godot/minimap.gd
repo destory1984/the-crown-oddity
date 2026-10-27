@@ -9,6 +9,7 @@ var main: Node
 var map_tex: Texture2D
 const MARSH := preload("res://marsh.gd")
 var sora_icon: Texture2D = preload("res://art/ui/portrait.png")
+var quest_at := Vector2.INF # where the gold "!" was drawn last (screen, in this control), for the tests
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR # a smooth painted map, not pixel blocks
@@ -70,6 +71,18 @@ func _draw() -> void:
 		draw_house(xf * (main.cottage_at + Vector2(0.5, 0.5)), s)
 	for st: Array in map_tex.get_meta("stairs", []):
 		draw_stairs(xf * (st[0] + Vector2(0.5, 0.5)), st[1], s)
+	# the gold "!" over the quest's next spot, the one the world's "!" bobs over (the owner, 2026-10-26); a far one
+	# sits on the rim on its side, and none while a story box is open
+	quest_at = Vector2.INF
+	var qm: Label3D = main.quarters_mark
+	if qm != null and qm.visible and not main.story_open:
+		var q: Vector2 = xf * (Vector2(qm.position.x, qm.position.z) + Vector2(0.5, 0.5))
+		var mid := size / 2.0
+		var rim := size.x / 2.0 - 7.0 * s
+		if q.distance_to(mid) > rim:
+			q = mid + (q - mid).normalized() * rim
+		quest_at = q
+		draw_quest_mark(q, s)
 	if main.in_workshop(): # the deep workshop's floor, B1 to B3, on a small dark tab at the top
 		var tag := "B%d" % (main.workshop_zone.floor_here() + 1)
 		var tp := Vector2(size.x / 2.0, 22.0)
@@ -83,7 +96,17 @@ func _draw() -> void:
 	draw_texture_rect(sora_icon, Rect2(u - Vector2(4, 4) * s, Vector2(8, 8) * s), false)
 	# the rim, the N plate and the compass studs are minimap_bezel.gd, drawn over this clip (v0.0.104)
 
-# three steps climbing to the right (up) or going down to the right (down) on a dark round back
+# a pulsing gold diamond with a dark "!" on it
+func draw_quest_mark(at: Vector2, s: float) -> void:
+	var r := (4.4 + 0.5 * sin(main.t * 5.0)) * s
+	var outer := PackedVector2Array([at + Vector2(0, -r - 1.5), at + Vector2(r + 1.5, 0), at + Vector2(0, r + 1.5), at + Vector2(-r - 1.5, 0)])
+	var inner := PackedVector2Array([at + Vector2(0, -r), at + Vector2(r, 0), at + Vector2(0, r), at + Vector2(-r, 0)])
+	draw_colored_polygon(outer, Color("#3a2a10"))
+	draw_colored_polygon(inner, Color("#ffd84a"))
+	draw_rect(Rect2(at.x - 0.55 * s, at.y - 2.6 * s, 1.1 * s, 3.1 * s), Color("#3a2a10")) # the "!" drawn, not typed: no font gap
+	draw_rect(Rect2(at.x - 0.55 * s, at.y + 1.2 * s, 1.1 * s, 1.1 * s), Color("#3a2a10"))
+
+# Bori's cottage as a small upright house with a red roof
 func draw_house(at: Vector2, s: float) -> void:
 	draw_circle(at, 6.5 * s, Color(0.04, 0.03, 0.08, 0.9))
 	draw_arc(at, 6.5 * s, 0.0, TAU, 24, Color("#f0a24a"), 1.0, true)
@@ -94,6 +117,7 @@ func draw_house(at: Vector2, s: float) -> void:
 	draw_colored_polygon(PackedVector2Array([Vector2(at.x - w / 2.0 - 0.8 * s, at.y - 0.4 * s), Vector2(at.x + w / 2.0 + 0.8 * s, at.y - 0.4 * s),
 		Vector2(at.x, at.y - 4.2 * s)]), Color("#c8503a"))
 
+# three steps climbing to the right (up) or going down to the right (down) on a dark round back
 func draw_stairs(at: Vector2, up: bool, s: float) -> void:
 	var step := Color("#ffc23a") if up else Color("#b45cff")
 	var tread := Color("#fff4c8") if up else Color("#f2e6ff")

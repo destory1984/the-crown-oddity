@@ -143,12 +143,60 @@ func door_at(x: float, z: float) -> Dictionary:
 			return d
 	return {}
 
+# the marsh's look in the hardened forest's own colours (DESIGN.md, section 다른 지역도 늪만큼 보기 좋게): dull moss
+# over speckled tops, grey stone paths, dark grey-green grass with ferns and a few mushrooms. Nothing grows on or next
+# to a path, a brick wall or gate, a stone, the tablet, a chest, a lamp, the stream, a picture door, the oak and its
+# knots, a squirrel cage or a mark.
+const GRASS_CLEAR := "=WVGBQKO~1234tcLomhkCSNE"
+var grass_tiles: Array = []  # world tiles that got dark grass
+var fern_tiles: Array = []   # of those, the tiles that also got a fern
+var shroom_tiles: Array = [] # and the tiles with a ring of mushrooms
+var dress_meshes: Array = []
+
+# local tiles that are used but have no char: the squirrel cages and the squirrel by the gap
+func keep_tiles() -> Array:
+	var out: Array = []
+	for c in CAGES:
+		out.append(Vector2i(c))
+	out.append(Vector2i(SQUIRREL_AT) - Vector2i(FOREST_X, 0))
+	return out
+
+func dress(m: Node, ground: Array, path: Array) -> void:
+	var d = m.dressing
+	d.begin(1801)
+	var moss: Array = []
+	for xf in ground:
+		moss.append([xf, d.tint(0.25, 0.08, 0.84, 1.0)])
+	var stone: Array = []
+	for xf in path:
+		stone.append([xf, d.tint(0.1, 0.04, 0.9, 1.0)])
+	var earth := Color(0.4, 0.33, 0.25)
+	d.ground_blocks(moss, FOREST_X, d.speckle_tex([Color("#56624a"), Color("#606c52"), Color("#606c52"), Color("#6e7a5c")]), earth)
+	d.ground_blocks(stone, FOREST_X, d.speckle_tex([Color("#8e887c"), Color("#a39c90"), Color("#a39c90"), Color("#b4ada0")]), earth)
+	var at := func(x: int, z: int) -> String: return char_at(FOREST_X + x, z)
+	grass_tiles = d.pick_tiles(at, FOREST_X, W, 0, H, ".gwasj", GRASS_CLEAR, keep_tiles())
+	for t in grass_tiles:
+		var r: float = d.rng.randf()
+		if r < 0.22:
+			fern_tiles.append(t)
+		elif r < 0.3:
+			shroom_tiles.append(t)
+	var tuft: Texture2D = d.tuft_tex(["#34482c", "#3e5432", "#486038", "#546c40", "#647a4c", "#7a8c60", "#94a47a"], 0.35, 1, ["#e8e4d0"])
+	var fern: Texture2D = d.fern_tex(Color("#2e4a2a"), Color("#6e9a52"))
+	var shroom: Texture2D = d.mushroom_tex(["#b8442e", "#a8783e", "#c89a5a"])
+	dress_meshes.append(d.grass(tuft, 0.8, 0.45, d.spots_on(grass_tiles, 0.0, 4, 0.7, 1.1), 0.1, false))
+	dress_meshes.append(d.grass(fern, 0.9, 0.55, d.spots_on(fern_tiles, 0.0, 1, 0.8, 1.15), 0.05, false))
+	dress_meshes.append(d.grass(shroom, 0.5, 0.32, d.spots_on(shroom_tiles, 0.0, 1, 0.75, 1.0), 0.01, false))
+	d.end()
+
 func build(m: Node) -> void:
 	var blocks: Array = [] # [Transform3D, Color]
 	var fade_blocks: Array = [] # one list per FADES entry
 	for f in FADES:
 		fade_blocks.append([])
 	var lamp_spots: Array = []
+	var ground: Array = [] # Transform3D of moss and path tiles, drawn by dress
+	var path: Array = []
 	for z in H:
 		for x in W:
 			var c: String = grid[z][x]
@@ -177,7 +225,13 @@ func build(m: Node) -> void:
 			if c == "~":
 				hgt = 0.1
 			col = col.lightened(m.rnd(0, 0.08))
-			blocks.append([Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y)), col])
+			var xf := Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y))
+			if c == "=":
+				path.append(xf)
+			elif not c in "#T~": # moss floor: the speckled top brings the colour (dress)
+				ground.append(xf)
+			else:
+				blocks.append([xf, col])
 			if c == "T":
 				# a tree hardened into toy brick: a dark trunk and a blocky grey crown; a few keep a little green
 				var tree: Array = blocks
@@ -193,6 +247,7 @@ func build(m: Node) -> void:
 			elif x >= 16 and x <= 26 and z >= 7 and z <= 13:
 				for k in 6: # the clearing was trees: draw as many numbers so everything built after looks as before
 					m.rnd()
+	dress(m, ground, path)
 	# chunked 6x6 so each chunk sees only its nearby lanterns (the web renderer lights a mesh with at most 8)
 	var chunks := {}
 	for bl in blocks:

@@ -34,6 +34,7 @@ func enter_lake() -> void:
 		m.set_quest("수문의 벽돌을 팔찌로 풀자 (E)")
 	elif m.lake_q == 2 and Main.Ko.plain(m.ui.quest.text) == m.touch_words(tr(Main.LAKE_RETRY_QUEST)):
 		m.set_quest("부두의 물결에게 말을 걸자 (E)")
+	m.monsters.refill_field("lake")
 	m.save_game()
 
 func leave_lake() -> void:
@@ -92,6 +93,19 @@ func row_to_island() -> void:
 	m.after_story = spawn_turtle
 	m.set_quest("섬의 벽돌 거북을 물리치자")
 	m.save_game()
+
+# she left the turtle fight (fainted or took a way stone): it starts over from the pier, where Mulgyeol
+# waits again; he used to stay her companion too, so he stood on the pier and at her side at once
+func turtle_retry() -> void:
+	m.lake_q = 2
+	m.mates.leave_mate()
+	if m.lake_npc != null:
+		m.lake_npc.visible = true
+	for e in m.enemies:
+		if e.get("turtle", false) and not e.dead:
+			e.hp = float(e.max_hp)
+			e.x = e.wx
+			e.z = e.wz
 
 func spawn_turtle() -> void:
 	if m.enemies.any(func(e): return e.get("turtle", false) and not e.dead):
@@ -375,15 +389,7 @@ func spawn_south_foes() -> void:
 	if m.south_spawned or m.south_q < 1 or m.south_q > 2:
 		return
 	m.south_spawned = true
-	for f in m.lake.south_foes:
-		var w: Vector2 = f[0]
-		if w.x >= 296.0: # the yard's ambush waits for the grate
-			continue
-		m.spawn_enemy(w, f[1] == "a")
-		var e: Dictionary = m.enemies[m.enemies.size() - 1]
-		e.cave = true
-		if f[1] == "s":
-			m.give_shield(e)
+	m.monsters.refill_field("lake") # the yard's ambush (x >= 296) waits for the grate
 
 func spawn_south_ambush() -> void:
 	clear_south_ambush()
@@ -536,6 +542,7 @@ func leave_grotto() -> void:
 	m.ui.zone_sub.text = "물결의 섬"
 	m.ui.boss.visible = false
 	m.snap_mate()
+	m.monsters.refill_field("lake")
 	m.save_game()
 
 # E or Space beside a grotto chest

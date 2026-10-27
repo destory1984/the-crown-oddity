@@ -914,22 +914,31 @@ func build_hud() -> void:
 	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	logo.custom_minimum_size = Vector2(0, 300)
 	col.add_child(logo)
-	var serif: FontFile = (load("res://fonts/noto_serif_kr/NotoSerifKR-SemiBold.title.woff2") as FontFile).duplicate()
-	serif.fallbacks = [m.ui_font] # the subtitle and hint in the logo's serif; other letters (translations) fall back
-	var tsub := label(col, "갈대 늪 너머, 이상한 것들이 깨어난다", Vector2.ZERO, 20, Color("#f6b951"))
+	var serif: FontFile = (load("res://fonts/jua/Jua-Regular.title.woff2") as FontFile).duplicate()
+	serif.fallbacks = [m.ui_font] # the subtitle and hint in round Jua (title font draft 3, 2026-10-27), edged in the logo's navy; other letters (translations) fall back
+	var tsub := label(col, "갈대 늪 너머, 이상한 것들이 깨어난다", Vector2.ZERO, 29, Color("#fff5dc"))
 	tsub.add_theme_font_override("font", serif)
-	tsub.add_theme_constant_override("outline_size", 6)
-	tsub.add_theme_color_override("font_outline_color", Color("#02040b"))
+	tsub.add_theme_constant_override("outline_size", 9)
+	tsub.add_theme_color_override("font_outline_color", Color("#1d2a6b"))
 	tsub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var thint := label(col, "아무 키나 눌러 시작", Vector2.ZERO, 14, Color("#dfe6ff"))
+	var thint := label(col, "아무 키나 눌러 시작", Vector2.ZERO, 20, Color("#f6c64a"))
 	thint.add_theme_font_override("font", serif)
 	m.ui.title_hint = thint
-	thint.add_theme_constant_override("outline_size", 6)
-	thint.add_theme_color_override("font_outline_color", Color("#02040b"))
+	thint.add_theme_constant_override("outline_size", 7)
+	thint.add_theme_color_override("font_outline_color", Color("#1d2a6b"))
 	thint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var blink := thint.create_tween().set_loops()
 	blink.tween_property(thint, "modulate:a", 0.3, 0.9)
 	blink.tween_property(thint, "modulate:a", 1.0, 0.9)
+	# music on/off in the title's top-right corner for now (the owner, 2026-10-27); B does the same here
+	var tmus := m.menus.back_key(title, m.music.toggle_music)
+	tmus.remove_meta("back")
+	tmus.anchor_left = 1.0
+	tmus.anchor_right = 1.0
+	tmus.offset_left = -52
+	tmus.offset_right = -8
+	m.ui.title_music = tmus
+	m.menus.refresh_sound_btn()
 	m.ui.title = title
 	for c in root.get_children():
 		if c != title:

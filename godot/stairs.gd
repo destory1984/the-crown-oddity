@@ -73,8 +73,33 @@ func blocked(x: float, z: float) -> bool:
 func lamps_lit() -> int:
 	return lamps.filter(func(l): return l.lit).size()
 
+# the marsh's look on the moon stairs (DESIGN.md, section 다른 지역도 늪만큼 보기 좋게): the pale steps get a worn,
+# speckled top over grey stone sides, and a fringe of silver-green moon grass with small pale flowers grows only
+# along the side walls. Nothing grows on or next to the brick wall, the moon door, the channel, the drop, a vent, a
+# lamp, a lantern or the stairs in and out, and the middle of each landing stays bare.
+const GRASS_CLEAR := "WD~_o^vNSL"
+var grass_tiles: Array = [] # world tiles that got moon grass (all next to a side wall)
+var dress_meshes: Array = []
+
+func dress(m: Node, ground: Array) -> void:
+	var d = m.dressing
+	d.begin(5001)
+	var tops: Array = []
+	for g in ground: # the step's own moonlit shade, a little lighter: the picture's greys darken it back
+		tops.append([g[0], (g[1] as Color).lightened(0.1)])
+	d.ground_blocks(tops, STAIRS_X, d.speckle_tex([Color("#d0d0dc"), Color("#e2e2ec"), Color("#e2e2ec"), Color("#f2f2f8")]), Color(0.42, 0.4, 0.48))
+	var at := func(x: int, z: int) -> String: return char_at(STAIRS_X + x, z)
+	for t in d.pick_tiles(at, STAIRS_X, W, 0, H, ".wagsb", GRASS_CLEAR, []):
+		if d.near_clear(at, int(t.x) - STAIRS_X, int(t.y), "#", []):
+			grass_tiles.append(t)
+	var tuft: Texture2D = d.tuft_tex(["#4e6a5e", "#5a7868", "#668672", "#76947e", "#8aa690", "#a4bcaa", "#c8dacc"], 0.25, 3,
+		["#f4f0ff", "#d8ccff", "#fff6d8"])
+	dress_meshes.append(d.grass(tuft, 0.7, 0.38, d.spots_on(grass_tiles, 0.0, 3, 0.65, 1.0), 0.1, false))
+	d.end()
+
 func build(m: Node) -> void:
 	var blocks: Array = []
+	var ground: Array = [] # [Transform3D, Color] of the steps, drawn by dress
 	var lamp_spots: Array = []
 	for z in H:
 		for x in W:
@@ -108,10 +133,11 @@ func build(m: Node) -> void:
 					var col := Color("#8a8494").lerp(Color("#c8c4d8"), up)
 					if (x + z) % 2 == 0:
 						col = col.darkened(0.05)
-					blocks.append([Transform3D(Basis().scaled(Vector3(1, 0.4, 1)), Vector3(w.x, -0.2, w.y)), col.lightened(m.rnd(0, 0.04))])
+					ground.append([Transform3D(Basis().scaled(Vector3(1, 0.4, 1)), Vector3(w.x, -0.2, w.y)), col.lightened(m.rnd(0, 0.04))])
 					if VENTS.has(c):
 						vent_pad(m, w, VENTS[c])
 	m.add_chunks(blocks, STAIRS_X)
+	dress(m, ground)
 	# the channel's face glows a little, so it reads as water (for the skip) and not as a step down
 	var wet: Material = m.glow_mat(Color("#2f78b8"), 0.6)
 	wet.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED

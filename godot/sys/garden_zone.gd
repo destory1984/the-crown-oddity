@@ -32,6 +32,7 @@ func enter_garden() -> void:
 		m.ui.zone_name.text = "한결의 마지막 길"
 		m.ui.zone_sub.text = "무너진 뜰"
 		spawn_road()
+		m.monsters.refill_field("garden") # a later visit: the yard's beaten foes are back
 		if m.road_q == 0:
 			m.road_q = 1
 			m.show_story("", Main.STORY.ROAD_IN)
@@ -49,6 +50,7 @@ func enter_garden() -> void:
 			m.set_quest("굳은달 거푸집의 심장을 노리자")
 	if m.garden_q >= 5:
 		m.garden.set_posts(8)
+	m.monsters.refill_field("garden")
 	m.save_game()
 
 func road_quest() -> String:
@@ -62,15 +64,7 @@ func spawn_road() -> void:
 	if m.road_spawned or m.road_q >= 4:
 		return
 	m.road_spawned = true
-	for f in m.garden.road_foes:
-		match f[1]:
-			"w":
-				m.spawn_wolf(f[0])
-			"a":
-				m.spawn_enemy(f[0], true)
-			"s":
-				m.spawn_enemy(f[0])
-				m.give_shield(m.enemies[m.enemies.size() - 1])
+	m.monsters.refill_field("garden")
 
 func road_key() -> bool:
 	var me := Vector2(m.player.x, m.player.z)
@@ -197,6 +191,7 @@ func leave_garden() -> void:
 	m.ui.zone_sub.text = "꼭대기"
 	m.snap_mates()
 	m.ui.boss.visible = false
+	m.monsters.refill_field("stairs")
 	m.save_game()
 
 func update_garden(dt: float) -> void:
@@ -251,6 +246,24 @@ func spawn_mold() -> void:
 	m.enemies.append({"x": c.x, "z": c.y, "hp": 1700.0, "max_hp": 1700, "node": node, "shadow": m.blob(2.2), "t": 0.0,
 		"atk_cd": 2.5, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": c.x, "wz": c.y, "dead": false, "respawn": 0.0,
 		"mold": true, "cave": true, "wind": 0.0, "stun": 0.0, "next": 0, "rings": [], "locked": false})
+
+# a faint mid-fight: everything the fight left goes, so walking back in wakes a fresh mold and a dark ring.
+# The shock ring and the posts' pips used to stay (the ring hung frozen and rolled on at her when she came back)
+func mold_retry() -> void:
+	if m.garden_q >= 3:
+		m.crown_pips = 0 # the pips were the lit posts'
+	m.garden_q = 1
+	m.garden.set_posts(0)
+	m.ring_k = -1
+	m.ring_t = 0.0
+	if not m.mold_wave.is_empty():
+		m.mold_wave.node.queue_free()
+		m.mold_wave = {}
+	for e in m.enemies:
+		if not e.dead and (e.get("mold", false) or e.get("shard", false) or e.get("echo", false) or (in_garden_x(e.x) and e.z < Main.GARDEN.ROAD_Z - 0.5 and e.get("cave", false))):
+			e.dead = true
+			e.node.queue_free()
+			e.shadow.queue_free()
 
 func mold_phase(e: Dictionary) -> int:
 	var f: float = e.hp / e.max_hp

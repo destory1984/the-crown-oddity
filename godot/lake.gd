@@ -103,8 +103,38 @@ func blocked(x: float, z: float) -> bool:
 		"o", "B", "R", "l", "K", "c", "W": return true
 	return c == "#" or c == "X" or (c == "D" and not thawed)
 
+# the marsh's look in the lake's own colours (DESIGN.md, section 다른 지역도 늪만큼 보기 좋게): cool shore grass over
+# speckled tops, a lighter island, and water weeds where the land meets the lake. Nothing grows on or next to the
+# boardwalk, a pier, the sluice, the turtle, the hut, the steps down, the fishing spot, a lamp, the weir, the boat
+# shed, a rope post or chain, the stepping stones, the grate and its latch, the key, the tin or the dam.
+const GRASS_CLEAR := "=PQThDGfYBlKcWHRo-LS"
+var grass_tiles: Array = [] # world tiles that got shore grass
+var weed_tiles: Array = []  # world tiles at the water's edge that got water weeds instead
+var dress_meshes: Array = []
+
+func dress(m: Node, ground: Array) -> void:
+	var d = m.dressing
+	d.begin(2701)
+	var tops: Array = []
+	for g in ground:
+		tops.append([g[0], d.tint(0.3, 0.06, 0.95, 1.05) if g[1] else d.tint(0.3, 0.1, 0.84, 0.98)])
+	d.ground_blocks(tops, LAKE_X, d.speckle_tex([Color("#5e9446"), Color("#6a9e4e"), Color("#6a9e4e"), Color("#7aac58")]))
+	var at := func(x: int, z: int) -> String: return char_at(LAKE_X + x, z)
+	for t in d.pick_tiles(at, LAKE_X, W, 0, H, ".igas", GRASS_CLEAR, []):
+		if d.near_clear(at, int(t.x) - LAKE_X, int(t.y), "X", []):
+			weed_tiles.append(t)
+		else:
+			grass_tiles.append(t)
+	var tuft: Texture2D = d.tuft_tex(["#467e3c", "#508a42", "#5a9448", "#66a050", "#78ae5e", "#92c278", "#b4d89a"], 0.4, 2,
+		["#fff6d8", "#a8c8ff"])
+	var weed: Texture2D = d.tuft_tex(["#2e5a4a", "#346650", "#3c7056", "#467c5c", "#548a62", "#6a9c6e"], 0.2, 1, ["#e8f0ff"])
+	dress_meshes.append(d.grass(tuft, 0.8, 0.45, d.spots_on(grass_tiles, 0.0, 5, 0.7, 1.1), 0.14, false))
+	dress_meshes.append(d.grass(weed, 0.7, 0.6, d.spots_on(weed_tiles, 0.0, 3, 0.7, 1.05), 0.16, false))
+	d.end()
+
 func build(m: Node) -> void:
 	var blocks: Array = []
+	var ground: Array = [] # [Transform3D, is island] of grass tiles, drawn by dress
 	var spike_list: Array = []
 	var lamp_spots: Array = []
 	for z in H:
@@ -139,8 +169,13 @@ func build(m: Node) -> void:
 			if c == "#" or c == "W":
 				hgt = 0.9
 			col = col.lightened(m.rnd(0, 0.08))
-			blocks.append([Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y)), col])
+			var xf := Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y))
+			if c in "=PQ#W":
+				blocks.append([xf, col])
+			else: # shore and island grass: the speckled top brings the colour (dress)
+				ground.append([xf, c == "i"])
 	m.add_chunks(blocks, LAKE_X)
+	dress(m, ground)
 	spikes = m.multimesh_of(spike_list)
 	water = MeshInstance3D.new()
 	var plane := BoxMesh.new()

@@ -28,6 +28,21 @@ func join_mate() -> void:
 		m.rocks = m.rocks.filter(func(r): return r.get("folk", "") != "mulgyeol" and Vector2(r.x, r.z).distance_to(at) > 0.1)
 	snap_mate()
 
+# Mulgyeol goes back to waiting (the turtle fight left before it was won): the companion goes,
+# and the villager in the square and his spot come back as before he joined
+func leave_mate() -> void:
+	if m.mate == null:
+		return
+	mulgyeol_sit(false)
+	m.mate.queue_free()
+	m.mate = null
+	m.mate_spot.erase("mulgyeol")
+	m.mate_aim.erase("mulgyeol")
+	if m.village.folk_node.has("mulgyeol"):
+		m.village.folk_node.mulgyeol.visible = true
+		var at: Vector2 = m.village.folk_pos.mulgyeol
+		m.rocks.append({"x": at.x, "z": at.y, "r": 0.45, "folk": "mulgyeol"})
+
 func snap_mate() -> void:
 	if m.mate != null:
 		m.mate.position = mate_goal("mulgyeol")

@@ -86,8 +86,65 @@ func blocked(x: float, z: float) -> bool:
 	var c := char_at(x, z)
 	return c in "#HTI~B"
 
+# the marsh's look in the village's own colours (DESIGN.md, section 다른 지역도 늪만큼 보기 좋게): a tidy lawn over
+# speckled tops, warm cobbled streets, short mown grass and flowerbeds round the square and the houses. Nothing
+# grows on or next to a street, the square, a door, a stall, the pier, a lantern, a mark or a villager's spot.
+const GRASS_CLEAR := "=o#H:123TIPf~BLdbSGMFKQN"
+const BED_NEAR := "oH" # tiles two steps from the square or a house get flowers instead of plain grass
+const YARD := Rect2i(34, 12, 10, 7) # the target yard, fence and all: the throwing game needs its floor bare
+var grass_tiles: Array = [] # world tiles that got mown grass
+var bed_tiles: Array = []   # world tiles that got a flowerbed
+var dress_meshes: Array = [] # the tuft MultiMeshes (the tests count them)
+
+# local tiles that are used but have no char of their own: villagers' spots, the kid goblin and its guards, the
+# hardened field, the work props, the target yard
+func keep_tiles(m: Node) -> Array:
+	var out: Array = []
+	for f in FOLK:
+		out.append(f.at)
+	var routes: Dictionary = m.FOLK_ROUTES
+	for id in routes:
+		for st in routes[id]:
+			if st[1]:
+				out.append(Vector2i(st[0]))
+	out.append(KID_AT)
+	out.append_array(KID_GUARDS)
+	for r in [FIELD, YARD]:
+		for z in range(r.position.y, r.end.y):
+			for x in range(r.position.x, r.end.x):
+				out.append(Vector2i(x, z))
+	for p in [Vector2i(44, 11), Vector2i(44, 12), Vector2i(46, 21), Vector2i(31, 24), Vector2i(33, 24), Vector2i(35, 7), Vector2i(42, 7)]:
+		out.append(p)
+	return out
+
+func dress(m: Node, ground: Array, path: Array) -> void:
+	var d = m.dressing
+	d.begin(5601)
+	var lawn: Array = []
+	for xf in ground:
+		lawn.append([xf, d.tint(0.24, 0.1, 0.86, 1.0)])
+	var street: Array = []
+	for xf in path:
+		street.append([xf, d.tint(0.09, 0.06, 0.9, 1.0)])
+	d.ground_blocks(lawn, VILLAGE_X, d.speckle_tex([Color("#6a9a3a"), Color("#74a442"), Color("#74a442"), Color("#82b04a")]))
+	d.ground_blocks(street, VILLAGE_X, d.speckle_tex([Color("#a8987a"), Color("#b8a888"), Color("#b8a888"), Color("#cbbd9c")]))
+	var at := func(x: int, z: int) -> String: return char_at(VILLAGE_X + x, z)
+	var keep := keep_tiles(m)
+	for t in d.pick_tiles(at, VILLAGE_X, W, 0, H, ".", GRASS_CLEAR, keep):
+		if d.near_clear(at, int(t.x) - VILLAGE_X, int(t.y), BED_NEAR, [], 2):
+			bed_tiles.append(t)
+		else:
+			grass_tiles.append(t)
+	var mown: Texture2D = d.tuft_tex(["#4f8a2e", "#5a9632", "#64a038", "#70aa3e", "#80b84a", "#98c860"], 0.15, 1, ["#fff6d8"])
+	var bed: Texture2D = d.tuft_tex(["#4a8030", "#568c34", "#62983a", "#70a442"], 0.1, 9, ["#ff8aa8", "#e8483a", "#ffd24a", "#fff6d8", "#c98aff"])
+	dress_meshes.append(d.grass(mown, 0.7, 0.32, d.spots_on(grass_tiles, 0.0, 3, 0.7, 1.0), 0.08, false))
+	dress_meshes.append(d.grass(bed, 0.75, 0.42, d.spots_on(bed_tiles, 0.0, 3, 0.75, 1.05), 0.06, false))
+	d.end()
+
 func build(m: Node) -> void:
 	var blocks: Array = [] # [Transform3D, Color]
+	var ground: Array = [] # Transform3D of lawn and street tiles, drawn by dress
+	var path: Array = []
 	var lamp_spots: Array = []
 	var dark_spots: Array = []
 	var bricks: Array = []
@@ -117,7 +174,13 @@ func build(m: Node) -> void:
 				continue
 			if c == "P" or c == "f":
 				hgt = 0.5 # pier boards stand a little above the ground
-			blocks.append([Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y)), col])
+			var xf := Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y))
+			if c == "=":
+				path.append(xf)
+			elif not c in "o#H:123Pf": # lawn: the speckled top brings the colour (dress)
+				ground.append(xf)
+			else:
+				blocks.append([xf, col])
 			if c == "L":
 				lamp_spots.append(w)
 			if c == "d":
@@ -149,6 +212,7 @@ func build(m: Node) -> void:
 		mmi.multimesh = mm
 		mmi.material_override = cm
 		m.add_child(mmi)
+	dress(m, ground, path)
 	# houses: one per 3x2 block of H, door facing south
 	var seen := {}
 	for z in H:

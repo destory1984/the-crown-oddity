@@ -28,17 +28,9 @@ func enter_stairs() -> void:
 		open_stairs()
 	if not m.stairs_spawned:
 		m.stairs_spawned = true
-		for f in m.stairs.foes:
-			match f[1]:
-				"w": m.spawn_wolf(f[0])
-				"b": m.spawn_bat(f[0])
-				_:
-					m.spawn_enemy(f[0], f[1] == "a")
-					m.enemies[m.enemies.size() - 1].cave = true
-					if f[1] == "s":
-						m.give_shield(m.enemies[m.enemies.size() - 1])
 		if not m.stairs.door_open:
 			m.show_story("", Main.STORY.STAIRS_IN)
+	m.monsters.refill_field("stairs")
 	if not m.stairs.door_open:
 		m.set_quest(stairs_quest())
 	m.save_game()
@@ -159,6 +151,7 @@ func leave_castle() -> void:
 	m.ui.zone_sub.text = "매의 벼랑"
 	m.ui.boss.visible = false
 	m.snap_mates()
+	m.monsters.refill_field("hill")
 	m.save_game()
 
 # E in the castle: unbrick the gate, or read a diary page; the third page opens the moon door
@@ -668,7 +661,9 @@ func quarters_target() -> Vector3:
 			return Vector3(mk.o.x, 1.9, mk.o.y)
 	return Vector3.INF
 
-# the shared gold "!": the quarters' steps, else the lamp hall's next lamp, else the cave mouth after the Brick King
+# the shared gold "!": the quarters' steps, else the lamp hall's next lamp, else the cave mouth after the Brick King,
+# a named villager, the cloud path, the island landing, else the quest line's next fixed spot (sys/quest_marks.gd);
+# minimap.gd draws the same spot
 func step_target() -> Vector3:
 	var at := quarters_target()
 	if at == Vector3.INF:
@@ -683,6 +678,8 @@ func step_target() -> Vector3:
 	# the island's north landing after the turtle, while the quest heads back to the village
 	if at == Vector3.INF and not m.story_open and m.quest_raw.contains("동쪽 문") 			and m.lake_zone.on_island(Vector2(m.player.x, m.player.z)):
 		at = Vector3(m.lake.marks.Q.x, 1.6, m.lake.marks.Q.y)
+	if at == Vector3.INF: # the lever, door, villager or gate the quest line (or the shore's side step) names next
+		at = m.quest_marks.quest_target()
 	return at
 
 # who the quest line or the side line sends Sora to (the owner, 2026-10-26: "가져가야할 아이템이나 미션이 있으면 해당 물체

@@ -92,9 +92,7 @@ func travel(i: int) -> void:
 	m.fade_then(func():
 		m.gust_dir = Vector2.ZERO
 		if m.lake_q == 3: # left the turtle fight: it starts over from the pier
-			m.lake_q = 2
-			if m.lake_npc != null:
-				m.lake_npc.visible = true
+			m.lake_zone.turtle_retry()
 		m.in_cave = false
 		m.in_village = false
 		m.in_forest = false

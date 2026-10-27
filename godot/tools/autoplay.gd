@@ -10,9 +10,10 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
-	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save"]
+const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn"]
 
 func _ready() -> void:
 	run.call_deferred()
@@ -33,6 +34,8 @@ func click() -> void:
 	e.button_index = MOUSE_BUTTON_LEFT
 	e.pressed = true
 	e.position = get_viewport().get_visible_rect().size / 2.0
+	if main.intro: # the headless window is 64 px, so its centre lies on the title's music key: click below it
+		e.position.y = get_viewport().get_visible_rect().size.y - 2.0
 	Input.parse_input_event(e)
 	var up := e.duplicate()
 	up.pressed = false
@@ -156,6 +159,23 @@ func run() -> void:
 		print("after 2nd space intro=", main.intro, " pos=", main.player.x, ",", main.player.z, " in_cave=", main.in_cave)
 		get_tree().quit(0)
 		return
+	if want.call("title_music") and main.intro:
+		# the title's music key: B and a click on the corner button flip the tune without leaving the title
+		await wait(1.0)
+		var was: bool = main.music_on
+		tap(KEY_B)
+		await wait(0.3)
+		var by_key: bool = main.music_on != was and main.intro
+		var e := InputEventMouseButton.new()
+		e.button_index = MOUSE_BUTTON_LEFT
+		e.pressed = true
+		e.position = main.ui.title_music.get_global_rect().get_center()
+		Input.parse_input_event(e)
+		var up := e.duplicate()
+		up.pressed = false
+		Input.parse_input_event(up)
+		await wait(0.2)
+		check("title_music", by_key and main.music_on == was and main.intro and main.ui.title_music.visible, "B flipped=%s, click back=%s, title up=%s" % [by_key, main.music_on == was, main.intro])
 	if want.call("start_click"):
 		await wait(1.0) # let the title orbit drift the camera first
 		click()
@@ -501,6 +521,55 @@ func run() -> void:
 						near_clear += 1
 		var mesh: bool = main.veg_meshes.any(func(mm): return mm.instance_count == tiles.size() * 6)
 		check("hill_dressing", tiles.size() > 400 and near_clear == 0 and mesh, "hill grass tiles %d, next to the path or a used spot %d, tuft mesh of six a tile=%s" % [tiles.size(), near_clear, mesh])
+	# the other maps' ground dressing: no planted tile on or next to a path, a mark or a used spot, some tiles in
+	# every map, the tuft meshes hold exactly their tiles' tufts, and the whole map stays inside its tuft budget
+	for area in [["village_dressing", main.village, main.village.VILLAGE_X, 250, 3600], ["lake_dressing", main.lake, main.lake.LAKE_X, 150, 2600],
+			["forest_dressing", main.forest, main.forest.FOREST_X, 150, 2600], ["stairs_dressing", main.stairs, main.stairs.STAIRS_X, 30, 600],
+			["garden_dressing", main.garden, main.garden.GARDEN_X, 30, 600]]:
+		if not want.call(area[0]):
+			continue
+		var zone = area[1]
+		var ox: int = area[2]
+		var keep: Array = []
+		if zone == main.village:
+			keep = zone.keep_tiles(main)
+		elif zone == main.forest:
+			keep = zone.keep_tiles()
+		var planted: Array = []
+		for key in ["grass_tiles", "bed_tiles", "weed_tiles"]:
+			if key in zone:
+				planted.append_array(zone.get(key))
+		var bad := 0
+		var dup := {}
+		for t in planted:
+			dup[t] = true
+			var tx: int = int(t.x) - ox
+			var tz: int = int(t.y)
+			if zone.blocked(t.x, t.y):
+				bad += 1
+			for dz in range(-1, 2):
+				for dx in range(-1, 2):
+					if zone.char_at(t.x + dx, t.y + dz) in zone.GRASS_CLEAR or keep.has(Vector2i(tx + dx, tz + dz)):
+						bad += 1
+		var tufts := 0
+		var meshes_ok := true
+		for mm in zone.dress_meshes:
+			if mm == null:
+				meshes_ok = false
+				continue
+			tufts += mm.instance_count
+		var per: Array = {"village_dressing": [3, 3], "lake_dressing": [5, 3], "forest_dressing": [4, 0], "stairs_dressing": [3, 0], "garden_dressing": [3, 0]}[area[0]]
+		var want_tufts: int = zone.grass_tiles.size() * per[0]
+		if zone == main.village:
+			want_tufts += zone.bed_tiles.size() * per[1]
+		elif zone == main.lake:
+			want_tufts += zone.weed_tiles.size() * per[1]
+		elif zone == main.forest:
+			want_tufts += zone.fern_tiles.size() + zone.shroom_tiles.size()
+		var lo: int = area[3]
+		var budget: int = area[4]
+		check(area[0], planted.size() >= lo and bad == 0 and dup.size() == planted.size() and meshes_ok and tufts == want_tufts and tufts <= budget,
+			"planted tiles %d (at least %d), on a blocked tile or next to a path/mark/used spot %d, tufts %d of %d expected, budget %d" % [planted.size(), lo, bad, tufts, want_tufts, budget])
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -3006,24 +3075,29 @@ func run() -> void:
 		await wait(0.1)
 		main.close_story()
 		var why := "story=%s down=%.1f ways=%s shop=%s settings=%s" % [main.story_open, main.down_t, main.way_open, main.shop_open, main.settings_open]
+		# every step waits on the line's state, not on a fixed time: a slow frame on the cloud box used to let
+		# the 0.7 s bite run out, or the cast land after fish_t was zeroed, and the fish roll is seeded
+		main.rng.seed = 1984
 		tap(KEY_E)
-		await wait(0.1)
-		var cast: bool = main.fish_state == "wait"
+		var cast: bool = await wait_for(func(): return main.fish_state == "wait", 1.0)
 		tap(KEY_E) # too early
-		await wait(0.1)
-		var early: bool = main.fish_state == ""
+		var early: bool = await wait_for(func(): return main.fish_state == "", 1.0)
 		var landed := 0
 		for i in 40:
 			if main.fish_kinds.count(true) == 5:
 				break
+			reset_to(main.lake.marks.f)
 			tap(KEY_E)
-			await wait(0.05)
+			if not await wait_for(func(): return main.fish_state == "wait", 1.0):
+				main.close_story()
+				continue
 			main.fish_t = 0.0
-			await wait(0.05)
-			if main.fish_state == "bite":
+			if await wait_for(func(): return main.fish_state == "bite", 1.0):
+				main.fish_t = 60.0 # the bite holds until the pull is read
+				var g0: int = main.player.gold
 				tap(KEY_E)
-				await wait(0.05)
-				landed += 1
+				if await wait_for(func(): return main.fish_state == "" and main.player.gold > g0, 1.0):
+					landed += 1
 			main.close_story()
 		main.in_lake = false
 		check("fishing", reach and cast and early and landed > 0, "spot reachable=%s cast=%s early pull loses it=%s landed=%d kinds=%d%s" % [reach, cast, early, landed, main.fish_kinds.count(true), "" if cast else " (before the cast: %s)" % why])
@@ -3032,12 +3106,14 @@ func run() -> void:
 		for b in main.BAT_SPOTS:
 			ok_spots = ok_spots and main.walkable(b.x, b.y)
 		calm_enemies(true)
+		park_mates(true) # their pokes keep it flinching: with its clocks ticking once a frame, it never got to swoop
 		reset_to(Vector2(20, 30))
 		main.spawn_bat(Vector2(23, 30))
 		var b0: Dictionary = main.enemies[main.enemies.size() - 1]
 		b0.hp = 99999.0
 		b0.atk_cd = 1.0
 		var swooped := false
+		var hurt_seen := 0.0
 		var hp0: float = main.player.hp
 		for i in 50:
 			reset_to(Vector2(20, 30))
@@ -3045,13 +3121,15 @@ func run() -> void:
 			await wait(0.1)
 			if b0.dash > 0.0:
 				swooped = true
+			hurt_seen = maxf(hurt_seen, b0.hurt)
 		var flies: bool = b0.node.position.y > 0.5
 		if not b0.dead:
 			b0.dead = true
 			b0.node.queue_free()
 			b0.shadow.queue_free()
 		calm_enemies(false)
-		check("bat", ok_spots and swooped and flies, "spots open=%s swoops=%s flies above ground=%s" % [ok_spots, swooped, flies])
+		park_mates(false)
+		check("bat", ok_spots and swooped and flies, "spots open=%s swoops=%s flies above ground=%s (flinched=%s)" % [ok_spots, swooped, flies, hurt_seen > 0.0])
 	if want.call("moonflowers"):
 		main.story_step = maxi(main.story_step, 6)
 		if main.intro:
@@ -4143,6 +4221,7 @@ func run() -> void:
 		main.rest_talk(main.STORY.REST_TALK[0])
 		await wait(0.3)
 		main.spawn_enemy(Vector2(main.player.x + 3.0, main.player.z)) # a goblin turns up: the talk stops
+		main.enemies[main.enemies.size() - 1].hp = 99999.0 # it must stay up while the talk is checked
 		await wait(5.5)
 		var hushed: bool = main.bubbles_said - said1 == 1 and main.talk_bubbles.is_empty()
 		var chat_gob: Dictionary = main.enemies[main.enemies.size() - 1]
@@ -4420,10 +4499,13 @@ func run() -> void:
 		main.player.vz = 0.0
 		await wait(1.0)
 		main.last_input_t = main.t - 20.0
+		hold_mates() # late in a full run the companions downed or knocked the goblin out of reach within the half second
 		main.spawn_enemy(Vector2(main.player.x + 4.0, main.player.z)) # a monster near: he does not sit
 		var gob: Dictionary = main.enemies[main.enemies.size() - 1]
+		gob.hp = 99999.0 # late in a full run the companions would beat it inside the half second
 		await wait(0.5)
 		var fight_up: bool = not main.noeul_sitting and not main.mulgyeol_sitting
+		var gob_seen := "goblin dead=%s %.1f tiles off" % [gob.dead, Vector2(gob.x - main.player.x, gob.z - main.player.z).length()]
 		if not gob.dead:
 			gob.dead = true
 			gob.node.queue_free()
@@ -4433,7 +4515,7 @@ func run() -> void:
 			e.respawn = 8.0
 		main.last_input_t = main.t
 		calm_enemies(false)
-		check("noeul_rest", standing and sat and msat and up and fight_up, "standing at first=%s Noeul sits on the rest picture while Sora rests=%s Mulgyeol too, apart from him=%s both stand when she moves=%s both stay up with a monster near=%s" % [standing, sat, msat, up, fight_up])
+		check("noeul_rest", standing and sat and msat and up and fight_up, "standing at first=%s Noeul sits on the rest picture while Sora rests=%s Mulgyeol too, apart from him=%s both stand when she moves=%s both stay up with a monster near=%s (%s)" % [standing, sat, msat, up, fight_up, gob_seen])
 	if want.call("east_bridge"):
 		main.in_village = false
 		main.in_hill = false
@@ -7148,6 +7230,263 @@ func run() -> void:
 		main.set_quest(main.race_quest)
 		check("race_save", rs != null and String(rs.get("quest", "")) == main.race_quest, "saved quest=%s before=%s" % [rs.get("quest", "") if rs != null else "", main.race_quest])
 		main.save_game()
+	# ---- GPT bug hunt (2026-10-26): boss clocks ticked twice a frame, mill escorts piled up over faints,
+	# a faint left the mold's shock ring and the posts' pips behind, Mulgyeol stood on the pier and at her side
+	if want.call("bug_boss_tick") or want.call("bug_mill_pile") or want.call("bug_mold_faint") or want.call("bug_mul_twice"):
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		await wait(0.2)
+		calm_enemies(true)
+	if want.call("bug_boss_tick"):
+		# one 0.1 s step of the enemy loop takes 0.1 s off each clock, for the kinds with their own update
+		# (king, wolf, bat) as for those that lean on the shared one (hedgehog)
+		var kings: Array = main.enemies.filter(func(e): return e.get("boss", false) and not e.dead)
+		var made: Array = []
+		if kings.is_empty():
+			main.monsters.spawn_boss()
+			made.append(main.enemies[main.enemies.size() - 1])
+		var kb: Dictionary = main.enemies.filter(func(e): return e.get("boss", false) and not e.dead)[0]
+		reset_to(Vector2(kb.x + 6.0, kb.z))
+		main.spawn_wolf(Vector2(kb.x + 9.0, kb.z + 3.0))
+		made.append(main.enemies[main.enemies.size() - 1])
+		main.spawn_bat(Vector2(kb.x + 9.0, kb.z - 3.0))
+		made.append(main.enemies[main.enemies.size() - 1])
+		main.monsters.spawn_hog(Vector2(kb.x + 12.0, kb.z))
+		made.append(main.enemies[main.enemies.size() - 1])
+		var who: Array = [kb] + made.filter(func(e): return e != kb)
+		for e in who:
+			e.atk_cd = 2.0
+			e.hurt = 0.5
+		main.monsters.update_enemies(0.1, main.ground_y)
+		var bad_tick: Array = []
+		for e in who:
+			var kind: String = "king" if e.get("boss", false) else ("wolf" if e.get("wolf", false) else ("bat" if e.get("bat", false) else "hog"))
+			if absf(e.atk_cd - 1.9) > 0.001 or absf(e.hurt - 0.4) > 0.001:
+				bad_tick.append("%s atk_cd=%.2f hurt=%.2f" % [kind, e.atk_cd, e.hurt])
+		check("bug_boss_tick", bad_tick.is_empty(), "each clock down 0.1 after one 0.1 s step" if bad_tick.is_empty() else "; ".join(bad_tick))
+		for e in made:
+			e.dead = true
+			e.node.queue_free()
+			e.shadow.queue_free()
+			if e.get("boss", false):
+				main.enemies.erase(e)
+		main.ui.boss.visible = false
+	if want.call("bug_mill_pile"):
+		# a faint by the channel's guardian and a walk back in: one guardian and two goblins, not two more each time
+		var mq1: int = main.mill_q
+		main.mill_q = 3
+		var n1: int = main.enemies.size()
+		var piles: Array = []
+		for k in 3:
+			main.in_village = false
+			main.in_hill = true
+			main.hill_zone.spawn_mill_guard()
+			piles.append(main.enemies.slice(n1).filter(func(e): return not e.dead).size())
+			main.faint()
+			await wait(0.1)
+		check("bug_mill_pile", piles == [3, 3, 3], "foes at the channel on each return=%s" % [piles])
+		for e in main.enemies.slice(n1).filter(func(e): return not e.dead):
+			e.dead = true
+			e.node.queue_free()
+			e.shadow.queue_free()
+		main.mill_q = mq1
+		main.in_hill = false
+		main.in_village = true
+	if want.call("bug_mold_faint"):
+		# a faint while the villagers light the ring: the fight starts over clean (no frozen shock ring, no posts' pips)
+		var gq1: int = main.garden_q
+		var pips1: int = main.crown_pips
+		main.in_village = false
+		main.in_hill = false
+		main.in_garden = true
+		main.garden_q = 2
+		main.garden_zone.spawn_mold()
+		var mo1: Dictionary = main.enemies.filter(func(e): return e.get("mold", false) and not e.dead)[0]
+		mo1.locked = true
+		main.garden_q = 3
+		main.garden.set_posts(3)
+		main.ring_k = 3
+		main.crown_pips = 3
+		main.garden_zone.shed_shards()
+		main.garden_zone.start_mold_wave(mo1)
+		main.faint()
+		await wait(0.1)
+		var lit: int = main.garden.posts.filter(func(l): return l.visible).size()
+		var left: int = main.enemies.filter(func(e): return not e.dead and (e.get("mold", false) or e.get("shard", false))).size()
+		check("bug_mold_faint", main.garden_q == 1 and main.ring_k == -1 and lit == 0 and left == 0 and main.mold_wave.is_empty() and main.crown_pips == 0,
+			"garden_q=%d ring_k=%d posts lit=%d mold/shards left=%d shock ring gone=%s pips=%d" % [main.garden_q, main.ring_k, lit, left, main.mold_wave.is_empty(), main.crown_pips])
+		if not main.mold_wave.is_empty():
+			main.mold_wave.node.queue_free()
+			main.mold_wave = {}
+		main.garden_q = gq1
+		main.crown_pips = pips1
+		main.garden.set_posts(8 if gq1 >= 5 else 0)
+		main.ui.boss.visible = false
+	if want.call("bug_mul_twice"):
+		# fainting in the turtle fight sends it back to the pier: Mulgyeol stands there, and only there
+		var lq1: int = main.lake_q
+		var mate1: Node3D = main.mate
+		var mate2_1: Node3D = main.mate2
+		for mt in [mate1, mate2_1]:
+			if mt != null:
+				mt.visible = false
+		main.mate = null
+		main.mate2 = null
+		main.lake_q = 2
+		main.lake_zone.enter_lake()
+		main.close_story()
+		main.lake_zone.row_to_island()
+		main.close_story()
+		await wait(0.2)
+		var joined: bool = main.mate != null and not main.lake_npc.visible
+		main.faint()
+		await wait(0.2)
+		var shown: int = int(main.mate != null and main.mate.visible) + int(main.lake_npc != null and main.lake_npc.visible)
+		check("bug_mul_twice", joined and main.lake_q == 2 and shown == 1 and main.lake_npc.visible,
+			"joined on rowing=%s lake_q=%d Mulgyeols shown=%d on the pier=%s" % [joined, main.lake_q, shown, main.lake_npc.visible])
+		for e in main.enemies.filter(func(e): return e.get("turtle", false) and not e.dead):
+			e.dead = true
+			e.node.queue_free()
+			e.shadow.queue_free()
+		if main.mate != null: # back as the run had him
+			main.mate.queue_free()
+			main.mate = null
+		main.village.folk_node.mulgyeol.visible = mate1 == null
+		if mate1 != null:
+			main.mate = mate1
+			mate1.visible = true
+			main.rocks = main.rocks.filter(func(r): return r.get("folk", "") != "mulgyeol")
+		if mate2_1 != null:
+			main.mate2 = mate2_1
+			mate2_1.visible = true
+		main.snap_mates()
+		main.lake_q = lq1
+		main.lake_npc.visible = lq1 < 3
+		main.in_lake = false
+		main.in_village = true
+		reset_to(main.village.marks.M + Vector2(-1.5, 1.5))
+	if want.call("quest_marks"):
+		# every main-quest step aimed at a fixed thing in the area she stands in has the gold "!" in the world and the
+		# same spot on the minimap (the owner, 2026-10-26); the shore's side step too, and none while a story box is open
+		main.close_story()
+		park_mates(true)
+		var keep := {"story": main.story_step, "q": main.quest_raw, "gq": main.garden_q, "lq": main.lake_q, "shq": main.shore_q, "seen": main.shore_seen, "shrine": main.shrine_seen}
+		var go := func(flag: String, at: Vector2) -> void:
+			for f in ["in_cave", "in_village", "in_forest", "in_lake", "in_hill", "in_garden"]:
+				main.set(f, f == flag)
+			main.in_house = -1
+			reset_to(at)
+		var cases := [
+			["marsh", "", main.START, "서쪽 오두막으로 가 보자", main.cottage_at],
+			["marsh", "", Vector2(40, 20), "동쪽 강을 물수제비 걸음으로 건너, 마을 불빛을 찾아라", main.quest_marks.VILLAGE_WAY],
+			["marsh", "", main.MARSH.BASKET_AT + Vector2(3, 0), "도란의 편지에 팔찌를 대 보자 (E, 달빛 눈금 사용)", main.MARSH.BASKET_AT],
+			["cave", "in_cave", main.cave_marks.E + Vector2(-4, 0), "동쪽 출구로 나가자 (Shift를 누르고 물 위를 달릴 수 있다)", main.cave_marks.E],
+			["village", "in_village", main.village.marks.M + Vector2(3.0, -2.5), main.SIMJI_QUEST, main.village.marks.M],
+			["village", "in_village", main.village.marks.M + Vector2(3.0, -2.5), "광장 서쪽의 콩알이 울고 있다. 말을 걸어 보자 (E)", Vector2.INF],
+			["village", "in_village", main.village.marks.M + Vector2(3.0, -2.5), "물결과 함께 남쪽 호수를 풀자 (마을 남쪽 문)", main.village.marks.K],
+			["lake", "in_lake", main.lake.marks.D + Vector2(1.0, 0), "수문의 벽돌을 팔찌로 풀자 (E)", main.lake.marks.D],
+			["forest", "in_forest", main.forest.marks.S + Vector2(2.5, -1.5), "숲 동쪽 끝 길로, 바람 언덕에 가자", main.forest.marks.E],
+			["hill", "in_hill", main.hill.marks.S + Vector2(2.0, -1.5), "언덕 동쪽 끝 길로, 달지기들의 성에 가자", main.hill.marks.X],
+			["castle", "in_hill", main.castle.marks.S + Vector2(2.5, 1.5), "옥좌의 방으로 가자", Vector2.INF],
+			["stairs", "in_hill", main.stairs.marks.S + Vector2(0, -1.3), main.STAIRS_DONE_QUEST, Vector2.INF],
+			["garden", "in_garden", main.garden.marks.S + Vector2(1.5, 0), "끝. 다시 돌기 시작한 정원을 거닐자 (정원 한가운데서 E 두 번: 새 바퀴)", main.garden.marks.C]]
+		var bad_q: Array = []
+		var rim_ok := false
+		for c in cases:
+			main.close_story()
+			go.call(c[1], c[2])
+			main.story_step = maxi(keep.story, 7)
+			main.lake_q = 1 if c[0] == "lake" else keep.lq
+			main.garden_q = 5 if c[0] == "garden" else keep.gq
+			main.shore_q = 1
+			main.shore_seen = false
+			main.shrine_seen = true # the shrine's first words open by the cave's south half
+			main.quest_raw = c[3]
+			var tg: Vector3 = main.step_target()
+			main.castle_zone.update_quarters_mark()
+			main.set_process(false) # the game holds still while the map draws: no gate or stair may carry her off
+			await get_tree().process_frame
+			await get_tree().process_frame
+			main.set_process(true)
+			var want_at: Vector2 = c[4]
+			var spot_ok: bool = tg != Vector3.INF and (want_at == Vector2.INF or Vector2(tg.x, tg.z).distance_to(want_at) < 0.6)
+			var on_map: bool = main.ui.mini.quest_at != Vector2.INF and main.quarters_mark != null and main.quarters_mark.visible
+			if not spot_ok or not on_map or main.story_open:
+				bad_q.append("%s [%s] target=%s then %s minimap=%s story=%s quest=%s lake_q=%d at=%.1f,%.1f" % [c[0], c[3].left(14), tg, main.step_target(), main.ui.mini.quest_at, main.story_lines.slice(0, 1), main.quest_raw.left(10), main.lake_q, main.player.x, main.player.z])
+				main.close_story()
+			if c[3].begins_with("도란의 편지"): # 3 tiles off: drawn inside the round map, not pushed to its rim
+				var mid: Vector2 = main.ui.mini.size / 2.0
+				rim_ok = main.ui.mini.quest_at != Vector2.INF and main.ui.mini.quest_at.distance_to(mid) < main.ui.mini.size.x / 2.0 - 20.0
+				main.show_story("", ["||시험"])
+				main.castle_zone.update_quarters_mark()
+				main.set_process(false)
+				await get_tree().process_frame
+				await get_tree().process_frame
+				main.set_process(true)
+				if main.ui.mini.quest_at != Vector2.INF or main.step_target() != Vector3.INF:
+					bad_q.append("marks shown under a story box")
+				main.close_story()
+		main.story_step = keep.story
+		main.garden_q = keep.gq
+		main.lake_q = keep.lq
+		main.shore_q = keep.shq
+		main.shore_seen = keep.seen
+		main.shrine_seen = keep.shrine
+		main.return_to_start()
+		main.set_quest(keep.q)
+		park_mates(false)
+		check("quest_marks", bad_q.is_empty() and rim_ok, "%d quest steps with a gold ! and a minimap mark, a near one inside the rim=%s %s" % [cases.size(), rim_ok, "; ".join(bad_q)])
+	if want.call("field_respawn"):
+		# the hill's and the forest's field foes stay down while she is there and come back at their spots when she
+		# walks in again; a foe outside the field lists (a quest's or a story fight's) stays down
+		main.close_story()
+		park_mates(true)
+		var kq := [main.hill_q, main.forest_q, main.quest_raw]
+		main.hill_q = maxi(main.hill_q, 1)
+		main.forest_q = maxi(main.forest_q, 3)
+		main.in_village = false
+		main.in_forest = true
+		reset_to(main.forest.marks.E + Vector2(-1.2, 0))
+		main.enter_hill()
+		main.close_story()
+		var spots: Array = main.monsters.field_spots("hill")
+		var field := func(): return main.enemies.filter(func(e): return e.get("field", "") == "hill" and not e.dead)
+		var full: bool = field.call().size() == spots.size() and spots.size() > 0
+		if not full:
+			check("field_respawn", false, "hill foes on entering %d/%d" % [field.call().size(), spots.size()])
+		else:
+			var plain_foes: Array = field.call().filter(func(e): return int(e.get("shield", 0)) <= 0 and not e.get("wolf", false))
+			var e0: Dictionary = plain_foes[0] if not plain_foes.is_empty() else field.call()[0] # a shield would take the blow
+			var slot: int = e0.slot
+			main.damage_enemy(e0, 99999.0, Vector2(e0.x, e0.z + 1.0))
+			main.spawn_enemy(main.hill.marks.S + Vector2(3, 3))
+			var story_foe: Dictionary = main.enemies[main.enemies.size() - 1]
+			story_foe.cave = true
+			main.damage_enemy(story_foe, 99999.0, Vector2(story_foe.x, story_foe.z + 1.0))
+			await wait(1.0)
+			var stays: bool = field.call().size() == spots.size() - 1
+			main.hill_zone.leave_hill()
+			var forest_n: int = main.enemies.filter(func(e): return e.get("field", "") == "forest" and not e.dead).size()
+			main.enter_hill()
+			main.close_story()
+			var back: Array = field.call().filter(func(e): return e.slot == slot)
+			var at_spot: bool = back.size() == 1 and Vector2(back[0].x, back[0].z).distance_to(spots[slot][0]) < 0.3
+			var refilled: bool = field.call().size() == spots.size()
+			var kept_down: bool = story_foe.dead and main.enemies.has(story_foe)
+			check("field_respawn", stays and at_spot and refilled and kept_down and forest_n == main.monsters.field_spots("forest").size(),
+				"hill foes %d, one down stays down while there=%s, back at its spot on the next visit=%s, all back=%s, a foe off the lists stays down=%s, forest refilled on the way %d/%d" \
+				% [spots.size(), stays, at_spot, refilled, kept_down, forest_n, main.monsters.field_spots("forest").size()])
+		for e in main.enemies:
+			if e.get("field", "") != "" and not e.dead:
+				e.dead = true
+				e.node.queue_free()
+				e.shadow.queue_free()
+		main.hill_q = kq[0]
+		main.forest_q = kq[1]
+		main.return_to_start()
+		main.set_quest(kq[2])
+		park_mates(false)
 	if want.call("stage_noeul"):
 		# ?stage=noeul: the preset save puts Sora in the village on the lantern night, and Noeul comes for the lamps
 		main.close_story()

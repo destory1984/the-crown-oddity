@@ -274,15 +274,8 @@ func faint() -> void:
 				e.node.queue_free()
 				e.shadow.queue_free()
 		if m.garden_q >= 2 and m.garden_q < 5:
-			m.garden_q = 1 # the fight starts over
+			m.garden_zone.mold_retry() # the fight starts over
 			m.set_quest(Main.GARDEN_RETRY_QUEST)
-			m.garden.set_posts(0)
-			m.ring_k = -1
-			for e in m.enemies:
-				if (e.get("mold", false) or e.get("shard", false) or e.get("echo", false)) and not e.dead:
-					e.dead = true
-					e.node.queue_free()
-					e.shadow.queue_free()
 	if m.in_lake:
 		m.clear_south_job()
 		m.in_lake = false
@@ -295,15 +288,8 @@ func faint() -> void:
 					e.node.queue_free()
 					e.shadow.queue_free()
 		if m.lake_q == 3:
-			for e in m.enemies:
-				if e.get("turtle", false) and not e.dead:
-					e.hp = float(e.max_hp)
-					e.x = e.wx
-					e.z = e.wz
-			m.lake_q = 2 # row out again from the pier
+			m.lake_zone.turtle_retry() # row out again from the pier
 			m.set_quest(Main.LAKE_RETRY_QUEST)
-			if m.lake_npc != null:
-				m.lake_npc.visible = true
 	if m.in_workshop():
 		m.workshop_zone.on_faint() # the floors keep what was done; the cradle's latches stay wound
 	if m.in_hill:
@@ -315,7 +301,7 @@ func faint() -> void:
 		for e in m.enemies:
 			if e.get("hawk", false) and not e.dead:
 				e.hp = float(e.max_hp)
-			if (e.get("scare", false) or e.get("knight", false) or e.get("mill_guard", false)) and not e.dead:
+			if (e.get("scare", false) or e.get("knight", false) or e.get("mill_guard", false) or e.get("mill_escort", false)) and not e.dead:
 				e.dead = true
 				e.node.queue_free()
 				e.shadow.queue_free()

@@ -67,6 +67,7 @@ func leave_cloud() -> void:
 	m.ui.zone_sub.text = "언덕 꼭대기"
 	m.ui.boss.visible = false
 	m.snap_mates()
+	m.monsters.refill_field("hill")
 	m.save_game()
 
 # stepping onto a vent from plain ground starts a gust: Sora flies 8 tiles/s the way it points, over the gap,
@@ -247,16 +248,8 @@ func enter_hill() -> void:
 	m.snap_mates()
 	if m.hill_q == 0:
 		m.hill_q = 1
-		for f in m.hill.foes:
-			if f[1] == "w":
-				m.spawn_wolf(f[0])
-				continue
-			m.spawn_enemy(f[0], f[1] == "a")
-			var e: Dictionary = m.enemies[m.enemies.size() - 1]
-			e.cave = true
-			if f[1] == "s":
-				give_shield(e)
 		m.show_story("", Main.STORY.HILL_IN)
+	m.monsters.refill_field("hill")
 	if m.hill_q == 1:
 		m.set_quest(tr("풍차를 팔찌로 감자 (E) %d/3") % m.hill.turning_count())
 	elif m.hill_q == 2:
@@ -275,6 +268,7 @@ func leave_hill() -> void:
 	m.ui.zone_sub.text = "노을의 빈터"
 	m.ui.boss.visible = false
 	m.snap_mates()
+	m.monsters.refill_field("forest")
 	m.save_game()
 
 # a shield goblin: a round brick shield in front that takes three hits to break,
@@ -458,6 +452,7 @@ func spawn_mill_guard() -> void:
 	e.atk_cd = 1.5
 	for k in 2:
 		m.spawn_enemy(at + Vector2(m.rnd(-2.0, 2.0), m.rnd(-1.5, -0.5)))
+		m.enemies[m.enemies.size() - 1].mill_escort = true # a faint takes them with the guard, or each retry adds two
 	m.burst(Vector3(at.x, 0.6, at.y), Color("#bfe6ff"), 20, 2.5)
 	m.shake = 0.3
 	m.sfx(110, 0.4, "square", 0.25, 60)

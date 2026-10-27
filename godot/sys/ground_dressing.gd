@@ -79,12 +79,13 @@ func tuft_tex(ramp: Array, lean: float, flowers: int, blooms: Array) -> ImageTex
 			m.px(img, x, y, 1, 1, Color("#ffb030")))
 
 # tufts at spots (Vector4 x, ground y, z, scale), swaying with the grass shader; phones draw half, as in the marsh.
-# They join m.veg_meshes, so story.clear_vegetation can clear them like the marsh's.
-func grass(tex: Texture2D, w: float, h: float, spots: Array, strength: float) -> void:
+# With `clearable` they join m.veg_meshes, so story.clear_vegetation can clear them like the marsh's; the maps that
+# never clear any stay out of it, so that loop does not walk thousands of tufts it will never move. Returns the mesh.
+func grass(tex: Texture2D, w: float, h: float, spots: Array, strength: float, clearable := true) -> MultiMesh:
 	if m.touch_ui:
 		spots = spots.filter(func(sp): return int(sp.x * 7.0 + sp.z * 13.0) % 2 == 0)
 	if spots.is_empty():
-		return
+		return null
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -97,7 +98,8 @@ func grass(tex: Texture2D, w: float, h: float, spots: Array, strength: float) ->
 		mm.set_instance_color(i, Color.from_hsv(0.2, 0.06, rnd(0.88, 1.0)).srgb_to_linear())
 	var mmi := MultiMeshInstance3D.new()
 	mmi.multimesh = mm
-	m.veg_meshes.append(mm)
+	if clearable:
+		m.veg_meshes.append(mm)
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var sm := ShaderMaterial.new()
 	sm.shader = load("res://shaders/grass.gdshader")
@@ -105,6 +107,7 @@ func grass(tex: Texture2D, w: float, h: float, spots: Array, strength: float) ->
 	sm.set_shader_parameter("strength", strength)
 	mmi.material_override = sm
 	m.add_child(mmi)
+	return mm
 
 # `per_tile` tuft spots on each world tile in `tiles` (Vector2 of tile centres), at ground height `y`
 func spots_on(tiles: Array, y: float, per_tile: int, lo := 0.7, hi := 1.15) -> Array:
@@ -113,6 +116,78 @@ func spots_on(tiles: Array, y: float, per_tile: int, lo := 0.7, hi := 1.15) -> A
 		for k in per_tile:
 			out.append(Vector4(t.x + rnd(-0.5, 0.5), y, t.y + rnd(-0.5, 0.5), rnd(lo, hi)))
 	return out
+
+# ---------------------------------------------------------------- the other maps (village, lake, forest, stairs, garden)
+# Each map dresses itself from its own random stream (begin/end), so adding one never moves another map's tufts:
+# the hill's stay exactly where they were.
+var saved_state := 0
+
+func begin(s: int) -> void:
+	saved_state = rng.state
+	rng.seed = s
+
+func end() -> void:
+	rng.state = saved_state
+
+# is a used tile within `ring` tiles of local tile (x, z)? `at` is the map's char lookup in local tiles; `clear`
+# lists the chars to keep clear (paths, doors, marks, water, walls that open); `keep` adds local Vector2i spots
+# that have no char of their own (villagers' spots, props, cages)
+func near_clear(at: Callable, x: int, z: int, clear: String, keep: Array, ring := 1) -> bool:
+	for dz in range(-ring, ring + 1):
+		for dx in range(-ring, ring + 1):
+			if at.call(x + dx, z + dz) in clear:
+				return true
+	for k in keep:
+		if absi(k.x - x) <= ring and absi(k.y - z) <= ring:
+			return true
+	return false
+
+# the tiles of a map (rows z0 to z1) that may take plants: their char is in `open` and nothing used is near
+func pick_tiles(at: Callable, origin_x: int, w: int, z0: int, z1: int, open: String, clear: String, keep: Array, ring := 1) -> Array:
+	var out: Array = []
+	for z in range(z0, z1):
+		for x in w:
+			if at.call(x, z) in open and not near_clear(at, x, z, clear, keep, ring):
+				out.append(Vector2(origin_x + x, z))
+	return out
+
+# a fern: a few arching fronds from one root, each with little leaflets down both sides
+func fern_tex(dark: Color, light: Color) -> ImageTexture:
+	return m.make_tex(48, 48, func(img: Image):
+		for f in 7:
+			var ang := lerpf(-1.25, 1.25, f / 6.0) + rng.randf_range(-0.12, 0.12)
+			var length := rng.randf_range(26.0, 40.0)
+			var x := 24.0
+			var y := 47.0
+			for k in int(length):
+				var t := k / length
+				var a := ang * (0.3 + t * 1.1) # the frond bows outward as it grows
+				x += sin(a) * 0.9
+				y -= cos(a) * 0.9
+				var c := dark.lerp(light, t)
+				m.px(img, x, y, 1, 1, c)
+				if k % 3 == 0 and t > 0.15:
+					var leaf := 5.0 * (1.0 - t) + 1.0
+					m.px(img, x - leaf, y, leaf, 1, c.darkened(0.08))
+					m.px(img, x + 1, y, leaf, 1, c.lightened(0.05)))
+
+# a few small mushrooms on a mossy foot: pale stems, round caps from `caps`, white spots on the red ones
+func mushroom_tex(caps: Array) -> ImageTexture:
+	return m.make_tex(48, 48, func(img: Image):
+		for i in 9: # moss at the foot
+			m.px(img, 8 + rng.randf() * 30.0, 44 + rng.randf() * 3.0, 4, 1, Color("#4f6a3a"))
+		for k in 3:
+			var x := 10.0 + k * 11.0 + rng.randf_range(-2.0, 2.0)
+			var h := rng.randf_range(7.0, 14.0)
+			var cw := rng.randf_range(7.0, 11.0)
+			var cap := Color(caps[rng.randi() % caps.size()])
+			m.px(img, x, 47 - h, 2, h, Color("#efe6d2"))
+			m.px(img, x + 1 - cw / 2.0, 47 - h - 3, cw, 3, cap)
+			m.px(img, x + 2 - cw / 2.0, 47 - h - 5, cw - 2, 2, cap.lightened(0.1))
+			m.px(img, x + 1 - cw / 2.0, 47 - h, cw, 1, cap.darkened(0.3))
+			if cap.r > cap.g * 1.6:
+				m.px(img, x - 1, 47 - h - 4, 1, 1, Color.WHITE)
+				m.px(img, x + 2, 47 - h - 2, 1, 1, Color.WHITE))
 
 # ---------------------------------------------------------------- the marsh's far banks
 # Past the marsh's border water there was nothing: from the east bank the village side was an empty purple void

@@ -369,6 +369,68 @@ func open_seam(e: Dictionary) -> void:
 		m.burst(Vector3(e.x + cos(k * TAU / 3.0) * 0.35, y + 0.7, e.z + sin(k * TAU / 3.0) * 0.35), Color("#ffd84a"), 3, 0.8)
 	m.pop_num(Vector3(e.x, y + 1.5, e.z), "틈!", Color("#ffd84a"))
 
+# ---- field monsters of the open areas: they come back at their own spots when Sora walks into the area again
+# (not while she stands there; the marsh keeps its 8 s respawn). Bosses, story fights, ambushes and the foes a
+# quest counts are never in these lists, so they stay down.
+func field_spots(area: String) -> Array:
+	match area:
+		"forest":
+			if m.forest_q < 1:
+				return []
+			var out: Array = []
+			for g in m.forest.goblins:
+				out.append([g, "g"])
+			for w in m.forest.wolves:
+				out.append([w, "w"])
+			return out
+		"hill":
+			return m.hill.foes if m.hill_q >= 1 else []
+		"stairs":
+			return m.stairs.foes if m.stairs_spawned else []
+		"garden": # the yard below the arena; not while the mold fight holds the garden
+			if not m.road_spawned or m.garden_q == 2 or m.garden_q == 3:
+				return []
+			return m.garden.road_foes
+		"lake": # the guards below the weir, without the yard's ambush (x >= 296)
+			if not m.south_spawned:
+				return []
+			return m.lake.south_foes.filter(func(f): return f[0].x < 296.0)
+	return []
+
+func spawn_field(area: String, i: int, f: Array) -> void:
+	var at: Vector2 = f[0]
+	match f[1]:
+		"w": spawn_wolf(at)
+		"b": spawn_bat(at)
+		"j": spawn_hog(at)
+		_:
+			spawn_enemy(at, f[1] == "a")
+			if f[1] == "s":
+				m.give_shield(m.enemies[m.enemies.size() - 1])
+	var e: Dictionary = m.enemies[m.enemies.size() - 1]
+	e.cave = true # no 8 s respawn: they wait for the next visit
+	e.field = area
+	e.slot = i
+
+# every spot of the area without a living foe gets a fresh one; the first visit spawns them all this way
+func refill_field(area: String) -> void:
+	var spots := field_spots(area)
+	for i in spots.size():
+		var alive := false
+		for e in m.enemies.duplicate():
+			if e.get("field", "") != area or e.get("slot", -1) != i:
+				continue
+			if not e.dead:
+				alive = true
+				continue
+			if is_instance_valid(e.node): # the mold hides the garden's foes without freeing them
+				e.node.queue_free()
+			if is_instance_valid(e.shadow):
+				e.shadow.queue_free()
+			m.enemies.erase(e)
+		if not alive:
+			spawn_field(area, i, spots[i])
+
 func update_enemies(dt: float, gy: float) -> void:
 	for e in m.enemies.duplicate():
 		if e.dead and e.get("boss", false):
@@ -381,9 +443,6 @@ func update_enemies(dt: float, gy: float) -> void:
 				m.enemies.erase(e)
 				spawn_enemy(Vector2(-1, -1), e.get("archer", false))
 			continue
-		e.t += dt
-		e.atk_cd -= dt
-		e.hurt -= dt
 		var to := Vector2(m.player.x - e.x, m.player.z - e.z)
 		var d := to.length()
 		var ev := Vector2.ZERO
@@ -418,18 +477,21 @@ func update_enemies(dt: float, gy: float) -> void:
 		if e.get("wolf", false):
 			update_wolf(e, dt, d, to)
 			continue
-		if e.get("hog", false):
-			update_hog(e, dt, d, to)
-			continue
 		if e.get("bat", false):
 			update_bat(e, dt, d, to)
 			continue
-		if e.get("prop", false):
-			e.hurt -= dt
-			e.shadow.position = Vector3(e.x, 0.02, e.z)
-			continue
 		if e.get("hawk", false):
 			m.hill_zone.update_hawk(e, dt, d, to)
+			continue
+		# the kinds above tick their own clocks; ticking here too ran them at double speed
+		e.t += dt
+		e.atk_cd -= dt
+		e.hurt -= dt
+		if e.get("hog", false):
+			update_hog(e, dt, d, to)
+			continue
+		if e.get("prop", false):
+			e.shadow.position = Vector3(e.x, 0.02, e.z)
 			continue
 		if d < 7 and not m.intro and e.get("archer", false):
 			if d < 4.0:

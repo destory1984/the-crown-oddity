@@ -1,11 +1,8 @@
-Noto Serif KR: Copyright 2017-2022 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'.
-Noto is a trademark of Google LLC.
-
-NotoSerifKR-SemiBold.title.woff2 is a subset (only the title screen's letters, weight 600) of NotoSerifKR-VF.ttf.
+Copyright 2018 The Jua Project Authors
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-https://scripts.sil.org/OFL
+http://scripts.sil.org/OFL
 
 
 -----------------------------------------------------------

@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://5onhkkvhpoq4"
-path="res://.godot/imported/NotoSerifKR-SemiBold.title.woff2-49822d8b87fd60eeee4e46f0c895ceb8.fontdata"
+uid="uid://b7cbsdjg0ivgx"
+path="res://.godot/imported/Jua-Regular.title.woff2-c59cc69cafcf5be3b3362df7f98484f6.fontdata"
 
 [deps]
 
-source_file="res://fonts/noto_serif_kr/NotoSerifKR-SemiBold.title.woff2"
-dest_files=["res://.godot/imported/NotoSerifKR-SemiBold.title.woff2-49822d8b87fd60eeee4e46f0c895ceb8.fontdata"]
+source_file="res://fonts/jua/Jua-Regular.title.woff2"
+dest_files=["res://.godot/imported/Jua-Regular.title.woff2-c59cc69cafcf5be3b3362df7f98484f6.fontdata"]
 
 [params]
 
