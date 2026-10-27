@@ -193,7 +193,7 @@ func update_scarecrow(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 				m.burst(Vector3(e.x, 1.4, e.z), Color("#d8b04a"), 24, 4.0)
 				m.sfx(200, 0.4, "noise", 0.15, 300)
 				if d < 2.6:
-					m.player_hit(20 + m.foe_lv(), Vector2(e.x, e.z), e)
+					m.player_hit(20 + m.foe_hit(), Vector2(e.x, e.z), e)
 				if e.spins > 0:
 					e.spins -= 1
 					e.wind = 0.5
@@ -302,7 +302,7 @@ func hill_key() -> bool:
 	return false
 
 func mate_power() -> float:
-	return 0.7 if m.has_oar_ring else 0.6
+	return 0.4 if m.has_oar_ring else 0.35 # was 0.7 / 0.6 of Sora's attack (the owner found the field too easy, 2026-10-27)
 
 # the wind post (a sky-blue flag) and the four pinwheels in the hollow; they stand still until passed
 func build_windrun() -> void:

@@ -119,12 +119,23 @@ def musicbox(note, dur):
 
 
 def pluck(note, dur, rng, damp=0.996):
-    n = int(dur * SR); p = max(2, int(SR / hz(note)))
-    buf = rng.uniform(-1, 1, p); out = np.zeros(n)
-    for i in range(n):  # Karplus-Strong; fine for a few seconds of string
-        out[i] = buf[i % p]
-        buf[i % p] = damp * 0.5 * (buf[i % p] + buf[(i + 1) % p])
-    return out * env(n, 0.002, 0, 1, 0.05)
+    """A soft nylon-string guitar (the owner, 2026-10-27: the old Karplus-Strong string was harsh and, on a whole-sample
+    delay, out of tune up high). Additive: harmonics plucked a fifth of the way along, the upper ones dying faster,
+    a hint of string stiffness, a 4 ms attack and a muffled thumb noise. `damp` keeps its old meaning: closer to 1 rings longer."""
+    n = int(dur * SR); t = np.arange(n) / SR; f = hz(note)
+    r0 = float(np.clip(f * (1 - damp), 0.35, 4.0))  # the fundamental's decay per second, as the old string's
+    sig = np.zeros(n)
+    for k in range(1, 13):
+        fk = k * f * np.sqrt(1 + 1.2e-5 * k * k)
+        if fk > SR * 0.4:
+            break
+        amp = abs(np.sin(k * np.pi * 0.2)) / k ** 1.7
+        sig += amp * np.sin(2 * np.pi * fk * t + rng.uniform(0, 2 * np.pi)) * np.exp(-t * r0 * (1 + 0.45 * (k - 1) ** 1.25))
+    thump = rng.uniform(-1, 1, min(n, int(0.012 * SR)))
+    thump = np.convolve(thump, np.ones(24) / 24, "same") * np.exp(-np.arange(thump.size) / (0.003 * SR)) * 0.25
+    sig[:thump.size] += thump
+    sig /= np.max(np.abs(sig)) + 1e-9
+    return sig * 0.8 * env(n, 0.004, 0, 1, 0.05)
 
 
 def pad(notes, dur, a=1.0, r=1.0, det=0.12):
@@ -615,6 +626,7 @@ def _mk(slot, k):
 
 
 TRACKS_NEW = {f"{s}_{k + 2}": _mk(s, k) for s in SPECS for k in range(4)}
+DROPPED = ["ending", "ending_4", "ending_5"]  # the owner took these out (2026-10-27); sys/music.gd skips them
 TRACKS_NEW["village"] = lambda: lantern_variant("village", S("D", "maj", 96, "I V vi IV", "vi iii IV V", "IV I V I", 250, (0,), bpb=3, lead="accordion", bars=24))
 
 
@@ -624,6 +636,8 @@ TRACKS = {
     "village": village, "night": night, "title": lambda: night("title", "musicbox", 60), "ending": ending,
 }
 TRACKS.update(TRACKS_NEW)
+for _d in DROPPED:
+    TRACKS.pop(_d)
 
 if __name__ == "__main__":
     for name in sys.argv[1:] or TRACKS:

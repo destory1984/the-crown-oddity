@@ -41,7 +41,7 @@ func build_mate_hud(root: Control) -> void:
 	m.ui.mate_rows = []
 	for i in 2:
 		var row := Control.new()
-		row.position = Vector2(140, 150 + i * 34)
+		row.position = Vector2(140, 150 + i * 34) # layout_top moves the rows beside the big portrait ring
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(row)
 		var face := TextureRect.new()
@@ -135,9 +135,18 @@ func use_touch_help(on: bool) -> void:
 # ---- the top-centre blocks laid out from real rects (the user, 2026-10-25: the quest line ran over the companions' rows)
 # The status panel, the dial with the zone name and the companions' rows are fixed boxes in hud.gd and build_mate_hud;
 # the minimap, the menu keys, the zoom keys and the boss bar are read off their controls.
-const STATUS_RECT := Rect2(0, 0, 472, 136)
-const PORTRAIT_RECT := Rect2(0, 0, 142, 158) # the bigger portrait ring and its level badge reach below the bars # portrait, the four bars with their numbers, the moon gauge
-const DIAL_RECT := Rect2(0, 168, 240, 112) # sun and moon dial, zone name and sub-line
+# the portrait ring is as big as the minimap (186 px, the owner 2026-10-27) on a wide screen without touch keys; a
+# narrower window keeps the old 126 px ring, as the bars and the minimap would meet there
+func big_portrait() -> bool:
+	return m.get_viewport().get_visible_rect().size.x >= 1180.0 and not m.touch_ui
+
+# the four bars with their numbers and the moon gauge
+func status_rect() -> Rect2:
+	return Rect2(0, 0, 548, 136) if big_portrait() else Rect2(0, 0, 472, 136)
+
+# sun and moon dial, zone name and sub-line, 60 px lower under the big ring
+func dial_rect() -> Rect2:
+	return Rect2(0, 228, 240, 112) if big_portrait() else Rect2(0, 168, 240, 112)
 const QUEST_PAD := 14.0 # the gold ornaments reach this far past the text sideways, 12 px up and down
 var quest_deco := Rect2() # the ornaments' box around the quest text, drawn by hud.gd
 var side_label: Label = null # the running side step, a small dim line under the quest
@@ -173,7 +182,7 @@ func player_rect() -> Rect2:
 
 # every HUD box the quest line has to stay clear of
 func quest_blocks(with_player := true) -> Array:
-	var out: Array = [STATUS_RECT, DIAL_RECT]
+	var out: Array = [status_rect(), dial_rect()]
 	var pr := player_rect()
 	if with_player and pr.size != Vector2.ZERO:
 		out.append(pr)
@@ -218,8 +227,10 @@ func update_side() -> void:
 func layout_top() -> void:
 	var vs := m.get_viewport().get_visible_rect().size
 	var wide: bool = vs.x >= 1180.0 and not m.touch_ui
+	for i in m.ui.mate_rows.size():
+		m.ui.mate_rows[i].row.position.x = 206.0 if big_portrait() else 140.0
 	var mates := mates_rect()
-	var x0 := 296.0 if m.touch_ui else (294.0 if mates.size != Vector2.ZERO else 244.0) # right of the left column
+	var x0 := 296.0 if m.touch_ui else (mates.end.x + 8.0 if mates.size != Vector2.ZERO else (210.0 if big_portrait() else 244.0)) # right of the left column
 	# boss bar: top centre on a wide screen; else in the free band between the left column and the minimap, or under the
 	# minimap and shrunk when that band is too narrow for its 440 px
 	var b: Control = m.ui.boss
@@ -228,7 +239,7 @@ func layout_top() -> void:
 	var by: float
 	var bs := 1.0
 	if wide:
-		bx = maxf(vs.x / 2.0 - 220.0, STATUS_RECT.end.x + 8.0) # clear of the bars' numbers on a screen only just wide
+		bx = maxf(vs.x / 2.0 - 220.0, status_rect().end.x + 8.0) # clear of the bars' numbers on a screen only just wide
 		by = 14.0
 	elif vs.x - 202.0 - x0 >= 440.0:
 		bx = (x0 + vs.x - 202.0) / 2.0 - 220.0
@@ -258,15 +269,15 @@ func layout_top() -> void:
 	# candidates: [left limit, right limit, top, centre on the screen instead of the band]
 	var cands: Array = []
 	if wide:
-		cands.append([STATUS_RECT.end.x + 8.0, vs.x - 202.0, 62.0, true])
+		cands.append([status_rect().end.x + 8.0, vs.x - 202.0, 62.0, true])
 		if b.visible:
-			cands.append([STATUS_RECT.end.x + 8.0, vs.x - 202.0, boss_end + 16.0, true])
+			cands.append([status_rect().end.x + 8.0, vs.x - 202.0, boss_end + 16.0, true])
 	cands.append([x0, vs.x - 202.0, 150.0, false])
 	if b.visible:
 		cands.append([x0, vs.x - 202.0, boss_end + 12.0, false])
 	var low := maxf(maxf(mates.end.y, boss_end), 194.0) + 14.0
-	cands.append([DIAL_RECT.end.x + 4.0, vs.x - 8.0, low, false])
-	cands.append([8.0, vs.x - 8.0, DIAL_RECT.end.y + 14.0, false])
+	cands.append([dial_rect().end.x + 4.0, vs.x - 8.0, low, false])
+	cands.append([8.0, vs.x - 8.0, dial_rect().end.y + 14.0, false])
 	# a narrow screen has no free band at the top: the line goes under Sora, between her and the keys and skills
 	var pr := player_rect()
 	var gold_left := vs.x - 92.0 if not m.touch_ui else vs.x - 8.0

@@ -38,13 +38,24 @@ func bar(at: Vector2, w: float, frac: float, col: Color, label: String, value: S
 	text(at + Vector2(-45, 10), label, 15, DIM) # 11 -> 14 -> 15 and the numbers 12 -> 14 -> 15 (the owner, 2026-10-27: too small, then +1)
 	text(at + Vector2(w + 16, 11), value, 15, TEXT)
 
+# where the bars start: past the portrait ring and its right diamond (182, or 250 beside the big ring)
+func bars_x() -> float:
+	return 250.0 if main.hud_build.big_portrait() else 182.0
+
+# where the bars end, without their numbers
+func bars_end() -> float:
+	return bars_x() + 218.0
+
 var pips_drawn := 0 # diamonds in the moon gauge at the last draw (autoplay pips)
 
-# one diamond per pip of pip_max (8 - 12), 16 px apart from x 178: 12 end at x 354, under the 400 px bars
+# one diamond per pip of pip_max (8 - 12), 16 px apart from 4 px left of the bars: under the bars either way
+func pip_x() -> float:
+	return bars_x() - 4.0
+
 func pip_spots() -> Array:
 	var out: Array = []
 	for i in main.pip_max:
-		out.append(Vector2(178 + i * 16, 124))
+		out.append(Vector2(pip_x() + i * 16, 124))
 	return out
 
 func _draw() -> void:
@@ -53,20 +64,26 @@ func _draw() -> void:
 	var p: Dictionary = main.player
 	var vs := get_viewport_rect().size
 	# ---- portrait and level
-	var c := Vector2(71, 82) # the ring (r 63) 8 px from the left edge; 51 -> 63 so her shoulders show (the owner, 2026-10-27)
-	draw_circle(c, 62, NAVY)
-	draw_texture_rect(portrait, Rect2(c - Vector2(56, 56), Vector2(112, 112)), false)
-	draw_arc(c, 58, 0, TAU, 64, GOLD, 2.5, true)
-	draw_arc(c, 63, 0, TAU, 64, GOLD_DIM, 1.0, true)
+	# on a wide screen the ring is as big as the minimap's 186 px bezel (r 63 -> 93, the owner, 2026-10-27), 11 px lower
+	# than the minimap so the crown point above it stays on screen; a narrow window keeps r 63 (hud_build.big_portrait)
+	var big: bool = main.hud_build.big_portrait()
+	var r := 93.0 if big else 63.0
+	var c := Vector2(101, 112) if big else Vector2(71, 82)
+	draw_circle(c, r - 1.0, NAVY)
+	var ph_half := 83.0 if big else 56.0
+	draw_texture_rect(portrait, Rect2(c - Vector2(ph_half, ph_half), Vector2(ph_half, ph_half) * 2.0), false)
+	draw_arc(c, r - (6.0 if big else 5.0), 0, TAU, 96, GOLD, 3.0 if big else 2.5, true)
+	draw_arc(c, r, 0, TAU, 96, GOLD_DIM, 1.0, true)
 	for ang in [-PI / 2, 0.0, PI]:
-		diamond(c + Vector2(cos(ang), sin(ang)) * 63, 5, GOLD)
-	diamond(c + Vector2(0, -74), 7, GOLD) # crown point
-	var lb := c + Vector2(0, 60)
-	draw_circle(lb, 14, Color("#0b1530"))
-	draw_arc(lb, 14, 0, TAU, 32, GOLD, 2.0, true)
-	text(lb + Vector2(-20, 6), str(p.lv), 15, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 40)
+		diamond(c + Vector2(cos(ang), sin(ang)) * r, 6 if big else 5, GOLD)
+	diamond(c + Vector2(0, -r - 11.0), 8 if big else 7, GOLD) # crown point
+	var lb := c + Vector2(0, 89 if big else 60)
+	var lr := 16.0 if big else 14.0
+	draw_circle(lb, lr, Color("#0b1530"))
+	draw_arc(lb, lr, 0, TAU, 32, GOLD, 2.0, true)
+	text(lb + Vector2(-20, 6), str(p.lv), 17 if big else 15, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	# ---- bars
-	var x0 := 182.0 # past the bigger portrait ring (170 -> 182; the bars 12 px shorter so the numbers still end by 472)
+	var x0 := bars_x()
 	bar(Vector2(x0, 34), 218, p.hp / p.max_hp, Color("#e03a44"), "체력", "%d/%d" % [ceili(p.hp), p.max_hp])
 	bar(Vector2(x0, 56), 218, p.mp / p.max_mp, Color("#f08a2a"), "기세", "%d/%d" % [int(p.mp), p.max_mp], p.mp >= 60.0)
 	bar(Vector2(x0, 78), 218, p.sp / 100.0, Color("#f2e2b0"), "기력", "%d/100" % int(p.sp))
@@ -88,9 +105,10 @@ func _draw() -> void:
 			draw_polyline(PackedVector2Array([pc + Vector2(0, -6), pc + Vector2(6, 0), pc + Vector2(0, 6), pc + Vector2(-6, 0), pc + Vector2(0, -6)]), Color("#6a6050"), 1.0)
 	var grow: float = 6.0 * minf(1.0, main.rest_t / main.rest_need)
 	if grow >= 0.5 and main.crown_pips < main.pip_max: # the next pip glows in while resting (too small a diamond cannot be drawn)
-		diamond(Vector2(x0 + 8 + main.crown_pips * 16, 124), grow, Color("#9fd4ff"))
-	# ---- sun / moon dial hanging under the portrait
-	var dc := Vector2(59, 222)
+		diamond(Vector2(pip_x() + main.crown_pips * 16, 124), grow, Color("#9fd4ff"))
+	# ---- sun / moon dial hanging under the portrait (60 px lower under the big ring)
+	var low := 60.0 if big else 0.0
+	var dc := Vector2(89, 282) if big else Vector2(59, 222)
 	for i in 14:
 		var a0 := PI + PI * i / 14.0
 		var pt := dc + Vector2(cos(a0) * 58, sin(a0) * 32)
@@ -110,8 +128,8 @@ func _draw() -> void:
 		if ph.x < 0.98:
 			draw_circle(sp + Vector2(11.0 * 2.0 * ph.x * ph.y, -1.0), 10.8, Color("#0b1530"))
 	# zone name, small, under the dial
-	text(Vector2(10, 254), main.ui.zone_name.text, 17, TEXT) # 14 / 11 -> 17 / 14 (the owner, 2026-10-27)
-	text(Vector2(10, 275), main.ui.zone_sub.text, 14, DIM)
+	text(Vector2(10, 254 + low), main.ui.zone_name.text, 17, TEXT) # 14 / 11 -> 17 / 14 (the owner, 2026-10-27)
+	text(Vector2(10, 275 + low), main.ui.zone_sub.text, 14, DIM)
 	# ---- quest ornaments: from the box hud_build laid the quest text out in, so no line crosses the text
 	if main.ui.quest.visible and main.hud_build.quest_deco.size != Vector2.ZERO:
 		var d: Rect2 = main.hud_build.quest_deco

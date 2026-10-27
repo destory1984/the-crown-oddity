@@ -14,6 +14,11 @@ const MUSIC_DB := -14.0 # the Music bus under the effects (Master stays at 0 dB)
 const OFF_DB := -80.0
 const FADE := 1.0 # the crossfade between two tunes, and the fade of the music switch
 const VARIANTS := 5 # <name>.ogg, <name>_2.ogg .. <name>_5.ogg (the owner, 2026-10-27: 5 per place)
+const DROPPED := ["ending", "ending_4", "ending_5"] # tunes the owner took out (2026-10-27); their files are gone
+
+# how many tunes a place has once the dropped ones are taken out
+func count_for(name: String) -> int:
+	return VARIANTS - DROPPED.filter(func(f): return f == name or f.begins_with(name + "_")).size()
 const ROTATE := 100.0 # about two loops of a tune, then the place's next one
 
 var players: Array = []
@@ -122,8 +127,14 @@ func tune(name: String) -> AudioStream:
 # the next of the place's five files; the first visit starts at a random one
 func file_for(name: String) -> String:
 	var k: int = turn.get(name, randi() % VARIANTS)
+	var file := name if k == 0 else "%s_%d" % [name, k + 1]
+	for i in VARIANTS: # step past the dropped tunes
+		if file not in DROPPED:
+			break
+		k = (k + 1) % VARIANTS
+		file = name if k == 0 else "%s_%d" % [name, k + 1]
 	turn[name] = (k + 1) % VARIANTS
-	return name if k == 0 else "%s_%d" % [name, k + 1]
+	return file
 
 # crossfade from the tune that is playing to `name` (not restarted when it already plays)
 func play(name: String) -> void:
@@ -184,7 +195,10 @@ func tune_line() -> String:
 	var line: String = "♪ " + tr(TUNE_NAMES.get(name, ""))
 	if cur_file != "" and cur_file.begins_with(name) and name != "":
 		var k := 1 if cur_file == name else int(cur_file.get_slice("_", cur_file.get_slice_count("_") - 1))
-		line += " %d/%d  (%s)" % [k, VARIANTS, cur_file]
+		for i in range(1, k): # counted among the place's tunes that are left
+			if (name if i == 1 else "%s_%d" % [name, i]) in DROPPED:
+				k -= 1
+		line += " %d/%d  (%s)" % [k, count_for(name), cur_file]
 	if not m.music_on:
 		line += " " + tr("(배경 음악이 꺼져 있습니다)")
 	return line

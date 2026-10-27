@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn"]
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll"]
 
 func _ready() -> void:
 	run.call_deferred()
@@ -95,6 +95,24 @@ func park_mates(on: bool) -> void:
 		main.mate2 = parked[1]
 		parked = []
 		main.snap_mates()
+
+# a clear patch of marsh for the foe-behaviour tests: every tile within 5.5 of the centre walkable (the pond near (20, 30) is not)
+var open_spot := Vector2(-1, -1)
+func open_field() -> Vector2:
+	if open_spot.x >= 0.0:
+		return open_spot
+	for gz in range(12, 56, 2):
+		for gx in range(10, 44, 2):
+			var clear := true
+			for dz in range(-5, 6):
+				for dx in range(-5, 6):
+					if Vector2(dx, dz).length() <= 5.5 and not main.walkable(gx + 0.5 + dx, gz + 0.5 + dz):
+						clear = false
+			if clear:
+				open_spot = Vector2(gx + 0.5, gz + 0.5)
+				return open_spot
+	open_spot = Vector2(32.5, 22.5)
+	return open_spot
 
 func calm_enemies(on: bool) -> void:
 	for e in main.enemies:
@@ -456,6 +474,8 @@ func run() -> void:
 		var hp2: float = gob.hp
 		main.player.atk_cd = 0.0
 		main.guard_since = main.t - 2.0 # held long enough whatever the game clock did on a busy machine
+		gob.x = 31.2 # a goblin on cooldown now backs away from her while she waits; put it back in reach for the cut
+		gob.z = 30.0
 		main.attack()
 		main.fake_keys.clear()
 		var charged: bool = hp2 - gob.hp >= main.player.atk * 2.5
@@ -491,7 +511,7 @@ func run() -> void:
 		var quick: bool = absf(cd15 - cd1 * 0.8) < 0.01
 		main.player.lv = lv0
 		main.player.cds = [0.0, 0.0, 0.0, 0.0]
-		check("level_perks", foes == [0, 3, 8] and quick, "foe levels in the marsh %s (want [0, 3, 8]: 30%% of the old level share, area step 0) skill cd Lv15 %.2f vs Lv1 %.2f" % [str(foes), cd15, cd1])
+		check("level_perks", foes == [0, 5, 14] and quick, "foe levels in the marsh %s (want [0, 5, 14]: half of Sora's level, area step 0) skill cd Lv15 %.2f vs Lv1 %.2f" % [str(foes), cd15, cd1])
 	if want.call("gear_look"):
 		# bought blades tint the swing, bought armour rings her feet: tiers at 0, 1-2, 3-4, 5+
 		var sb0: Array = main.shop_bought.duplicate()
@@ -1658,6 +1678,7 @@ func run() -> void:
 		var spat := false
 		if crabs.size() == 1:
 			var c: Dictionary = crabs[0]
+			park_mates(true) # late in a full run a companion stood in the bricks' way and caught them
 			main.player.inv = 99.0
 			for i in 40:
 				reset_to(Vector2(c.x + 6.0, c.z)) # keep backing off: from afar the crab spits
@@ -1666,6 +1687,7 @@ func run() -> void:
 				if main.enemy_shots.size() >= 3:
 					spat = true
 					break
+			park_mates(false)
 			main.player.inv = 0.0
 			c.hp = 1.0
 			main.damage_enemy(c, 50.0, Vector2(c.x, c.z - 1.0))
@@ -2278,7 +2300,7 @@ func run() -> void:
 									why = str(r)
 							if boss:
 								var br: Rect2 = main.hud_build.boss_rect()
-								for r in [main.hud_build.STATUS_RECT, main.hud_build.DIAL_RECT, main.hud_build.mates_rect(), main.ui.mini.get_parent().get_global_rect()]:
+								for r in [main.hud_build.status_rect(), main.hud_build.dial_rect(), main.hud_build.mates_rect(), main.ui.mini.get_parent().get_global_rect()]:
 									if br.intersects(r) and (r as Rect2).size != Vector2.ZERO:
 										ok = false
 										why = "boss " + str(r)
@@ -2404,8 +2426,15 @@ func run() -> void:
 			mpeak = maxf(mpeak, mspr.position.y)
 			mnode = maxf(mnode, absf(main.mate.position.y))
 		release()
-		await wait(0.5)
-		var mrest: bool = mspr.position.y < 0.001
+		calm_enemies(true) # the pack goblins now hang back nearby, and a companion who sees one keeps going
+		var mrest := false
+		for i in 30: # he walks up to Sora first (late in a full run he may trail further), then stands still
+			await wait(0.1)
+			if mspr.position.y < 0.001 and Vector2(main.mate.position.x - main.player.x, main.mate.position.z - main.player.z).length() < 2.5:
+				await wait(0.3)
+				mrest = mspr.position.y < 0.001
+				break
+		calm_enemies(false)
 		check("folk_hop", peak > 0.1 and peak <= 0.1201 and peak_first > 0.1 and lows >= 4 and settled and node_flat and mpeak > 0.1 and mpeak <= 0.1201 and mnode < 0.001 and mrest,
 			"peak %.3f (first hop %.3f), landed %d times, settled in %.2f s, node on the ground=%s; Mulgyeol peak %.3f node %.3f, rests %s" % [peak, peak_first, lows, stopped_t, node_flat, mpeak, mnode, mrest])
 	if want.call("folk_height"):
@@ -2640,7 +2669,11 @@ func run() -> void:
 		var loops := true
 		for n in main.music.TUNES:
 			for k in main.music.VARIANTS:
-				var st = load("res://audio/bgm/%s.ogg" % (n if k == 0 else "%s_%d" % [n, k + 1]))
+				var fname: String = n if k == 0 else "%s_%d" % [n, k + 1]
+				if fname in main.music.DROPPED:
+					loops = loops and not FileAccess.file_exists("res://audio/bgm/%s.ogg" % fname)
+					continue
+				var st = load("res://audio/bgm/%s.ogg" % fname)
 				loops = loops and st is AudioStreamOggVorbis and st.loop
 		main.music.play("village")
 		var f0: String = main.music.cur_file
@@ -4296,7 +4329,7 @@ func run() -> void:
 		# the HUD draws one diamond per pip, all inside the 400 px bars
 		await wait(0.2)
 		var spots: Array = main.ui.hud.pip_spots()
-		var hud_ok: bool = spots.size() == 12 and (spots[11] as Vector2).x + 6.0 <= 400.0 and main.ui.hud.pips_drawn == 12
+		var hud_ok: bool = spots.size() == 12 and (spots[11] as Vector2).x + 6.0 <= main.ui.hud.bars_end() and main.ui.hud.pips_drawn == 12
 		# save and load keep the gauge
 		main.crown_pips = 5
 		main.save_game()
@@ -4347,7 +4380,7 @@ func run() -> void:
 			main.thirteenth = null
 		main.save_game()
 		check("pips", grew and once and hp_same and letter_line and hud_ok and saved and round_ok and old_ok,
-			"one pip at each place %s=%s once=%s max HP no longer grows=%s letter says max 9=%s HUD 12 inside 400 px=%s (%d drawn) save/load=%s new round keeps and fills=%s %s old save gets 3 back once=%s" % [str(steps), grew, once, hp_same, letter_line, hud_ok, main.ui.hud.pips_drawn, saved, round_ok, round_info, old_ok])
+			"one pip at each place %s=%s once=%s max HP no longer grows=%s letter says max 9=%s HUD 12 under the bars=%s (%d drawn) save/load=%s new round keeps and fills=%s %s old save gets 3 back once=%s" % [str(steps), grew, once, hp_same, letter_line, hud_ok, main.ui.hud.pips_drawn, saved, round_ok, round_info, old_ok])
 	if want.call("folk_chat"):
 		# villagers chatter: a line whose tags all fit, from someone within 4 tiles, never from someone asleep
 		if main.intro:
@@ -4737,7 +4770,7 @@ func run() -> void:
 		tap(KEY_E)
 		await wait(0.15)
 		main.close_story()
-		var chest: bool = main.mill_q == 5 and main.has_oar_ring and main.player.max_hp == hp0 + 10 and main.mate_power() == 0.7
+		var chest: bool = main.mill_q == 5 and main.has_oar_ring and main.player.max_hp == hp0 + 10 and main.mate_power() == 0.4
 		var saved = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
 		var kept: bool = saved != null and int(saved.get("mill_q", 0)) == 5 and bool(saved.get("has_oar_ring", false))
 		calm_enemies(false)
@@ -7487,6 +7520,408 @@ func run() -> void:
 		main.return_to_start()
 		main.set_quest(kq[2])
 		park_mates(false)
+	if want.call("pack_turns"):
+		var C := open_field()
+		# four goblins round Sora: one attacker at a time, the others flank (about 2.2 tiles) or hang back (about 3.5),
+		# never two wind-ups at once and at least 0.9 s between two swings
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		reset_to(C)
+		main.monsters.pack_cd = 0.0
+		var gobs: Array = []
+		for a in [0.3, 1.9, 3.5, 5.1]:
+			main.spawn_enemy(C + Vector2(4.5, 0).rotated(a))
+			var g: Dictionary = main.enemies[main.enemies.size() - 1]
+			g.cave = true # no respawn when it is cleared away
+			g.hp = 99999.0
+			g.atk_cd = 0.0
+			gobs.append(g)
+		var prev_cd: Array = [0.0, 0.0, 0.0, 0.0]
+		var swings: Array = []
+		var two_at_once := false
+		var flank_seen := false
+		var back_seen := false
+		for i in 160:
+			reset_to(C)
+			var winding := 0
+			for k in 4:
+				var g: Dictionary = gobs[k]
+				if g.get("wind", 0.0) > 0.0 or g.get("lwind", 0.0) > 0.0 or g.get("ldash", 0.0) > 0.0:
+					winding += 1
+				if g.atk_cd > prev_cd[k] + 0.5:
+					swings.append(Time.get_ticks_msec() / 1000.0)
+				prev_cd[k] = g.atk_cd
+				var gd: float = Vector2(g.x - C.x, g.z - C.y).length()
+				if i > 40 and gd > 1.9 and gd < 2.7:
+					flank_seen = true
+				if i > 40 and gd > 3.0 and gd < 4.2:
+					back_seen = true
+			if winding > 1:
+				two_at_once = true
+			await wait(0.05)
+		var min_gap := 99.0
+		for k in range(1, swings.size()):
+			min_gap = minf(min_gap, swings[k] - swings[k - 1])
+		for g in gobs:
+			g.dead = true
+			g.node.queue_free()
+			g.shadow.queue_free()
+		calm_enemies(false)
+		park_mates(false)
+		check("pack_turns", not two_at_once and swings.size() >= 2 and min_gap >= 0.9 and flank_seen and back_seen,
+			"never two wind-ups at once=%s, swings=%d, shortest gap %.2f s, a flanker near 2.2 tiles=%s, one hanging back near 3.5=%s" % [not two_at_once, swings.size(), min_gap, flank_seen, back_seen])
+	if want.call("goblin_lunge"):
+		var C := open_field()
+		# from 1.6 tiles the attacker lunges: 0.55 s wind-up with the direction locked and a fan shown, a short dash, one cut
+		# that hurts when she stays and misses (0.65 s open, seams showing) when she steps out of the locked line
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		var lunge_ok: Array = []
+		var lunge_why: Array = []
+		for trial in 2:
+			reset_to(C)
+			main.player.inv = 0.0
+			main.monsters.pack_cd = 0.0
+			main.spawn_enemy(C + Vector2(1.6, 0))
+			var g: Dictionary = main.enemies[main.enemies.size() - 1]
+			g.cave = true
+			g.hp = 99999.0
+			g.atk_cd = 0.0
+			g.lpick = 1
+			var hp0: float = main.player.hp
+			var t_wind := -1.0
+			var wind_len := 0.0
+			var dir_ok := false
+			var fan_shown := false
+			var hp_in_wind := true
+			var dashed := false
+			var x0: float = g.x
+			var moved := 0.0
+			var open_seen := false
+			var rec_seen := false
+			var stepped := false
+			for i in 50:
+				await wait(0.05)
+				var now := Time.get_ticks_msec() / 1000.0
+				if g.get("lwind", 0.0) > 0.0:
+					if t_wind < 0.0:
+						t_wind = now
+						dir_ok = g.ldir.x < -0.9
+						var tl = g.get("tele", null)
+						fan_shown = tl != null and is_instance_valid(tl) and tl.visible
+					if main.player.hp < hp0:
+						hp_in_wind = false
+					if trial == 1 and not stepped:
+						stepped = true
+						reset_to(C + Vector2(0, 3.5)) # out of the locked line
+				if g.get("ldash", 0.0) > 0.0:
+					if wind_len == 0.0:
+						wind_len = now - t_wind
+					dashed = true
+				if dashed:
+					moved = maxf(moved, x0 - g.x)
+				if g.get("seam", 0.0) > 0.0:
+					open_seen = true
+				if g.get("lrec", 0.0) > 0.0:
+					rec_seen = true
+				if dashed and g.get("ldash", 0.0) <= 0.0 and now - t_wind > 1.0:
+					break
+			var hurt: bool = main.player.hp < hp0
+			var good: bool = t_wind > 0.0 and dir_ok and fan_shown and hp_in_wind and dashed and wind_len > 0.45 and wind_len < 0.75 and moved > 0.3
+			if trial == 0:
+				good = good and hurt
+			else:
+				good = good and not hurt and open_seen and rec_seen
+			lunge_ok.append(good)
+			lunge_why.append("trial %d: winds up=%s locked=%s fan=%s no hurt in the wind-up=%s wind-up %.2f s dash %.2f tiles hurt=%s seam=%s rest=%s" % [trial, t_wind > 0.0, dir_ok, fan_shown, hp_in_wind, wind_len, moved, hurt, open_seen, rec_seen])
+			g.dead = true
+			g.node.queue_free()
+			g.shadow.queue_free()
+		reset_to(C)
+		calm_enemies(false)
+		park_mates(false)
+		check("goblin_lunge", lunge_ok[0] and lunge_ok[1], " | ".join(lunge_why))
+	if want.call("archer_backoff"):
+		var C := open_field()
+		# an archer with Sora inside 2 tiles hops back 1.2 tiles (once in 3 s, no damage); from further out it aims 0.65 s,
+		# the line turns white for the last 0.25 s and the brick (6 tiles/s, 1.2 s, 10 + level) follows the locked line
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		reset_to(C)
+		main.spawn_enemy(C + Vector2(1.5, 0), true)
+		var ar: Dictionary = main.enemies[main.enemies.size() - 1]
+		ar.cave = true
+		ar.hp = 99999.0
+		ar.atk_cd = 9.0
+		ar.hop_cd = 0.0
+		var hp0: float = main.player.hp
+		var ax0: float = ar.x
+		var hopped := false
+		for i in 12:
+			await wait(0.05)
+			if ar.get("hop", 0.0) > 0.0:
+				hopped = true
+		var back_off: float = ar.x - ax0
+		var cooled: bool = ar.hop_cd > 2.0
+		reset_to(Vector2(ar.x - 1.5, ar.z)) # inside 2 tiles again straight away
+		var twice := false
+		for i in 12:
+			await wait(0.05)
+			if ar.get("hop", 0.0) > 0.0:
+				twice = true
+		var calm_hop: bool = main.player.hp == hp0
+		# the aim
+		ar.x = C.x + 4.5
+		ar.z = C.y
+		ar.hop_cd = 20.0
+		ar.atk_cd = 0.0
+		ar.wind = 0.0
+		ar.hurt = 0.0
+		reset_to(C)
+		main.enemy_shots.clear()
+		var t_wind := -1.0
+		var t_lock := -1.0
+		var red_before := false
+		var white_at_lock := false
+		var t_shot := -1.0
+		var shot_ok := false
+		var shot_why := ""
+		for i in 60:
+			await wait(0.05)
+			var now := Time.get_ticks_msec() / 1000.0
+			var tl = ar.get("tele", null)
+			if ar.get("wind", 0.0) > 0.0 and t_wind < 0.0:
+				t_wind = now
+			if t_wind > 0.0 and ar.get("aim_locked", false) and t_lock < 0.0:
+				t_lock = now
+				reset_to(C + Vector2(0, 3)) # steps aside once the line is locked
+				if tl != null and is_instance_valid(tl):
+					var c: Color = tl.get_meta("mat").albedo_color
+					white_at_lock = c.g > 0.9 and c.b > 0.9
+			if t_wind > 0.0 and t_lock < 0.0 and tl != null and is_instance_valid(tl) and now - t_wind > 0.1:
+				var c2: Color = tl.get_meta("mat").albedo_color
+				red_before = c2.g < 0.5
+			if not main.enemy_shots.is_empty() and t_shot < 0.0:
+				t_shot = now
+				var sh: Dictionary = main.enemy_shots[0]
+				shot_ok = absf(sh.v.length() - 6.0) < 0.01 and sh.v.x < -5.8 and absf(sh.v.y) < 0.4 and absf(sh.life - 1.2) < 0.15 and sh.dmg == 10 + main.foe_hit()
+				shot_why = "v %s life %.2f dmg %d" % [sh.v, sh.life, sh.dmg]
+				break
+		var aim_len: float = t_shot - t_wind
+		var lock_at: float = t_lock - t_wind
+		for e in main.enemy_shots:
+			e.node.queue_free()
+		main.enemy_shots.clear()
+		ar.dead = true
+		ar.node.queue_free()
+		ar.shadow.queue_free()
+		calm_enemies(false)
+		park_mates(false)
+		check("archer_backoff", hopped and back_off > 0.9 and cooled and not twice and calm_hop and t_shot > 0.0 and aim_len > 0.55 and aim_len < 0.85 and lock_at > 0.3 and lock_at < 0.5 and red_before and white_at_lock and shot_ok,
+			"hopped=%s back %.2f tiles cooldown=%s no second hop=%s no damage=%s | aim %.2f s locked at %.2f s red before=%s white at lock=%s shot %s (%s)" % [hopped, back_off, cooled, not twice, calm_hop, aim_len, lock_at, red_before, white_at_lock, shot_ok, shot_why])
+	if want.call("wolf_turns"):
+		var C := open_field()
+		# three wolves: never two charging at once, a charge starts at least 0.4 s after the last one ends, more than one
+		# wolf gets a turn, and while one charges another waits on the far side
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		reset_to(C)
+		main.monsters.wolf_gap = 0.0
+		var wl: Array = []
+		for a in [0.4, 2.5, 4.6]:
+			main.spawn_wolf(C + Vector2(4.0, 0).rotated(a))
+			var w: Dictionary = main.enemies[main.enemies.size() - 1]
+			w.hp = 99999.0
+			w.atk_cd = 0.0
+			wl.append(w)
+		var hp_full: float = main.player.hp
+		var overlap := false
+		var charged: Dictionary = {}
+		var last_end := -9.0
+		var last_active := false
+		var short_gap := false
+		var far_side := false
+		var starts: Array = []
+		for i in 190:
+			reset_to(C)
+			main.player.hp = hp_full
+			var act: Array = wl.filter(func(e): return e.wind > 0.0 or e.dash > 0.0)
+			var now := Time.get_ticks_msec() / 1000.0
+			if act.size() > 1:
+				overlap = true
+			if act.size() == 1:
+				if not last_active and now - last_end < 0.33:
+					short_gap = true
+				if act[0].dash > 0.0:
+					charged[act[0].gid] = true
+				var ang_a: float = atan2(act[0].z - C.y, act[0].x - C.x)
+				for w in wl:
+					if w.gid == main.monsters.wolf_circler and w.gid != act[0].gid:
+						var off: float = absf(wrapf(atan2(w.z - C.y, w.x - C.x) - ang_a, -PI, PI))
+						if off > deg_to_rad(55.0) and off < deg_to_rad(125.0):
+							far_side = true
+			elif last_active:
+				last_end = now
+			last_active = act.size() == 1
+			await wait(0.05)
+		for w in wl:
+			w.dead = true
+			w.node.queue_free()
+			w.shadow.queue_free()
+		calm_enemies(false)
+		park_mates(false)
+		check("wolf_turns", not overlap and not short_gap and charged.size() >= 2 and far_side,
+			"never two at once=%s, 0.4 s gap kept=%s, wolves that charged=%d, a second wolf on the far side meanwhile=%s" % [not overlap, not short_gap, charged.size(), far_side])
+	if want.call("bat_double"):
+		var C := open_field()
+		# a swoop that misses is followed by one more (turned round); a swoop that hits is not; a blow on the bat during
+		# the second wind-up calls it off
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		reset_to(C)
+		main.spawn_bat(C + Vector2(3, 0))
+		var bt: Dictionary = main.enemies[main.enemies.size() - 1]
+		bt.hp = 99999.0
+		var res: Array = []
+		var why: Array = []
+		for trial in 3:
+			reset_to(C)
+			main.player.hp = float(main.player.max_hp)
+			main.player.inv = 5.0 if trial != 1 else 0.0 # a trial that hits and two that miss
+			bt.x = C.x + 1.8 # close enough that the dash carries it past her: the second swoop comes back the other way
+			bt.z = C.y
+			bt.wind = 0.0
+			bt.dash = 0.0
+			bt.rest = 0.0
+			bt.hurt = 0.0
+			bt.stun = 0.0
+			bt.swoops = 0
+			bt.landed = false
+			bt.atk_cd = 0.0
+			var dashes := 0
+			var was_dash := false
+			var dirs: Array = []
+			var wind_dir_ok := true
+			var rest_after := false
+			var cd_after := 0.0
+			var cut := false
+			var cut_left := 0
+			var shown := false
+			var hp0: float = main.player.hp
+			for i in 70:
+				if trial != 1:
+					main.player.inv = 5.0
+				await wait(0.05)
+				if bt.wind > 0.0:
+					var tl = bt.get("tele", null)
+					shown = shown or (tl != null and is_instance_valid(tl) and tl.visible)
+					if trial == 2 and bt.swoops == 1 and not cut:
+						cut = true
+						main.damage_enemy(bt, 1.0, Vector2(bt.x - 1.0, bt.z), 0.0) # a blow on the second wind-up
+				if bt.dash > 0.0 and not was_dash:
+					dashes += 1
+					dirs.append(bt.dir)
+				was_dash = bt.dash > 0.0
+				if dashes == (1 if trial == 1 else 2) and bt.rest > 0.0:
+					rest_after = true
+					cd_after = bt.atk_cd
+					break
+				if cut and bt.dash <= 0.0 and bt.wind <= 0.0 and i > 0:
+					cut_left += 1
+					if cut_left > 24:
+						break # a second after the blow: the bat has not swooped again
+			var turned: bool = dirs.size() == 2 and dirs[0].dot(dirs[1]) < 0.0
+			var hurt: bool = main.player.hp < hp0
+			if trial == 0:
+				res.append(dashes == 2 and turned and rest_after and cd_after > 2.0 and shown)
+			elif trial == 1:
+				res.append(dashes == 1 and hurt and rest_after)
+			else:
+				res.append(dashes == 1 and cut)
+			why.append("trial %d dashes=%d turned=%s rest=%s cd=%.1f hurt=%s line=%s" % [trial, dashes, turned, rest_after, cd_after, hurt, shown])
+		main.player.inv = 0.0
+		bt.dead = true
+		bt.node.queue_free()
+		bt.shadow.queue_free()
+		calm_enemies(false)
+		park_mates(false)
+		check("bat_double", res[0] and res[1] and res[2], " | ".join(why))
+	if want.call("hog_roll"):
+		var C := open_field()
+		# a hedgehog 3 tiles away rolls toward where she stood (path and burst circle shown, no damage on the way), stops,
+		# warns 0.6 s at the real stop and then bursts; with a wall in the way it stops short and still warns the full 0.6 s
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		var rolls: Array = []
+		var rwhy: Array = []
+		# a spot with a wall 0.8 tiles ahead and open ground 3 tiles ahead, found on the marsh grid
+		var wall_at := Vector2(-1, -1)
+		for gx in range(6, 44):
+			for gz in range(6, 60):
+				var px := float(gx) + 0.5
+				var pz := float(gz) + 0.5
+				if main.walkable(px, pz) and main.walkable(px - 1.0, pz) and not main.walkable(px + 0.8, pz) and main.walkable(px + 3.0, pz) and wall_at.x < 0.0:
+					wall_at = Vector2(px, pz)
+		for trial in 2:
+			if trial == 1 and wall_at.x < 0.0:
+				rolls.append(true)
+				rwhy.append("trial 1: no wall spot found on the marsh grid, skipped")
+				continue
+			var from_p := C + Vector2(3.0, 0.0) if trial == 0 else wall_at
+			var sora_p := C if trial == 0 else wall_at + Vector2(3.0, 0.0)
+			reset_to(sora_p)
+			main.player.inv = 0.0
+			main.monsters.spawn_hog(from_p)
+			var h: Dictionary = main.enemies[main.enemies.size() - 1]
+			h.hp = 99999.0
+			h.atk_cd = 0.0
+			var hp0: float = main.player.hp
+			var t_roll := -1.0
+			var t_stop := -1.0
+			var t_burst := -1.0
+			var locked := true
+			var safe_en_route := true
+			var rd := Vector2.ZERO
+			for i in 60:
+				await wait(0.05)
+				var now := Time.get_ticks_msec() / 1000.0
+				if h.rolling and t_roll < 0.0:
+					t_roll = now
+					rd = h.rdir
+					if trial == 0:
+						reset_to(C) # stays put: the burst should reach her
+				if h.rolling and h.rdir != rd:
+					locked = false
+				if h.rolling and h.curl > 0.6 and main.player.hp < hp0:
+					safe_en_route = false
+				if t_roll > 0.0 and t_stop < 0.0 and h.curl <= 0.6 and h.curl > 0.0:
+					t_stop = now
+				if t_stop > 0.0 and t_burst < 0.0 and h.dizzy > 0.0:
+					t_burst = now
+					break
+			var moved: float = Vector2(h.x, h.z).distance_to(from_p)
+			var warn: float = t_burst - t_stop
+			var hit: bool = main.player.hp < hp0
+			var good: bool = t_roll > 0.0 and locked and safe_en_route and warn > 0.5 and warn < 0.8 and h.atk_cd > 2.0
+			if trial == 0:
+				good = good and moved > 1.2 and moved < 1.6 and hit
+			else:
+				good = good and moved < 1.0 and not hit
+			rolls.append(good)
+			rwhy.append("trial %d rolled=%s locked=%s no damage on the way=%s travelled %.2f warning %.2f s hit=%s" % [trial, t_roll > 0.0, locked, safe_en_route, moved, warn, hit])
+			h.dead = true
+			h.node.queue_free()
+			h.shadow.queue_free()
+		reset_to(C)
+		calm_enemies(false)
+		park_mates(false)
+		check("hog_roll", rolls[0] and rolls[1], " | ".join(rwhy))
 	if want.call("stage_noeul"):
 		# ?stage=noeul: the preset save puts Sora in the village on the lantern night, and Noeul comes for the lamps
 		main.close_story()

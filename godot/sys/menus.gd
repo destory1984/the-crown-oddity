@@ -243,7 +243,26 @@ func news_text(n: int) -> String:
 		if line.begins_with("· ") and not out.is_empty() and out[-1] != "":
 			out.append("")
 		out.append(line)
+		if out.size() == 1: # under the progress line: how many changes so far (the owner, 2026-10-27)
+			out.append(tr("지금까지 고친 것: 모두 %d가지") % changes_count())
 	return Main.Ko.keep_words("\n".join(out))
+
+# every change listed: an entry with "    - " lines under it counts each of them, an entry without counts once
+func changes_count() -> int:
+	var total := 0
+	var open := false
+	var subs := 0
+	for s in Main.CHANGES:
+		if s.begins_with("· "):
+			if open:
+				total += maxi(subs, 1)
+			open = true
+			subs = 0
+		elif open and s.begins_with("    - "):
+			subs += 1
+	if open:
+		total += maxi(subs, 1)
+	return total
 
 func scale_text(l: Control) -> void:
 	m.text_bases.append([l, l.get_theme_font_size("normal_font_size" if l is RichTextLabel else "font_size")])

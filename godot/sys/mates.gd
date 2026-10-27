@@ -296,9 +296,9 @@ func update_mate2(dt: float) -> void:
 			best = dd
 			target = e
 	if target != null and m.mate2_cd <= 0.0 and not m.story_open:
-		m.mate2_cd = 1.1 if m.hollow_q >= 4 else 1.4
+		m.mate2_cd = 1.6 if m.hollow_q >= 4 else 2.0 # helpers, not the fighters (the owner, 2026-10-27): 1.4 -> 2.0 s
 		spr.frame = 2
-		m.damage_enemy(target, m.player.atk * 0.7, Vector2(m.mate2.position.x, m.mate2.position.z), 2.0)
+		m.damage_enemy(target, m.player.atk * 0.4, Vector2(m.mate2.position.x, m.mate2.position.z), 2.0)
 		m.burst(Vector3(target.x, 0.8, target.z), Color("#9a9a9a"), 12, 2.0)
 
 func update_mate(dt: float) -> void:
@@ -352,6 +352,6 @@ func update_mate(dt: float) -> void:
 	m.folk.hop("mulgyeol", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP)
 	spr.frame = 1 if fmod(m.t, 3.0) < 0.3 else 0
 	if target != null and best < 1.9 and m.mate_cd <= 0.0 and not m.story_open:
-		m.mate_cd = 1.0
+		m.mate_cd = 1.6 # 1.0 -> 1.6 s, so Sora does the fighting
 		m.damage_enemy(target, m.player.atk * m.mate_power(), Vector2(m.mate.position.x, m.mate.position.z), 3.0)
 		m.burst(Vector3(target.x, 0.8, target.z), Color("#7fd8d0"), 8, 1.6)

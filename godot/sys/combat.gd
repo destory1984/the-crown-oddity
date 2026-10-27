@@ -186,8 +186,13 @@ func area_step(x: float) -> int:
 			return a[1]
 	return 0
 
+# the owner found the field too easy (2026-10-27): half of Sora's level (was 30%) on top of the area step
 func foe_lv() -> int:
-	return int((m.player.lv + 1) / 2.0 * 0.6) + area_step(m.player.x)
+	return int(m.player.lv * 0.5) + area_step(m.player.x)
+
+# what a monster's blow adds per foe level: 2 (was 1), so blows keep up with Sora's +12 max HP a level
+func foe_hit() -> int:
+	return foe_lv() * 2
 
 func nearest_enemy(range_: float):
 	var best = null

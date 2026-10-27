@@ -623,7 +623,7 @@ func update_crab(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 				m.burst(Vector3(e.x + to.x / maxf(d, 0.01) * 1.2, 0.6, e.z + to.y / maxf(d, 0.01) * 1.2), Color("#ffd28a"), 12, 2.5)
 				m.sfx(900, 0.06, "square", 0.2, -400)
 				if d < 2.3:
-					m.player_hit(18 + m.foe_lv(), Vector2(e.x, e.z), e)
+					m.player_hit(18 + m.foe_hit(), Vector2(e.x, e.z), e)
 			else:
 				var n := 5 if angry else 3
 				for k in n:
