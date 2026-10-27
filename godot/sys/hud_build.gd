@@ -194,7 +194,7 @@ func quest_blocks(with_player := true) -> Array:
 		out.append(mates_rect())
 	if m.ui.boss.visible:
 		out.append(boss_rect())
-	out.append(m.ui.mini_bezel.get_global_rect() if m.ui.has("mini_bezel") else m.ui.mini.get_parent().get_global_rect()) # the bezel reaches past the map
+	out.append(m.ui.mini_bezel.get_global_rect() if m.ui.has("mini_bezel") else m.ui.mini.get_parent().get_global_rect()) # the brass teeth reach past the map
 	for b in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn]:
 		if (b as Control).visible:
 			out.append((b as Control).get_global_rect())
@@ -697,7 +697,7 @@ func build_hud() -> void:
 	m.ui.mini = mini
 	mini.main = m
 	mask.add_child(mini)
-	var bz := Control.new() # the glass bezel over the map (outside the clip)
+	var bz := Control.new() # the brass bezel over the map (outside the clip)
 	bz.set_script(load("res://minimap_bezel.gd"))
 	bz.main = m
 	bz.mask = mask
@@ -747,9 +747,9 @@ func build_hud() -> void:
 	var trows := [["touch_stick_base", "왼쪽 막대", "이동, 끝까지 밀면 달리기"], ["touch_attack", "칼", "공격 (연속기)"],
 		["touch_dodge", "화살표", "구르기 (때맞추면 섬광)"], ["touch_guard", "방패 (누른 채)", "막기 (때맞추면 반격, Lv4부터 1초 모아 칼)"],
 		["touch_crown", "팔찌 (E)", "말 걸기, 상자 열기, 들어가기, 팔찌 쓰기"],
-		["skill_0", "기술 그림 셋", "회오리·불씨탄·빛파동 (기세 30·15·60)"], ["skill_3", "초록 하트", "회복약"],
+		["skill_0", "기술 그림 셋", "회오리·불씨탄·빛파동 (기세 30·15·60)"], ["skill_3", "초록 물약 병", "회복약"],
 		["touch_zoom_in", "돋보기 둘", "확대·축소"], ["key_help", "물음표", "조작법"], ["key_sound", "스피커", "효과음 켜고 끄기"],
-		["key_journal", "책", "일지 (할 일과 곁이야기)"], ["key_gear", "톱니바퀴", "설정"]]
+		["key_journal", "할 일 판", "일지 (할 일과 곁이야기)"], ["key_gear", "톱니바퀴", "설정"]]
 	m.ui.help_touch_rows = []
 	for r in trows:
 		var ic := TextureRect.new()

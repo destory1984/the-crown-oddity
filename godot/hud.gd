@@ -158,17 +158,17 @@ func _draw() -> void:
 				var a1: float = -PI / 2 + sweep * k / 24.0
 				pts.append(sc + Vector2(cos(a1), sin(a1)) * 31) # over the moon-stone coin's gem (v0.0.101)
 			draw_colored_polygon(pts, Color(0, 0, 0, 0.6))
+		# under every coin its name, the key first on a keyboard (button draft 3, the owner 2026-10-27)
 		var kb := sc + Vector2(0, 42)
-		if main.touch_ui:
-			draw_rect(Rect2(kb - Vector2(30, 9), Vector2(60, 18)), NAVY)
-			draw_rect(Rect2(kb - Vector2(30, 9), Vector2(60, 18)), GOLD_DIM, false, 1.0)
-			text(kb + Vector2(-30, 5), names[i], 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60)
-		else:
-			draw_rect(Rect2(kb - Vector2(9, 9), Vector2(18, 18)), NAVY)
-			draw_rect(Rect2(kb - Vector2(9, 9), Vector2(18, 18)), GOLD_DIM, false, 1.0)
-			text(kb + Vector2(-9, 5), keys[i], 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 18)
+		text(kb + Vector2(-38, 5), names[i] if main.touch_ui else keys[i] + " " + names[i], 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 76)
 		if i == 3:
 			text(sc + Vector2(14, 30), "×%d" % p.pots, 12, TEXT)
+	# the bottom-left buttons' names, on the same line (the buttons are hud_build.icon_button, 68 px at x 8, 84, 160, 236)
+	if main.ui.hint.visible:
+		var left := [["H", "도움말"], ["M", "소리"], ["Q", "할 일"], ["Esc", "설정"]]
+		for i in 4:
+			var at := Vector2(8 + i * 76 + 34, vs.y - 17)
+			text(at + Vector2(-38, 5), left[i][1] if main.touch_ui else left[i][0] + " " + left[i][1], 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 76)
 	# ---- gold pill
 	var gp := Rect2(Vector2(vs.x - 139, vs.y - 129), Vector2(126, 28)) # its end diamond 8 px from the edge, 8 px over the skills
 	draw_rect(gp, NAVY)
