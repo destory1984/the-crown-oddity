@@ -60,7 +60,7 @@ func clock_quest() -> String:
 		2: return tr("시계방의 굳은 톱니를 팔찌로 풀자 (E) %d/3") % m.clock_gears.count(true)
 		3: return "태엽 열쇠 한가운데에 팔찌를 대자 (E)"
 		4: return "한결의 손잡이에서 박자에 맞춰 다 같이 밀자 (E)"
-	return "이야기 끝 · 정원을 마음껏 둘러보자 (정원 한가운데 태엽에서 E 두 번: 2회차)"
+	return "이야기 끝 · 정원을 마음껏 둘러보자" # no second-round line (the owner, 2026-10-28)
 
 func road_quest() -> String:
 	match m.road_q:

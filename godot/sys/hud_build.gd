@@ -135,10 +135,10 @@ func use_touch_help(on: bool) -> void:
 # ---- the top-centre blocks laid out from real rects (the user, 2026-10-25: the quest line ran over the companions' rows)
 # The status panel, the dial with the zone name and the companions' rows are fixed boxes in hud.gd and build_mate_hud;
 # the minimap, the menu keys, the zoom keys and the boss bar are read off their controls.
-# the portrait ring is as big as the minimap (186 px, the owner 2026-10-27) on a wide screen without touch keys; a
-# narrower window keeps the old 126 px ring, as the bars and the minimap would meet there
+# the portrait ring is as big as the minimap (186 px, the owner 2026-10-27, again 10-28: it stayed small on the
+# owner's screen); only a window under 760 px keeps the old 126 px ring, as the bars (to x 548) would meet the minimap
 func big_portrait() -> bool:
-	return m.get_viewport().get_visible_rect().size.x >= 1180.0 and not m.touch_ui
+	return m.get_viewport().get_visible_rect().size.x >= 760.0
 
 # the four bars with their numbers and the moon gauge
 func status_rect() -> Rect2:
@@ -230,7 +230,7 @@ func layout_top() -> void:
 	for i in m.ui.mate_rows.size():
 		m.ui.mate_rows[i].row.position.x = 206.0 if big_portrait() else 140.0
 	var mates := mates_rect()
-	var x0 := 296.0 if m.touch_ui else (mates.end.x + 8.0 if mates.size != Vector2.ZERO else (210.0 if big_portrait() else 244.0)) # right of the left column
+	var x0 := maxf(296.0, mates.end.x + 8.0) if m.touch_ui else (mates.end.x + 8.0 if mates.size != Vector2.ZERO else (210.0 if big_portrait() else 244.0)) # right of the left column
 	# boss bar: top centre on a wide screen; else in the free band between the left column and the minimap, or under the
 	# minimap and shrunk when that band is too narrow for its 440 px
 	var b: Control = m.ui.boss

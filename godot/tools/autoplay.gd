@@ -2211,7 +2211,7 @@ func run() -> void:
 		var boss_r: Rect2 = main.ui.boss.get_global_rect()
 		var quest_r: Rect2 = main.ui.quest.get_global_rect()
 		var mates_r := Rect2(140, 150, 146, 64) # the companions' two rows (build_mate_hud)
-		var clear: bool = not quest_r.intersects(mates_r) and not boss_r.intersects(mates_r) and quest_r.end.x <= vs.x - 194.0 and main.ui.quest.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART
+		var clear: bool = not quest_r.intersects(mates_r) and not boss_r.intersects(mates_r) and (quest_r.end.x <= vs.x - 194.0 or quest_r.position.y >= 202.0) and main.ui.quest.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART
 		for n in ["zoom_in", "zoom_out"]:
 			var zr := Rect2(tk[n][0] - Vector2.ONE * tk[n][1] * 1.1, Vector2.ONE * tk[n][1] * 2.2)
 			clear = clear and not zr.intersects(boss_r) and not zr.intersects(quest_r)

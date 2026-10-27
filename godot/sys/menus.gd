@@ -11,6 +11,7 @@ const SETTINGS_PATH := "user://settings.json"
 const MENU_GOLD := Color("#f6b951")
 const ODD_INK := Color("#e3efff")
 const ODD_MUTED := Color("#b6cbe0")
+const SOURCE_URL := "https://github.com/destory1984/the-crown-oddity" # the public site repo holds the source too
 const ICON_SVG := {
 	"help": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.4" d="M8.5 9a3.5 3.5 0 1 1 5.3 3c-1.1.7-1.8 1.4-1.8 2.8"/><circle cx="12" cy="18.6" r="0.6" stroke-width="1.6"/></svg>',
 	"journal": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h11a1.5 1.5 0 0 1 1.5 1.5V20H7a2 2 0 0 1 0-4h11.5"/><path d="M5 18V6a2 2 0 0 1 2-2"/><path d="M13 4v6l-1.8-1.3L9.4 10V4"/></svg>',
@@ -500,11 +501,24 @@ func build_settings(root: Control) -> void:
 	m.ui.news = news
 	m.ui.news_more = more
 	# About
-	# About holds only the maker (the user cut the rest)
-	var at := m.hud_build.label(m.ui.set_pages[3], "만든 사람", Vector2(0, 0), 18, Color("#eef3ff"))
-	at.size = Vector2(112, 20)
-	var ad := m.hud_build.wrap_label(m.ui.set_pages[3], "우주 한량, 우주 토끼, 구스테 단톡방 사람들", Vector2(122, 0), 518, 18, ODD_MUTED) # the owner, 2026-10-27
-	scale_text(ad)
+	# About as in Space Oddity (the owner, 2026-10-28): who made it, why, the code and a way to send a note; no Carl Sagan
+	var about := [
+		["만든 사람", "우주 한량, 우주 토끼, 구스테 단톡방 사람들", 0.0, "", ""], # the owner, 2026-10-27
+		["만든 이유", "2026.10.22, Space Oddity 다음으로 손바닥만 한 태엽 정원을 걸어 다니는 RPG를 만들고 싶었다.", 56.0, "", ""],
+		["만든 코드", "이 게임의 코드는 모두 공개되어 있다.", 140.0, "깃허브에서 보기", SOURCE_URL],
+		["의견", "넣고 싶은 것, 틀린 곳을 알려 주세요 (깃허브 계정 필요).", 232.0, "의견 보내기", SOURCE_URL + "/issues"],
+	]
+	m.ui.about_links = []
+	for r in about:
+		var at := m.hud_build.label(m.ui.set_pages[3], r[0], Vector2(0, r[2]), 18, Color("#eef3ff"))
+		at.size = Vector2(112, 20)
+		var ad := m.hud_build.wrap_label(m.ui.set_pages[3], r[1], Vector2(122, r[2]), 518, 18, ODD_MUTED)
+		scale_text(ad)
+		if r[3] != "":
+			var url: String = r[4]
+			var lb := set_button(m.ui.set_pages[3], r[3], Vector2(122, r[2] + 38.0), Vector2(200, 36), func(): OS.shell_open(url))
+			lb.set_meta("url", url)
+			m.ui.about_links.append(lb)
 	var foot := set_button(col, "놀이로 돌아가기", Vector2(0, 512), Vector2(640, 44), func(): toggle_settings(false))
 	foot.add_theme_font_size_override("font_size", 15)
 	foot.add_theme_color_override("font_color", Color("#eef3ff"))

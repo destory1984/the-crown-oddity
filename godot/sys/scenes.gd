@@ -82,6 +82,7 @@ const SCENES := {
 	"controls_big": {"play": true, "controls": true, "text": 3},
 	"settings_big": {"play": true, "settings": true, "text": 3},
 	"settings_news": {"play": true, "settings": true, "set_tab": 2}, # the Changes tab
+	"settings_about": {"play": true, "settings": true, "set_tab": 3},                      # the About tab
 	"settings_help": {"play": true, "settings": true, "set_tab": 1},                       # the Help tab with the music row
 	"settings_off": {"play": true, "settings": true, "set_tab": 1, "sound_off": true, "music_off": true}, # both header buttons in the off state
 	"hush": {"play": true, "village": true, "hush": true, "hour": 14.0},
