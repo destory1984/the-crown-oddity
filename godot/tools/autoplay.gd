@@ -2429,6 +2429,7 @@ func run() -> void:
 		calm_enemies(true) # the pack goblins now hang back nearby, and a companion who sees one keeps going
 		var mrest := false
 		for i in 30: # he walks up to Sora first (late in a full run he may trail further), then stands still
+			calm_enemies(true) # parked foes walk back (pack goblins since v0.1.8), and he would chase them
 			await wait(0.1)
 			if mspr.position.y < 0.001 and Vector2(main.mate.position.x - main.player.x, main.mate.position.z - main.player.z).length() < 2.5:
 				await wait(0.3)
@@ -3113,6 +3114,11 @@ func run() -> void:
 		main.rng.seed = 1984
 		tap(KEY_E)
 		var cast: bool = await wait_for(func(): return main.fish_state == "wait", 1.0)
+		if not cast: # the first press is sometimes lost late in a full run (twice now); the casts below re-press too
+			main.close_story()
+			reset_to(main.lake.marks.f)
+			tap(KEY_E)
+			cast = await wait_for(func(): return main.fish_state == "wait", 1.0)
 		tap(KEY_E) # too early
 		var early: bool = await wait_for(func(): return main.fish_state == "", 1.0)
 		var landed := 0

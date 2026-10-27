@@ -194,7 +194,7 @@ func quest_blocks(with_player := true) -> Array:
 		out.append(mates_rect())
 	if m.ui.boss.visible:
 		out.append(boss_rect())
-	out.append(m.ui.mini_bezel.get_global_rect() if m.ui.has("mini_bezel") else m.ui.mini.get_parent().get_global_rect()) # the brass teeth reach past the map
+	out.append(m.ui.mini_bezel.get_global_rect() if m.ui.has("mini_bezel") else m.ui.mini.get_parent().get_global_rect()) # the bezel reaches past the map
 	for b in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn]:
 		if (b as Control).visible:
 			out.append((b as Control).get_global_rect())
@@ -667,7 +667,7 @@ func build_hud() -> void:
 	circle.fill(Color(0, 0, 0, 0))
 	for y in 186:
 		for x in 186:
-			if Vector2(x - 92.5, y - 92.5).length() < 73: # inside the brass bezel's hole
+			if Vector2(x - 92.5, y - 92.5).length() < 73: # inside the bezel's hole
 				circle.set_pixel(x, y, Color.WHITE)
 	mask.texture = ImageTexture.create_from_image(circle)
 	mask.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
@@ -697,7 +697,7 @@ func build_hud() -> void:
 	m.ui.mini = mini
 	mini.main = m
 	mask.add_child(mini)
-	var bz := Control.new() # the brass bezel over the map (outside the clip)
+	var bz := Control.new() # the glass bezel over the map (outside the clip)
 	bz.set_script(load("res://minimap_bezel.gd"))
 	bz.main = m
 	bz.mask = mask
