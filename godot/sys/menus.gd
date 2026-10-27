@@ -503,7 +503,7 @@ func build_settings(root: Control) -> void:
 	# About holds only the maker (the user cut the rest)
 	var at := m.hud_build.label(m.ui.set_pages[3], "만든 사람", Vector2(0, 0), 18, Color("#eef3ff"))
 	at.size = Vector2(112, 20)
-	var ad := m.hud_build.wrap_label(m.ui.set_pages[3], "우주한량", Vector2(122, 0), 518, 18, ODD_MUTED)
+	var ad := m.hud_build.wrap_label(m.ui.set_pages[3], "우주 한량, 우주 토끼, 구스테 단톡방 사람들", Vector2(122, 0), 518, 18, ODD_MUTED) # the owner, 2026-10-27
 	scale_text(ad)
 	var foot := set_button(col, "놀이로 돌아가기", Vector2(0, 512), Vector2(640, 44), func(): toggle_settings(false))
 	foot.add_theme_font_size_override("font_size", 15)

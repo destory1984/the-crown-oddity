@@ -74,7 +74,7 @@ func update_mate_hud() -> void:
 	for i in 2:
 		var r: Dictionary = m.ui.mate_rows[i]
 		var node: Node3D = data[i][0]
-		r.row.visible = node != null and not m.intro and not m.in_cave
+		r.row.visible = node != null and not m.intro and not m.in_cave and not m.ui.get("picture", false)
 		if not r.row.visible:
 			continue
 		var id: String = ["mulgyeol", "noeul"][i]

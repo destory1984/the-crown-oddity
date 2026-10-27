@@ -32,7 +32,7 @@ const ROWS := """###############S##############
 #XXXXXXXiiiiiiiiiiiiiiiXXXXXX#
 #XXXXXXXiiiihiiiiiiiiiiXXXXXX#
 #XXXXXXXXiiiiiiiiiiiiiXXXXXXX#
-#XXXXXXXXXXiiiiGiiiiXXXXXXXXX#
+#XXXXXXXXXXiiiiiiGiiXXXXXXXXX#
 #XXXXXXXXXXXXXiiiXXXXXXXXXXXX#
 ##############Y###############
 #XXXXXXXXXXXXX.XXXXXXXXXXXXXX#

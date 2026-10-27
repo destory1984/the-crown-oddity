@@ -51,6 +51,7 @@ const SCENES := {
 	"road_echo": {"play": true, "village": true, "road": true, "echo": true, "hour": 14.0},
 	"clock": {"play": true, "village": true, "clock": true, "hour": 21.0},
 	"clock_wind": {"play": true, "village": true, "clock": true, "wind": true, "hour": 21.0},
+	"clock_picture": {"play": true, "village": true, "clock": true, "wind": true, "picture": true, "hour": 21.0},
 	"flies": {"play": true, "at": Vector2(8, 23), "hour": 22.5, "flies": true},
 	"crab": {"play": true, "village": true, "crab": true, "hour": 14.0},
 	"grotto_in": {"play": true, "village": true, "crab": true, "grotto_in": true, "hour": 21.0},
@@ -664,6 +665,15 @@ func apply_test_args(args: PackedStringArray) -> void:
 	if sc.get("gear", false): # five blades and five armours bought: a gold swing and the gold ring at her feet
 		m.shop_bought[2] = 5
 		m.shop_bought[3] = 5
+	if sc.get("picture", false): # story picture 14 is this room in the game (the owner, 2026-10-27): the key wound, all eight
+		# at their spokes, no HUD, a little closer
+		m.clock_q = 5
+		m.clock_still = true
+		m.garden.wind_look(true)
+		m.cam_dist = 16.0 # far enough that the crop round the key keeps Simji's hat
+		for c in m.ui.hud.get_parent().get_children():
+			c.visible = false
+		m.ui.picture = true # update_mate_hud leaves the companions' rows hidden
 	if sc.get("swing", false): # a swing caught mid-sweep, just before the picture at 4 s
 		m.cam_dist = 11.0
 		m.player.face = Vector2(1, 0)
