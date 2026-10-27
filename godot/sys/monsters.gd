@@ -625,11 +625,13 @@ func field_spots(area: String) -> Array:
 		"hill":
 			return m.hill.foes if m.hill_q >= 1 else []
 		"stairs":
-			return m.stairs.foes if m.stairs_spawned else []
+			return (m.stairs.foes + m.brick_foes.spots("stairs")) if m.stairs_spawned else []
+		"castle": # the castle's dry corridors: pendulum sentries only
+			return m.brick_foes.spots("castle") if m.castle_spawned else []
 		"garden": # the yard below the arena; not while the mold fight holds the garden
 			if not m.road_spawned or m.garden_q == 2 or m.garden_q == 3:
 				return []
-			return m.garden.road_foes
+			return m.garden.road_foes + m.brick_foes.spots("garden")
 		"lake": # the guards below the weir, without the yard's ambush (x >= 296)
 			if not m.south_spawned:
 				return []
@@ -642,6 +644,8 @@ func spawn_field(area: String, i: int, f: Array) -> void:
 		"w": spawn_wolf(at)
 		"b": spawn_bat(at)
 		"j": spawn_hog(at)
+		"h": m.brick_foes.spawn_hopper(at)
+		"p": m.brick_foes.spawn_pendulum(at)
 		_:
 			spawn_enemy(at, f[1] == "a")
 			if f[1] == "s":
@@ -672,10 +676,17 @@ func refill_field(area: String) -> void:
 
 func update_enemies(dt: float, gy: float) -> void:
 	pack_prepare(dt)
+	m.brick_foes.village_moths()
 	for e in m.enemies.duplicate():
 		if e.dead and e.get("boss", false):
 			continue
 		if e.dead and e.get("cave", false):
+			continue
+		if e.dead and e.get("bird", false): # the marsh keeps its 8 s respawn, a bird comes back as a bird
+			e.respawn -= dt
+			if e.respawn <= 0:
+				m.enemies.erase(e)
+				m.brick_foes.spawn_bird_random()
 			continue
 		if e.dead:
 			e.respawn -= dt
@@ -729,6 +740,18 @@ func update_enemies(dt: float, gy: float) -> void:
 		e.hurt -= dt
 		if e.get("hog", false):
 			update_hog(e, dt, d, to)
+			continue
+		if e.get("bird", false):
+			m.brick_foes.update_bird(e, dt, d, to)
+			continue
+		if e.get("moth", false):
+			m.brick_foes.update_moth(e, dt, d, to)
+			continue
+		if e.get("hopper", false):
+			m.brick_foes.update_hopper(e, dt, d, to)
+			continue
+		if e.get("pendulum", false):
+			m.brick_foes.update_pendulum(e, dt, d, to)
 			continue
 		if e.get("prop", false):
 			e.shadow.position = Vector3(e.x, 0.02, e.z)

@@ -54,6 +54,10 @@ const SCENES := {
 	"clock_wind": {"play": true, "village": true, "clock": true, "wind": true, "hour": 21.0},
 	"clock_picture": {"play": true, "village": true, "clock": true, "wind": true, "picture": true, "hour": 21.0},
 	"old_picture": {"play": true, "village": true, "clock": true, "wind": true, "picture": true, "keepers": true, "hour": 21.0}, # story picture 15: the old moonkeepers at the key
+	"bird": {"play": true, "at": Vector2(8, 23), "hour": 14.0, "foe": "bird", "gap": 2.2}, # 벽돌 딱따기새, beak up
+	"moth": {"play": true, "village": true, "hour": 22.0, "foe": "moth", "gap": 2.2}, # 벽돌 등나방, belly swelling
+	"hopper": {"play": true, "village": true, "road": true, "hour": 14.0, "foe": "hopper", "gap": 4.0, "sora": Vector2(239, 36)}, # 벽돌 씨앗통, lid open
+	"pendulum": {"play": true, "village": true, "castle": true, "stairs": true, "hour": 16.0, "foe": "pendulum", "gap": 2.2, "sora": Vector2(512, 19)}, # 벽돌 추시계병, arm up
 	"flies": {"play": true, "at": Vector2(8, 23), "hour": 22.5, "flies": true},
 	"crab": {"play": true, "village": true, "crab": true, "hour": 14.0},
 	"grotto_in": {"play": true, "village": true, "crab": true, "grotto_in": true, "hour": 21.0},
@@ -804,6 +808,14 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.crown_pips = 10
 	if sc.has("faint"):
 		m.get_tree().create_timer(sc.faint).timeout.connect(m.faint)
+	if sc.has("foe"): # one new brick foe east of Sora, its telegraph timed to be half done at the 4 s shot
+		m.close_story()
+		if sc.has("sora"):
+			m.player.x = sc.sora.x
+			m.player.z = sc.sora.y
+			m.ground_y = m.height_at(m.player.x, m.player.z)
+		var demo: Dictionary = m.brick_foes.spawn_demo(sc.foe, Vector2(m.player.x + float(sc.get("gap", 2.2)), m.player.z))
+		demo.atk_cd = {"bird": 3.65, "moth": 3.6, "hopper": 3.5, "pendulum": 3.5}[sc.foe] # the 4 s shot lands mid-telegraph
 	m.hour = float(opt.get("hour", sc.get("hour", m.hour)))
 	m.day = int(opt.get("day", sc.get("day", m.day)))
 	if opt.has("test"):

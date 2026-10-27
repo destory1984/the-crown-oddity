@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll"]
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes"]
 
 func _ready() -> void:
 	run.call_deferred()
@@ -1148,11 +1148,12 @@ func run() -> void:
 		main.hour = 23.0
 		main.crown_pips = 7
 		var d0: Dictionary = main.village.dark[0]
-		var n0: int = main.enemies.size()
+		var no_moth := func(): return main.enemies.filter(func(e): return not e.get("moth", false)).size() # the night moths come and go
+		var n0: int = no_moth.call()
 		reset_to(d0.pos + Vector2(-1.0, 0))
 		tap(KEY_E)
 		await wait(1.3)
-		check("lamp_cost_night", d0.lit and main.crown_pips == 6 and main.enemies.size() == n0 + 1, "lit=%s pips 7->%d goblin woke=%s" % [d0.lit, main.crown_pips, main.enemies.size() == n0 + 1])
+		check("lamp_cost_night", d0.lit and main.crown_pips == 6 and no_moth.call() == n0 + 1, "lit=%s pips 7->%d goblin woke=%s" % [d0.lit, main.crown_pips, no_moth.call() == n0 + 1])
 	if want.call("lamp_cost_day"):
 		main.hour = 13.0
 		main.crown_pips = 6
@@ -1176,6 +1177,9 @@ func run() -> void:
 				e.z = 2.0
 		main.hour = 23.0
 		main.crown_pips = 0
+		for e in main.enemies.filter(func(e): return e.get("moth", false)): # night moths fly back over the parked corner and break the rest
+			e.dead = true
+			e.hp = 0.0
 		var lit_lamp = main.lanterns.filter(func(l): return l.position.x > 130.0 and not l.get_meta("dark", false))[0]
 		reset_to(Vector2(lit_lamp.position.x + 0.4, lit_lamp.position.z + 1.0))
 		await wait(15.0)
@@ -2483,6 +2487,7 @@ func run() -> void:
 		for z in ["in_village", "in_forest", "in_lake", "in_garden", "in_cave", "in_hill"]:
 			main.set(z, false)
 		park_mates(true)
+		calm_enemies(true) # a foe's blow (the marsh's clapper birds roam at random) may knock her into the water: that rescue is not the keys' doing
 		var shore := Vector2(20, 30)
 		var field := Vector2(20, 30)
 		var fld := false
@@ -7326,7 +7331,7 @@ func run() -> void:
 			main.in_village = false
 			main.in_hill = true
 			main.hill_zone.spawn_mill_guard()
-			piles.append(main.enemies.slice(n1).filter(func(e): return not e.dead).size())
+			piles.append(main.enemies.slice(n1).filter(func(e): return not e.dead and not e.get("moth", false)).size()) # the faint wakes Sora in the village, where night moths come up
 			main.faint()
 			await wait(0.1)
 		check("bug_mill_pile", piles == [3, 3, 3], "foes at the channel on each return=%s" % [piles])
@@ -7933,6 +7938,89 @@ func run() -> void:
 		calm_enemies(false)
 		park_mates(false)
 		check("hog_roll", rolls[0] and rolls[1], " | ".join(rwhy))
+	if want.call("new_foes"):
+		# the four brick field foes (벽돌 딱따기새, 등나방, 씨앗통, 추시계병): each telegraphs, strikes where it warned and nowhere
+		# else, and shows its opening where specified; hp/damage scale from the goblin's; their spots lie on open floor
+		main.close_story()
+		calm_enemies(true)
+		park_mates(true)
+		var C := open_field()
+		var res: Array = []
+		var why: Array = []
+		var lv: int = main.foe_lv()
+		var hp_k := {"bird": 0.8, "moth": 0.6, "hopper": 1.0, "pendulum": 1.2}
+		var ok_all := true
+		for kind in ["bird", "moth", "hopper", "pendulum"]:
+			var hit_in := false
+			var hit_out := true
+			var line := ""
+			for inside in [true, false]:
+				var r: Dictionary = await nf_trial(kind, inside, C)
+				lv = main.foe_lv() # by Sora's x (area_step): read where the trial stood her, not where she was before
+				var good: bool = r.tele > 0.0 and r.hp == int(round(hp_k[kind] * (30 + lv * 14)))
+				if inside:
+					good = good and r.hit
+					hit_in = r.hit
+				else:
+					good = good and not r.hit
+					hit_out = r.hit
+				match kind:
+					"bird": good = good and r.seam > 0.0 and r.seam_len > 0.8 and r.seam_len < 0.95 and r.seam_at > 0.45 and r.seam_at < 0.85
+					"moth": good = good and r.rest > 0.0 and r.burst_at > 0.55 and r.burst_at < 0.95
+					"hopper": good = good and r.shots >= 3 and r.fire_at > 0.65 and r.fire_at < 1.1 # 0.8 s lid plus frames; 1.01 in a loaded full run
+					"pendulum": good = good and r.sweep > 0.0 and r.seam_gap > 0.8 and r.seam_gap < 1.35 and r.seam_len > 0.9 and r.seam_len < 1.05
+				ok_all = ok_all and good
+				line += "%s hit=%s tele=%.2f " % ["in" if inside else "out", r.hit, r.tele]
+				if inside:
+					line += "[hp %d (want %d) seam %.2f at %.2f len %.2f rest %.2f burst %.2f shots %d fire %.2f sweep %.2f gap %.2f] " % [r.hp, int(round(hp_k[kind] * (30 + lv * 14))), r.seam, r.seam_at, r.seam_len, r.rest, r.burst_at, r.shots, r.fire_at, r.sweep, r.seam_gap]
+			why.append("%s: %s" % [kind, line.strip_edges()])
+		# where they live: every spot on open floor, the village moths 6+ tiles from villagers, stalls and lanterns, no sentry near a diary page
+		var spots_ok := true
+		var bad: Array = []
+		for area in ["castle", "stairs", "garden"]:
+			for f in main.brick_foes.spots(area):
+				var at: Vector2 = f[0]
+				var c: String = {"castle": main.castle, "stairs": main.stairs, "garden": main.garden}[area].char_at(at.x, at.y)
+				if not main.walkable(at.x, at.y) or c not in ".,":
+					spots_ok = false
+					bad.append("%s %s '%s'" % [area, at, c])
+				if area == "castle":
+					for pg in main.castle.pages:
+						if pg.pos.distance_to(at) < 4.0:
+							spots_ok = false
+							bad.append("page near %s" % at)
+		var folk_tiles: Array = []
+		for fk in main.village.FOLK:
+			folk_tiles.append(Vector2(fk.at.x, fk.at.y))
+		for z in main.village.grid.size():
+			for x in main.village.grid[z].length():
+				if main.village.grid[z][x] in "Ld123NM":
+					folk_tiles.append(Vector2(x, z))
+		for p in main.brick_foes.MOTH_SPOTS:
+			var tile := Vector2(p.x, p.y)
+			if main.village.grid[p.y][p.x] not in ".=" or folk_tiles.any(func(q): return q.distance_to(tile) < 6.0):
+				spots_ok = false
+				bad.append("moth %s" % tile)
+		# the moths are up at night in the village and gone by day
+		var moths_night := 0
+		var moths_day := 0
+		var was_v: bool = main.in_village
+		var was_h: float = main.hour
+		main.in_village = true
+		main.hour = 22.0
+		main.brick_foes.village_moths()
+		moths_night = main.enemies.filter(func(e): return e.get("moth", false) and not e.dead).size()
+		main.hour = 12.0
+		main.brick_foes.village_moths()
+		moths_day = main.enemies.filter(func(e): return e.get("moth", false)).size()
+		main.in_village = was_v
+		main.hour = was_h
+		var marsh_birds: int = main.enemies.filter(func(e): return e.get("bird", false)).size()
+		check("new_foes", ok_all and spots_ok and moths_night == main.brick_foes.MOTH_SPOTS.size() and moths_day == 0 and marsh_birds >= 2,
+			"%s | spots ok=%s %s | moths night %d day %d | marsh birds %d" % [" | ".join(why), spots_ok, bad, moths_night, moths_day, marsh_birds])
+		reset_to(C)
+		calm_enemies(false)
+		park_mates(false)
 	if want.call("stage_noeul"):
 		# ?stage=noeul: the preset save puts Sora in the village on the lantern night, and Noeul comes for the lamps
 		main.close_story()
@@ -7955,6 +8043,59 @@ func run() -> void:
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)
+
+# one telegraph of a new brick foe: Sora stays put (inside) or steps out of the warned area once the telegraph shows
+func nf_trial(kind: String, inside: bool, C: Vector2) -> Dictionary:
+	var gap: float = {"bird": 2.0, "moth": 1.5, "hopper": 4.0 if inside else 5.5, "pendulum": 1.6}[kind]
+	var home := C + Vector2(gap, 0.0)
+	var away: Vector2 = {"bird": C + Vector2(0.0, 1.6), "moth": C + Vector2(-3.0, 0.0),
+		"hopper": home + Vector2(-cos(deg_to_rad(12.5)), sin(deg_to_rad(12.5))) * 5.0, "pendulum": home + Vector2(1.2, 0.0)}[kind]
+	reset_to(C)
+	main.player.inv = 0.0
+	var e: Dictionary = main.brick_foes.spawn_demo(kind, home)
+	var r := {"hp": e.max_hp, "hit": false, "tele": 0.0, "seam": 0.0, "seam_at": 0.0, "seam_len": 0.0, "rest": 0.0, "burst_at": 0.0,
+		"shots": 0, "fire_at": 0.0, "sweep": 0.0, "seam_gap": 0.0}
+	e.hp = 99999.0
+	var hp0: float = main.player.hp
+	var t0 := Time.get_ticks_msec() / 1000.0
+	var moved := false
+	for i in {"bird": 44, "moth": 50, "hopper": 50, "pendulum": 52}[kind]: # just short of its second telegraph
+		await wait(0.05)
+		var now := Time.get_ticks_msec() / 1000.0 - t0
+		if e.tele_t > 0.0 and r.tele == 0.0:
+			r.tele = now
+		if e.tele_t > 0.0 and not inside and not moved:
+			moved = true
+			reset_to(away)
+		if main.player.hp < hp0:
+			r.hit = true
+		if kind == "bird" and e.seam > 0.0 and r.seam == 0.0:
+			r.seam = e.seam
+			r.seam_at = now
+		r.seam_len = maxf(r.seam_len, e.seam) # the seam's longest remaining time seen: its length to within a frame
+		if kind == "moth" and e.rest > 0.0 and r.rest == 0.0:
+			r.rest = e.rest
+			r.burst_at = now
+		if kind == "hopper":
+			if main.enemy_shots.size() >= 3 and r.shots == 0:
+				r.shots = main.enemy_shots.size()
+				r.fire_at = now
+		if kind == "pendulum":
+			if e.sweep_t > 0.0 and r.sweep == 0.0:
+				r.sweep = now
+			if e.seam > 0.0 and r.seam == 0.0:
+				r.seam = e.seam
+				r.seam_gap = now - r.sweep
+				r.seam_at = now
+	e.dead = true
+	e.node.queue_free()
+	e.shadow.queue_free()
+	main.enemies.erase(e)
+	for sh in main.enemy_shots:
+		sh.node.queue_free()
+	main.enemy_shots.clear()
+	reset_to(C)
+	return r
 
 # Writes each named sound to DIR/name.wav and prints its shape:
 #   SOUND name dur=0.06s peak=0.31 rms=0.09 zcr=0.21

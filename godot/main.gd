@@ -48,6 +48,7 @@ var shop := preload("res://sys/shop.gd").new(self)
 var sora := preload("res://sys/sora.gd").new(self)
 var combat := preload("res://sys/combat.gd").new(self)
 var monsters := preload("res://sys/monsters.gd").new(self)
+var brick_foes := preload("res://sys/brick_foes.gd").new(self)
 var daynight := preload("res://sys/daynight.gd").new(self)
 var hud_build := preload("res://sys/hud_build.gd").new(self)
 var story := preload("res://sys/story.gd").new(self)
@@ -460,6 +461,8 @@ func _ready() -> void:
 	marsh.build(self)
 	hud_build.village_sign()
 	monsters.spawn_boss()
+	brick_foes.spawn_bird_random() # two brick clapper birds on open dry marsh
+	brick_foes.spawn_bird_random()
 	effects.build_particles()
 	hud_build.build_hud()
 	for l in [ui.story_text, ui.story_who, ui.journal_text, ui.journal_text2, ui.ways_text]:
@@ -695,6 +698,8 @@ const CHANGES_PAGE := 100 # lines of 바뀐 것 shown before the 더 읽기 butt
 const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
+	"2026-10-28 새벽",
+	"· v0.1.33: 벽돌 괴물 네 가지가 새로 나온다(설계는 GPT). 갈대늪의 벽돌 딱따기새는 부리를 0.6초 들었다가 붉은 선을 따라 한 번 쪼고, 그 뒤 0.9초 목 이음매가 열린다. 밤의 등불 마을 골목에는 벽돌 등나방이 0.7초 배를 부풀린 뒤 둥근 빛을 한 번 터뜨린다. 한결의 길 빈터에는 벽돌 씨앗통이 0.8초 뚜껑을 열었다가 세 갈래로 씨앗 벽돌을 쏜다. 달지기 성과 달 계단에는 벽돌 추시계병이 0.8초 추를 들었다가 앞쪽 반원을 한 번 쓸고, 1초 뒤 등 이음매가 열린다",
 	"2026-10-27 저녁",
 	"· v0.1.32: 곳마다 어울리는 식물을 하나씩 심었다(고른 것은 GPT). 갈대늪 물가에 부처꽃, 동굴 벽 밑에 솔이끼, 섬 밑 물빛 동굴에 우산이끼, 남쪽 호수 물가에 꽃창포, 호숫가 풀밭에 물망초, 굳은 숲 나무 밑에 은방울꽃, 구름 둔덕 섬 가장자리에 갯질경이, 달지기 성 벽 밑에 설강화, 달 계단에 솜다리, 한결의 길에 로즈메리를 심었다. 이야기가 끝난 뒤 정원 투기장에는 캐모마일이 더 핀다",
 	"· v0.1.31: 바람 언덕에 바람꽃, 억새, 민들레 홀씨를 넣었다. 쉼터 등불 2.5칸 안에 흰빛과 연보랏빛 바람꽃이 핀다. 울타리와 골짜기 옆 칸에는 억새가 한 칸 걸러 선다. 등불 곁에서 쉬는 동안 0.7초마다 민들레 홀씨가 바람을 타고 날아간다",

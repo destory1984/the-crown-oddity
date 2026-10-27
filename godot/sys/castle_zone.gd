@@ -126,6 +126,7 @@ func enter_castle() -> void:
 		for b in Main.BAT_SPOTS:
 			if b.x >= Main.CASTLE.CASTLE_X:
 				m.spawn_bat(b)
+	m.monsters.refill_field("castle") # the sentries: first visit and every later one
 	if m.castle_q == 0:
 		m.castle_q = 1
 		m.show_story("", Main.STORY.CASTLE_IN)
