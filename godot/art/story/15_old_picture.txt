@@ -1,14 +1,6 @@
-Use your image generation tool to create ONE image and save it as 15_old_picture.png in the current directory.
-
-The first attached image is the heroine Sora's turnaround: use it ONLY for the small gold crown with the blue diamond gem and for the blue-and-gold wrist cuffs. Sora herself is NOT in this picture.
-
-Subject: an OLD PAINTING kept for a hundred years in a village cupboard, seen straight on and filling the whole image (no room, no cupboard, no frame edge visible).
-In the painting: under a big full moon in a deep blue night sky, on a grassy hill, stands a big old clockwork key: a low brass hub with eight thick square wooden spokes, each with a short cross handle. Eight moonkeepers stand round it, one at each spoke, all pushing the same way together, in simple long travelling robes in muted blues and creams, each with blue-and-gold wrist cuffs like the attached reference. At the front centre is Hangyeol, the last moonkeeper: a gentle young person with short dark hair tied back, a calm small smile, wearing the same small gold crown with the blue diamond gem as the reference; Each moonkeeper stands at the OUTER END of one spoke, to the side of its cross handle, both hands on the grip at waist height, leaning into the push so they all walk the same way round (clockwise). Hangyeol holds the front spoke's handle alone, seen in a three-quarter view walking sideways with the push.
-WOOD RULES (the last two tries broke them): seen from a little above, so the whole wheel is visible. The wheel is turned so that NO spoke points straight at the viewer: the two front spokes point down-left and down-right. Every spoke is ONE unbroken straight beam from the brass hub out to its own short cross handle, which is fixed at the very end of that beam (a T shape). Each moonkeeper stands just OUTSIDE the end of a spoke, beside the T, both hands on the T; no beam, handle or T ever passes behind a head or in front of or through any body or robe, and no handle floats unattached. Bodies never overlap another person's beam. Hangyeol is at the down-right front spoke.
-Painting look: hand-painted folk picture in flat gouache, simple shapes, the same clean dark outlines and flat colors as the second attached image, but aged: colors faded and a little yellowed, a few soft creases and worn spots, slightly darker at the edges. Quiet and a bit sad, like a memory.
-Square image, 1:1.
-AVOID: no glow, no sparkles, no lens flare, no bokeh, no glossy AI shading, no text or signature on the painting, no logo, no watermark, no picture frame.
-ANATOMY: every figure has two arms and two legs, natural proportions.
-When done, reply with only the file path.
-
-AFTER: GPT drew only seven beams (the front-centre handle floated); the eighth beam was copied from the top beam and pasted from the hub to that handle by hand (PIL), 2026-10-27.
+Story picture 15 is a game capture, not an AI painting (the owner, 2026-10-28: stage it in the game).
+The scene old_picture (sys/scenes.gd) puts the eight moonkeepers of a hundred years ago at the clock room's key spokes,
+Hangyeol with the crown at the front spoke. Their sprites (art/folk/keepers/keeper_0..7.png) were drawn by GPT image
+generation as one sheet on magenta in the folk sprites' style and cut out by flood fill.
+    python tools/dev.py shot old_picture
+    python tools/old_picture.py   (crop round the key, fade, paper grain, creases, dark edges -> 15_old_picture.jpg)

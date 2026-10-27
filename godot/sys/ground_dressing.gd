@@ -78,6 +78,163 @@ func tuft_tex(ramp: Array, lean: float, flowers: int, blooms: Array) -> ImageTex
 			m.px(img, x, y - 1, 1, 3, c)
 			m.px(img, x, y, 1, 1, Color("#ffb030")))
 
+# a clump of cosmos (the owner, 2026-10-28: flowers that sway in the wind, in the village): four or five thin stems
+# twice the grass's height with feathery leaves, each topped by an eight-petal flower in pink, magenta or white
+# around a yellow middle; drawn tall so the grass shader (sway grows with height) rocks the heads the most
+func cosmos_tex(petals: Array) -> ImageTexture:
+	return m.make_tex(48, 96, func(img: Image):
+		var stem := Color("#4f8a34")
+		var leaf := Color("#6aa646")
+		for i in 4 + rng.randi() % 2:
+			var x := 8.0 + rng.randf() * 32.0
+			var h := 56.0 + rng.randf() * 34.0
+			var bend := rng.randf_range(-0.12, 0.12)
+			for y in int(h):
+				m.px(img, x, 95 - y, 1, 1, stem)
+				if y > 10 and y < h - 12 and y % 9 == 0: # feathery leaves: short thin sprigs either side
+					var side := 1.0 if (y / 9) % 2 == 0 else -1.0
+					for k in 4:
+						m.px(img, x + side * (k + 1), 95 - y - k * 0.6, 1, 1, leaf)
+				x += bend
+			var cx := x
+			var cy := 95.0 - h
+			var c := Color(petals[rng.randi() % petals.size()])
+			for a in 8: # petals 2 px wide out to 7 px, the tips a shade lighter so the head reads in warm light
+				var ang := a * TAU / 8.0 + rng.randf() * 0.2
+				for r in [2.0, 3.0, 4.0, 5.0, 6.0, 7.0]:
+					m.px(img, cx + cos(ang) * r, cy + sin(ang) * r * 0.8, 2, 2, c.lightened(0.25) if r >= 6.0 else c)
+			m.px(img, cx - 1, cy - 1, 3, 3, Color("#ffcf3a")))
+
+# wind anemones (바람꽃, the owner 2026-10-28, round the wind hill's rest lanterns): three to five hair-thin stems
+# about twice the grass's height, a pair of cut leaves low down, and one small five-petal head each, white or pale
+# lilac with a yellow eye; light heads on long stems so they nod the most in the wind
+func anemone_tex(petals: Array) -> ImageTexture:
+	return m.make_tex(48, 80, func(img: Image):
+		for i in 3 + rng.randi() % 3:
+			var x := 8.0 + rng.randf() * 32.0
+			var h := 40.0 + rng.randf() * 30.0
+			var bend := rng.randf_range(-0.15, 0.15)
+			for k in 3: # the leaves at the foot
+				m.px(img, x - 3 + k * 2, 76 - k, 2, 1, Color("#5e9a3e"))
+			for y in int(h):
+				m.px(img, x, 79 - y, 1, 1, Color("#5a8a3a"))
+				x += bend
+			var c := Color(petals[rng.randi() % petals.size()])
+			var cy := 79.0 - h
+			for a in 5:
+				var ang := a * TAU / 5.0 - PI / 2.0
+				for r in [1.5, 2.5, 3.5]:
+					m.px(img, x + cos(ang) * r, cy + sin(ang) * r * 0.8, 2, 2, c)
+			m.px(img, x, cy, 1, 1, Color("#ffd23a")))
+
+# silver grass (억새, along the wind hill's slopes): a fountain of long blades bending one way, each with a pale
+# feathery plume at its tip; drawn tall so it waves like a field
+func plume_tex() -> ImageTexture:
+	return m.make_tex(48, 96, func(img: Image):
+		for i in 14:
+			var x := 10.0 + rng.randf() * 28.0
+			var h := 50.0 + rng.randf() * 40.0
+			var bend := 0.25 + rng.randf() * 0.25
+			for y in int(h):
+				var k := y / h
+				m.px(img, x, 95 - y, 1, 1, Color("#7a9a4a").lerp(Color("#b8b088"), k))
+				x += bend * k
+			if i % 2 == 0: # a plume on every other blade: silver, a little pink at the root
+				for p in 12:
+					m.px(img, x - p * 0.35 + rng.randf(), 95 - h + p, 1, 1, Color("#f2eee4") if p > 3 else Color("#e6c8c0")))
+
+# one picture for each place's signature plant (the owner, 2026-10-28: "다른 장소에도 각각에 맞는 식물"; the picks and
+# colours are GPT's, scratchpad plants/codex.log). `o` keys: h (px, 48 or 96), stems, lo/hi (stem px), stem, leaf,
+# leaves ("pair", "blade", "needle", "round", "none"), head ("star", "spike", "bells", "pom", "umbrella", "iris",
+# "nod", "moss"), petals (colours), centre, n (petals), r (head radius px)
+func bloom_tex(o: Dictionary) -> ImageTexture:
+	var hh: int = o.get("h", 48)
+	return m.make_tex(48, hh, func(img: Image): _bloom_draw(img, o, hh))
+
+func _bloom_draw(img: Image, o: Dictionary, hh: int) -> void:
+	var petals: Array = o.petals
+	for i in int(o.get("stems", 3)):
+		var x := 8.0 + rng.randf() * 32.0
+		var h := rnd(float(o.lo), float(o.hi))
+		var bend := rnd(-0.12, 0.12)
+		var leaf := Color(o.get("leaf", o.stem))
+		match String(o.get("leaves", "pair")):
+			"pair":
+				for k in 3:
+					m.px(img, x - 3 + k, hh - 4 - k, 1, 1, leaf)
+					m.px(img, x + 1 + k, hh - 4 - k, 1, 1, leaf)
+			"blade": # sword leaves from the foot, as tall as the stem
+				for side in [-1.0, 1.0]:
+					for y in int(h * 0.8):
+						m.px(img, x + side * (1.0 + y * 0.06), hh - 1 - y, 1, 1, leaf)
+			"needle":
+				for k in 6:
+					m.px(img, x + rnd(-4, 4), hh - 1 - rnd(0, 6), 1, 2, leaf)
+			"round":
+				m.px(img, x - 4, hh - 4, 3, 2, leaf)
+				m.px(img, x + 2, hh - 5, 3, 2, leaf)
+		for y in int(h):
+			m.px(img, x, hh - 1 - y, 1, 1, Color(o.stem))
+			x += bend
+		var cy := float(hh - 1) - h
+		var c := Color(petals[rng.randi() % petals.size()])
+		var r: float = o.get("r", 3.0)
+		match String(o.get("head", "star")):
+			"star":
+				var n: int = o.get("n", 5)
+				for a in n:
+					var ang := a * TAU / n - PI / 2.0
+					for rr in range(1, int(r) + 1):
+						m.px(img, x + cos(ang) * rr, cy + sin(ang) * rr * 0.8, 2, 2, c)
+				m.px(img, x, cy, 2, 2, Color(o.get("centre", "#ffd23a")))
+			"spike": # small florets stacked up the top of the stem
+				for k in int(r * 3):
+					m.px(img, x + (1 if k % 2 == 0 else -2), cy + k, 2, 1, Color(petals[k % petals.size()]))
+			"bells": # an arching stalk with little hanging bells
+				for k in 4:
+					var bx := x + 1 + k * 2
+					m.px(img, bx, cy + k, 1, 1, Color(o.stem))
+					m.px(img, bx - 1, cy + k + 1, 3, 2, c)
+			"nod": # one white flower hanging from a curled tip
+				m.px(img, x + 1, cy, 2, 1, Color(o.stem))
+				m.px(img, x + 2, cy + 1, 2, 4, c)
+				m.px(img, x + 2, cy + 5, 2, 1, Color(o.get("centre", "#9ac89a")))
+			"pom": # a round ball of tiny flowers
+				for k in 10:
+					m.px(img, x + rnd(-r, r), cy + rnd(-r, r) * 0.8, 2, 2, Color(petals[k % petals.size()]))
+			"umbrella": # a flat glowing cap on a short stalk
+				m.px(img, x - r, cy, r * 2 + 1, 2, c)
+				m.px(img, x - r + 1, cy - 1, r * 2 - 1, 1, Color(o.get("centre", "#e0fff0")))
+			"iris": # three falls and a standard
+				m.px(img, x - 3, cy + 2, 3, 3, c)
+				m.px(img, x + 1, cy + 2, 3, 3, c)
+				m.px(img, x - 1, cy - 2, 2, 4, Color(petals[(rng.randi() + 1) % petals.size()]))
+				m.px(img, x - 1, cy + 3, 2, 1, Color(o.get("centre", "#e4c96b")))
+			"moss": # short star tips and two spore stalks
+				m.px(img, x - 1, cy, 3, 1, c)
+
+# floor tiles (chars in `floor`) with a char of `wall` beside them (4 ways), every `mod`th by a fixed hash, rows z0..z1:
+# where the cave, grotto, castle and cloud plants grow
+func wall_feet(grid: Array, origin_x: int, floor: String, wall: String, mod: int, z0 := 0, z1 := 999) -> Array:
+	var out: Array = []
+	for z in range(maxi(z0, 1), mini(z1, grid.size() - 1)):
+		var row: String = grid[z]
+		for x in range(1, row.length() - 1):
+			if not row[x] in floor or (x * 7 + z * 13) % mod != 0:
+				continue
+			for dd in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var zz: int = z + dd.y
+				var xx: int = x + dd.x
+				if zz >= 0 and zz < grid.size() and xx >= 0 and xx < String(grid[zz]).length() and String(grid[zz])[xx] in wall:
+					out.append(Vector2(origin_x + x, z))
+					break
+	return out
+
+# a place's plant on `tiles`: `per` clumps a tile, scaled lo..hi; never in the clearable vegetation, never counted
+# with the grass tufts the dressing tests count
+func plant(o: Dictionary, w: float, h: float, tiles: Array, per: int, sway: float, y := 0.0) -> MultiMesh:
+	return grass(bloom_tex(o), w, h, spots_on(tiles, y, per, 0.75, 1.1), sway, false)
+
 # tufts at spots (Vector4 x, ground y, z, scale), swaying with the grass shader; phones draw half, as in the marsh.
 # With `clearable` they join m.veg_meshes, so story.clear_vegetation can clear them like the marsh's; the maps that
 # never clear any stay out of it, so that loop does not walk thousands of tufts it will never move. Returns the mesh.

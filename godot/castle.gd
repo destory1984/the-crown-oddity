@@ -180,6 +180,12 @@ func build(m: Node) -> void:
 					if VENTS.has(c):
 						vent_pad(m, w, VENTS[c])
 	m.add_chunks(blocks, CASTLE_X)
+	# 설강화 at the wall feet of the halls (rows 2 - 20), one tile in five (the owner, 2026-10-28; GPT's pick)
+	var d = m.dressing
+	d.begin(4301)
+	d.plant({"stems": 3, "lo": 10, "hi": 18, "stem": "#7c9a7c", "leaf": "#395a50", "leaves": "blade", "head": "nod",
+		"petals": ["#fff4dc", "#d8e4d8", "#ffffff"], "centre": "#9ac89a"}, 0.6, 0.45, d.wall_feet(grid, CASTLE_X, ".", "#", 5, 2, 21), 1, 0.05)
+	d.end()
 	if not caps.is_empty():
 		var cap_mat := StandardMaterial3D.new() # unlit, so it reads the same by day and by night
 		cap_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

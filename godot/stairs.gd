@@ -95,6 +95,10 @@ func dress(m: Node, ground: Array) -> void:
 	var tuft: Texture2D = d.tuft_tex(["#4e6a5e", "#5a7868", "#668672", "#76947e", "#8aa690", "#a4bcaa", "#c8dacc"], 0.25, 3,
 		["#f4f0ff", "#d8ccff", "#fff6d8"])
 	dress_meshes.append(d.grass(tuft, 0.7, 0.38, d.spots_on(grass_tiles, 0.0, 3, 0.65, 1.0), 0.1, false))
+	# 솜다리 by the stair walls, every other moon-grass tile (the owner, 2026-10-28; GPT's pick)
+	var edel: Array = grass_tiles.filter(func(t): return int(t.x + t.y) % 2 == 0)
+	d.plant({"stems": 3, "lo": 8, "hi": 16, "stem": "#92a49a", "leaf": "#526b65", "leaves": "needle", "head": "star", "n": 6, "r": 3,
+		"petals": ["#f7f0d9", "#d9ddd4", "#ffffff"], "centre": "#e6d48a"}, 0.65, 0.42, edel, 1, 0.09)
 	d.end()
 
 func build(m: Node) -> void:

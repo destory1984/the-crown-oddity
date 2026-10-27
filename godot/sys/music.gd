@@ -14,11 +14,12 @@ const MUSIC_DB := -14.0 # the Music bus under the effects (Master stays at 0 dB)
 const OFF_DB := -80.0
 const FADE := 1.0 # the crossfade between two tunes, and the fade of the music switch
 const VARIANTS := 5 # <name>.ogg, <name>_2.ogg .. <name>_5.ogg (the owner, 2026-10-27: 5 per place)
-const DROPPED := ["ending", "ending_4", "ending_5"] # tunes the owner took out (2026-10-27); their files are gone
+const DROPPED := ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "night_2"] # tunes the owner took out (2026-10-27, and 6 more in the tune review page 10-28); their files are gone
 
 # how many tunes a place has once the dropped ones are taken out
 func count_for(name: String) -> int:
-	return VARIANTS - DROPPED.filter(func(f): return f == name or f.begins_with(name + "_")).size()
+	# "boss_final_4" is not one of "boss": only the name itself or the name and a number count
+	return VARIANTS - DROPPED.filter(func(f): return f == name or (f.begins_with(name + "_") and f.trim_prefix(name + "_").is_valid_int())).size()
 const ROTATE := 100.0 # about two loops of a tune, then the place's next one
 
 var players: Array = []

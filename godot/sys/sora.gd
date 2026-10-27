@@ -65,15 +65,7 @@ func build_player() -> void:
 		"lv": 1, "xp": 0, "hp": 100.0, "max_hp": 100, "mp": 0.0, "max_mp": 100, "sp": 100.0, "atk": 10, "gold": 0, "pots": 3,
 		"atk_cd": 0.0, "combo": 0, "combo_t": 0.0, "dodge": 0.0, "dvx": 0.0, "dvz": 0.0, "inv": 0.0, "cds": [0.0, 0.0, 0.0, 0.0], "hurt_t": 0.0,
 	}
-	# Sora walk sheets: 4 frames per row; straight rows front, left, right, away; diagonal rows dl, dr, ul, ur
-	var straight: Texture2D = load("res://art/sora/sora-v3-walk.png")
-	var diag: Texture2D = load("res://art/sora/sora-v3-diag.png")
-	for d in [["down", 0], ["left", 1], ["side", 2], ["up", 3]]:
-		m.hero_tex[d[0]] = [straight, d[1]]
-	for d in [["downleft", 0], ["downright", 1], ["upleft", 2], ["upright", 3]]:
-		m.hero_tex[d[0]] = [diag, d[1]]
 	m.hero = Sprite3D.new()
-	m.hero.texture = straight
 	m.hero.region_enabled = true
 	# stand upright (a fully camera-facing quad leans back and sinks its feet into the ground and grass)
 	# and stretch it by 1/cos(camera pitch) so it still reads at its true proportions
@@ -82,11 +74,7 @@ func build_player() -> void:
 	m.hero.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	m.hero.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	m.hero.shaded = false
-	# 192x256 cells like the idle sprites; she stands about 244 px tall with her feet 7 px above the cell bottom
-	m.hero.pixel_size = 1.58 / 244.0
-	m.hero.offset = Vector2(0, 121)
-	m.walk_px = m.hero.pixel_size
-	m.walk_off = m.hero.offset
+	load_sora_art()
 	m.add_child(m.hero)
 	# a faint see-through copy drawn over everything, so Sora stays readable behind roofs and trees
 	m.hero_ghost = Sprite3D.new()
@@ -101,6 +89,28 @@ func build_player() -> void:
 	m.hero.add_child(m.hero_ghost)
 	m.hero_shadow = blob(0.9)
 	set_hero_frame("down", 0)
+
+# Sora's sheets: the drawn 192x256 cells, or the Aseprite test (the owner, 2026-10-28): the same sheets shrunk to
+# 72x96 pixel art on one 24-colour palette (art/sora/px96, made in C:/_c/test1/aseprite with scripts/pack.lua).
+# Settings > 도트 소라 switches between them.
+func load_sora_art() -> void:
+	var px: bool = bool(m.cfg.get("sora_px", true))
+	var dir := "res://art/sora/px96/" if px else "res://art/sora/"
+	# walk sheets: 4 frames per row; straight rows front, left, right, away; diagonal rows dl, dr, ul, ur
+	var straight: Texture2D = load(dir + "sora-v3-walk.png")
+	var diag: Texture2D = load(dir + "sora-v3-diag.png")
+	for d in [["down", 0], ["left", 1], ["side", 2], ["up", 3]]:
+		m.hero_tex[d[0]] = [straight, d[1]]
+	for d in [["downleft", 0], ["downright", 1], ["upleft", 2], ["upright", 3]]:
+		m.hero_tex[d[0]] = [diag, d[1]]
+	m.idle_tex.clear()
+	# she stands about 244 px tall in a 256 px cell, feet 7 px above its bottom; the 96 px cells are 0.375 of that
+	var k := 96.0 / 256.0 if px else 1.0
+	m.walk_px = 1.58 / 244.0 / k
+	m.walk_off = Vector2(0, 121) * k
+	m.hero.texture = straight
+	m.hero.pixel_size = m.walk_px
+	m.hero.offset = m.walk_off
 
 func sync_ghost() -> void:
 	m.hero_ghost.texture = m.hero.texture
@@ -122,10 +132,13 @@ func set_hero_frame(dir: String, frame: int) -> void:
 
 func set_hero_idle(name: String, frame: int) -> void:
 	if not m.idle_tex.has(name):
-		m.idle_tex[name] = load("res://art/sora/idle/%s.png" % name)
-	m.hero.texture = m.idle_tex[name]
+		var px: bool = bool(m.cfg.get("sora_px", true)) and ResourceLoader.exists("res://art/sora/px96/%s.png" % name)
+		m.idle_tex[name] = load(("res://art/sora/px96/%s.png" if px else "res://art/sora/idle/%s.png") % name)
+	var tex: Texture2D = m.idle_tex[name]
+	m.hero.texture = tex
 	m.hero.flip_h = false
-	m.hero.region_rect = Rect2(frame * 192, 0, 192, 256)
+	var cw := tex.get_width() / 4.0
+	m.hero.region_rect = Rect2(frame * cw, 0, cw, tex.get_height())
 	m.hero.pixel_size = m.walk_px # same cell size and scale as the walk sheets
 	m.hero.offset = m.walk_off
 

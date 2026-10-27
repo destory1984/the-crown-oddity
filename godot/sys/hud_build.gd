@@ -989,6 +989,8 @@ func update_pips(dt: float) -> void:
 	m.rest_need = (3.0 if near_lamp else 6.0) * (0.6 if m.has_tea else 1.0) # twice as fast as 6 / 12 (the owner, 2026-10-26)
 	if (near_lamp or jar) and calm and still:
 		m.rest_t += dt
+		if m.in_hill and not m.in_cloud():
+			m.hill_zone.rest_seeds(dt)
 		if by_oak: # warm steam off the roots while she rests there
 			m.steam_t += dt
 			if m.steam_t >= 1.0:

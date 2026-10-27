@@ -136,7 +136,7 @@ func load_settings() -> void:
 	var d = JSON.parse_string(FileAccess.get_file_as_string(SETTINGS_PATH))
 	if typeof(d) != TYPE_DICTIONARY:
 		return
-	for k in ["text"]: # shake, tilt and nums are no longer options: an old "off" in the file is ignored
+	for k in ["text", "sora_px"]: # shake, tilt and nums are no longer options: an old "off" in the file is ignored
 		if d.has(k):
 			m.cfg[k] = d[k]
 	m.cfg.text = clampi(int(m.cfg.text), 0, Main.TEXT_SIZES.size() - 1)
@@ -375,7 +375,8 @@ func build_settings(root: Control) -> void:
 	m.ui.set_stacks = [[], [], [], []] # per page: [title, wrapped text, button or null], laid out top to bottom by height
 	# only the sound effects and the language are left here (the owner, 2026-10-27: the other options went; screen
 	# shake, the miniature blur and the damage numbers stay on), and the tune that plays, in a box the mouse can copy
-	var rows := [["sound", "효과음", "위의 스피커 단추, M 키, 화면 왼쪽 아래 단추로도 켜고 끈다."]]
+	var rows := [["sound", "효과음", "위의 스피커 단추, M 키, 화면 왼쪽 아래 단추로도 켜고 끈다."],
+		["sora_px", "도트 소라", "시험: 소라를 96px 도트 그림으로 그린다(Aseprite로 줄임). 끄면 예전 매끈한 그림이다."]]
 	for i in rows.size():
 		var r: Array = rows[i]
 		var y := i * 92
@@ -391,6 +392,9 @@ func build_settings(root: Control) -> void:
 				toggle_sound()
 			else:
 				m.cfg[key] = not bool(m.cfg[key])
+				if key == "sora_px":
+					m.sora.load_sora_art()
+					m.sora.set_hero_frame(m.player.dir, 0)
 			save_settings()
 			apply_settings())
 		m.ui.set_stacks[0].append([t, dsc, m.ui.set_rows[key]])

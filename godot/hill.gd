@@ -105,6 +105,9 @@ func _open_round(x: int, z: int) -> bool:
 				return false
 	return true
 
+var anemone_tiles: Array = [] # tiles with wind anemones (round the rest lanterns)
+var silver_tiles: Array = []  # tiles with silver grass (beside the fence and the gorge)
+
 func dress(m: Node, ground: Array, path: Array, tiles: Array) -> void:
 	var d = m.dressing
 	d.ground_blocks(ground, HILL_X, d.speckle_tex([Color("#7aa84a"), Color("#88b656"), Color("#88b656"), Color("#9cc464")]))
@@ -112,6 +115,34 @@ func dress(m: Node, ground: Array, path: Array, tiles: Array) -> void:
 	var tuft: Texture2D = d.tuft_tex(["#6c9638", "#7aa440", "#88b048", "#9cbf54", "#b4cf68", "#cde08a", "#e6efb2"], 0.7, 3,
 		["#fff6d8", "#ffe36a", "#c9b8ff"])
 	d.grass(tuft, 0.8, 0.5, d.spots_on(tiles, 0.0, 6), 0.2)
+	# wind anemones within 2.5 tiles of the rest lanterns, silver grass on the tiles beside the fence and the gorge
+	# (the owner, 2026-10-28)
+	var lamps: Array = []
+	for z in H:
+		for x in W:
+			if grid[z][x] == "L":
+				lamps.append(Vector2(HILL_X + x, z))
+	var anemone: Array = []
+	var silver: Array = []
+	for t in tiles:
+		if lamps.any(func(l): return l.distance_to(t) <= 2.5):
+			anemone.append(t)
+			continue
+		var tx := int(t.x) - HILL_X
+		var tz := int(t.y)
+		var edge := false
+		for dz in range(-1, 2):
+			for dx in range(-1, 2):
+				var zz := tz + dz
+				var xx := tx + dx
+				if zz >= 0 and zz < H and xx >= 0 and xx < W and grid[zz][xx] in "#_":
+					edge = true
+		if edge and (tx + tz) % 2 == 0:
+			silver.append(t)
+	anemone_tiles = anemone
+	silver_tiles = silver
+	d.grass(d.anemone_tex(["#ffffff", "#f4f0ff", "#e2d6ff", "#ffffff"]), 0.8, 0.85, d.spots_on(anemone, 0.0, 3, 0.8, 1.1), 0.24, false)
+	d.grass(d.plume_tex(), 1.0, 1.25, d.spots_on(silver, 0.0, 1, 0.85, 1.15), 0.26, false)
 
 func build(m: Node) -> void:
 	var blocks: Array = []

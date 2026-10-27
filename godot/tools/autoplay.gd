@@ -580,8 +580,8 @@ func run() -> void:
 			tufts += mm.instance_count
 		var per: Array = {"village_dressing": [3, 3], "lake_dressing": [5, 3], "forest_dressing": [4, 0], "stairs_dressing": [3, 0], "garden_dressing": [3, 0]}[area[0]]
 		var want_tufts: int = zone.grass_tiles.size() * per[0]
-		if zone == main.village:
-			want_tufts += zone.bed_tiles.size() * per[1]
+		if zone == main.village: # cosmos only, two clumps a tile (no grass since v0.1.29)
+			want_tufts = zone.cosmos_tiles.size() * 2
 		elif zone == main.lake:
 			want_tufts += zone.weed_tiles.size() * per[1]
 		elif zone == main.forest:
@@ -4215,7 +4215,7 @@ func run() -> void:
 		var h0: float = main.hour
 		await wait(0.5)
 		var paused: bool = main.hour == h0
-		var tilt_off: bool = main.ui.set_rows.keys() == ["sound"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
+		var tilt_off: bool = main.ui.set_rows.keys() == ["sound", "sora_px"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
 			and main.ui.now_tune.text.begins_with("♪") and not main.ui.now_tune.editable
 		main.ui.set_plus.emit_signal("pressed")
 		var bigger: bool = main.ui.story_text.get_theme_font_size("font_size") > 20
@@ -6018,7 +6018,7 @@ func run() -> void:
 		var hushing: bool = main.muted and main.idle_name == "see-hush" and main.bubbles_said == said0 + 1
 		main.idle_k = 5.0 # well past the fourth drawing, whatever the game clock did on a busy machine
 		await wait(0.1)
-		var held: bool = main.hero.region_rect.position.x == 3 * 192
+		var held: bool = main.hero.region_rect.position.x == 3 * main.hero.region_rect.size.x
 		main.toggle_sound()
 		await wait(0.2)
 		var quiet_on: bool = not main.muted and main.bubbles_said == said0 + 1

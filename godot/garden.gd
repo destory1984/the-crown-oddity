@@ -171,6 +171,14 @@ func dress(m: Node, yard: Array) -> void:
 	var bloom_beds: Array = bloom_tiles.filter(func(t): return int(t.x * 7.0 + t.y * 3.0) % 5 == 0)
 	bloom_meshes = [d.grass(lawn, 0.7, 0.36, d.spots_on(bloom_tiles, 0.0, 4, 0.7, 1.05), 0.08, false),
 		d.grass(flowers, 0.75, 0.42, d.spots_on(bloom_beds, 0.0, 2, 0.75, 1.05), 0.06, false)]
+	# after the ending the arena also gets 캐모마일 in loose drifts; 로즈메리 grows by the yard's walls on Hangyeol's road
+	# (the owner, 2026-10-28; GPT's picks)
+	var chamo: Array = bloom_tiles.filter(func(t): return int(t.x * 3.0 + t.y * 5.0) % 4 == 0)
+	bloom_meshes.append(d.plant({"stems": 5, "lo": 10, "hi": 20, "stem": "#8fb56a", "leaf": "#4b784a", "leaves": "needle", "head": "star",
+		"n": 8, "r": 3, "petals": ["#f3ebd7", "#ffffff"], "centre": "#e5bc4f"}, 0.7, 0.45, chamo, 1, 0.1))
+	var rosemary: Array = grass_tiles.filter(func(t): return int(t.x + t.y * 3.0) % 4 == 0)
+	d.plant({"stems": 4, "lo": 16, "hi": 28, "stem": "#465a51", "leaf": "#84998a", "leaves": "needle", "head": "spike", "r": 2,
+		"petals": ["#a99bc7", "#dbd0eb", "#84998a"]}, 0.7, 0.6, rosemary, 1, 0.06)
 	show_bloom(false)
 	d.end()
 

@@ -79,6 +79,12 @@ func build(m: Node) -> void:
 			if c == "#" and m.rng.randf() < 0.12: # a bricked water wheel stuck in the wall here and there
 				blocks.append([Transform3D(Basis().scaled(Vector3(0.9, 0.9, 0.2)), Vector3(w.x, 0.75, w.y + 0.45)), Color("#6a6a74")])
 	m.add_chunks(blocks, GROTTO_X)
+	# 우산이끼 at the wall feet, faintly glowing caps (the owner, 2026-10-28; GPT's pick)
+	var d = m.dressing
+	d.begin(3501)
+	d.plant({"stems": 5, "lo": 4, "hi": 9, "stem": "#315d64", "leaf": "#63a5a0", "leaves": "round", "head": "umbrella", "r": 3,
+		"petals": ["#63a5a0", "#a4ddd0"], "centre": "#e0fff0"}, 0.6, 0.3, d.wall_feet(grid, GROTTO_X, ".g", "#", 2), 1, 0.05)
+	d.end()
 	var post_mat: Material = m.mat_color(Color("#3b2a1e"))
 	var glass: Material = m.glow_mat(Color("#9fd8ff"), 4.0) # cold blue lamps under the water
 	glass.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED

@@ -41,6 +41,7 @@ var path_nodes: Array = []  # their glowing slabs, shown only while revealed
 var reveal_t := 0.0
 var shard_chest: Node3D
 var shard_open := false
+var downdraft: Node3D    # the glowing pad at S that takes Sora back down to the hill
 
 func _init() -> void:
 	for line in ROWS.split("\n"):
@@ -99,6 +100,12 @@ func build(m: Node) -> void:
 					bar.rotation.y = atan2(-dir.y, dir.x)
 					m.add_child(bar)
 	m.add_chunks(blocks, CLOUD_X)
+	# 갯질경이 cushions one tile in from the islands' edges, never on a vent (the owner, 2026-10-28; GPT's pick)
+	var d = m.dressing
+	d.begin(3901)
+	d.plant({"stems": 4, "lo": 8, "hi": 16, "stem": "#8daa88", "leaf": "#466d65", "leaves": "needle", "head": "pom", "r": 3,
+		"petals": ["#d899b6", "#f4d9e6", "#e8a8c4"]}, 0.6, 0.45, d.wall_feet(grid, CLOUD_X, ".ga", "_", 2), 1, 0.2)
+	d.end()
 	m.multimesh_of(clouds)
 	chest = Node3D.new()
 	var lid: Material = m.glow_mat(Color("#f2ead8"), 1.2)
@@ -124,6 +131,19 @@ func build(m: Node) -> void:
 		shard_chest.add_child(b)
 	shard_chest.position = Vector3(marks.q.x, 0, marks.q.y)
 	m.add_child(shard_chest)
+	# the way back down at S: a pale pad with wisps sinking into it, like the hill's updraft turned over (the owner,
+	# 2026-10-28: the way out could not be seen on the islands or the map)
+	var down := Node3D.new()
+	var dpad: MeshInstance3D = m.box(Vector3(1.0, 0.06, 1.0), m.glow_mat(Color("#7ab0ff"), 1.4)) # bluer than the clouds
+	dpad.position = Vector3(0, 0.03, 0)
+	down.add_child(dpad)
+	for k in 3:
+		var wisp: MeshInstance3D = m.box(Vector3(0.08, 0.5, 0.08), m.glow_mat(Color("#ffffff"), 1.0))
+		wisp.position = Vector3(cos(k * 2.1) * 0.3, 0.35 + k * 0.25, sin(k * 2.1) * 0.3)
+		down.add_child(wisp)
+	down.position = Vector3(marks.S.x, 0, marks.S.y)
+	m.add_child(down)
+	downdraft = down
 
 # the updraft on the hill: a pale ring of light at the hill's U
 func build_updraft(m: Node, at: Vector2) -> void:
@@ -166,4 +186,6 @@ func map_tex(width: int) -> ImageTexture:
 				"c": col = Color("#f2ead8")
 				"K": col = Color("#c8322a")
 			img.set_pixel(CLOUD_X + x, z, col)
-	return ImageTexture.create_from_image(img)
+	var tex := ImageTexture.create_from_image(img)
+	tex.set_meta("stairs", [[Vector2(CLOUD_X + 1, 10), false]]) # S, the way down to the hill, as the minimap's violet stairs
+	return tex

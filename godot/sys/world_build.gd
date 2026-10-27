@@ -345,6 +345,29 @@ func build_vegetation() -> void:
 	else:
 		vegetation(tuft, 0.8, 0.55, grass_spots, 0.12)
 	vegetation(cattail, 0.8, 1.7, cattail_spots, 0.07)
+	marsh_flowers()
+
+# 부처꽃 in small stands on the wet grass beside sand or water, one tile in four (the owner, 2026-10-28; GPT's pick);
+# the dressing's own stream, so the marsh's grass and props stay where they were
+func marsh_flowers() -> void:
+	var d = m.dressing
+	d.begin(1301)
+	var spots: Array = []
+	for z in range(1, Main.N - 1):
+		for x in range(1, Main.N - 1):
+			if m.map[m.idx(x, z)] != Main.GRASS or (x * 7 + z * 5) % 4 != 0:
+				continue
+			var wet := false
+			for dd in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+				var ty: int = m.map[m.idx(x + dd.x, z + dd.y)]
+				if ty == Main.SAND or ty == Main.WATER:
+					wet = true
+			if wet:
+				spots.append(Vector4(x + d.rnd(-0.4, 0.4), m.hgt[m.idx(x, z)], z + d.rnd(-0.4, 0.4), d.rnd(0.8, 1.1)))
+	var tex: Texture2D = d.bloom_tex({"h": 96, "stems": 3, "lo": 40, "hi": 66, "stem": "#526b3c", "leaf": "#809a50", "leaves": "pair",
+		"head": "spike", "r": 5, "petals": ["#a84e87", "#e8a5c7", "#c060a0"]})
+	d.grass(tex, 0.8, 1.3, spots, 0.17, false)
+	d.end()
 
 # the ways down under the ground (the cave mouth, the island's stair to the grotto, the castle's stair to the
 # undercroft) and the ways up out of an underground place show on the minimap as small upright stairs, violet going

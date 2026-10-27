@@ -53,6 +53,7 @@ const SCENES := {
 	"clock": {"play": true, "village": true, "clock": true, "hour": 21.0},
 	"clock_wind": {"play": true, "village": true, "clock": true, "wind": true, "hour": 21.0},
 	"clock_picture": {"play": true, "village": true, "clock": true, "wind": true, "picture": true, "hour": 21.0},
+	"old_picture": {"play": true, "village": true, "clock": true, "wind": true, "picture": true, "keepers": true, "hour": 21.0}, # story picture 15: the old moonkeepers at the key
 	"flies": {"play": true, "at": Vector2(8, 23), "hour": 22.5, "flies": true},
 	"crab": {"play": true, "village": true, "crab": true, "hour": 14.0},
 	"grotto_in": {"play": true, "village": true, "crab": true, "grotto_in": true, "hour": 21.0},
@@ -683,6 +684,43 @@ func apply_test_args(args: PackedStringArray) -> void:
 		for c in m.ui.hud.get_parent().get_children():
 			c.visible = false
 		m.ui.picture = true # update_mate_hud leaves the companions' rows hidden
+	if sc.get("keepers", false): # story picture 15 (the owner, 2026-10-28: stage it in the game): the eight moonkeepers of a
+		# hundred years ago at the spokes instead of today's cast; Hangyeol (keeper_4, with the crown) at the front spoke.
+		# tools/old_picture.py ages the shot into the painting
+		m.hero.visible = false
+		m.hero_shadow.visible = false
+		for n in [m.mate, m.mate2]:
+			if n != null:
+				n.visible = false
+		for id in m.clock_folk:
+			(m.clock_folk[id] as Node3D).visible = false
+		for w in m.workers:
+			(w.node as Node3D).visible = false
+		var order := [4, 0, 1, 2, 3, 5, 6, 7] # spoke k from the south, turning east
+		for k in 8:
+			var spr := Sprite3D.new()
+			spr.texture = load("res://art/folk/keepers/keeper_%d.png" % order[k])
+			spr.hframes = 2
+			spr.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+			spr.scale = Vector3(1, 1.0 / cos(0.78), 1)
+			spr.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+			spr.pixel_size = 1.75 / 170.0
+			spr.offset = Vector2(0, 85)
+			var ang := TAU * k / 8.0
+			spr.flip_h = cos(ang) > 0.1 # the sheet faces left; the near side walks right, the far side left
+			var spot: Vector2 = m.hand_spot(k)
+			spr.position = Vector3(spot.x, 0, spot.y)
+			spr.set_meta("keeper", true)
+			m.add_child(spr)
+		var o: Vector2 = m.garden.clock_marks.O
+		var hush_cast := func(): # today's people come back each frame (spokes, mates): hide every other figure near the key
+			for n in m.find_children("*", "Sprite3D", true, false):
+				var sp := n as Sprite3D
+				if not sp.has_meta("keeper") and Vector2(sp.global_position.x, sp.global_position.z).distance_to(o) < 5.0:
+					sp.visible = false
+		for t in [0.3, 1.0, 2.0, 3.0]:
+			m.get_tree().create_timer(t).timeout.connect(hush_cast)
 	if sc.get("swing", false): # a swing caught mid-sweep, just before the picture at 4 s
 		m.cam_dist = 11.0
 		m.player.face = Vector2(1, 0)

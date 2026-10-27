@@ -130,6 +130,13 @@ func dress(m: Node, ground: Array) -> void:
 	var weed: Texture2D = d.tuft_tex(["#2e5a4a", "#346650", "#3c7056", "#467c5c", "#548a62", "#6a9c6e"], 0.2, 1, ["#e8f0ff"])
 	dress_meshes.append(d.grass(tuft, 0.8, 0.45, d.spots_on(grass_tiles, 0.0, 5, 0.7, 1.1), 0.14, false))
 	dress_meshes.append(d.grass(weed, 0.7, 0.6, d.spots_on(weed_tiles, 0.0, 3, 0.7, 1.05), 0.16, false))
+	# 꽃창포 on a third of the water's-edge tiles, 물망초 on a fifth of the shore grass (the owner, 2026-10-28; GPT's picks)
+	var iris: Array = weed_tiles.filter(func(t): return int(t.x * 3.0 + t.y) % 3 == 0)
+	var forget: Array = grass_tiles.filter(func(t): return int(t.x + t.y * 7.0) % 5 == 0)
+	d.plant({"h": 96, "stems": 3, "lo": 38, "hi": 58, "stem": "#6d9363", "leaf": "#355d52", "leaves": "blade", "head": "iris",
+		"petals": ["#6b58a6", "#8a76c4", "#5a48a0"], "centre": "#e4c96b"}, 0.8, 1.2, iris, 1, 0.12)
+	d.plant({"stems": 6, "lo": 8, "hi": 18, "stem": "#78a482", "leaf": "#426f56", "leaves": "round", "head": "star", "n": 5, "r": 2,
+		"petals": ["#84bde6", "#9cc8ee", "#6aa8dc"], "centre": "#f2db86"}, 0.7, 0.45, forget, 1, 0.09)
 	d.end()
 
 func build(m: Node) -> void:

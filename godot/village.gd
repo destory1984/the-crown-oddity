@@ -95,6 +95,7 @@ const YARD := Rect2i(34, 12, 10, 7) # the target yard, fence and all: the throwi
 var grass_tiles: Array = [] # world tiles that got mown grass
 var bed_tiles: Array = []   # world tiles that got a flowerbed
 var dress_meshes: Array = [] # the tuft MultiMeshes (the tests count them)
+var cosmos_tiles: Array = [] # the tiles with two cosmos clumps each
 
 # local tiles that are used but have no char of their own: villagers' spots, the kid goblin and its guards, the
 # hardened field, the work props, the target yard
@@ -135,10 +136,23 @@ func dress(m: Node, ground: Array, path: Array) -> void:
 			bed_tiles.append(t)
 		else:
 			grass_tiles.append(t)
-	var mown: Texture2D = d.tuft_tex(["#4f8a2e", "#5a9632", "#64a038", "#70aa3e", "#80b84a", "#98c860"], 0.15, 1, ["#fff6d8"])
-	var bed: Texture2D = d.tuft_tex(["#4a8030", "#568c34", "#62983a", "#70a442"], 0.1, 9, ["#ff8aa8", "#e8483a", "#ffd24a", "#fff6d8", "#c98aff"])
-	dress_meshes.append(d.grass(mown, 0.7, 0.32, d.spots_on(grass_tiles, 0.0, 3, 0.7, 1.0), 0.08, false))
-	dress_meshes.append(d.grass(bed, 0.75, 0.42, d.spots_on(bed_tiles, 0.0, 3, 0.75, 1.05), 0.06, false))
+	# no grass tufts in the village any more, only cosmos (the owner, 2026-10-28: "마을에서 풀은 빼줘"): every flower
+	# bed, a band 3 tiles deep inside the village's edge, and every fourth lawn tile elsewhere; tall, so they rock
+	# more than grass did (strength 0.2)
+	cosmos_tiles = []
+	for t in grass_tiles:
+		var lx := int(t.x) - VILLAGE_X
+		var lz := int(t.y)
+		var edge := lx <= 3 or lx >= W - 4 or lz <= 3 or lz >= H - 4
+		if (edge and (lx * 7 + lz * 3) % 5 < 3) or (lx * 5 + lz * 11) % 4 == 0:
+			cosmos_tiles.append(t)
+	cosmos_tiles.append_array(bed_tiles)
+	var pink: Texture2D = d.cosmos_tex(["#ffb8dc", "#ffa0cc", "#ffe4f2", "#ffffff"])
+	var deep: Texture2D = d.cosmos_tex(["#ff7ab8", "#ffb8dc", "#ffffff", "#eaa0ff"])
+	var half_a: Array = cosmos_tiles.filter(func(t): return int(t.x + t.y) % 2 == 0)
+	var half_b: Array = cosmos_tiles.filter(func(t): return int(t.x + t.y) % 2 == 1)
+	dress_meshes.append(d.grass(pink, 0.9, 1.1, d.spots_on(half_a, 0.0, 2, 0.8, 1.1), 0.2, false))
+	dress_meshes.append(d.grass(deep, 0.9, 1.1, d.spots_on(half_b, 0.0, 2, 0.8, 1.1), 0.2, false))
 	d.end()
 
 func build(m: Node) -> void:

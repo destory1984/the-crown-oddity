@@ -333,6 +333,12 @@ func cave_map_tex() -> ImageTexture:
 
 # key chest, locked door and the wall painting with the rival's first appearance
 func build_cave_props() -> void:
+	# 솔이끼 at the wall feet, every third such tile (the owner, 2026-10-28; GPT's pick); its own random stream
+	var dr = m.dressing
+	dr.begin(1101)
+	dr.plant({"stems": 7, "lo": 3, "hi": 8, "stem": "#487464", "leaf": "#263f3b", "leaves": "needle", "head": "moss",
+		"petals": ["#8cb997", "#d0dda3"]}, 0.6, 0.25, dr.wall_feet(m.cave_grid, Main.CAVE_X, ".", "#", 3), 1, 0.05)
+	dr.end()
 	var k: Vector2 = m.cave_marks.K
 	m.key_chest = Sprite3D.new()
 	m.key_chest.texture = m.chest_open_tex if m.has_key else m.chest_shut_tex

@@ -39,6 +39,28 @@ func gust_char(x: float, z: float) -> String:
 		return m.stairs.char_at(x, z)
 	return m.castle.char_at(x, z) if x >= Main.CASTLE.CASTLE_X - 0.5 else m.cloud.char_at(x, z)
 
+# dandelion seeds drift past while Sora rests by a hill lantern (the owner, 2026-10-28): one every 0.7 s from a
+# little upwind, floating on the hill's wind and fading out
+var seed_t := 0.0
+func rest_seeds(dt: float) -> void:
+	seed_t += dt
+	if seed_t < 0.7:
+		return
+	seed_t = 0.0
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color("#fffdf4")
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var s: MeshInstance3D = m.box(Vector3(0.07, 0.07, 0.07), mat)
+	var from := Vector3(m.player.x - 2.5 + m.rnd(-0.5, 0.5), m.ground_y + m.rnd(0.6, 1.6), m.player.z + m.rnd(-1.2, 1.2))
+	s.position = from
+	m.add_child(s)
+	var tw := m.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(s, "position", from + Vector3(5.0, m.rnd(0.4, 1.4), m.rnd(-0.8, 0.8)), 3.2)
+	tw.tween_property(mat, "albedo_color:a", 0.0, 3.2).set_ease(Tween.EASE_IN)
+	tw.chain().tween_callback(s.queue_free)
+
 func enter_cloud() -> void:
 	m.player.x = m.cloud.marks.S.x + 1.2
 	m.player.z = m.cloud.marks.S.y

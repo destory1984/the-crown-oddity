@@ -187,6 +187,11 @@ func dress(m: Node, ground: Array, path: Array) -> void:
 	dress_meshes.append(d.grass(tuft, 0.8, 0.45, d.spots_on(grass_tiles, 0.0, 4, 0.7, 1.1), 0.1, false))
 	dress_meshes.append(d.grass(fern, 0.9, 0.55, d.spots_on(fern_tiles, 0.0, 1, 0.8, 1.15), 0.05, false))
 	dress_meshes.append(d.grass(shroom, 0.5, 0.32, d.spots_on(shroom_tiles, 0.0, 1, 0.75, 1.0), 0.01, false))
+	# 은방울꽃 under the trees: half the fern tiles and a few more of the dark grass (the owner, 2026-10-28; GPT's pick)
+	var lily: Array = fern_tiles.filter(func(t): return int(t.x + t.y) % 2 == 0)
+	lily.append_array(grass_tiles.filter(func(t): return int(t.x * 5.0 + t.y * 3.0) % 13 == 0))
+	d.plant({"stems": 4, "lo": 14, "hi": 24, "stem": "#64816a", "leaf": "#354c43", "leaves": "blade", "head": "bells",
+		"petals": ["#f4eee1", "#c9d5c2", "#ffffff"]}, 0.7, 0.55, lily, 1, 0.06)
 	d.end()
 
 func build(m: Node) -> void:
