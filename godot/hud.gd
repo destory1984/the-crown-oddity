@@ -64,19 +64,20 @@ func _draw() -> void:
 	var p: Dictionary = main.player
 	var vs := get_viewport_rect().size
 	# ---- portrait and level
-	# on a wide screen the ring is as big as the minimap's 186 px bezel (r 63 -> 93, the owner, 2026-10-27), 11 px lower
-	# than the minimap so the crown point above it stays on screen; a narrow window keeps r 63 (hud_build.big_portrait)
+	# on a wide screen the ring is as big as the minimap's 186 px bezel (r 63 -> 93, the owner, 2026-10-27) and level with
+	# it, 8 px from the top like the minimap (the owner, 2026-10-28), the crown point sitting on the ring's top instead of
+	# over it; a narrow window keeps r 63 and the crown point above (hud_build.big_portrait)
 	var big: bool = main.hud_build.big_portrait()
 	var r := 93.0 if big else 63.0
-	var c := Vector2(101, 112) if big else Vector2(71, 82)
+	var c := Vector2(101, 101) if big else Vector2(71, 82)
 	draw_circle(c, r - 1.0, NAVY)
 	var ph_half := 83.0 if big else 56.0
 	draw_texture_rect(portrait, Rect2(c - Vector2(ph_half, ph_half), Vector2(ph_half, ph_half) * 2.0), false)
 	draw_arc(c, r - (6.0 if big else 5.0), 0, TAU, 96, GOLD, 3.0 if big else 2.5, true)
 	draw_arc(c, r, 0, TAU, 96, GOLD_DIM, 1.0, true)
-	for ang in [-PI / 2, 0.0, PI]:
+	for ang in ([0.0, PI] if big else [-PI / 2, 0.0, PI]):
 		diamond(c + Vector2(cos(ang), sin(ang)) * r, 6 if big else 5, GOLD)
-	diamond(c + Vector2(0, -r - 11.0), 8 if big else 7, GOLD) # crown point
+	diamond(c + Vector2(0, -r if big else -r - 11.0), 8 if big else 7, GOLD) # crown point
 	var lb := c + Vector2(0, 89 if big else 60)
 	var lr := 16.0 if big else 14.0
 	draw_circle(lb, lr, Color("#0b1530"))
