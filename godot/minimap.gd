@@ -94,7 +94,20 @@ func _draw() -> void:
 	draw_circle(u, 5.0 * s, Color("#183070"))
 	draw_circle(u, 4.3 * s, Color("#f8f0e0"))
 	draw_texture_rect(sora_icon, Rect2(u - Vector2(4, 4) * s, Vector2(8, 8) * s), false)
-	# the rim, the N plate and the compass studs are minimap_bezel.gd, drawn over this clip (v0.0.104)
+	# the thin gold rim from before the brass bezel (the owner, 2026-10-27: back to the one before the brass)
+	# north badge rides the rim where north lies on screen
+	var n := Vector2(sin(main.cam_yaw), -cos(main.cam_yaw) * SQUASH).normalized()
+	var np := size / 2.0 + n * size.x * 0.42
+	draw_circle(np, 9.0, Color("#0b1530"))
+	draw_arc(np, 9.0, 0.0, TAU, 20, Color("#e8b018"), 1.0)
+	draw_string(main.ui_font, np + Vector2(-4, 4), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("#e8b018"))
+	var cc := size / 2.0
+	draw_arc(cc, size.x / 2.0 - 3.0, 0.0, TAU, 64, Color("#e8b018"), 2.0, true)
+	draw_arc(cc, size.x / 2.0 - 8.0, 0.0, TAU, 64, Color(0.91, 0.69, 0.09, 0.35), 1.0, true)
+	for k in 4: # small gold points at the four compass marks
+		var a := k * PI / 2.0
+		var q := cc + Vector2(cos(a), sin(a)) * (size.x / 2.0 - 3.0)
+		draw_colored_polygon(PackedVector2Array([q + Vector2(0, -5), q + Vector2(5, 0), q + Vector2(0, 5), q + Vector2(-5, 0)]), Color("#e8b018"))
 
 # a pulsing gold diamond with a dark "!" on it
 func draw_quest_mark(at: Vector2, s: float) -> void:
