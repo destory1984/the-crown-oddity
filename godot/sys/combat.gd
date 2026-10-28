@@ -194,6 +194,10 @@ func foe_lv() -> int:
 func foe_hit() -> int:
 	return foe_lv() * 2
 
+# the boss attacks that ignore foe_hit() (the owner, 2026-10-28: bosses tougher) add half of it on a single hit
+func boss_extra() -> int:
+	return int(0.5 * foe_hit())
+
 func nearest_enemy(range_: float):
 	var best = null
 	var bd := range_

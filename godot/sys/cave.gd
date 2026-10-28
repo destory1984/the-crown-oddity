@@ -501,14 +501,17 @@ func crystal_hit(e: Dictionary) -> void:
 		m.get_tree().create_timer(0.2).timeout.connect(func(): m.sfx(110, 0.25, "square", 0.15))
 
 func crystal_chest_key() -> bool:
-	if not m.crystal_done or m.has_ring or Vector2(m.player.x, m.player.z).distance_to(Vector2(m.crystal_chest.position.x, m.crystal_chest.position.z)) > 1.6:
+	if not m.crystal_done or m.tokens[1] or Vector2(m.player.x, m.player.z).distance_to(Vector2(m.crystal_chest.position.x, m.crystal_chest.position.z)) > 1.6:
 		return false
+	var first: bool = not m.has_ring # a new round keeps the ring: the chest only lights this round's token
 	m.has_ring = true
 	for b in m.crystal_chest.get_children():
 		b.transparency = 0.45
 	m.burst(m.crystal_chest.position + Vector3(0, 0.8, 0), Color("#9fe0ff"), 40, 3.0)
 	m.sfx(784, 0.12, "triangle", 0.25)
-	m.show_story("", Main.STORY.CRYSTAL_RING)
+	if first:
+		m.show_story("", Main.STORY.CRYSTAL_RING)
+	m.moon_tokens.earn(m.moon_tokens.RING)
 	m.save_game()
 	return true
 
@@ -851,7 +854,7 @@ func spawn_mole() -> void:
 		wheel.position = Vector3(side, 0.12, 0.18)
 		g.add_child(wheel)
 	m.add_child(node)
-	m.enemies.append({"x": b.x, "z": b.y, "hp": 1100.0, "max_hp": 1100, "node": node, "shadow": m.blob(1.8), "t": 0.0,
+	m.enemies.append({"x": b.x, "z": b.y, "hp": 1430.0, "max_hp": 1430, "node": node, "shadow": m.blob(1.8), "t": 0.0,
 		"atk_cd": 2.0, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": b.x, "wz": b.y, "dead": false, "respawn": 0.0,
 		"mole": true, "cave": true, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "stun": 0.0, "next": "charge", "rings": []})
 
@@ -879,7 +882,7 @@ func update_mole(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 			e.x = nx
 			e.z = nz
 			if Vector2(m.player.x - e.x, m.player.z - e.z).length() < 1.1:
-				m.player_hit(34, me - e.dir, e)
+				m.player_hit(34 + m.boss_extra(), me - e.dir, e)
 		else: # crashed into the wall; hurt, it turns and charges once more before it reels
 			e.dash = 0.0
 			if e.hp < e.max_hp / 2.0 and not e.get("again", false):
@@ -912,13 +915,13 @@ func update_mole(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 				m.shake = 0.4
 				m.sfx(60, 0.3, "square", 0.3, -20)
 				if Vector2(m.player.x, m.player.z).distance_to(r) < 1.4:
-					m.player_hit(30, r, e)
+					m.player_hit(30 + m.boss_extra(), r, e)
 				e.next = "dirt"
 			else:
 				for r in e.rings:
 					m.burst(Vector3(r.x, 0.3, r.y), Color("#8a6a4a"), 18, 3.5)
 					if Vector2(m.player.x, m.player.z).distance_to(r) < 1.2:
-						m.player_hit(24, r, e)
+						m.player_hit(24 + m.boss_extra(), r, e)
 				m.sfx(70, 0.25, "square", 0.25, -30)
 				e.next = "charge"
 			e.atk_cd = 0.8 if e.hp < e.max_hp / 2.0 else 1.1

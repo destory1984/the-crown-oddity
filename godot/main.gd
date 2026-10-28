@@ -72,6 +72,7 @@ var mates := preload("res://sys/mates.gd").new(self)
 var garden_zone := preload("res://sys/garden_zone.gd").new(self)
 var workshop_zone := preload("res://sys/workshop_zone.gd").new(self)
 var quest_marks := preload("res://sys/quest_marks.gd").new(self)
+var moon_tokens := preload("res://sys/tokens.gd").new(self)
 
 const N := 48
 const WATER := 0
@@ -699,6 +700,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.62: 곁일이 본줄기의 관문이 되고 보스가 단단해졌다. 달지기 표식 여섯(반딧불 병, 수정 반지, 물빛 진주, 다람쥐 다섯, 방앗간이나 달빛 시련, 서재의 책 다섯 권)을 회차마다 새로 모으고, 일지(Q)와 왼쪽 위 달빛 줄 아래에 n/6으로 보인다. 진주 표식이 있어야 마을에서 숲으로, 다람쥐 표식이 있어야 숲에서 언덕으로, 언덕 표식이 있어야 언덕에서 성으로 가며, 달의 계단 꼭대기 문은 여섯 중 넷이 있어야 연다. 이미 지난 곳은 다시 잠기지 않고, 못 가는 까닭은 이야기 상자와 할 일 줄이 알려 준다. 보스 체력은 벽돌왕 950 → 1235, 수레두더지 1100 → 1430, 노을 첫 겨루기 550 → 715, 거북 900 → 1170, 노을 둘째 겨루기 830 → 1328, 망토 노을 1000 → 1600, 벽돌 매 780 → 1248, 기사 1100 → 1760, 한결의 메아리 950 → 1520, 거푸집 1700 → 2720이다. 체력 계수로 넘어가던 일격에는 몬스터 피해의 절반이 더해졌고, 노을의 타격은 공격력의 40 → 25%, 물결은 35 → 25%(삿대 고리가 있으면 40 → 30%)로 줄었다.",
 	"· v0.1.61: 2회차부터 왼쪽 위 지역 이름 아래에 '★ 2회차 · 난이도 ×1.5'처럼 지금 회차와 괴물 배율을 금빛으로 늘 띄운다. 새 회차가 시작되면 화면 가운데에 '2회차 시작 · 괴물이 처음보다 1.5배 단단하고 아프다'가 4초 뜬다.",
 	"· v0.1.60: 싸우며 누르던 클릭이 막 열린 이야기 상자를 휙 넘겨 버리지 않게 했다. 상자가 열린 뒤 0.6초, 새 줄이 뜬 뒤 0.25초 동안은 클릭을 받지 않는다(키는 그대로). 넘겨 버린 엔딩은 일지(Q)의 '엔딩 다시 보기'로 다시 볼 수 있다.",
 	"· v0.1.59: 한결의 야영터에서 일기를 읽어도 할 일이 넘어가지 않던 것을 고쳤다. 갈고리와 일기장이 대각선 한 칸 거리라 E가 늘 갈고리를 먼저 집었다. 이제 둘 다 가까우면 더 가까운 쪽을, 할 일이 일기일 때는 일기를 먼저 읽는다.",
@@ -1474,6 +1476,7 @@ var grotto_q := 0           # 0 never entered, 1 inside, 2 fighting the crab, 3 
 var grotto_side := false    # the side-room chest is open
 var grotto_spawned := false
 var has_pearl := false      # 물빛 진주: stamina refills 1.5 times as fast
+var tokens: Array = [false, false, false, false, false, false] # the six moonkeeper tokens of THIS round (sys/tokens.gd): firefly jar, ring, pearl, squirrels, hill deed, library
 var marsh = MARSH.new()     # the map scraps and the moonkeeper chest
 var garden = GARDEN.new()
 var in_garden := false
@@ -2214,7 +2217,8 @@ func _process(dt: float) -> void:
 		fade_then(village_life.leave_village)
 	if in_village and Vector2(player.x, player.z).distance_to(village.marks.F) < 0.9 and fade_rect.color.a == 0.0:
 		if lake_q >= 4:
-			fade_then(enter_forest)
+			if moon_tokens.gate("forest", village.marks.F): # the pearl token (the owner, 2026-10-28: side deeds gate the road)
+				fade_then(enter_forest)
 		elif toast_t <= 0.0:
 			toast("동쪽 숲길은 회색 벽돌로 막혀 있다" if night_q < 4 else "물결 없이 혼자 가지 않기로 했다. 남쪽 호수로 가자")
 	if in_forest and Vector2(player.x, player.z).distance_to(forest.marks.S) < 0.9 and fade_rect.color.a == 0.0:
@@ -2223,14 +2227,16 @@ func _process(dt: float) -> void:
 		forest_zone.update_forest()
 	if in_forest and Vector2(player.x, player.z).distance_to(forest.marks.E) < 0.9 and fade_rect.color.a == 0.0:
 		if forest_q >= 3:
-			fade_then(enter_hill)
+			if moon_tokens.gate("hill", forest.marks.E): # the squirrels token
+				fade_then(enter_hill)
 		elif toast_t <= 0.0:
 			toast("노을이 길을 막고 있다")
 	if in_hill and Vector2(player.x, player.z).distance_to(hill.marks.S) < 0.9 and fade_rect.color.a == 0.0:
 		fade_then(hill_zone.leave_hill)
 	if in_hill and Vector2(player.x, player.z).distance_to(hill.marks.X) < 0.9 and fade_rect.color.a == 0.0:
 		if hill_q >= 3:
-			fade_then(enter_castle)
+			if moon_tokens.gate("castle", hill.marks.X): # the hill deed: the sparrow mill or the moon trial
+				fade_then(enter_castle)
 		elif toast_t <= 0.0:
 			toast("벽돌 매가 하늘을 지키고 있다")
 	if in_hill and not in_cloud() and Vector2(player.x, player.z).distance_to(hill.marks.U) < 0.8 and fade_rect.color.a == 0.0:
@@ -2263,7 +2269,8 @@ func _process(dt: float) -> void:
 	if in_stairs() and gust_dir == Vector2.ZERO and Vector2(player.x, player.z).distance_to(stairs.marks.S) < 0.8 and fade_rect.color.a == 0.0:
 		fade_then(castle_zone.leave_stairs)
 	if in_stairs() and Vector2(player.x, player.z).distance_to(stairs.marks.N) < 0.8 and fade_rect.color.a == 0.0:
-		fade_then(enter_garden)
+		if moon_tokens.gate("garden", stairs.marks.N): # four of the six tokens, until the yard below was entered
+			fade_then(enter_garden)
 	if in_castle() and castle_q == 1 and castle.door_open and not story_open and gust_dir == Vector2.ZERO and Vector2(player.x, player.z).distance_to(castle.marks.K) < 5.0:
 		castle_q = 2
 		show_story("", STORY.KNIGHT_IN)
@@ -2510,6 +2517,7 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 func gain_xp(n: int) -> void: combat.gain_xp(n)
 func foe_lv() -> int: return combat.foe_lv()
 func foe_hit() -> int: return combat.foe_hit()
+func boss_extra() -> int: return combat.boss_extra()
 func attack() -> void: combat.attack()
 func skill_cost(i: int) -> int: return combat.skill_cost(i)
 func use_skill(i: int) -> void: combat.use_skill(i)

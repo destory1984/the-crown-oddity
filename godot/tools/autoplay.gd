@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -1142,7 +1142,10 @@ func run() -> void:
 		main.forest_q = 3
 		main.repair_story_step({})
 		var repaired: bool = main.story_step == 10
+		var tk0: Array = main.tokens.duplicate()
+		main.tokens[3] = true # the squirrels token, or the line names the cages (v0.1.62)
 		var road: String = main.main_road_quest()
+		main.tokens = tk0
 		main.story_step = st0
 		main.forest_q = fq0
 		main.night_q = nq0
@@ -1628,6 +1631,7 @@ func run() -> void:
 		main.night_q = 4
 		main.lake_q = 4
 		main.forest_q = 0
+		main.tokens[2] = true # the road to the forest asks for the pearl token (v0.1.62)
 		main.hour = 22.0
 		reset_to(main.village.marks.F + Vector2(-0.3, 0))
 		await wait(1.5)
@@ -1668,6 +1672,7 @@ func run() -> void:
 	if want.call("hill"):
 		main.forest_q = 3
 		main.hill_q = 0
+		main.tokens[3] = true # the way east out of the forest asks for the squirrels token (v0.1.62)
 		main.in_village = false
 		main.in_forest = true
 		main.hour = 22.0
@@ -1747,7 +1752,7 @@ func run() -> void:
 		var mold: Array = main.enemies.filter(func(e): return e.get("mold", false) and not e.dead)
 		var fought: bool = main.garden_q == 2 and mold.size() == 1
 		if fought:
-			mold[0].hp = mold[0].max_hp * 0.13
+			mold[0].hp = mold[0].max_hp * 0.125 # just over the 12% lock; the blow below must carry it under (the mold has 2720 HP since v0.1.62)
 			main.damage_enemy(mold[0], 30.0, Vector2(main.player.x, main.player.z))
 			await wait(0.3)
 		var locked: bool = main.garden_q == 3 and mold.size() == 1 and mold[0].locked and main.crown_pips == 0
@@ -1859,6 +1864,7 @@ func run() -> void:
 		main.kid_q = 3
 		main.doran_q = 3
 		main.fly_q = 0
+		main.tokens[0] = false # the jar is lent again in this test: the firefly token comes with it (v0.1.62)
 		main.met["kongal"] = true
 		main.in_village = true
 		main.in_forest = false
@@ -1889,11 +1895,12 @@ func run() -> void:
 		tap(KEY_E)
 		await wait(0.3)
 		main.close_story()
-		var lent: bool = main.fly_q == 3 and main.jar_node != null and main.player.gold == g0 + 30
+		var lent: bool = main.fly_q == 3 and main.jar_node != null and main.player.gold == g0 + 30 and main.tokens[0]
 		main.in_village = false
 		calm_enemies(false)
 		check("firefly_errand", asked and hidden_by_day and walk_ok and full and lent, "asked=%s hidden by day=%s spots walkable=%s caught=%d lent jar=%s" % [asked, hidden_by_day, walk_ok, main.marsh.caught(), lent])
 	if want.call("grotto"):
+		main.tokens[2] = false # the pearl comes with its token (v0.1.62)
 		main.in_village = false
 		main.in_forest = false
 		main.in_hill = false
@@ -1956,7 +1963,7 @@ func run() -> void:
 		tap(KEY_E)
 		await wait(0.2)
 		main.close_story()
-		var pearl: bool = main.has_pearl and main.grotto_q == 4
+		var pearl: bool = main.has_pearl and main.grotto_q == 4 and main.tokens[2]
 		var g0: int = main.player.gold
 		reset_to(main.grotto.marks.p + Vector2(0, 1.0))
 		tap(KEY_SPACE)
@@ -2036,6 +2043,7 @@ func run() -> void:
 		main.in_hill = true
 		main.hill_q = 3
 		main.castle_q = 0
+		main.tokens[4] = true # the way to the castle asks for the hill deed (v0.1.62)
 		main.has_unbrick = true
 		main.has_skip = true
 		main.crown_pips = 8
@@ -2241,6 +2249,7 @@ func run() -> void:
 		main.night_q = 4
 		main.hill_q = 3
 		main.trial_best = 0.0
+		main.tokens[4] = false # the first clear gives the hill token (v0.1.62)
 		calm_enemies(true)
 		var stones: Vector2 = main.hill.marks.R
 		reset_to(stones + Vector2(0, 1.0))
@@ -2270,7 +2279,7 @@ func run() -> void:
 				break
 			await wait(0.3)
 		main.close_story()
-		var cleared: bool = main.trial_best > 0.0 and main.player.gold >= g0 + 300 and main.player.max_hp == hp0 + 20 + 12 * (main.player.lv - lv0) # kills level her up too
+		var cleared: bool = main.trial_best > 0.0 and main.tokens[4] and main.player.gold >= g0 + 300 and main.player.max_hp == hp0 + 20 + 12 * (main.player.lv - lv0) # kills level her up too
 		calm_enemies(false)
 		check("trial", began and waves == 5 and cleared, "began=%s waves seen=%d cleared=%s best %.1f s" % [began, waves, cleared, main.trial_best])
 	if want.call("squirrels"):
@@ -2282,6 +2291,7 @@ func run() -> void:
 		main.forest_q = maxi(main.forest_q, 1)
 		main.forest.freed = [false, false, false, false, false]
 		main.has_acorn = false
+		main.tokens[3] = false # the fifth cage gives the squirrels token (v0.1.62)
 		main.cages_spawned = false
 		main.spawn_cages()
 		var cages: Array = main.enemies.filter(func(e): return e.has("cage") and not e.dead)
@@ -2304,7 +2314,7 @@ func run() -> void:
 		main.player.cds[3] = 0.0
 		tap(KEY_4)
 		await wait(0.1)
-		var acorn: bool = main.has_acorn and main.player.hp >= 75.0 - 0.5
+		var acorn: bool = main.has_acorn and main.tokens[3] and main.player.hp >= 75.0 - 0.5
 		main.in_forest = false
 		check("squirrels", cages.size() == 5 and spots and two_hits and acorn, "cages=%d reachable=%s still shut after 2 hits=%s acorn heals 65=%s (hp %.0f)" % [cages.size(), spots, two_hits, acorn, main.player.hp])
 	if want.call("crystals"):
@@ -2317,6 +2327,7 @@ func run() -> void:
 		main.crystal_done = false
 		main.crystal_run = 0
 		main.has_ring = false
+		main.tokens[1] = false # the chest gives the ring token (v0.1.62)
 		var by_rank := {}
 		for e in cr:
 			by_rank[main.CRYSTAL_NOTE[int(e.crystal)]] = e
@@ -2347,7 +2358,7 @@ func run() -> void:
 		await wait(0.2)
 		main.close_story()
 		main.in_cave = false
-		check("crystals", cr.size() == 4 and sword_rings and reset and done and reach and main.has_ring, "crystals=%d sword rings=%s wrong note resets=%s solved=%s chest reachable=%s ring=%s" % [cr.size(), sword_rings, reset, done, reach, main.has_ring])
+		check("crystals", cr.size() == 4 and sword_rings and reset and done and reach and main.has_ring and main.tokens[1], "crystals=%d sword rings=%s wrong note resets=%s solved=%s chest reachable=%s ring=%s" % [cr.size(), sword_rings, reset, done, reach, main.has_ring])
 	if want.call("esc_sheets"):
 		# Esc on the journal or the controls sheet closes it and goes back to the game, not to the settings (the user asked)
 		if main.intro:
@@ -3893,7 +3904,10 @@ func run() -> void:
 		main.hill_q = 0
 		main.castle_q = 0
 		main.garden_q = 0
+		var tk1: Array = main.tokens.duplicate()
+		main.tokens[3] = true # the squirrels token, or the line names the cages (v0.1.62)
 		main.leave_cave()
+		main.tokens = tk1
 		cave_q = cave_q and plain(main.ui.quest.text) == main.tr("숲 동쪽 끝 길로, 바람 언덕에 가자")
 		main.forest_q = road0[0]
 		main.hill_q = road0[1]
@@ -4420,6 +4434,7 @@ func run() -> void:
 		main.in_village = false
 		main.in_hill = true
 		main.has_bookmark = false
+		main.tokens[5] = false # the fifth book gives the library token (v0.1.62)
 		for bk in main.castle.books:
 			bk.read = false
 		var reach := true
@@ -4437,7 +4452,7 @@ func run() -> void:
 		main.gain_xp(10)
 		var more: bool = main.player.lv > lv0 or main.player.xp == xp0 + 12
 		main.in_hill = false
-		check("books", reach and main.has_bookmark and more, "shelves reachable=%s bookmark=%s xp x1.2=%s" % [reach, main.has_bookmark, more])
+		check("books", reach and main.has_bookmark and main.tokens[5] and more, "shelves reachable=%s bookmark=%s xp x1.2=%s" % [reach, main.has_bookmark, more])
 	if want.call("bori_e"):
 		await wait(0.2)
 		main.close_story() # the books test leaves the bookmark scene queued
@@ -4907,6 +4922,7 @@ func run() -> void:
 		main.forest_q = 3
 		main.hill_q = 3
 		main.castle_q = 3
+		main.tokens = [true, true, true, true, true, true] # the stairs' top door asks for four (v0.1.62)
 		main.hollow_q = 4
 		main.garden_q = 0
 		main.road_q = 0
@@ -4955,7 +4971,7 @@ func run() -> void:
 		main.close_story()
 		await wait(0.2)
 		var echoes: Array = main.enemies.filter(func(e): return e.get("echo", false) and not e.dead)
-		var rose: bool = echoes.size() == 1 and echoes[0].max_hp == 950
+		var rose: bool = echoes.size() == 1 and echoes[0].max_hp == 1520
 		if echoes.size() == 1:
 			var ec: Dictionary = echoes[0]
 			main.damage_enemy(ec, 100000.0, Vector2(ec.x, ec.z) - ec.face) # from behind: his shield keeps his front
@@ -4971,7 +4987,7 @@ func run() -> void:
 		calm_enemies(false)
 		main.in_garden = false
 		check("road", arrived and shut and roots and page and hook and fell and stood and rose and beaten and arena and kept,
-			"arrived at the yard=%s roots shut/unwound=%s/%s fifth page=%s hook=%s fell off and back=%s footprint holds=%s brick Hangyeol 950=%s beaten opens the gate=%s arena=%s saved and waystone=%s" % [arrived, shut, roots, page, hook, fell, stood, rose, beaten, arena, kept])
+			"arrived at the yard=%s roots shut/unwound=%s/%s fifth page=%s hook=%s fell off and back=%s footprint holds=%s brick Hangyeol 1520=%s beaten opens the gate=%s arena=%s saved and waystone=%s" % [arrived, shut, roots, page, hook, fell, stood, rose, beaten, arena, kept])
 	if want.call("mill"):
 		# the sparrows' mill below the wind hills' south fence
 		if main.intro:
@@ -5038,11 +5054,12 @@ func run() -> void:
 		park_mates(false)
 		var hp0: int = main.player.max_hp
 		main.has_oar_ring = false
+		main.tokens[4] = false # the chest gives the hill token (v0.1.62)
 		reset_to(sm.c + Vector2(1.0, 0))
 		tap(KEY_E)
 		await wait(0.15)
 		main.close_story()
-		var chest: bool = main.mill_q == 5 and main.has_oar_ring and main.player.max_hp == hp0 + 10 and main.mate_power() == 0.4
+		var chest: bool = main.mill_q == 5 and main.has_oar_ring and main.tokens[4] and main.player.max_hp == hp0 + 10 and main.mate_power() == 0.3
 		var saved = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
 		var kept: bool = saved != null and int(saved.get("mill_q", 0)) == 5 and bool(saved.get("has_oar_ring", false))
 		calm_enemies(false)
@@ -6339,7 +6356,7 @@ func run() -> void:
 		main.close_story()
 		await wait(0.2)
 		var cloaks: Array = main.enemies.filter(func(e): return e.get("cloak", false) and not e.dead)
-		var big: bool = cloaks.size() == 1 and cloaks[0].max_hp == 1000
+		var big: bool = cloaks.size() == 1 and cloaks[0].max_hp == 1600
 		if cloaks.size() == 1:
 			main.damage_enemy(cloaks[0], 100000.0, Vector2(main.player.x, main.player.z))
 			await wait(1.4)
@@ -6379,7 +6396,7 @@ func run() -> void:
 		main.close_story()
 		var given: bool = main.hollow_q == 4 and main.player.max_hp == hp1 and main.pip_awards.has("lantern") and main.thirteenth != null and not main.thirteenth.get_meta("dark", false) # v0.0.47: a pip in place of max HP +15
 		check("hollow", shut and opened and woke == fm.south.size() and north1 == north0 and hogs.size() == 2 and dry and wet and lit and big and beaten and curled and hit and door and lantern and kept and given,
-			"gate shut/opened=%s/%s woke=%d of %d north unchanged=%s hogs=%d stream dry/skip=%s/%s three memories (pips 5)=%s cloak 1000=%s beaten=%s curled blocks=%s dizzy hits=%s sunset door=%s lantern=%s saved=%s Simji=%s (hollow_q %d, max HP %d -> %d, awards %s)" % [shut, opened, woke, fm.south.size(), north1 == north0, hogs.size(), dry, wet, lit, big, beaten, curled, hit, door, lantern, kept, given, main.hollow_q, hp1, main.player.max_hp, str(main.pip_awards.keys())])
+			"gate shut/opened=%s/%s woke=%d of %d north unchanged=%s hogs=%d stream dry/skip=%s/%s three memories (pips 5)=%s cloak 1600=%s beaten=%s curled blocks=%s dizzy hits=%s sunset door=%s lantern=%s saved=%s Simji=%s (hollow_q %d, max HP %d -> %d, awards %s)" % [shut, opened, woke, fm.south.size(), north1 == north0, hogs.size(), dry, wet, lit, big, beaten, curled, hit, door, lantern, kept, given, main.hollow_q, hp1, main.player.max_hp, str(main.pip_awards.keys())])
 		main.hour = 12.0
 		reset_to(main.village.marks.M + Vector2(-1.2, 0))
 	if want.call("undercroft"):
@@ -8302,6 +8319,281 @@ func run() -> void:
 		check("stage_noeul", began and main.in_village, "in the village=%s Noeul's chase began=%s (night_q %d, hour %.1f)" % [main.in_village, began, main.night_q, main.hour])
 		main.night_q = keep_nq
 		main.return_to_start() # last: the loaded stage is left behind
+	if want.call("token_gates"):
+		# the moonkeeper tokens (v0.1.62): the road to the forest, the hill and the castle holds until its token is in, then
+		# opens; an area already entered is never locked again; the gate's need is named in the quest line, and the gold "!" shows it
+		main.story_step = maxi(main.story_step, 10)
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		calm_enemies(true)
+		main.tokens = [false, false, false, false, false, false]
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		main.garden_q = 0 # an earlier test left the ending done: the road line would be the clock room's
+		var why: Array = []
+		var vf: Vector2 = main.village.marks.F
+		# 1. the village's east gate: the pearl token
+		main.night_q = 4
+		main.lake_q = 4
+		main.forest_q = 0
+		main.hill_q = 0
+		main.castle_q = 0
+		main.in_forest = false
+		main.in_hill = false
+		main.in_village = true
+		reset_to(vf + Vector2(-0.3, 0))
+		await wait(1.0)
+		var g1: bool = main.in_village and not main.in_forest and main.forest_q == 0 and main.story_open and main.story_lines.size() == 1 \
+			and "진주" in main.story_lines[0] and Vector2(main.player.x, main.player.z).distance_to(vf) > 1.0
+		main.close_story()
+		var q1: bool = main.main_road_quest().begins_with("숲으로 가기 전에")
+		main.tokens[2] = true
+		reset_to(vf + Vector2(-0.3, 0))
+		await wait(1.5)
+		var o1: bool = main.in_forest and main.forest_q == 1
+		main.close_story()
+		if not (g1 and q1 and o1):
+			why.append("forest gate held=%s quest=%s opened=%s" % [g1, q1, o1])
+		# 2. the forest's east end: the squirrels token
+		main.forest.freed = [false, false, false, false, false] # the squirrels test left them freed
+		main.forest_q = 3
+		main.hill_q = 0
+		var fe: Vector2 = main.forest.marks.E
+		reset_to(fe + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.0)
+		var g2: bool = main.in_forest and not main.in_hill and main.hill_q == 0 and main.story_open and main.story_lines.size() == 1 \
+			and "다섯 우리" in main.story_lines[0] and Vector2(main.player.x, main.player.z).distance_to(fe) > 1.0
+		main.close_story()
+		var q2: bool = main.main_road_quest().begins_with("언덕으로 가기 전에") and main.main_road_quest().ends_with("0/5")
+		main.set_quest(main.main_road_quest())
+		var mark2: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var cage_near := Vector2.INF
+		for cg in main.FOREST.CAGES:
+			var cp: Vector2 = cg + Vector2(main.FOREST.FOREST_X, 0)
+			if cage_near == Vector2.INF or Vector2(main.player.x, main.player.z).distance_to(cp) < Vector2(main.player.x, main.player.z).distance_to(cage_near):
+				cage_near = cp
+		var m2: bool = mark2 != Vector3.INF and Vector2(mark2.x, mark2.z).distance_to(cage_near) < 0.1
+		main.forest.freed = [true, true, true, false, false]
+		var q2b: bool = main.main_road_quest().ends_with("3/5")
+		main.forest.freed = [false, false, false, false, false]
+		main.tokens[3] = true
+		reset_to(fe + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.5)
+		var o2: bool = main.in_hill and main.hill_q == 1
+		main.close_story()
+		if not (g2 and q2 and m2 and q2b and o2):
+			why.append("hill gate held=%s quest=%s mark=%s count=%s opened=%s" % [g2, q2, m2, q2b, o2])
+		# 3. the hill's east end: the hill deed
+		main.hill_q = 3
+		main.castle_q = 0
+		var hx: Vector2 = main.hill.marks.X
+		reset_to(hx + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.0)
+		var g3: bool = main.in_hill and not main.in_castle() and main.castle_q == 0 and main.story_open and main.story_lines.size() == 1 \
+			and "참새 풍차" in main.story_lines[0] and Vector2(main.player.x, main.player.z).distance_to(hx) > 1.0
+		main.close_story()
+		var q3: bool = main.main_road_quest().begins_with("성으로 가기 전에")
+		main.set_quest(main.main_road_quest())
+		reset_to(main.hill.marks.S + Vector2(2, 0))
+		var mark3: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var m3: bool = mark3 != Vector3.INF and (Vector2(mark3.x, mark3.z).distance_to(main.hill.south_marks.G) < 0.1 or Vector2(mark3.x, mark3.z).distance_to(main.hill.marks.R) < 0.1)
+		main.moon_tokens.earn(4) # the deed done: the need line goes back to the road
+		var back3: bool = main.quest_raw == "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
+		reset_to(hx + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.5)
+		var o3: bool = main.in_castle() and main.castle_q == 1
+		main.close_story()
+		if not (g3 and q3 and m3 and back3 and o3):
+			why.append("castle gate held=%s quest=%s mark=%s back to the road=%s opened=%s" % [g3, q3, m3, back3, o3])
+		# 4. the lake: the line points at the grotto; an area already entered is never locked again
+		main.tokens = [false, false, false, false, false, false]
+		main.forest_q = 0
+		main.hill_q = 0
+		main.castle_q = 0
+		main.in_hill = false
+		main.in_lake = true
+		main.in_village = false
+		reset_to(main.lake.marks.P)
+		main.set_quest(main.main_road_quest())
+		var mark4: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var m4: bool = mark4 != Vector3.INF and Vector2(mark4.x, mark4.z).distance_to(main.lake.marks.G) < 0.1
+		var holds_all: bool = main.moon_tokens.holds("forest")
+		main.forest_q = 1
+		main.hill_q = 1
+		main.castle_q = 1
+		var never: bool = not main.moon_tokens.holds("forest") and not main.moon_tokens.holds("hill") and not main.moon_tokens.holds("castle")
+		main.forest_q = 0
+		main.moon_tokens.earn(2) # the pearl: the line goes back to the road
+		var back4: bool = not main.quest_raw.begins_with("숲으로 가기 전에")
+		if not (m4 and holds_all and never and back4):
+			why.append("lake mark=%s holds=%s never relocked=%s back=%s" % [m4, holds_all, never, back4])
+		# 5. a waystone lists only the stones reached, so none skips a gate
+		main.forest_q = 0
+		main.hill_q = 0
+		main.castle_q = 0
+		main.road_q = 0
+		var skip: bool = not main.way_known(3) and not main.way_known(4) and not main.way_known(5) and not main.way_known(6)
+		if not skip:
+			why.append("a waystone known before its area was entered")
+		main.in_lake = false
+		main.return_to_start()
+		calm_enemies(false)
+		check("token_gates", why.is_empty(), "the pearl, squirrels and hill-deed gates hold, push Sora back with the story and open with the token; never re-lock; quest lines and marks: %s" % ("; ".join(why) if not why.is_empty() else "ok"))
+	if want.call("token_stairs"):
+		# the moon stairs' top door asks for 4 of the 6 tokens while the yard below was never entered (v0.1.62)
+		main.story_step = maxi(main.story_step, 11)
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_cave = false
+		main.in_garden = false
+		main.in_hill = true
+		main.forest_q = 3
+		main.hill_q = 3
+		main.castle_q = 3
+		main.hollow_q = 4
+		main.garden_q = 0
+		main.road_q = 0
+		main.open_stairs()
+		main.garden.roots_open = false
+		main.garden.gate_open = false
+		main.garden.reveal(false)
+		for r in main.garden.roots:
+			r[1].visible = true
+		main.tokens = [true, true, true, false, false, false]
+		var sn: Vector2 = main.stairs.marks.N
+		reset_to(sn + Vector2(0, 0.3))
+		main.player.inv = 99.0
+		await wait(1.0)
+		var held: bool = main.in_stairs() and not main.in_garden and main.road_q == 0 and main.story_open and main.story_lines.size() == 1 \
+			and "넷" in main.story_lines[0] and Vector2(main.player.x, main.player.z).distance_to(sn) > 1.0
+		main.close_story()
+		var line: String = main.main_road_quest()
+		var named: bool = line.begins_with("정원 문 앞에서") and "3/4" in line
+		main.tokens[3] = true # the fourth: open
+		var line2: String = main.moon_tokens.stairs_line(main.STAIRS_DONE_QUEST)
+		reset_to(sn + Vector2(0, 0.3))
+		main.player.inv = 99.0
+		await wait(1.5)
+		var opened: bool = main.in_garden and main.road_q == 1
+		main.close_story()
+		# not while road_q is past 0, nor once the arena was reached
+		main.tokens = [false, false, false, false, false, false]
+		main.road_q = 1
+		var free1: bool = not main.moon_tokens.holds("garden")
+		main.road_q = 0
+		main.garden_q = 1
+		var free2: bool = not main.moon_tokens.holds("garden")
+		main.garden_q = 0
+		var shut0: bool = main.moon_tokens.holds("garden")
+		check("token_stairs", held and named and line2 == main.STAIRS_DONE_QUEST and opened and free1 and free2 and shut0,
+			"3 of 6 holds the door with the story=%s, quest names 3/4=%s, 4 of 6 opens=%s (road_q %d), road_q 1 free=%s garden_q 1 free=%s, none holds=%s" % [held, named, opened, main.road_q, free1, free2, shut0])
+		main.road_q = 0
+		main.return_to_start()
+	if want.call("token_ui"):
+		# the HUD row of six gems, the journal's count and its six lines, and the toast and burst when one is earned (v0.1.62)
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.tokens = [true, false, true, false, false, false]
+		await wait(0.4)
+		var hud: Control = main.ui.hud
+		var hud_ok: bool = hud.tokens_drawn == 6 and hud.tokens_lit == 2 and hud.token_spots().size() == 6
+		var spots: Array = hud.token_spots()
+		var under: bool = (spots[0] as Vector2).y > (hud.pip_spots()[0] as Vector2).y and (spots[5] as Vector2).x + 6.0 <= hud.bars_end()
+		var jl: String = "\n".join(PackedStringArray(main.journal_lines()))
+		var jour: bool = "달지기 표식 2/6" in jl
+		for nm in main.moon_tokens.NAMES:
+			jour = jour and plain(nm) in jl
+		main.tokens[0] = false
+		main.tokens[2] = false
+		main.toast_t = 0.0
+		var n0: int = main.tokens.count(true)
+		main.moon_tokens.earn(3)
+		var toast: bool = "(1/6)" in main.ui.toast.text and main.tokens[3] and main.toast_t > 0.0
+		main.moon_tokens.earn(3) # twice counts once
+		var once: bool = main.moon_tokens.count() == n0 + 1
+		await wait(0.3)
+		var hud2: bool = hud.tokens_lit == 1
+		var jour2: bool = "달지기 표식 1/6" in "\n".join(PackedStringArray(main.journal_lines()))
+		check("token_ui", hud_ok and under and jour and toast and once and hud2 and jour2,
+			"HUD six gems, two lit=%s under the moon gauge inside the bars=%s, journal 2/6 with the six names=%s, earning toasts (1/6)=%s counts once=%s, HUD lit 1=%s, journal 1/6=%s" % [hud_ok, under, jour, toast, once, hud2, jour2])
+		main.tokens = [false, false, false, false, false, false]
+	if want.call("token_old_save"):
+		# a save from before the tokens has no "tokens" key: they come from the flags once, as if earned (v0.1.62)
+		main.return_to_start()
+		main.tokens = [false, false, false, false, false, false]
+		main.save_game()
+		var sd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		sd.erase("tokens")
+		sd["fly_q"] = 3
+		sd["has_ring"] = true
+		sd["has_pearl"] = true
+		sd["freed"] = [true, true, true, true, true]
+		sd["mill_q"] = 5
+		sd["books"] = [true, true, true, false, false]
+		sd["has_bookmark"] = false
+		var f := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(JSON.stringify(sd))
+		f.close()
+		main.load_game()
+		var a: Array = main.tokens.duplicate()
+		var all_but_library: bool = a == [true, true, true, true, true, false] and main.crystal_done and not main.crystal_chest.visible
+		# only the moon trial and the five books: the hill deed and the library
+		sd["fly_q"] = 0
+		sd["has_ring"] = false
+		sd["has_pearl"] = false
+		sd["freed"] = [false, false, true, false, false]
+		sd["mill_q"] = 0
+		sd["trial_best"] = 91.5
+		sd["books"] = [true, true, true, true, true]
+		f = FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(JSON.stringify(sd))
+		f.close()
+		main.load_game()
+		var b: Array = main.tokens.duplicate()
+		var trial_books: bool = b == [false, false, false, false, true, true]
+		# a save with the key keeps exactly what it says, whatever the flags are
+		sd["tokens"] = [false, true, false, false, false, false]
+		f = FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(JSON.stringify(sd))
+		f.close()
+		main.load_game()
+		var c: Array = main.tokens.duplicate()
+		var as_saved: bool = c == [false, true, false, false, false, false]
+		check("token_old_save", all_but_library and trial_books and as_saved,
+			"flags with no key give %s (ring chest shut and done=%s), trial + five books give %s, a saved key is kept %s" % [str(a), all_but_library, str(b), str(c)])
+	if want.call("token_new_round"):
+		# a new round keeps the pearl, ring and bookmark but starts with no tokens, so the gates hold again (v0.1.62)
+		main.return_to_start()
+		main.has_pearl = true
+		main.has_ring = true
+		main.has_bookmark = true
+		main.tokens = [true, true, true, true, true, true]
+		var ng_before: int = main.ng
+		main.write_new_round()
+		var nd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var file_ok: bool = nd.get("tokens", []) == [false, false, false, false, false, false] and bool(nd.get("has_pearl", false)) and bool(nd.get("has_ring", false)) and bool(nd.get("has_bookmark", false)) and int(nd.get("ng", 0)) == ng_before + 1
+		main.load_game()
+		var none: bool = main.tokens == [false, false, false, false, false, false] and main.moon_tokens.count() == 0
+		var kept: bool = main.has_pearl and main.has_ring and main.has_bookmark
+		var gates: bool = main.forest_q == 0 and main.moon_tokens.holds("forest") and main.moon_tokens.holds("hill") and main.moon_tokens.holds("castle") and main.moon_tokens.holds("garden")
+		var ring_again: bool = not main.crystal_done and not main.crystal_chest.visible # the ring puzzle plays again for this round's token
+		check("token_new_round", file_ok and none and kept and gates and ring_again,
+			"new-round file has six empty tokens and the keepsakes=%s, loaded with no tokens=%s keeping pearl/ring/bookmark=%s, the four gates hold=%s, crystals open again=%s" % [file_ok, none, kept, gates, ring_again])
+		main.ng = 0
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)

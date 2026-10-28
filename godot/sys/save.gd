@@ -35,7 +35,7 @@ func save_game() -> void:
 		"oak_q": m.oak_q, "oak_knots": m.forest.knots.map(func(k): return k.open), "has_sprout": m.has_sprout, "oak_hogs": m.oak_hogs_beaten, "letter_back": m.letter_back,
 		"under_drained": m.under.drained, "under_door": m.under.door_open, "under_guards": m.under_guards_done, "under_chest": m.under_chest_open,
 		"under_side": m.under_side_open, "under_diary": m.under_diary_read, "has_lamp": m.has_lamp, "cave_quest": m.quest_before_cave,
-		"pip_max": m.pip_max, "pip_awards": m.pip_awards.keys()}
+		"pip_max": m.pip_max, "pip_awards": m.pip_awards.keys(), "tokens": m.tokens}
 	d.merge(m.workshop_zone.save_data())
 	var f := FileAccess.open(m.SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -261,8 +261,6 @@ func load_game() -> void:
 		m.set(k, bool(d.get(k, m.get(k))))
 	if bool(d.get("has_armour", false)) and not m.castle.vault_open: # a new round keeps the armour: the treasury stays empty
 		m.castle.open_vault_look()
-	if bool(d.get("has_ring", false)):
-		m.crystal_done = true
 	var fk: Array = d.get("fish", [])
 	for i in mini(fk.size(), m.fish_kinds.size()):
 		m.fish_kinds[i] = bool(fk[i])
@@ -426,6 +424,7 @@ func load_game() -> void:
 		m.ui.title_hint.text = "아무 키나 눌러 이어하기  ·  F9 처음부터"
 	repair_story_step(d)
 	m.old_save_pips(d)
+	m.moon_tokens.load_tokens(d) # before the quest line below: main_road_quest names a gate's need
 	if m.story_step >= 6: # later chapters: the quest line as it was saved (older saves keep what the zone set)
 		if d.has("quest"):
 			m.set_quest(old_quest_words(String(d.quest)))
@@ -471,10 +470,10 @@ func old_quest_words(q: String) -> String:
 
 func main_road_quest() -> String:
 	if m.garden_q >= 5: return m.garden_zone.clock_quest()
-	if m.castle_q >= 3: return "동쪽 문을 지나 정원 한가운데로 가자"
-	if m.hill_q >= 3: return "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
-	if m.forest_q >= 3: return "숲 동쪽 끝 길로, 바람 언덕에 가자"
-	if m.lake_q >= 4: return "물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"
+	if m.castle_q >= 3: return m.moon_tokens.stairs_line("동쪽 문을 지나 정원 한가운데로 가자")
+	if m.hill_q >= 3: return m.moon_tokens.hill_line()
+	if m.forest_q >= 3: return m.moon_tokens.forest_line()
+	if m.lake_q >= 4: return m.moon_tokens.lake_line()
 	if m.night_q >= 4: return "물결과 함께 남쪽 호수를 풀자 (마을 남쪽 문)"
 	return ""
 

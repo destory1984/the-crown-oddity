@@ -482,7 +482,7 @@ func spawn_boss() -> void:
 		spot = Vector2(m.rnd(6, 20), m.rnd(3, 6))
 	var node := make_monster(true)
 	m.add_child(node)
-	var hp := 950
+	var hp := 1235 # was 950; x1.3 (the owner, 2026-10-28: "30분이 걸렸다, 3시간 목표" - bosses tougher)
 	m.enemies.append({"x": spot.x, "z": spot.y, "hp": float(hp), "max_hp": hp, "node": node, "shadow": m.blob(2.4), "t": 0.0,
 		"atk_cd": 2.0, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": spot.x, "wz": spot.y, "dead": false, "respawn": 0.0,
 		"boss": true, "home": spot, "stomp": 0.0, "swing": 0.0, "stun": 0.0, "phase": 1, "roar": 0.0, "wave_r": -1.0, "face": Vector2(0, 1)})

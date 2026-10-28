@@ -12,7 +12,8 @@ const VILLAGE_WAY := Vector2(47.0, 20.5) # where the marsh's east bank walks int
 # the main road's lines and the area each one heads for, in the order the road runs east
 const ROAD_GOALS := [["물결과 함께 남쪽 호수를 풀자", "lake"], ["마을 남쪽 문으로 호수에", "lake"],
 	["물결과 함께 마을 동쪽 문으로", "forest"], ["숲 동쪽 끝 길로", "hill"], ["언덕 동쪽 끝 길로", "castle"],
-	["동쪽 문을 지나 정원 한가운데로", "garden"], ["꼭대기 문을 지나 정원으로", "garden"], ["정원 한가운데로 돌아가", "garden"]]
+	["동쪽 문을 지나 정원 한가운데로", "garden"], ["꼭대기 문을 지나 정원으로", "garden"], ["정원 한가운데로 돌아가", "garden"],
+	["숲으로 가기 전에", "lake"], ["언덕으로 가기 전에", "forest"], ["성으로 가기 전에", "hill"]] # the moonkeeper tokens' gate lines (sys/tokens.gd)
 
 func _init(main: Main) -> void:
 	m = main
@@ -100,6 +101,7 @@ func line_target(raw: String) -> Vector3:
 		"cave": at = cave_target(raw)
 		"village": at = village_target(raw)
 		"lake": at = lake_target(raw)
+		"grotto": at = grotto_target(raw)
 		"forest": at = forest_target(raw)
 		"hill": at = hill_target(raw)
 		"castle": at = castle_target(raw)
@@ -172,7 +174,19 @@ func lake_target(raw: String) -> Vector3:
 		return over(Vector2(m.lake_npc.position.x, m.lake_npc.position.z), 2.9)
 	if raw.contains("벽돌 거북"):
 		return either(foe_at("turtle"), m.lake.marks.T, 3.4)
+	if raw.begins_with("숲으로 가기 전에"): # the grotto's steps on the island, for the pearl
+		return over(m.lake.marks.G, 2.6)
 	return Vector3.INF
+
+# in the grotto the pearl line leads to the crab, then its chest, then back out
+func grotto_target(raw: String) -> Vector3:
+	if not raw.begins_with("숲으로 가기 전에"):
+		return Vector3.INF
+	if m.grotto_q == 3:
+		return over(m.grotto.marks.c, 1.6)
+	if m.grotto_q >= 4:
+		return over(m.grotto.marks.S)
+	return either(foe_at("crab"), m.grotto.marks.C, 3.0)
 
 # the next shut wall on the way east (the walls stand across the path, so the nearest one ahead is the next)
 func forest_way(goal: Vector2) -> Vector3:
@@ -190,6 +204,12 @@ func forest_target(raw: String) -> Vector3:
 		return forest_way(m.forest.marks.E)
 	if raw.begins_with("노을과 다시 겨루자"):
 		return either(foe_at("noeul"), m.forest.marks.N, 2.9)
+	if led(raw, "언덕으로 가기 전에: 숲의 다람쥐 우리 다섯을 열자 %d/5"): # the nearest cage still shut
+		var shut: Array = []
+		for i in Main.FOREST.CAGES.size():
+			if not m.forest.freed[i]:
+				shut.append(Main.FOREST.CAGES[i] + Vector2(Main.FOREST.FOREST_X, 0))
+		return either(nearest(shut), Vector2.INF, 1.8)
 	return Vector3.INF
 
 func hill_target(raw: String) -> Vector3:
@@ -201,6 +221,10 @@ func hill_target(raw: String) -> Vector3:
 		return either(nearest(still), Vector2.INF, 4.2)
 	if raw.contains("벽돌 매를"):
 		return either(foe_at("hawk"), m.hill.marks.B, 4.4)
+	if raw.begins_with("성으로 가기 전에"): # the sparrow mill's next step, or the moon trial's stone: whichever is nearer
+		var sm: Dictionary = m.hill.south_marks
+		var mill: Vector2 = [sm.G, sm.Q, sm.P, sm.K, sm.c, sm.c][clampi(m.mill_q, 0, 5)]
+		return over(nearest([mill, m.hill.marks.R]), 2.4)
 	if led(raw, "깃대에서 E: 바람 부르기 다시 (%d번째)") and m.hill.south_marks.has("P"):
 		return over(m.hill.south_marks.P, 2.6)
 	return Vector3.INF

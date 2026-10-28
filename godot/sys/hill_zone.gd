@@ -324,7 +324,7 @@ func hill_key() -> bool:
 	return false
 
 func mate_power() -> float:
-	return 0.4 if m.has_oar_ring else 0.35 # was 0.7 / 0.6 of Sora's attack (the owner found the field too easy, 2026-10-27)
+	return 0.30 if m.has_oar_ring else 0.25 # was 0.7 / 0.6 of Sora's attack, then 0.35 / 0.4 (the owner found the field too easy, 2026-10-27); 0.25 / 0.30 with the longer fights (2026-10-28)
 
 # the wind post (a sky-blue flag) and the four pinwheels in the hollow; they stand still until passed
 func build_windrun() -> void:
@@ -438,6 +438,7 @@ func mill_key() -> bool:
 			m.toast("금화 40, 회복약 1")
 		m.burst(Vector3(sm.c.x, 0.8, sm.c.y), Color("#e8d27a"), 40, 3.0)
 		m.sfx(784, 0.12, "triangle", 0.25)
+		m.moon_tokens.earn(m.moon_tokens.HILL)
 		m.save_game()
 		return true
 	return false
@@ -692,7 +693,7 @@ func spawn_hawk() -> void:
 		body.add_child(eye)
 	root.scale = Vector3.ONE * 1.4
 	m.add_child(root)
-	m.enemies.append({"x": at.x, "z": at.y, "hp": 780.0, "max_hp": 780, "node": root, "shadow": m.blob(1.2), "t": 0.0,
+	m.enemies.append({"x": at.x, "z": at.y, "hp": 1248.0, "max_hp": 1248, "node": root, "shadow": m.blob(1.2), "t": 0.0,
 		"atk_cd": 2.5, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"hawk": true, "cave": true, "air": true, "y": 2.8, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO,
 		"stun": 0.0, "target": Vector2.ZERO, "egg_cd": 1.5, "eggs": []})
@@ -727,7 +728,7 @@ func update_hawk(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 			m.burst(Vector3(e.x, 0.3, e.z), Color("#9a9aa2"), 24, 3.0)
 			m.sfx(80, 0.3, "square", 0.3, -40)
 			if Vector2(m.player.x, m.player.z).distance_to(e.target) < 1.4:
-				m.player_hit(24, e.target, e)
+				m.player_hit(24 + m.boss_extra(), e.target, e)
 	elif e.stun > 0.0:
 		pass
 	elif not e.air: # take off again
@@ -761,7 +762,7 @@ func update_hawk(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 				m.get_tree().create_timer(0.8).timeout.connect(func():
 					m.burst(Vector3(p.x, 0.3, p.y), Color("#c8322a"), 14, 2.5)
 					if Vector2(m.player.x, m.player.z).distance_to(p) < 1.0:
-						m.player_hit(14, p, e))
+						m.player_hit(14 + m.boss_extra(), p, e))
 	var face := Vector2(e.target.x - e.x, e.target.y - e.z) if e.wind > 0.0 or e.dash > 0.0 else Vector2(cos(e.t * 0.9 + PI / 2), sin(e.t * 0.9 + PI / 2))
 	if face.length() > 0.1:
 		node.rotation.y = atan2(face.x, face.y)
@@ -774,5 +775,5 @@ func hawk_beaten() -> void:
 	m.player.gold += 250
 	m.gain_xp(300)
 	m.show_story("", Main.STORY.HAWK_DOWN)
-	m.set_quest("언덕 동쪽 끝 길로, 달지기들의 성에 가자")
+	m.set_quest(m.moon_tokens.hill_line()) # the hill deed first, if it is missing
 	m.save_game()

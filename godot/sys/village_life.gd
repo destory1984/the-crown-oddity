@@ -211,7 +211,7 @@ func spawn_noeul_duel(second := false, cloak := false) -> void:
 	var node := Node3D.new()
 	node.add_child(noeul_sprite())
 	m.add_child(node)
-	var hp := 1000.0 if cloak else (830.0 if second else 550.0)
+	var hp := 1600.0 if cloak else (1328.0 if second else 715.0) # was 1000 / 830 / 550: x1.6 for the second duel and the cloak, x1.3 for the first (the owner, 2026-10-28: "30분이 걸렸다, 3시간 목표" - bosses tougher)
 	m.enemies.append({"x": at.x, "z": at.y, "hp": hp, "max_hp": int(hp), "node": node, "shadow": m.blob(0.8), "t": 0.0,
 		"atk_cd": 2.0, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"noeul": true, "second": second or cloak, "cloak": cloak, "cave": true, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "stun": 0.0, "next": "dash", "rings": []})
@@ -238,7 +238,7 @@ func update_noeul(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 			e.x = nx
 			e.z = nz
 			if Vector2(m.player.x - e.x, m.player.z - e.z).length() < 0.9:
-				m.player_hit(20, Vector2(e.x, e.z) - e.dir, e)
+				m.player_hit(20 + m.boss_extra(), Vector2(e.x, e.z) - e.dir, e)
 		else:
 			e.dash = 0.0
 		spr.frame = 1
@@ -255,7 +255,7 @@ func update_noeul(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 				for r in e.rings:
 					m.burst(Vector3(r.x, 0.3, r.y), Color("#9a9a9a"), 18, 3.0)
 					if Vector2(m.player.x, m.player.z).distance_to(r) < 1.2:
-						m.player_hit(16, r, e)
+						m.player_hit(16 + m.boss_extra(), r, e)
 				m.sfx(110, 0.25, "square", 0.2, -40)
 				e.next = "dash"
 			e.atk_cd = 1.15

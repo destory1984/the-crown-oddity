@@ -3,6 +3,15 @@
 # Scenes shown with an empty picture path become talk scenes with standing portraits (art/portrait).
 extends RefCounted
 
+# The moonkeeper tokens' gates (sys/tokens.gd): the road holds until the bracelet has the deed. The lines are GPT's
+# (shots/length_codex.log), lightly changed.
+const GATE := {
+	"forest": ["||팔찌가 손목에서 낮게 울린다.", "||\"호수 동굴의 게를 물리치고 진주를 가져오너라. 팔찌가 잠든 물길을 감을 것이다.\""],
+	"hill": ["||팔찌가 손목에서 낮게 울린다.", "||\"다섯 우리를 모두 열어 작은 이들의 손을 돌려주면, 팔찌가 숲 너머 길을 감을 것이다.\""],
+	"castle": ["||팔찌가 손목에서 낮게 울린다.", "||\"참새 풍차를 되살리거나 달의 시험 다섯 물결을 견뎌라. 함께 얻은 바람이 성문까지 이어질 것이다.\""],
+	"garden": ["||팔찌가 손목에서 낮게 울린다.", "||\"여섯 표식 가운데 넷을 팔찌에 밝혀라. 이 계단은 혼자 오른 힘보다 이어진 손을 기억한다.\""],
+}
+
 const WAKE := [
 	"||바람이 갈대를 쓸고 지나간다. 어디선가 물 흐르는 소리가 들린다.",
 	"소라|surprised|……여기는 어디지?",

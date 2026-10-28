@@ -258,7 +258,7 @@ func spawn_mold() -> void:
 		return
 	var c: Vector2 = m.garden.marks.C
 	var node: Node3D = m.garden.mold(m)
-	m.enemies.append({"x": c.x, "z": c.y, "hp": 1700.0, "max_hp": 1700, "node": node, "shadow": m.blob(2.2), "t": 0.0,
+	m.enemies.append({"x": c.x, "z": c.y, "hp": 2720.0, "max_hp": 2720, "node": node, "shadow": m.blob(2.2), "t": 0.0,
 		"atk_cd": 2.5, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": c.x, "wz": c.y, "dead": false, "respawn": 0.0,
 		"mold": true, "cave": true, "wind": 0.0, "stun": 0.0, "next": 0, "rings": [], "locked": false})
 
@@ -313,7 +313,7 @@ func update_mold(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 			for r in e.rings:
 				m.burst(Vector3(r.x, 0.3, r.y), Color("#8a8a96"), 18, 3.0)
 				if Vector2(m.player.x, m.player.z).distance_to(r) < 1.3:
-					m.player_hit(18 + 4 * ph, r, e)
+					m.player_hit(18 + 4 * ph + m.boss_extra(), r, e)
 			m.shake = 0.2
 			m.sfx(70, 0.3, "square", 0.25, -30)
 			e.atk_cd = 2.0 - 0.4 * ph
@@ -368,7 +368,7 @@ func update_mold_wave(dt: float) -> void:
 	if not m.mold_wave.hit and absf(pd - m.mold_wave.r) < 0.45:
 		m.mold_wave.hit = true
 		var e: Dictionary = {} if m.enemies.is_empty() else m.enemies.filter(func(mm): return mm.get("mold", false))[0]
-		m.player_hit(22, m.mold_wave.c, e)
+		m.player_hit(22 + m.boss_extra(), m.mold_wave.c, e)
 	if m.mold_wave.r > 10.0:
 		ring.queue_free()
 		m.mold_wave = {}

@@ -65,7 +65,7 @@ func try_unbrick() -> bool:
 			m.sfx(196, 0.5, "triangle", 0.3, -60)
 			m.toast("벽돌 벽이 흙으로 풀렸다")
 			if m.forest_q >= 3 and m.quest_raw.begins_with("닫힌 벽돌 벽을"):
-				m.set_quest(east_quest())
+				m.set_quest(m.moon_tokens.forest_line(true))
 			m.save_game()
 			return true
 	return false
@@ -156,8 +156,10 @@ func cage_hit(e: Dictionary) -> void:
 		m.has_acorn = true
 		place_big_squirrel()
 		m.show_story("", Main.STORY.SQUIRRELS_DONE)
+		m.moon_tokens.earn(m.moon_tokens.SQUIRRELS)
 	else:
 		m.toast(tr("다람쥐를 구했다 %d/5") % n)
+		m.moon_tokens.refresh_quest() # the gate line counts them
 	m.save_game()
 
 func update_forest() -> void:
@@ -633,5 +635,5 @@ func noeul_turned() -> void:
 	m.player.gold += 150
 	m.gain_xp(250)
 	m.show_story("res://art/story/10_jae_turns.jpg", Main.STORY.NOEUL_TURNS)
-	m.set_quest(east_quest())
+	m.set_quest(m.moon_tokens.forest_line(true)) # the squirrels token first, if it is missing
 	m.save_game()

@@ -325,7 +325,7 @@ func update_mate2(dt: float) -> void:
 		m.mate2_cd = 1.6 if m.hollow_q >= 4 else 2.0 # helpers, not the fighters (the owner, 2026-10-27): 1.4 -> 2.0 s
 		breathe("noeul", spr, false)
 		spr.frame = 2
-		m.damage_enemy(target, m.player.atk * 0.4, Vector2(m.mate2.position.x, m.mate2.position.z), 2.0)
+		m.damage_enemy(target, m.player.atk * 0.25, Vector2(m.mate2.position.x, m.mate2.position.z), 2.0)
 		m.burst(Vector3(target.x, 0.8, target.z), Color("#9a9a9a"), 12, 2.0)
 
 func update_mate(dt: float) -> void:

@@ -134,7 +134,7 @@ func spawn_turtle() -> void:
 		eye.position = Vector3(side, 0.75, 1.92)
 		body.add_child(eye)
 	m.add_child(root)
-	m.enemies.append({"x": at.x, "z": at.y, "hp": 900.0, "max_hp": 900, "node": root, "shadow": m.blob(1.6), "t": 0.0,
+	m.enemies.append({"x": at.x, "z": at.y, "hp": 1170.0, "max_hp": 1170, "node": root, "shadow": m.blob(1.6), "t": 0.0,
 		"atk_cd": 2.0, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"turtle": true, "cave": true, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "stun": 0.0, "next": "stomp", "spins": 0})
 
@@ -159,7 +159,7 @@ func update_turtle(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 			e.x = nx
 			e.z = nz
 			if Vector2(m.player.x - e.x, m.player.z - e.z).length() < 1.4:
-				m.player_hit(22, Vector2(e.x, e.z) - e.dir, e)
+				m.player_hit(22 + m.boss_extra(), Vector2(e.x, e.z) - e.dir, e)
 		else:
 			e.dash = 0.0
 			e.stun = 1.6
@@ -178,7 +178,7 @@ func update_turtle(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 			if e.next == "stomp":
 				m.burst(Vector3(e.x, 0.3, e.z), Color("#8a8a70"), 30, 3.5)
 				if d < 2.6:
-					m.player_hit(18, Vector2(e.x, e.z), e)
+					m.player_hit(18 + m.boss_extra(), Vector2(e.x, e.z), e)
 				m.shake = 0.25
 				m.sfx(70, 0.3, "square", 0.25, -30)
 				e.next = "spin"
@@ -565,6 +565,7 @@ func grotto_key() -> bool:
 		m.burst(Vector3(m.grotto.marks.c.x, 0.8, m.grotto.marks.c.y), Color("#9fd8ff"), 40, 3.0)
 		m.sfx(784, 0.12, "triangle", 0.25)
 		m.show_story("", Main.STORY.PEARL)
+		m.moon_tokens.earn(m.moon_tokens.PEARL)
 		m.save_game()
 		return true
 	return false
@@ -668,5 +669,5 @@ func turtle_beaten() -> void:
 	if not pip_lines.is_empty():
 		pip_lines.push_front(Main.STORY.ISLAND_PIP)
 	m.show_story("", Main.STORY.ISLAND_HOME + pip_lines)
-	m.set_quest("물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자")
+	m.set_quest(m.moon_tokens.lake_line()) # the pearl token first, if it is missing
 	m.save_game()

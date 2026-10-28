@@ -6,7 +6,7 @@
 
 - 게임 전부를 코드로 짓는다. `main.tscn` 은 거의 비어 있다.
 - `main.gd` (약 2,200줄)에는 모든 상태 변수, 둘 이상의 파일이 쓰는 상수, `_ready` `_process` `_input`, E 키(`crown_key`, `interact`), 타일과 높이 도우미, `toast`, `set_quest` 만 남는다.
-- 나머지는 `sys/*.gd` 30개에 있다. 각 파일은 `RefCounted` 이고 `main.gd` 맨 위에서 `var 이름 := preload("res://sys/이름.gd").new(self)` 로 한 번 만든다.
+- 나머지는 `sys/*.gd` 31개에 있다. 각 파일은 `RefCounted` 이고 `main.gd` 맨 위에서 `var 이름 := preload("res://sys/이름.gd").new(self)` 로 한 번 만든다.
   - 그 안의 코드는 main 노드를 `m` 으로 받아 상태를 `m.x`, main 상수를 `Main.X`, 다른 시스템을 `m.이름.f()` 로 부른다.
   - 다른 스크립트(`tools/autoplay.gd`, `hud.gd`, 지역 스크립트)가 부르는 함수와 세 파일 이상이 쓰는 함수는 `main.gd` 끝의 "forwarders" 칸에 한 줄 전달 함수가 있다. 그래서 `main.f()` 는 그대로 된다.
   - 새 함수를 sys 파일에 넣고 시험이나 다른 스크립트가 `main.f()` 로 부르게 하려면 전달 함수도 한 줄 더한다.
@@ -45,6 +45,7 @@
 | `sys/mates.gd` | 303 | 동료 따라오기, 발자취, 체력, 노을 앉기 |
 | `sys/garden_zone.gd` | 951 | 정원: 한가운데, 한결의 길, 곰팡이 보스, 큰 태엽 방, 일꾼, 감기 |
 | `sys/quest_marks.gd` | 266 | 할 일 줄과 물가 곁걸음이 가리키는 다음 자리 (금빛 "!" 와 미니맵 표시) |
+| `sys/tokens.gd` | 136 | 달지기 표식 여섯(회차마다 새로): 얻기, 지역 관문(숲 진주, 언덕 다람쥐, 성 언덕 인장, 계단 넷), 할 일 줄, 일지 줄. 저장은 `tokens` |
 | `sys/workshop_zone.gd` | 686 | 달지기 작업장: 큰 방의 문, 지하 3층, 수리 요람, 심지의 수리대 (지도는 `workshop.gd`, 층마다 하나) |
 
 - `minimap.gd` 둥근 미니맵, `sky.gd` 왼쪽 위 해와 달 창, `shaders/` 지형, 풀, 물, 틸트시프트.

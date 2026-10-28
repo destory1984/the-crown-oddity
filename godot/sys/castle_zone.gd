@@ -90,7 +90,7 @@ func stairs_key() -> bool:
 				m.shake = 0.3
 				m.ui.mini.map_tex = m.stairs.map_tex(Main.STAIRS.STAIRS_X + Main.STAIRS.W)
 				m.show_story("", Main.STORY.STAIRS_TOP)
-				m.set_quest(Main.STAIRS_DONE_QUEST) # the mold's heart comes only after the garden's seals (GPT playtest 5)
+				m.set_quest(m.moon_tokens.stairs_line(Main.STAIRS_DONE_QUEST)) # the mold's heart comes only after the garden's seals (GPT playtest 5)
 			else:
 				m.set_quest(stairs_quest())
 			m.save_game()
@@ -219,6 +219,7 @@ func castle_key() -> bool:
 				if n == m.castle.books.size():
 					m.has_bookmark = true
 					m.after_story = func(): m.show_story("", Main.STORY.BOOKMARK)
+					m.moon_tokens.earn(m.moon_tokens.LIBRARY)
 				else:
 					m.toast(tr("달지기 책 %d/5") % n)
 				m.save_game()
@@ -278,7 +279,7 @@ func spawn_knight(echo := false) -> void:
 	body.add_child(eye)
 	root.scale = Vector3.ONE * 1.25
 	m.add_child(root)
-	var hp := 950.0 if echo else 1100.0
+	var hp := 1520.0 if echo else 1760.0 # was 950 / 1100: x1.6 (the owner, 2026-10-28: "30분이 걸렸다, 3시간 목표" - bosses tougher)
 	m.enemies.append({"x": at.x, "z": at.y, "hp": hp, "max_hp": int(hp), "node": root, "shadow": m.blob(1.3), "t": 0.0, "echo": echo,
 		"atk_cd": 1.5, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"knight": true, "cave": true, "wind": 0.0, "stun": 0.0, "tired": 0.0, "dash": 0.0, "dir": Vector2.ZERO,

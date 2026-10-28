@@ -651,6 +651,8 @@ func journal_lines() -> Array:
 	out.append(tr("지금 할 일"))
 	out.append("  " + (tr(Main.Ko.plain(m.ui.quest.text)) if m.ui.quest.text != "" else tr("마음 가는 대로 둘러보자")))
 	out.append("")
+	out.append_array(m.moon_tokens.journal_lines()) # the six moonkeeper tokens and how each is earned
+	out.append("")
 	out.append(tr("곁이야기"))
 	var side := func(name: String, state: String): out.append("  · " + tr(name) + "  —  " + state)
 	if m.story_step >= 2:
@@ -659,7 +661,7 @@ func journal_lines() -> Array:
 	if m.shore_q >= 1:
 		side.call("깨어난 물가", m.shore.shore_journal())
 	if m.shrine_seen:
-		side.call("울림 수정", tr("끝") if m.has_ring else (tr("상자를 열자") if m.crystal_done else tr("낮은 소리부터 차례로")))
+		side.call("울림 수정", tr("끝") if m.tokens[1] else (tr("상자를 열자") if m.crystal_done else tr("낮은 소리부터 차례로")))
 	if m.story_step >= 6:
 		side.call("동굴의 세 돌단", tr("아직 찾지 못했다") if not m.shrine_seen else (tr("깨운 기술: %s") % ", ".join(range(3).filter(func(k): return m.woke[k]).map(func(k): return tr(["회오리", "불씨탄", "빛파동"][k]))) if m.woke.has(true) else tr("푸른 돌단에서 회오리를 깨우자")))
 	if m.forest_q >= 3:
@@ -705,7 +707,7 @@ func journal_lines() -> Array:
 		side.call("달의 계단", tr("끝") if m.stairs.door_open else (tr("등불 %d/3") % m.stairs.lamps_lit() if m.stairs.wall_open else tr("벽돌 벽을 풀자")))
 	if m.castle_q >= 1:
 		side.call("한결의 일기", tr("%d/3 읽음") % m.castle.pages_read())
-		side.call("서재의 달지기 책", tr("끝") if m.has_bookmark else tr("%d/5 읽음") % m.castle.books.filter(func(b): return b.read).size())
+		side.call("서재의 달지기 책", tr("끝") if m.tokens[5] else tr("%d/5 읽음") % m.castle.books.filter(func(b): return b.read).size())
 		side.call("성의 보물고", tr("끝") if m.castle.vault_open else (tr("상자를 열자") if m.castle.vault_solved() else tr("경비실의 지렛대 셋")))
 		side.call("성 아래 잠긴 층", m.castle_zone.under_journal())
 	if m.castle_q >= 3:

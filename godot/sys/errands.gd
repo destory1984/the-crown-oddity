@@ -154,6 +154,7 @@ func write_new_round() -> void:
 		if d.has(k):
 			keep[k] = d[k]
 	keep["hp"] = keep.get("max_hp", 100)
+	keep["tokens"] = [false, false, false, false, false, false] # the pearl, ring and bookmark stay, the tokens start again
 	var f := FileAccess.open(m.SAVE_PATH, FileAccess.WRITE)
 	f.store_string(JSON.stringify(keep))
 	f.close()
@@ -187,7 +188,7 @@ func hint_open(key: String) -> bool:
 		"festival": return m.mail_got[1] and not m.fest_gift
 		"mail": return m.doran_q >= 3 and m.lake_q >= 4 and m.mail_q < 2
 		# the cave (open once the Brick King is down)
-		"crystals": return m.story_step >= 6 and not m.has_ring
+		"crystals": return m.story_step >= 6 and not m.tokens[1]
 		"shrine": return m.story_step >= 6 and not m.woke[0]
 		"post": return m.has_skip and m.post_q < 3
 		# the lake (open after the night chase)
@@ -205,7 +206,7 @@ func hint_open(key: String) -> bool:
 		"trial": return m.hill_q >= 3 and m.trial_best <= 0.0
 		# the castle, its stairs and the garden
 		"pages": return m.castle_q >= 1 and m.castle.pages_read() < 3
-		"books": return m.castle_q >= 1 and not m.has_bookmark
+		"books": return m.castle_q >= 1 and not m.tokens[5]
 		"vault": return m.castle_q >= 1 and not m.castle.vault_open
 		"under": return m.castle_q >= 1 and not m.under_chest_open
 		"stairs": return m.castle_q >= 3 and not m.stairs.door_open
@@ -294,6 +295,7 @@ func kongal_errand() -> void:
 		m.player.gold += 30
 		m.show_story("", Main.STORY.FLY_DONE)
 		m.build_jar()
+		m.moon_tokens.earn(m.moon_tokens.FLY)
 	else:
 		folk_talk("kongal")
 	m.save_game()

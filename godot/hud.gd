@@ -93,6 +93,8 @@ func skill_spot(i: int) -> Vector2:
 	return Vector2(vs.x - 8.0 - sz / 2.0 - (3 - i) * (sz + 8.0), vs.y - 59.0)
 
 var pips_drawn := 0 # diamonds in the moon gauge at the last draw (autoplay pips)
+var tokens_lit := 0 # lit gems in the token row at the last draw, and how many it drew (autoplay tokens)
+var tokens_drawn := 0
 
 # one diamond per pip of pip_max (8 - 12), 16 px apart from 4 px left of the bars: under the bars either way
 func pip_x() -> float:
@@ -102,6 +104,13 @@ func pip_spots() -> Array:
 	var out: Array = []
 	for i in main.pip_max:
 		out.append(Vector2(pip_x() + i * 16, 124))
+	return out
+
+# the six moonkeeper tokens: a row of small gems under the moon gauge, 16 px apart, a lit one earned this round
+func token_spots() -> Array:
+	var out: Array = []
+	for i in main.tokens.size():
+		out.append(Vector2(pip_x() + i * 16, 146))
 	return out
 
 func _draw() -> void:
@@ -156,6 +165,19 @@ func _draw() -> void:
 	var grow: float = 6.0 * minf(1.0, main.rest_t / main.rest_need)
 	if grow >= 0.5 and main.crown_pips < main.pip_max: # the next pip glows in while resting (too small a diamond cannot be drawn)
 		diamond(Vector2(pip_x() + main.crown_pips * 16, 124), grow, Color("#9fd4ff"))
+	# the moonkeeper tokens: six gems, gold when earned (the owner, 2026-10-28)
+	text(Vector2(x0 - 45, 152), "표식", 16, DIM)
+	var tspots := token_spots()
+	tokens_drawn = tspots.size()
+	tokens_lit = 0
+	for i in tspots.size():
+		var tc: Vector2 = tspots[i]
+		if main.tokens[i]:
+			tokens_lit += 1
+			diamond(tc, 6, Color("#ffd84a"))
+			diamond(tc, 2.5, Color(1, 1, 1, 0.7))
+		else:
+			draw_polyline(PackedVector2Array([tc + Vector2(0, -6), tc + Vector2(6, 0), tc + Vector2(0, 6), tc + Vector2(-6, 0), tc + Vector2(0, -6)]), Color("#6a6050"), 1.0)
 	# ---- sun / moon dial hanging under the portrait (60 px lower under the big ring)
 	var low := 60.0 if big else 0.0
 	var dc := Vector2(89, 282) if big else Vector2(59, 222)
