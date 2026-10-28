@@ -131,7 +131,11 @@ func cave_target(raw: String) -> Vector3:
 		return over(cm.D)
 	if raw == Main.CAVE_DOOR_QUEST:
 		return either(foe_at("mole"), cm.B, 3.4)
-	if raw.begins_with("동쪽 출구로"):
+	if raw.begins_with("나가기 전에") or raw.begins_with("동쪽 출구로"): # an old save's way-out line too
+		if not m.saw_painting:
+			return over(cm.P)
+		if not m.woke[0]:
+			return over(cm["1"], 1.8)
 		return over(cm.E)
 	return Vector3.INF
 

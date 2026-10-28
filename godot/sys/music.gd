@@ -12,7 +12,12 @@ const TUNE_NAMES := {"title": "제목", "field_marsh": "늪과 호수", "field_w
 	"boss_final": "마지막 싸움", "village": "마을", "night": "밤", "ending": "끝맺음"}
 const MUSIC_DB := -14.0 # the Music bus under the effects (Master stays at 0 dB)
 const OFF_DB := -80.0
-const FADE := 1.0 # the crossfade between two tunes, and the fade of the music switch
+const FADE := 1.0 # the fade of the music switch
+# between two tunes the old one fades out, then the new one fades in (the owner, 2026-10-28: "노래와 노래 사이에 fade
+# in/out"); both on a linear loudness curve, so neither drops or jumps at the end the way a straight dB ramp did
+const FADE_OUT := 1.5
+const FADE_IN := 2.0
+var fade_tw: Tween
 const VARIANTS := 5 # <name>.ogg, <name>_2.ogg .. <name>_5.ogg (the owner, 2026-10-27: 5 per place)
 const DROPPED := ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "night_2"] # tunes the owner took out (2026-10-27, and 6 more in the tune review page 10-28); their files are gone
 
@@ -141,31 +146,66 @@ func file_for(name: String) -> String:
 func play(name: String) -> void:
 	if name == "" or (name == cur and played < ROTATE):
 		return
+	if fade_tw != null and fade_tw.is_valid():
+		fade_tw.kill() # a fade still under way: the place changed again
 	var old: AudioStreamPlayer = players[cur_i]
 	cur_i = 1 - cur_i
 	var nu: AudioStreamPlayer = players[cur_i]
+	nu.stop()
 	cur_file = file_for(name)
 	nu.stream = tune(cur_file)
 	played = 0.0
-	nu.volume_db = -40.0
-	nu.play()
-	var tw := m.create_tween().set_parallel(true)
-	tw.tween_property(nu, "volume_db", 0.0, FADE)
-	if cur != "":
-		tw.tween_property(old, "volume_db", -40.0, FADE)
-		tw.chain().tween_callback(func(): if old != players[cur_i]: old.stop())
+	nu.volume_db = OFF_DB
+	var wait := 0.0
+	fade_tw = m.create_tween()
+	if cur != "" and old.playing:
+		wait = FADE_OUT * db_to_linear(old.volume_db) # a tune already fading out needs less
+		fade_tw.tween_method(func(v: float): old.volume_db = linear_to_db(maxf(v, 0.0001)), db_to_linear(old.volume_db), 0.0, wait)
+		fade_tw.tween_callback(old.stop)
+	fade_tw.tween_callback(nu.play)
+	fade_tw.tween_method(func(v: float): nu.volume_db = linear_to_db(maxf(v, 0.0001)), 0.0, 1.0, FADE_IN)
 	cur = name
 
-# "다음 곡": the tune drops in 0.12 s and the next of the nine starts 0.35 s later, until the area's pick changes
+# every tune file in order, place by place, as [place, file]
+func all_files() -> Array:
+	var list := []
+	for place in TUNES:
+		for k in VARIANTS:
+			var file: String = place if k == 0 else "%s_%d" % [place, k + 1]
+			if file not in DROPPED:
+				list.append([place, file])
+	return list
+
+# "이전 곡" / "다음 곡" on the Settings page: the file before or after the one playing, faded like any change; it stays
+# until the area's own pick changes
+func step_tune(dir: int) -> void:
+	var list := all_files()
+	var idx := -1
+	for i in list.size():
+		if list[i][1] == cur_file:
+			idx = i
+	var nxt: Array = list[posmod(idx + dir, list.size())] if idx >= 0 else list[0]
+	var place: String = nxt[0]
+	var file: String = nxt[1]
+	turn[place] = 0 if file == place else int(file.get_slice("_", file.get_slice_count("_") - 1)) - 1
+	forced = place
+	forced_from = pick()
+	played = ROTATE # plays even when it is the place's tune already
+	play(place)
+	help_t = 0.0
+
+# "다음 곡" on the Help page: the tune drops in 0.12 s and the next of the nine starts 0.35 s later, until the area's pick changes
 func next_tune() -> void:
 	var idx := TUNES.find(cur)
 	forced = TUNES[(idx + 1) % TUNES.size()]
 	forced_from = pick()
 	pending = true
 	var old: AudioStreamPlayer = players[cur_i]
-	var tw := m.create_tween()
-	tw.tween_property(old, "volume_db", -40.0, 0.12)
-	tw.tween_callback(old.stop)
+	if fade_tw != null and fade_tw.is_valid():
+		fade_tw.kill()
+	fade_tw = m.create_tween()
+	fade_tw.tween_property(old, "volume_db", -40.0, 0.12)
+	fade_tw.tween_callback(old.stop)
 	cur = ""
 	m.get_tree().create_timer(0.35).timeout.connect(func():
 		pending = false

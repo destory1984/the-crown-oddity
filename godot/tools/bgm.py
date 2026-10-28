@@ -575,15 +575,15 @@ def S(key, mode, bpm, a, b, c, seed, band=(0, 0, 0), **kw):
 SPECS = {
     "field_marsh": [S("G", "dor", 148, "i IV bVII i", "bVI bVII i v", "IV bVII i i", 201, (1, 1, 1)),
                     S("A", "harm", 126, "i iv V i", "bVI iv V V", "i bIII bVII V", 202, (2, 3, 0)),
-                    S("C", "min", 155, "i bIII bVII bVI", "iv bVI bVII i", "bVI bVII bVII i", 203, (4, 4, 3)),
+                    S("Eb", "dor", 146, "i IV bVII i", "bIII bVII IV i", "bVI bVII i i", 207, (2, 2, 1)),  # field_marsh_4 replaced (the owner, 2026-10-28)
                     S("E", "min", 132, "i bVII bVI bVII", "bIII bVII iv i", "bVI bVII i i", 204, (5, 5, 2))],
     "field_wild": [S("F#", "dor", 125, "i bVII IV i", "bVI bVII i bVII", "IV bVII i i", 211, (3, 2, 1)),
                    S("D", "maj", 140, "I V vi IV", "IV I V V", "vi IV I V", 212, (6, 0, 4)),
                    S("G", "harm", 118, "i bVI bVII i", "iv bVI V V", "i bIII iv V", 213, (0, 3, 0)),
                    S("A", "mix", 150, "I bVII IV I", "vi IV bVII I", "IV bVII I I", 214, (1, 4, 3))],
-    "dungeon": [S("F#", "harm", 108, "i bVI iv i", "bII bVII i i", "iv bVI V V", 221),
+    "dungeon": [S("F#", "harm", 140, "i bVI iv i", "bII bVII i i", "iv bVI V V", 221),
                 S("Bb", "min", 126, "i bVI bVII i", "iv i bVI bVII", "bII bVII i i", 222, (3, 0, 0)),
-                S("D", "harm", 114, "i bVII bVI V", "iv bVI bVII i", "i iv V V", 223, (2, 0, 0)),
+                S("D", "harm", 136, "i bVII bVI V", "iv bVI bVII i", "i iv V V", 223, (2, 0, 0)),
                 S("C#", "min", 132, "i bIII bVI bVII", "iv bVI bVII i", "bVI bVII i i", 224, (6, 0, 0))],
     "boss": [S("A", "harm", 176, "i bVI bVII V", "iv i bVI V", "i bIII bVII V", 231, (1, 0, 0)),
              S("D", "harm", 150, "i bVII bVI V", "bIII bVII iv V", "i i bVI V", 232, (3, 1, 1)),

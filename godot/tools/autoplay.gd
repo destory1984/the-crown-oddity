@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes"]
 
@@ -591,8 +591,8 @@ func run() -> void:
 		check(area[0], planted.size() >= lo and bad == 0 and dup.size() == planted.size() and meshes_ok and tufts == want_tufts and tufts <= budget,
 			"planted tiles %d (at least %d), on a blocked tile or next to a path/mark/used spot %d, tufts %d of %d expected, budget %d" % [planted.size(), lo, bad, tufts, want_tufts, budget])
 	if want.call("fountain"):
-		# the moonkeepers' fountain (v0.1.38): its four tiles block, E beside it reads the dry lines, and once the land is
-		# wound (story_step 12) the water shows and the lines change
+		# the moonkeepers' fountain (v0.1.38, flowing low from the start v0.1.41): its four tiles block, E beside it reads
+		# the seven-stream lines, and once the land is wound (story_step 12) the full water shows and the lines change
 		var v0: bool = main.in_village
 		var s0: int = main.story_step
 		main.close_story()
@@ -605,11 +605,11 @@ func run() -> void:
 		main.village.fountain_set(false)
 		main.village.fountain_said = []
 		main.crown_key()
-		var dry_ok: bool = main.story_open and "나뭇잎" in str(main.village.fountain_said)
+		var dry_ok: bool = main.story_open and "일곱 손" in str(main.village.fountain_said) and main.village.fountain_low.visible and not main.village.fountain_full.visible
 		main.close_story()
 		main.story_step = 12
 		await get_tree().create_timer(1.2).timeout
-		var wet_ok: bool = main.village.fountain_water.visible and not main.village.fountain_dust.visible
+		var wet_ok: bool = main.village.fountain_full.visible and not main.village.fountain_low.visible
 		main.crown_key()
 		var wet_line: bool = main.story_open and "시원해" in str(main.village.fountain_said)
 		main.close_story()
@@ -617,7 +617,7 @@ func run() -> void:
 		main.village.fountain_set(s0 >= 12)
 		main.in_village = v0
 		check("fountain", blocks and road_round and dry_ok and wet_ok and wet_line,
-			"blocks %s, road round it %s, dry lines %s, water after the winding %s, wet line %s" % [blocks, road_round, dry_ok, wet_ok, wet_line])
+			"blocks %s, road round it %s, seven streams and their lines %s, full water after the winding %s, wet line %s" % [blocks, road_round, dry_ok, wet_ok, wet_line])
 	if want.call("mate_breath"):
 		# Noeul and Mulgyeol breathe while they stand (v0.1.39): the breathing sheet with four frames that turn over,
 		# and their own picture back the moment they move
@@ -638,6 +638,61 @@ func run() -> void:
 		spr.free()
 		check("mate_breath", on_sheet and seen.size() == 4 and back,
 			"breathing sheet %s, frames seen %d of 4, own picture back %s" % [on_sheet, seen.size(), back])
+	if want.call("exit_marks"):
+		# the forest's ways out (v0.1.42): a pad and name at S and E, green arrows on the minimap; and a waystone found
+		# shows on the minimap of its own area only (v0.1.43)
+		var mini = main.ui.mini
+		var tex0: Texture2D = mini.map_tex
+		var q0: int = main.forest_q
+		var p0 := Vector2(main.player.x, main.player.z)
+		var signs: int = main.forest.exit_signs.size()
+		mini.map_tex = main.forest.map_tex(main.forest.FOREST_X + main.forest.W)
+		var exits: int = mini.map_tex.get_meta("exits", []).size()
+		main.forest_q = 1
+		main.player.x = main.forest.marks.S.x + 2.0
+		main.player.z = main.forest.marks.S.y
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var forest_way: bool = 3 in mini.ways_drawn
+		var only_here: bool = not (1 in mini.ways_drawn) and not (2 in mini.ways_drawn)
+		main.forest_q = q0
+		mini.map_tex = tex0
+		main.player.x = p0.x
+		main.player.z = p0.y
+		check("exit_marks", signs == 2 and exits == 2 and forest_way and only_here,
+			"signs %d of 2, map arrows %d of 2, forest waystone drawn %s, other areas' stones left off %s" % [signs, exits, forest_way, only_here])
+	if want.call("pip_hint"):
+		# too little moon light for a bracelet use shows the lantern + moon card for 4 s (v0.1.44)
+		var pips0: int = main.crown_pips
+		main.crown_pips = 0
+		var refused: bool = not main.spend_pips(1)
+		var shown: bool = main.ui.hud.pip_hint_t > 3.5
+		await get_tree().create_timer(4.2).timeout
+		var gone: bool = main.ui.hud.pip_hint_t == 0.0
+		main.crown_pips = pips0
+		check("pip_hint", refused and shown and gone, "refused %s, card shown %s, gone after 4 s %s" % [refused, shown, gone])
+	if want.call("reset_ask"):
+		# F9 asks first (v0.1.45): one press opens the ask with the difficulty line and keeps the save
+		main.save_game()
+		main.close_story()
+		main.save.reset_asked_at = -100.0
+		main.save.ask_reset()
+		var asked: bool = main.story_open and FileAccess.file_exists(main.SAVE_PATH)
+		var said := str(main.save.reset_lines())
+		var lines_ok: bool = "1배" in said and "F9" in said
+		main.close_story()
+		main.save.reset_asked_at = -100.0
+		check("reset_ask", asked and lines_ok, "ask shown and save kept %s, difficulty and key lines %s" % [asked, lines_ok])
+	if want.call("plant_shake"):
+		# a blow near tall plants shakes them (v0.1.51): the tall plants' materials get the blow, grass tufts do not
+		var tall: int = main.plant_mats.size()
+		main.combat.plants_hit(Vector2(main.player.x, main.player.z), 2.0)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var told: bool = tall > 0 and (main.plant_mats[0] as ShaderMaterial).get_shader_parameter("hit").z < 1.0
+		await get_tree().create_timer(1.5).timeout
+		var settled: bool = main.combat.plant_hit.z > 1.3
+		check("plant_shake", told and settled, "tall plant materials %d, blow passed on %s, settled after 1.5 s %s" % [tall, told, settled])
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -1111,14 +1166,14 @@ func run() -> void:
 		main.in_cave = true
 		# the first way out waits for the cave's errands and says which are left
 		var keep_saw: bool = main.saw_painting
-		var keep_up: int = main.skill_up
+		var keep_up: Array = main.woke.duplicate()
 		main.saw_painting = true
-		main.skill_up = -1
+		main.woke = [false, false, false]
 		main.toast_t = 0.0
 		reset_to(main.cave_marks.E + Vector2(-0.5, 0))
 		await wait(0.8)
-		var held: bool = main.in_cave and main.ui.toast.text.contains("기술")
-		main.skill_up = maxi(keep_up, 0)
+		var held: bool = main.in_cave and main.ui.toast.text.contains("회오리")
+		main.woke = [true, keep_up[1], keep_up[2]]
 		var talk := false
 		for k in 12: # the fade out, then the way-out story (close whatever opens on the way)
 			await wait(0.3)
@@ -1128,7 +1183,7 @@ func run() -> void:
 		await wait(0.3)
 		# outside, the stone stair stays beside her and leads back down
 		var stair: bool = main.cave.exit_built and not main.in_cave
-		main.skill_up = keep_up
+		main.woke = keep_up
 		main.saw_painting = keep_saw
 		check("cave_exit", held and talk and not main.in_cave and main.story_step == 7 and stair, "held inside with a skill left=%s exit -> outside=%s step=%d stair kept=%s" % [held, not main.in_cave, main.story_step, stair])
 	if want.call("water_skip"):
@@ -1228,10 +1283,22 @@ func run() -> void:
 		for e in main.enemies.filter(func(e): return e.get("moth", false)): # night moths fly back over the parked corner and break the rest
 			e.dead = true
 			e.hp = 0.0
+			e.respawn = 9999.0 # and came back at 23:00 within the 15 s (full runs: "M" from the fourth second)
 		var lit_lamp = main.lanterns.filter(func(l): return l.position.x > 130.0 and not l.get_meta("dark", false))[0]
 		reset_to(Vector2(lit_lamp.position.x + 0.4, lit_lamp.position.z + 1.0))
-		await wait(15.0)
-		check("pip_rest", main.crown_pips >= 4, "15 s resting by a lit lantern at night (3 s a pip): pips 0->%d" % main.crown_pips)
+		var trace := [] # each second: pips, rest timer, speed, and "M" when a monster near stopped the rest
+		for k in 15:
+			await wait(1.0)
+			for e in main.enemies: # anything that wandered in meanwhile is sent off, so the rate is what is measured
+				if not e.dead and not e.get("boss", false) and Vector2(e.x - main.player.x, e.z - main.player.z).length() < 7.0:
+					trace.append("sent off %s" % e.get("kind", "foe"))
+					e.dead = true
+					e.hp = 0.0
+					e.respawn = 9999.0
+					if is_instance_valid(e.node):
+						e.node.visible = false
+			trace.append("%d/%.1f/%.1f%s" % [main.crown_pips, main.rest_t, Vector2(main.player.vx, main.player.vz).length(), "M" if main.rest_said else ""])
+		check("pip_rest", main.crown_pips >= 4, "15 s resting by a lit lantern at night (3 s a pip): pips 0->%d [%s]" % [main.crown_pips, " ".join(trace)])
 	if want.call("errand_done"):
 		main.crown_pips = 3
 		main.hour = 23.0
@@ -1929,7 +1996,7 @@ func run() -> void:
 		main.in_lake = false
 		main.in_garden = false
 		main.in_hill = false
-		main.skill_up = -1
+		main.woke = [false, false, false]
 		main.shrine_seen = false
 		main.story_step = maxi(main.story_step, 6)
 		main.enter_cave()
@@ -1946,12 +2013,14 @@ func run() -> void:
 		tap(KEY_E)
 		await wait(0.2)
 		main.close_story()
-		var whirl: bool = main.skill_up == 0
-		reset_to(main.cave_marks["3"] + Vector2(0, -1.0))
+		var whirl: bool = main.woke[0]
+		reset_to(main.cave_marks["3"] + Vector2(0, -1.0)) # the yellow altar sleeps here: it tells where, wakes nothing
 		tap(KEY_SPACE)
 		await wait(0.2)
+		var asleep: bool = main.story_open and "물빛 동굴" in str(main.cave.altar_said) and not main.woke[2]
 		main.close_story()
-		var nova: bool = main.skill_up == 2 and main.skill_cost(2) == 45
+		main.woke[2] = true # its own altar is in the grotto
+		var nova: bool = asleep and main.skill_cost(2) == 45
 		main.player.hp = 50.0
 		main.player.mp = 100.0
 		main.player.cds[2] = 0.0
@@ -3124,7 +3193,7 @@ func run() -> void:
 		main.grotto_q = 4
 		main.cloud_q = 3
 		main.has_feather = true
-		main.skill_up = 1
+		main.woke = [false, true, false]
 		main.crystal_done = true
 		main.has_ring = true
 		main.trial_best = 77.0
@@ -3140,12 +3209,12 @@ func run() -> void:
 		main.fly_q = 0
 		main.grotto_q = 0
 		main.cloud_q = 0
-		main.skill_up = -1
+		main.woke = [false, false, false]
 		main.trial_best = 0.0
 		main.race_best = 0.0
 		main.castle_q = 0
 		main.load_game()
-		var ok: bool = main.has_pearl and main.has_feather and main.has_ring and main.has_shoes and main.has_acorn and main.has_armour 			and main.crystal_done and main.fly_q == 3 and main.grotto_q == 4 and main.cloud_q == 3 and main.skill_up == 1 			and main.trial_best == 77.0 and main.race_best == 12.5 and main.castle_q == 3 and main.marsh.chest_open and main.forest.freed.count(true) == 5
+		var ok: bool = main.has_pearl and main.has_feather and main.has_ring and main.has_shoes and main.has_acorn and main.has_armour 			and main.crystal_done and main.fly_q == 3 and main.grotto_q == 4 and main.cloud_q == 3 and main.woke == [false, true, false] 			and main.trial_best == 77.0 and main.race_best == 12.5 and main.castle_q == 3 and main.marsh.chest_open and main.forest.freed.count(true) == 5
 		check("save_tonight", ok, "keepsakes, side stories and records survive save and load=%s" % ok)
 	if want.call("fishing"):
 		main.story_step = maxi(main.story_step, 10)
@@ -3530,11 +3599,11 @@ func run() -> void:
 		e.shadow.queue_free()
 		calm_enemies(false)
 		main.has_pearl = true
-		main.skill_up = 2
+		main.woke = [false, false, true]
 		var lv0: int = main.player.lv
 		main.write_new_round()
 		var sd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
-		var kept: bool = int(sd.get("story", -1)) == 0 and int(sd.get("ng", 0)) == 1 and int(sd.get("lv", 0)) == lv0 			and bool(sd.get("has_pearl", false)) and int(sd.get("skill_up", -1)) == 2 and not sd.has("lake_q") and not sd.has("chests")
+		var kept: bool = int(sd.get("story", -1)) == 0 and int(sd.get("ng", 0)) == 1 and int(sd.get("lv", 0)) == lv0 			and bool(sd.get("has_pearl", false)) and sd.get("woke", []) == [false, false, true] and not sd.has("lake_q") and not sd.has("chests")
 		check("new_round", tougher and harder and kept and said, "round 1: monsters take 1/1.5 damage=%s and deal 1.5x=%s, new-round save keeps level and keepsakes only=%s, notice says 1.5x then 2x=%s" % [tougher, harder, kept, said])
 	if want.call("shop_price"):
 		main.in_village = false
@@ -4268,7 +4337,7 @@ func run() -> void:
 		var h0: float = main.hour
 		await wait(0.5)
 		var paused: bool = main.hour == h0
-		var tilt_off: bool = main.ui.set_rows.keys() == ["sound", "sora_px"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
+		var tilt_off: bool = main.ui.set_rows.keys() == ["sora_px"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
 			and main.ui.now_tune.text.begins_with("♪") and not main.ui.now_tune.editable
 		main.ui.set_plus.emit_signal("pressed")
 		var bigger: bool = main.ui.story_text.get_theme_font_size("font_size") > 20
@@ -7469,6 +7538,10 @@ func run() -> void:
 		main.close_story()
 		park_mates(true)
 		var keep := {"story": main.story_step, "q": main.quest_raw, "gq": main.garden_q, "lq": main.lake_q, "shq": main.shore_q, "seen": main.shore_seen, "shrine": main.shrine_seen}
+		var keep_woke: Array = main.woke.duplicate()
+		var keep_saw: bool = main.saw_painting
+		main.woke[0] = true # the cave's way out points at the exit once the whirl is woken and the mural seen (v0.1.46)
+		main.saw_painting = true
 		var go := func(flag: String, at: Vector2) -> void:
 			for f in ["in_cave", "in_village", "in_forest", "in_lake", "in_hill", "in_garden"]:
 				main.set(f, f == flag)
@@ -7530,6 +7603,8 @@ func run() -> void:
 		main.shore_q = keep.shq
 		main.shore_seen = keep.seen
 		main.shrine_seen = keep.shrine
+		main.woke = keep_woke
+		main.saw_painting = keep_saw
 		main.return_to_start()
 		main.set_quest(keep.q)
 		park_mates(false)

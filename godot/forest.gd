@@ -312,6 +312,48 @@ func build(m: Node) -> void:
 	build_grove(m)
 	build_hollow(m, post_mat, glass)
 	build_oak(m)
+	build_exits(m)
+
+# the ways out (the owner, 2026-10-28: "굳은 숲에서 출구 표시해줘.. 미니맵에도"): S west to the village, E east to the
+# wind hill; a pale green glowing pad with a chevron sliding outward, and a name floating over it
+const EXITS := {"S": [Vector2(-1, 0), "마을"], "E": [Vector2(1, 0), "바람 언덕"]}
+var exit_signs: Array = [] # [{"at", "node"}]
+
+func build_exits(m: Node) -> void:
+	var pad_mat: Material = m.glow_mat(Color("#7fe08a"), 1.2)
+	var arrow_mat: Material = m.glow_mat(Color("#eaffd8"), 2.0)
+	for key in EXITS:
+		var dir: Vector2 = EXITS[key][0]
+		var g := Node3D.new()
+		var pad: MeshInstance3D = m.box(Vector3(0.9, 0.04, 0.9), pad_mat)
+		pad.position = Vector3(0, 0.02, 0)
+		g.add_child(pad)
+		var chev := Node3D.new() # a ">" built pointing +x, turned to the way out
+		for side in [1.0, -1.0]:
+			var arm: MeshInstance3D = m.box(Vector3(0.4, 0.03, 0.08), arrow_mat)
+			arm.position = Vector3(0.01, 0.06, 0.14 * side)
+			arm.rotation.y = -atan2(0.28 * side, -0.28)
+			chev.add_child(arm)
+		chev.rotation.y = -atan2(dir.y, dir.x)
+		g.add_child(chev)
+		var tw := chev.create_tween().set_loops()
+		var out := Vector3(dir.x, 0, dir.y) * 0.18
+		tw.tween_property(chev, "position", out, 0.7).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(chev, "position", Vector3.ZERO, 0.7).set_trans(Tween.TRANS_SINE)
+		var tag := Label3D.new()
+		tag.font = m.ui_font
+		tag.text = EXITS[key][1]
+		tag.font_size = 40
+		tag.pixel_size = 0.012
+		tag.outline_size = 12
+		tag.modulate = Color("#eaffd8")
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.position = Vector3(0, 1.3, 0)
+		g.add_child(tag)
+		var at: Vector2 = marks[key]
+		g.position = Vector3(at.x, 0, at.y)
+		m.add_child(g)
+		exit_signs.append({"at": at, "node": g})
 
 # the south valley: grey gate, stream face, memory lamps (dark until the crown wakes them), picture doors, boxes
 func build_hollow(m: Node, post_mat: Material, glass: Material) -> void:
@@ -673,4 +715,6 @@ func map_tex(width: int) -> ImageTexture:
 				"O": col = Color("#6f8f5e") if oak_green else Color("#5d6352")
 				"K": col = Color("#1e2a24") if knot_at(FOREST_X + x, z).get("open", false) else Color("#c8322a")
 			img.set_pixel(FOREST_X + x, z, col)
-	return ImageTexture.create_from_image(img)
+	var tex := ImageTexture.create_from_image(img)
+	tex.set_meta("exits", EXITS.keys().map(func(k): return [marks[k], EXITS[k][0]])) # the minimap's green arrows
+	return tex

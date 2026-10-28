@@ -653,11 +653,13 @@ func house_draft(m: Node, at: Vector3, k: int, labelled := true) -> void:
 # grew from 8x6 to 10x8, lore and lines talked over with GPT): an eight-sided stone basin on the four U tiles in the
 # middle of the square, the main road splitting round it. Eight stone keepers stand on the rim holding hands, brass
 # cuffs at their wrists (the winding bracelets); one joined hand is hardened to brick (Hangyeol's, who tried to wind
-# the land alone). A low brass outlet with a crown relief in the middle. Dry, with dust and leaves, until the land is
-# wound again (story_step 12); then water stands in the basin and wells from the outlet.
+# the land alone). A low brass outlet with a crown relief in the middle. Water runs from the start (the owner,
+# 2026-10-28: "평소에도 흐르게"), but only seven joined hands pour into the basin, the brick one dry, and the jet
+# barely lifts; once the land is wound again (story_step 12) the eighth hand pours, the jet stands tall and a sheet
+# of water falls from the upper bowl.
 const FOUNTAIN := Vector2(15.5, 9.5) # village tiles, the middle of the four U tiles
-var fountain_water: Node3D # the water, shown once the land is wound
-var fountain_dust: Node3D  # the dry basin's leaves, hidden then
+var fountain_full: Node3D # the eighth stream, the tall jet and the falling sheet, shown once the land is wound
+var fountain_low: Node3D  # the low jet and a few floating leaves, hidden then
 var fountain_wet := false
 var fountain_said: Array = [] # the lines E by the basin showed last (autoplay fountain)
 
@@ -700,7 +702,19 @@ func build_fountain(m: Node) -> void:
 	var top := 0.32
 	fountain_part(g, fountain_cyl(0.96, top - 0.05), base, Vector3(0, (top - 0.05) / 2.0, 0), PI / 8.0) # the basin
 	fountain_part(g, fountain_cyl(0.98, 0.05), rim, Vector3(0, top - 0.025, 0), PI / 8.0) # its pale rim
-	fountain_part(g, fountain_cyl(0.78, 0.02), dust, Vector3(0, top + 0.005, 0), PI / 8.0) # its dry floor
+	fountain_part(g, fountain_cyl(0.78, 0.02), dust, Vector3(0, top + 0.005, 0), PI / 8.0) # its floor
+	var water := StandardMaterial3D.new()
+	water.albedo_color = Color("#70acb8", 0.85)
+	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	water.roughness = 0.1
+	water.metallic_specular = 0.8
+	var spout := StandardMaterial3D.new()
+	spout.albedo_color = Color("#d8f0f4", 0.7)
+	spout.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	fountain_low = Node3D.new()
+	g.add_child(fountain_low)
+	fountain_full = Node3D.new()
+	g.add_child(fountain_full)
 	# the eight keepers on the rim, between their joined arms
 	var rr := 0.86
 	for k in 8:
@@ -716,6 +730,9 @@ func build_fountain(m: Node) -> void:
 		var along := Vector3(-sin(mid), 0, cos(mid))
 		for side in [-1.0, 1.0]:
 			fountain_part(g, fountain_box(Vector3(0.07, 0.07, 0.07)), brass, mp + along * side * chord * 0.3, -mid)
+		# a thin stream from the joined hands into the basin; Hangyeol's brick hand pours only once the land is wound
+		var drip := mp * Vector3(0.9, 1, 0.9) - Vector3(0, 0.08, 0)
+		fountain_part(fountain_full if k == 0 else g, fountain_cyl(0.022, 0.16, 6), spout, drip)
 	# the middle: a stone column with a small upper bowl, the outlet over it a brass cap with five crown points
 	fountain_part(g, fountain_cyl(0.13, 0.78), stone, Vector3(0, top + 0.39, 0))
 	fountain_part(g, fountain_cyl(0.36, 0.1), rim, Vector3(0, top + 0.8, 0), PI / 8.0)
@@ -723,25 +740,17 @@ func build_fountain(m: Node) -> void:
 	for k in 5:
 		var a := TAU * k / 5.0
 		fountain_part(g, fountain_box(Vector3(0.05, 0.08, 0.05)), brass, Vector3(cos(a) * 0.14, top + 0.97, sin(a) * 0.14))
-	fountain_dust = Node3D.new()
-	g.add_child(fountain_dust)
-	for k in 5:
+	for k in 3: # leaves floating while the water is low
 		var a: float = m.rnd(0, TAU)
-		var d: float = m.rnd(0.25, 0.65)
-		fountain_part(fountain_dust, fountain_box(Vector3(0.12, 0.015, 0.07)), leaf, Vector3(cos(a) * d, top + 0.02, sin(a) * d), m.rnd(0, PI))
-	fountain_water = Node3D.new()
-	g.add_child(fountain_water)
-	var water := StandardMaterial3D.new()
-	water.albedo_color = Color("#70acb8", 0.85)
-	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	water.roughness = 0.1
-	water.metallic_specular = 0.8
-	fountain_part(fountain_water, fountain_cyl(0.79, 0.03), water, Vector3(0, top + 0.03, 0), PI / 8.0)
-	var spout := StandardMaterial3D.new()
-	spout.albedo_color = Color("#d8f0f4", 0.7)
-	spout.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	var jet := fountain_part(fountain_water, fountain_cyl(0.05, 0.22, 6), spout, Vector3(0, top + 1.1, 0))
-	fountain_part(fountain_water, fountain_cyl(0.33, 0.02), water, Vector3(0, top + 0.86, 0), PI / 8.0) # the upper bowl full
+		var d: float = m.rnd(0.3, 0.6)
+		fountain_part(fountain_low, fountain_box(Vector3(0.12, 0.015, 0.07)), leaf, Vector3(cos(a) * d, top + 0.05, sin(a) * d), m.rnd(0, PI))
+	fountain_part(g, fountain_cyl(0.79, 0.03), water, Vector3(0, top + 0.03, 0), PI / 8.0) # the basin's water
+	fountain_part(g, fountain_cyl(0.33, 0.02), water, Vector3(0, top + 0.86, 0), PI / 8.0) # the upper bowl's
+	var low := fountain_part(fountain_low, fountain_cyl(0.035, 0.08, 6), spout, Vector3(0, top + 1.0, 0)) # a weak welling
+	var lw := low.create_tween().set_loops()
+	lw.tween_property(low, "scale", Vector3(1.1, 1.3, 1.1), 0.9).set_trans(Tween.TRANS_SINE)
+	lw.tween_property(low, "scale", Vector3(1, 0.8, 1), 0.9).set_trans(Tween.TRANS_SINE)
+	var jet := fountain_part(fountain_full, fountain_cyl(0.05, 0.5, 6), spout, Vector3(0, top + 1.24, 0)) # the tall jet
 	var fall := CylinderMesh.new() # a thin sheet of water from the upper bowl's lip into the basin
 	fall.top_radius = 0.36
 	fall.bottom_radius = 0.6
@@ -753,9 +762,9 @@ func build_fountain(m: Node) -> void:
 	sheet.albedo_color = Color("#bfe4ea", 0.35)
 	sheet.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	sheet.cull_mode = BaseMaterial3D.CULL_DISABLED
-	fountain_part(fountain_water, fall, sheet, Vector3(0, top + 0.41, 0))
+	fountain_part(fountain_full, fall, sheet, Vector3(0, top + 0.41, 0))
 	var tw := jet.create_tween().set_loops() # the water wells up and settles
-	tw.tween_property(jet, "scale", Vector3(1.2, 1.25, 1.2), 0.6).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(jet, "scale", Vector3(1.2, 1.3, 1.2), 0.6).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(jet, "scale", Vector3(1, 0.85, 1), 0.6).set_trans(Tween.TRANS_SINE)
 	m.rocks.append({"x": fountain_at().x, "z": fountain_at().y, "r": 1.0})
 	var t := Timer.new() # the ending winds the land while Sora is elsewhere: look now and then
@@ -767,13 +776,13 @@ func build_fountain(m: Node) -> void:
 
 func fountain_set(wet: bool) -> void:
 	fountain_wet = wet
-	fountain_water.visible = wet
-	fountain_dust.visible = not wet
+	fountain_full.visible = wet
+	fountain_low.visible = not wet
 
-# E beside the basin: Sora's look at it, dry or flowing
+# E beside the basin: Sora's look at it, seven streams or all eight
 func fountain_key(m: Node, me: Vector2) -> bool:
 	if me.distance_to(fountain_at()) > 1.9:
 		return false
-	fountain_said = m.STORY.FOUNTAIN_WET if fountain_wet else m.STORY.FOUNTAIN_DRY
+	fountain_said = m.STORY.FOUNTAIN_WET if fountain_wet else m.STORY.FOUNTAIN_LOW
 	m.show_story("", fountain_said)
 	return true

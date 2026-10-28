@@ -371,35 +371,52 @@ func build_cave_props() -> void:
 	wall.position = Vector3(p.x, 0.9, p.y - 1.45)
 	m.add_child(wall)
 
-# the shrine of three stones under the cave's west hall: E or Space by a stone wakes that skill (it can be changed back)
+# the altars: three stones under the first cave's west hall, but only the blue one wakes its skill there (whirl); the
+# orange and yellow ones sleep and say where their light wakes: the ember in the castle's workshop (B1), the nova in
+# the water-light grotto, each on an altar of its own. E or Space by an altar.
+const ALTAR_COLS := [Color("#3a9cff"), Color("#ff7a1a"), Color("#ffd23a")] # whirl, ember, nova
+const GROTTO_ALTAR := Vector2(8, 17)  # grotto tile, in the crab's room
+const WORK_ALTAR := Vector2(5, 4)     # workshop B1 tile, in the first room
+
+var altar_said: Array = [] # what a sleeping altar said last (autoplay shrine)
+
 func build_shrine() -> void:
-	var stone: Material = m.mat_color(Color("#6a6a74"))
-	var cols := [Color("#3a9cff"), Color("#ff7a1a"), Color("#ffd23a")] # whirl, ember, nova
 	for i in 3:
-		var at: Vector2 = m.cave_marks[str(i + 1)]
-		var g := Node3D.new()
-		var post := m.box(Vector3(0.7, 0.8, 0.7), stone)
-		post.position = Vector3(0, 0.4, 0)
-		g.add_child(post)
-		var gm := StandardMaterial3D.new() # flat unshaded colour: an additive glow would bloom to white in the cave
-		gm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		gm.albedo_color = cols[i]
-		var gem := m.box(Vector3(0.32, 0.32, 0.32), gm)
-		gem.name = "gem"
-		gem.position = Vector3(0, 1.15, 0)
-		g.add_child(gem)
-		g.position = Vector3(at.x, 0, at.y)
-		m.add_child(g)
-		m.shrine_nodes.append(g)
-		m.rocks.append({"x": at.x, "z": at.y, "r": 0.5})
+		build_altar(m.cave_marks[str(i + 1)], i, i == 0)
+	build_altar(Vector2(m.grotto.GROTTO_X, 0) + GROTTO_ALTAR, 2, true)
+	build_altar(Vector2(Main.WORK.FLOOR_X[0], 0) + WORK_ALTAR, 1, true)
+
+func build_altar(at: Vector2, i: int, home: bool) -> void:
+	var stone: Material = m.mat_color(Color("#6a6a74"))
+	var cols := ALTAR_COLS
+	var g := Node3D.new()
+	g.set_meta("skill", i)
+	g.set_meta("home", home)
+	var post := m.box(Vector3(0.7, 0.8, 0.7), stone)
+	post.position = Vector3(0, 0.4, 0)
+	g.add_child(post)
+	var gm := StandardMaterial3D.new() # flat unshaded colour: an additive glow would bloom to white in the cave
+	gm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	gm.albedo_color = cols[i]
+	var gem := m.box(Vector3(0.32, 0.32, 0.32), gm)
+	gem.name = "gem"
+	gem.position = Vector3(0, 1.15, 0)
+	g.add_child(gem)
+	g.position = Vector3(at.x, 0, at.y)
+	m.add_child(g)
+	m.shrine_nodes.append(g)
+	m.rocks.append({"x": at.x, "z": at.y, "r": 0.5})
 
 func update_shrine(dt: float) -> void:
 	for c in m.crystals:
 		c.hurt -= dt
 	for i in m.shrine_nodes.size():
 		var gem: Node3D = m.shrine_nodes[i].get_node("gem")
-		gem.rotation.y += dt * (2.5 if m.skill_up == i else 0.6)
-		gem.scale = Vector3.ONE * (1.4 + sin(m.t * 3.0) * 0.1 if m.skill_up == i else 1.0)
+		var k: int = m.shrine_nodes[i].get_meta("skill")
+		var lit: bool = m.woke[k]
+		var asleep: bool = not lit and not m.shrine_nodes[i].get_meta("home") # a sleeping altar: a small, still gem
+		gem.rotation.y += dt * (2.5 if lit else (0.0 if asleep else 0.6))
+		gem.scale = Vector3.ONE * (1.4 + sin(m.t * 3.0) * 0.1 if lit else (0.6 if asleep else 1.0))
 	if m.in_cave and not m.shrine_seen and m.player.z > 17.6 and not m.story_open:
 		m.shrine_seen = true
 		m.show_story("", Main.STORY.SHRINE_IN)
@@ -499,13 +516,21 @@ func shrine_key() -> bool:
 	if crystal_chest_key():
 		return true
 	var me := Vector2(m.player.x, m.player.z)
-	for i in 3:
-		if me.distance_to(m.cave_marks[str(i + 1)]) < 1.4:
-			if m.skill_up == i:
+	for g in m.shrine_nodes:
+		var at := Vector2(g.position.x, g.position.z)
+		if me.distance_to(at) < 1.4:
+			var i: int = g.get_meta("skill")
+			if not g.get_meta("home"):
+				altar_said = Main.STORY.SHRINE_ASLEEP[i - 1]
+				m.show_story("", altar_said)
+				return true
+			if m.woke[i]:
 				m.toast("이미 깨어난 기술이다")
 				return true
-			m.skill_up = i
-			m.burst(Vector3(m.cave_marks[str(i + 1)].x, 1.2, m.cave_marks[str(i + 1)].y), [Color("#9fd4ff"), Color("#ff8a2a"), Color("#fff1a0")][i], 30, 3.0)
+			m.woke[i] = true
+			if m.in_cave and m.has_skip and not m.cave_exit_seen:
+				exit_quest()
+			m.burst(Vector3(at.x, 1.2, at.y), [Color("#9fd4ff"), Color("#ff8a2a"), Color("#fff1a0")][i], 30, 3.0)
 			m.sfx(523, 0.15, "triangle", 0.22)
 			m.get_tree().create_timer(0.12).timeout.connect(func(): m.sfx(784, 0.25, "triangle", 0.22))
 			m.show_story("", [Main.STORY.SHRINE_WHIRL, Main.STORY.SHRINE_EMBER, Main.STORY.SHRINE_NOVA][i])
@@ -669,7 +694,9 @@ func check_painting() -> void:
 		m.show_story(Main.MURAL_PICTURE, Main.STORY.PAINTING_LATE + (Main.STORY.PAINTING_WITH_NOEUL if m.mate2 != null else []))
 	else:
 		m.show_story(Main.MURAL_PICTURE, Main.STORY.PAINTING)
-	if m.has_skip: # seen on a later visit: the quest she has stays (GPT playtests 2 -> 9)
+	if m.has_skip and not m.cave_exit_seen: # seen after the mole: the way-out line moves on (v0.1.46)
+		exit_quest()
+	elif m.has_skip: # seen on a later visit: the quest she has stays (GPT playtests 2 -> 9)
 		pass
 	elif m.cave_door_open:
 		m.set_quest(Main.CAVE_DOOR_QUEST)
@@ -774,8 +801,8 @@ func exit_blocker() -> String:
 	var left: Array = []
 	if not m.saw_painting:
 		left.append(tr("벽 그림 보기"))
-	if m.skill_up < 0:
-		left.append(tr("세 돌단에서 기술 깨우기"))
+	if not m.woke[0]:
+		left.append(tr("서쪽 푸른 돌단에서 회오리 깨우기"))
 	if left.is_empty():
 		return ""
 	return tr("아직 나갈 수 없다. 동굴에서 남은 일: %s") % ", ".join(left)
@@ -941,6 +968,17 @@ func mole_defeated() -> void:
 		return
 	m.has_skip = true
 	m.ui.boss.visible = false
-	m.set_quest("동쪽 출구로 나가자 (Shift를 누르고 물 위를 달릴 수 있다)")
+	exit_quest()
 	m.save_game()
 	m.show_story("res://art/story/07_water_skip.jpg", Main.STORY.WATER_SKIP)
+
+# after the mole: what is still left before the first way out, or the way out itself
+func exit_quest() -> void:
+	if not m.saw_painting and not m.woke[0]:
+		m.set_quest("나가기 전에 벽 그림을 보고, 서쪽 푸른 돌단에서 회오리를 깨우자 (E)")
+	elif not m.saw_painting:
+		m.set_quest("나가기 전에 동굴 깊은 곳의 벽 그림을 보자")
+	elif not m.woke[0]:
+		m.set_quest("나가기 전에 서쪽 푸른 돌단에서 회오리를 깨우자 (E)")
+	else:
+		m.set_quest("동쪽 출구로 나가자 (Shift를 누르고 물 위를 달릴 수 있다)")

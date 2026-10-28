@@ -14,15 +14,47 @@ const NAVY := Color(0.02, 0.04, 0.10, 0.78)
 const TEXT := Color("#efe6cf")
 const DIM := Color("#a99d84")
 
-func _process(_dt: float) -> void:
+# the moon-light card: shown when a bracelet use finds too little moon light (the owner, 2026-10-28: "달빛 에너지가
+# 다 닳은 상태에서 쓰려고 하면 어떻게 충전하는지 알려줘 (등불 + 달)"): a lantern + the moon -> a full pip, and the rule
+# under it, 4 s above the toast line, the empty pips blinking meanwhile
+var pip_hint_t := 0.0
+const PIP_HINT := "밤에 켜진 등불 곁에서 가만히 쉬면 달빛이 찬다"
+
+func _process(dt: float) -> void:
+	pip_hint_t = maxf(0.0, pip_hint_t - dt)
 	queue_redraw()
+
+func draw_pip_hint() -> void:
+	var vs := get_viewport_rect().size
+	var a := minf(1.0, pip_hint_t / 0.4) # fades out over its last 0.4 s
+	var box := Rect2(vs.x / 2.0 - 220.0, vs.y - 330.0, 440.0, 104.0)
+	draw_rect(box, Color(NAVY, 0.9 * a))
+	draw_rect(box, Color(GOLD, a), false, 1.5)
+	var cy := box.position.y + 40.0
+	var cx := vs.x / 2.0
+	# the lantern: a post, a dark frame round warm glass, a cap, and its glow
+	var lx := cx - 120.0
+	draw_circle(Vector2(lx, cy), 22.0, Color(1.0, 0.77, 0.42, 0.18 * a))
+	draw_rect(Rect2(lx - 2.0, cy + 12.0, 4.0, 16.0), Color(0.23, 0.16, 0.12, a))
+	draw_rect(Rect2(lx - 10.0, cy - 12.0, 20.0, 24.0), Color(0.23, 0.16, 0.12, a))
+	draw_rect(Rect2(lx - 7.0, cy - 9.0, 14.0, 18.0), Color(1.0, 0.77, 0.42, a))
+	draw_colored_polygon(PackedVector2Array([Vector2(lx - 13.0, cy - 12.0), Vector2(lx + 13.0, cy - 12.0), Vector2(lx, cy - 22.0)]), Color(0.23, 0.16, 0.12, a))
+	text(Vector2(cx - 70.0, cy + 8.0), "+", 26, Color(TEXT, a), HORIZONTAL_ALIGNMENT_CENTER, 20.0)
+	# the moon: a pale disc with the card's navy taken out of one side
+	var mx := cx - 20.0
+	draw_circle(Vector2(mx, cy), 17.0, Color(0.95, 0.9, 0.69, a))
+	draw_circle(Vector2(mx + 8.0, cy - 5.0), 15.0, Color(0.03, 0.05, 0.11, a))
+	text(Vector2(cx + 20.0, cy + 8.0), "→", 24, Color(TEXT, a), HORIZONTAL_ALIGNMENT_CENTER, 30.0)
+	diamond(Vector2(cx + 100.0, cy), 15.0, Color(0.62, 0.83, 1.0, a))
+	diamond(Vector2(cx + 100.0, cy), 7.0, Color(1, 1, 1, 0.6 * a))
+	text(Vector2(box.position.x, box.position.y + 88.0), PIP_HINT, 18, Color(TEXT, a), HORIZONTAL_ALIGNMENT_CENTER, box.size.x)
 
 func diamond(c: Vector2, r: float, col: Color) -> void:
 	draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), col)
 
 func text(at: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0) -> void:
 	s = tr(s) # drawn text is not auto-translated like Labels are
-	draw_string_outline(main.ui_font, at, s, align, width, size, 4, Color(0, 0, 0, 0.7))
+	draw_string_outline(main.ui_font, at, s, align, width, size, 4, Color(0, 0, 0, 0.7 * col.a)) # fades with the text
 	draw_string(main.ui_font, at, s, align, width, size, col)
 
 func bar(at: Vector2, w: float, frac: float, col: Color, label: String, value: String, blink := false) -> void:
@@ -75,6 +107,8 @@ func pip_spots() -> Array:
 func _draw() -> void:
 	if main == null or main.intro:
 		return
+	if pip_hint_t > 0.0: # centre-bottom, clear of the corners the rest is drawn in
+		draw_pip_hint()
 	var p: Dictionary = main.player
 	var vs := get_viewport_rect().size
 	# ---- portrait and level
@@ -116,8 +150,9 @@ func _draw() -> void:
 			diamond(pc, 6, Color("#9fd4ff"))
 		elif flash:
 			diamond(pc, 6, Color.WHITE)
-		else:
-			draw_polyline(PackedVector2Array([pc + Vector2(0, -6), pc + Vector2(6, 0), pc + Vector2(0, 6), pc + Vector2(-6, 0), pc + Vector2(0, -6)]), Color("#6a6050"), 1.0)
+		else: # empty; blinking gold while the moon-light card is up
+			var ring := GOLD if pip_hint_t > 0.0 and fmod(main.t, 0.5) < 0.25 else Color("#6a6050")
+			draw_polyline(PackedVector2Array([pc + Vector2(0, -6), pc + Vector2(6, 0), pc + Vector2(0, 6), pc + Vector2(-6, 0), pc + Vector2(0, -6)]), ring, 1.0)
 	var grow: float = 6.0 * minf(1.0, main.rest_t / main.rest_need)
 	if grow >= 0.5 and main.crown_pips < main.pip_max: # the next pip glows in while resting (too small a diamond cannot be drawn)
 		diamond(Vector2(pip_x() + main.crown_pips * 16, 124), grow, Color("#9fd4ff"))

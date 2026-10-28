@@ -375,8 +375,8 @@ func build_settings(root: Control) -> void:
 	m.ui.set_stacks = [[], [], [], []] # per page: [title, wrapped text, button or null], laid out top to bottom by height
 	# only the sound effects and the language are left here (the owner, 2026-10-27: the other options went; screen
 	# shake, the miniature blur and the damage numbers stay on), and the tune that plays, in a box the mouse can copy
-	var rows := [["sound", "효과음", "위의 스피커 단추, M 키, 화면 왼쪽 아래 단추로도 켜고 끈다."],
-		["sora_px", "도트 소라", "시험: 소라를 96px 도트 그림으로 그린다(Aseprite로 줄임). 끄면 예전 매끈한 그림이다."]]
+	# no sound row: the speaker key sits at the popup's top right (the owner, 2026-10-28)
+	var rows := [["sora_px", "도트 소라", "시험: 소라를 96px 도트 그림으로 그린다(Aseprite로 줄임). 끄면 예전 매끈한 그림이다."]]
 	for i in rows.size():
 		var r: Array = rows[i]
 		var y := i * 92
@@ -424,7 +424,13 @@ func build_settings(root: Control) -> void:
 	now.text = m.music.tune_line()
 	now_box.add_child(now)
 	m.ui.now_tune = now
-	m.ui.set_stacks[0].append([nt, now, null])
+	var tune_keys := Control.new() # 이전 곡 / 다음 곡 under the tune's name
+	tune_keys.size = Vector2(200, 34)
+	tune_keys.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	m.ui.set_pages[0].add_child(tune_keys)
+	m.ui.tune_prev = set_button(tune_keys, "이전 곡", Vector2(0, 0), Vector2(96, 34), func(): m.music.step_tune(-1))
+	m.ui.tune_next = set_button(tune_keys, "다음 곡", Vector2(104, 0), Vector2(96, 34), func(): m.music.step_tune(1))
+	m.ui.set_stacks[0].append([nt, now, tune_keys])
 	# 도움말
 	# the owner, 2026-10-25: more detail, so each row says what the key does, what it costs and when it opens up
 	var tips := ["요령", "괴물은 때리기 직전에 빨갛게 부풀고 \"!\"가 뜬다. 그때 구르면 섬광 피하기(잠깐 세상이 느려진다), 막으면 섬광 막기. 쓰러지면 금화와 레벨은 그대로 두고 건널목이나 광장에서 다시 깬다"]
@@ -434,7 +440,7 @@ func build_settings(root: Control) -> void:
 		["기술", "U 회오리(기세 30), I 불씨탄(기세 15), O 빛파동(기세 60). 1 2 3도 같다. 기세는 괴물을 때리면 차고 Lv30부터 줄지 않는다. Lv15부터 다시 쓰기가 20% 빠르다. 4는 회복약(체력 45, Lv25부터 30% 더)"],
 		["팔찌 E", "말 걸기, 상자와 문 열기, 집 들어가기, 등불 켜기, 벽돌 풀기, 길돌, 낚시. 등불과 벽돌은 달빛 눈금을 쓴다(낮 2, 밤 1). 밤에 켜진 등불 곁에 서 있으면 3초에 한 눈금 찬다"],
 		["메뉴", "Q 일지(할 일, 곁일, 모은 것), H 조작법, M 효과음, B 음악, T 시간 3시간 보내기, P 화면 글자 숨기기, Esc 이 창"],
-		["화면", "Z X 또는 휠로 확대·축소. F8 처음 자리로 돌아가기, F9 처음부터 새로 하기(저장이 지워진다)"], tips]
+		["화면", "Z X 또는 휠로 확대·축소. F8 처음 자리로 돌아가기, F9 처음부터 새로 하기(한 번 더 눌러야 저장이 지워진다)"], tips]
 	for i in help_rows.size():
 		var ht := m.hud_build.label(m.ui.set_pages[1], help_rows[i][0], Vector2(0, i * 48), 18, Color("#eef3ff"))
 		ht.size = Vector2(112, 20)
@@ -655,7 +661,7 @@ func journal_lines() -> Array:
 	if m.shrine_seen:
 		side.call("울림 수정", tr("끝") if m.has_ring else (tr("상자를 열자") if m.crystal_done else tr("낮은 소리부터 차례로")))
 	if m.story_step >= 6:
-		side.call("동굴의 세 돌단", tr("아직 찾지 못했다") if not m.shrine_seen else (tr("깨운 기술: %s") % tr(["회오리", "불씨탄", "빛파동"][m.skill_up]) if m.skill_up >= 0 else tr("하나를 고르자")))
+		side.call("동굴의 세 돌단", tr("아직 찾지 못했다") if not m.shrine_seen else (tr("깨운 기술: %s") % ", ".join(range(3).filter(func(k): return m.woke[k]).map(func(k): return tr(["회오리", "불씨탄", "빛파동"][k]))) if m.woke.has(true) else tr("푸른 돌단에서 회오리를 깨우자")))
 	if m.forest_q >= 3:
 		var ml: int = m.forest.mem_lamps.filter(func(l): return l.lit).size()
 		side.call("노을의 열셋째 등불", [tr("숲 빈터 남쪽의 회색 문"), tr("기억 %d/3") % ml if ml < 3 else tr("가운데 마당으로"), tr("해 지는 그림 문을 찾자"), tr("마을의 심지에게 가져가자"), tr("끝")][m.hollow_q])

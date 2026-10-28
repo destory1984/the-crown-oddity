@@ -431,7 +431,6 @@ func _ready() -> void:
 	dressing.marsh_backdrop()
 	story.darken_first_lamp()
 	cave.build_cave()
-	cave.build_shrine()
 	cave.spawn_crystals()
 	cave.build_crystal_chest()
 	village.build(self)
@@ -445,6 +444,7 @@ func _ready() -> void:
 	cloud.build_updraft(self, hill.marks.U)
 	castle.build(self)
 	stairs.build(self)
+	cave.build_shrine() # after the grotto and the workshop floors: one altar stands in each
 	minigames.build_trial()
 	waystones.build_ways()
 	folk.build_house_room()
@@ -699,6 +699,18 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.52: 소라가 10시, 2시 방향(위쪽 대각선)으로 걸을 때 한쪽 발만 늘 앞에 나가 있던 것을 고쳤다. 걸음 네 칸 가운데 뒤 두 칸의 다리를 좌우로 뒤집어 두 발이 번갈아 나간다(tools/sora_legs.py).",
+	"· v0.1.51: 소라의 베기가 닿으면 둘레의 키 큰 풀과 꽃(코스모스, 억새, 아네모네, 고사리, 물풀, 부들)이 바깥으로 크게 휘었다가 흔들리며 1초 남짓에 가라앉는다. 잔디 같은 낮은 풀은 그대로다.",
+	"· v0.1.50: 설정 쪽 '지금 음악' 아래에 이전 곡, 다음 곡 단추를 넣었다. 45곡을 한 곡씩 앞뒤로 넘긴다. 효과음 줄은 창 오른쪽 위 스피커 단추와 겹쳐서 지웠다.",
+	"· v0.1.49: 곡이 바뀔 때 앞 곡이 1.5초 동안 잦아든 뒤 새 곡이 2초 동안 커진다. 예전에는 1초 동안 겹치며 소리 크기를 데시벨로 곧게 바꿔서 새 곡이 끝에서 툭 커졌다.",
+	"· v0.1.48: 음악: 동굴과 성 2번 곡을 108 → 140 BPM, 4번 곡을 114 → 136 BPM으로 빠르게 다시 만들었다. 늪과 호수 4번 곡은 지우고 새 곡(E♭ 도리아, 146 BPM)으로 바꿨다.",
+	"· v0.1.47: 기술은 동굴마다 하나씩 깨운다. 땅 밑 동굴의 푸른 돌단은 회오리, 성 아래 달지기 작업장 지하 1층의 주황 돌단은 불씨탄, 물빛 동굴 게 방의 노란 돌단은 빛파동. 땅 밑 동굴의 주황·노란 돌단은 잠들어 있고, E를 누르면 어디서 깨어나는지 알려 준다. 예전 저장에서 깨운 기술은 그대로 남는다.",
+	"· v0.1.46: 땅 밑 동굴: 수레두더지를 이긴 뒤 나가기 전에 할 일이 남았으면 할 일 줄이 '나가기 전에 서쪽 푸른 돌단에서 회오리를 깨우자 (E)'처럼 남은 일을 말하고, 노란 느낌표도 그곳을 가리킨다. 예전에는 출구를 가리켜 놓고 출구에서야 막혔다.",
+	"· v0.1.45: F9(처음부터)를 누르면 먼저 묻는다. 무엇이 지워지는지와 난이도(지금 회차의 배율, 처음부터 하면 1배)를 알려 주고, 10초 안에 F9를 한 번 더 눌러야 지운다. 첫 화면에서도 두 번 눌러야 한다.",
+	"· v0.1.44: 달빛이 모자란데 팔찌를 쓰려 하면 '등불 + 달 → 달빛' 그림 판이 4초 동안 뜨고, 빈 달빛 칸이 금색으로 깜박인다. 글 한 줄만 잠깐 뜨던 것을 바꿨다.",
+	"· v0.1.43: 미니맵에 길돌(워프)이 나온다. 들러서 알게 된 길돌만, 지금 보는 지도 안에 있는 것만 달빛 테 안의 작은 돌로 그린다.",
+	"· v0.1.42: 굳은 숲의 두 출구에 표시를 했다. 출구 칸에 초록빛 발판과 바깥쪽으로 움직이는 화살표, 갈 곳 이름(마을, 바람 언덕)이 뜬다. 미니맵에도 초록 테 안에 화살표로 나온다.",
+	"· v0.1.41: 광장 분수가 평소에도 흐른다. 엔딩 전엔 여덟 달지기 가운데 일곱의 손에서만 물이 졸졸 흐르고(벽돌 손은 말라 있다) 물기둥도 낮다. 엔딩 뒤엔 여덟 줄기가 다 흐르고 물기둥이 높이 솟으며 위 그릇에서 물이 흘러내린다.",
 	"· v0.1.40: 폰 화면: 왼쪽 위 상태 막대를 218 → 109픽셀로 반을 줄였다. 위쪽 메뉴 단추, 확대·축소 단추, 아래 기술 단추를 모두 60픽셀 둥근 동전으로 맞췄고, 막기·구르기·팔찌 마름모 셋도 같은 크기(반지름 42)로 맞췄다.",
 	"· v0.1.39: 노을과 물결이 서 있을 때 숨을 고른다. 머리와 어깨가 0.25초마다 0 → 2 → 3 → 2픽셀 오르내리고, 움직이면 바로 원래 그림으로 돌아간다.",
 	"· v0.1.38: 마을 한가운데 광장을 넓히고(10×8칸) '달지기의 샘'을 세웠다. 여덟 달지기가 손을 맞잡은 2단 분수이고 한 사람의 손만 벽돌이다. 엔딩 전엔 말라 있고 엔딩 뒤엔 물이 흐른다. E로 살펴볼 수 있다.",
@@ -1263,9 +1275,12 @@ var last_step := -9.0
 # moves that open with level (the banner names them when they arrive)
 
 const SKILL_CD := [3.0, 1.2, 6.0]
-var skill_up := -1           # the skill woken at the cave shrine: 0 whirl, 1 ember bolt, 2 radiant nova
+# the skills woken at the altars, one per cave (the owner, 2026-10-28: "한꺼번에 깨우지말고, 동굴마다 하나씩"):
+# 0 whirl in the first cave, 1 ember bolt in the castle's workshop (B1), 2 radiant nova in the water-light grotto
+var woke := [false, false, false]
 var shrine_seen := false
 var shrine_nodes: Array = []
+var plant_mats: Array = [] # the tall plants' grass materials (combat.gd plants_hit)
 
 func in_marsh() -> bool:
 	return not (in_cave or in_village or in_forest or in_lake or in_hill or in_garden)
@@ -1495,7 +1510,7 @@ func crown_key() -> void:
 		return
 	if in_cave and cave.post_key():
 		return
-	if in_cave and cave.shrine_key():
+	if cave.shrine_key():
 		return
 	if in_forest:
 		if forest_zone.oak_key():
@@ -1916,12 +1931,13 @@ func _input(event: InputEvent) -> void:
 				buy(i)
 				get_viewport().set_input_as_handled()
 				return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F9: # asks first (save.ask_reset)
+		save.ask_reset()
+		get_viewport().set_input_as_handled()
+		return
 	if story_open and ((event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed)):
 		story.next_story()
 		get_viewport().set_input_as_handled()
-		return
-	if intro and event is InputEventKey and event.pressed and event.keycode == KEY_F9:
-		save.reset_game()
 		return
 	if intro and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
 		music.toggle_music() # the title's music key: B turns the tune off without starting
@@ -1985,7 +2001,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_H: toggle_help(not ui.help.visible)
 			KEY_Q: toggle_journal(not ui.journal.visible)
 			KEY_E: crown_key()
-			KEY_F9: save.reset_game()
 			KEY_F8: return_to_start()
 			KEY_M: toggle_sound()
 			KEY_B: music.toggle_music()

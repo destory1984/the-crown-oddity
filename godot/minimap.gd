@@ -10,6 +10,9 @@ var map_tex: Texture2D
 const MARSH := preload("res://marsh.gd")
 var sora_icon: Texture2D = preload("res://art/ui/portrait.png")
 var quest_at := Vector2.INF # where the gold "!" was drawn last (screen, in this control), for the tests
+var ways_drawn: Array = []  # the waystones drawn last, by index (the owner, 2026-10-28: "워프하는 곳도 미니맵 표시해줘")
+var map_img: Image          # map_tex as an image, to tell whether a waystone lies on the map shown
+var map_img_of: Texture2D
 
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR # a smooth painted map, not pixel blocks
@@ -71,6 +74,21 @@ func _draw() -> void:
 		draw_house(xf * (main.cottage_at + Vector2(0.5, 0.5)), s)
 	for st: Array in map_tex.get_meta("stairs", []):
 		draw_stairs(xf * (st[0] + Vector2(0.5, 0.5)), st[1], s)
+	for ex: Array in map_tex.get_meta("exits", []):
+		draw_exit(xf * (ex[0] + Vector2(0.5, 0.5)), xf.basis_xform(ex[1]).normalized(), s)
+	# the waystones found so far, on this map only: the map shown must have ground under the stone
+	if map_img_of != map_tex:
+		map_img = map_tex.get_image()
+		map_img_of = map_tex
+	ways_drawn = []
+	for i in main.WAY_NAMES.size():
+		if not main.way_known(i) or (i == 7) != main.in_workshop():
+			continue
+		var w: Vector2 = main.way_spot(i)
+		if not on_map(Vector2i(floori(w.x), floori(w.y))):
+			continue
+		ways_drawn.append(i)
+		draw_waystone(xf * (w + Vector2(0.5, 0.5)), s)
 	# the gold "!" over the quest's next spot, the one the world's "!" bobs over (the owner, 2026-10-26); a far one
 	# sits on the rim on its side, and none while a story box is open
 	quest_at = Vector2.INF
@@ -131,6 +149,30 @@ func draw_house(at: Vector2, s: float) -> void:
 		Vector2(at.x, at.y - 4.2 * s)]), Color("#c8503a"))
 
 # three steps climbing to the right (up) or going down to the right (down) on a dark round back
+# ground within two tiles of the spot on the map shown (a stone can stand on a tree tile at a path's edge)
+func on_map(px: Vector2i) -> bool:
+	for dz in range(-2, 3):
+		for dx in range(-2, 3):
+			var q := px + Vector2i(dx, dz)
+			if q.x >= 0 and q.y >= 0 and q.x < map_img.get_width() and q.y < map_img.get_height() and map_img.get_pixelv(q).a > 0.0:
+				return true
+	return false
+
+# a way out of the area: a green ring with a pale arrow pointing out
+func draw_exit(at: Vector2, dir: Vector2, s: float) -> void:
+	draw_circle(at, 6.5 * s, Color(0.04, 0.03, 0.08, 0.9))
+	draw_arc(at, 6.5 * s, 0.0, TAU, 24, Color("#7fe08a"), 1.0, true)
+	var f := dir * 3.8 * s
+	var n := Vector2(-dir.y, dir.x) * 3.2 * s
+	draw_colored_polygon(PackedVector2Array([at + f, at - f * 0.7 + n, at - f * 0.25, at - f * 0.7 - n]), Color("#eaffd8"))
+
+# a waystone: a moon-blue ring round a small grey stone with its moon
+func draw_waystone(at: Vector2, s: float) -> void:
+	draw_circle(at, 6.0 * s, Color(0.04, 0.03, 0.08, 0.9))
+	draw_arc(at, 6.0 * s, 0.0, TAU, 24, Color("#bcd6ff"), 1.0, true)
+	draw_rect(Rect2(at + Vector2(-2.2, -3.4) * s, Vector2(4.4, 6.8) * s), Color("#8a8a94"))
+	draw_circle(at + Vector2(0, -1.0) * s, 1.4 * s, Color("#bcd6ff"))
+
 func draw_stairs(at: Vector2, up: bool, s: float) -> void:
 	var step := Color("#ffc23a") if up else Color("#b45cff")
 	var tread := Color("#fff4c8") if up else Color("#f2e6ff")

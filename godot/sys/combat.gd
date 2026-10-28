@@ -219,7 +219,21 @@ const CHAIN := 0.5   # a swing this soon after a landed hit is a chained one
 var buffer_t := 0.0
 var last_hit_t := -9.0
 
+# tall plants near a blow are thrown aside and swing back (shaders/grass.gdshader "hit"); a new blow restarts it
+var plant_hit := Vector4(0, 0, 99, 0)
+
+func plants_hit(at: Vector2, r: float) -> void:
+	plant_hit = Vector4(at.x, at.y, 0.0, r)
+
+func update_plants(dt: float) -> void:
+	if plant_hit.z > 1.3:
+		return
+	plant_hit.z += dt
+	for sm: ShaderMaterial in m.plant_mats:
+		sm.set_shader_parameter("hit", plant_hit)
+
 func update_buffer(dt: float) -> void:
+	update_plants(dt)
 	if buffer_t <= 0.0:
 		return
 	buffer_t -= dt
@@ -288,6 +302,8 @@ func attack() -> void:
 				m.crystal_hit(c)
 	if m.in_marsh():
 		m.world_build.chop_trees(reach, f, cone, spin or slam)
+	var me := Vector2(m.player.x, m.player.z)
+	plants_hit(me if spin or slam else me + f * reach * 0.6, reach + 0.4 if spin or slam else reach * 0.9)
 	if slam:
 		m.shake = maxf(m.shake, 0.3)
 		m.burst(here + Vector3(0, 0.2, 0), Color("#d8c8a0"), 30, 3.5)
@@ -422,7 +438,7 @@ func light_blade(f: Vector2) -> void:
 	m.projectiles.append({"node": b, "v": f * 12.0, "life": 0.7})
 
 func skill_cost(i: int) -> int:
-	return 45 if i == 2 and m.skill_up == 2 else SKILL_MP[i]
+	return 45 if i == 2 and m.woke[2] else SKILL_MP[i]
 
 func use_skill(i: int) -> void:
 	if m.player.cds[i] > 0:
@@ -436,7 +452,7 @@ func use_skill(i: int) -> void:
 	var me := Vector2(m.player.x, m.player.z)
 	match i:
 		0: # whirl (woken: wider and harder)
-			var woke := m.skill_up == 0
+			var woke: bool = m.woke[0]
 			m.sfx(140, 0.3, "sawtooth", 0.2, 400)
 			m.effects.slash_fx(here, 0.0, true, 1.8, true)
 			if woke: # the woken whirl throws a wider ring of wind
@@ -448,7 +464,7 @@ func use_skill(i: int) -> void:
 			m.sfx(400, 0.2, "triangle", 0.2, -250)
 			var tg = nearest_enemy(12.0)
 			var dir: Vector2 = (Vector2(tg.x, tg.z) - me).normalized() if tg != null else m.player.face
-			for a in ([-0.22, 0.0, 0.22] if m.skill_up == 1 else [0.0]): # woken: three bolts in a fan
+			for a in ([-0.22, 0.0, 0.22] if m.woke[1] else [0.0]): # woken: three bolts in a fan
 				var b := MeshInstance3D.new()
 				var sp := SphereMesh.new()
 				sp.radius = 0.16
@@ -479,7 +495,7 @@ func use_skill(i: int) -> void:
 					damage_enemy(e, m.player.atk * 2.2, me, 9.0)
 			m.shake = 0.3
 			m.sfx(220, 0.6, "sine", 0.4, 600)
-			if m.skill_up == 2: # woken: the light mends her too
+			if m.woke[2]: # woken: the light mends her too
 				var heal := int(m.player.max_hp * 0.15)
 				m.player.hp = minf(float(m.player.max_hp), m.player.hp + heal)
 				m.pop_num(here + Vector3(0, 1.6, 0), "+" + str(heal), Color("#7aff8a"))

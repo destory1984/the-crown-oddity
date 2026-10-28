@@ -87,7 +87,7 @@ func restore_pips() -> int:
 
 func spend_pips(n: int) -> bool:
 	if m.crown_pips < n:
-		m.toast("눈금이 모자라. 밤에 켜진 등불 곁에서 쉬자")
+		m.ui.hud.pip_hint_t = 4.0 # a card with a lantern and the moon instead of a line that slips by (hud.gd)
 		return false
 	m.crown_pips -= n
 	m.pip_flash = 0.3

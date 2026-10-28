@@ -290,6 +290,9 @@ func vegetation(tex: Texture2D, w: float, h: float, spots: Array, strength: floa
 	sm.shader = load("res://shaders/grass.gdshader")
 	sm.set_shader_parameter("tex", tex)
 	sm.set_shader_parameter("strength", strength)
+	if h >= 0.55: # tall plants shake when a blow lands near (ground_dressing.grass)
+		sm.set_shader_parameter("hit_amp", 1.0)
+		m.plant_mats.append(sm)
 	mmi.material_override = sm
 	m.add_child(mmi)
 

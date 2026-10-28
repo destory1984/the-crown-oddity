@@ -36,7 +36,9 @@ const SCENES := {
 	"fountain": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0}, # the square's fountain, dry
 	"fountain_wet": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "wound": true}, # after the ending
 	"phone_hud": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "touch": true}, # the touch layout
+	"pip_hint": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "pip_hint": true}, # the moon-light card
 	"forest": {"play": true, "village": true, "forest": true, "hour": 16.0},
+	"forest_exit": {"play": true, "village": true, "forest": true, "hour": 16.0, "fat": Vector2(3.0, 11.0)}, # the way back to the village
 	"forest_night": {"play": true, "village": true, "forest": true, "hour": 22.0},
 	"mold": {"play": true, "village": true, "mold": true, "hour": 21.0},
 	"garden_bloom": {"play": true, "village": true, "bloom": true, "hour": 15.0}, # the arena after the ending: grass and flowers
@@ -109,6 +111,8 @@ const SCENES := {
 	"under": {"play": true, "village": true, "castle": true, "under": true, "hour": 16.0},
 	"under_in": {"play": true, "village": true, "castle": true, "under_in": true, "hour": 16.0},
 	"workshop1": {"play": true, "village": true, "castle": true, "workshop": 1, "hour": 16.0}, # 달지기 작업장 B1: both lamps lit, the planks shown
+	"altar_work": {"play": true, "village": true, "castle": true, "workshop": 1, "hour": 16.0, "altar": true}, # the ember's altar on B1
+	"altar_grotto": {"play": true, "village": true, "crab": true, "hour": 21.0, "altar": true}, # the nova's altar in the crab's room
 	"workshop2": {"play": true, "village": true, "castle": true, "workshop": 2, "hour": 16.0}, # B2: the lid lifted, the stopper bare
 	"workshop3": {"play": true, "village": true, "castle": true, "workshop": 3, "hour": 16.0}, # B3: the work pit, one latch wound
 	"stairs_top": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 3, "hour": 16.0},
@@ -220,6 +224,10 @@ func apply_test_args(args: PackedStringArray) -> void:
 			m.village.fountain_set(true)
 		if sc.get("touch", false):
 			m.hud_build.enable_touch()
+		if sc.get("pip_hint", false):
+			m.crown_pips = 0
+			m.spend_pips(1)
+			m.ui.hud.pip_hint_t = 60.0 # still up when the shot is taken
 		if sc.get("forest", false): # the hardened forest, first wall ahead
 			m.night_q = 4
 			m.forest_q = 1
@@ -232,6 +240,10 @@ func apply_test_args(args: PackedStringArray) -> void:
 				m.close_story()
 				m.spawn_wolf(Vector2(m.player.x + 2.5, m.player.z + 0.5))
 				m.spawn_wolf(Vector2(m.player.x + 1.0, m.player.z + 2.0))
+			if sc.has("fat"):
+				m.player.x = Main.FOREST.FOREST_X + sc.fat.x
+				m.player.z = sc.fat.y
+				m.close_story()
 			if sc.has("cage"):
 				m.player.x = Main.FOREST.FOREST_X + 13.5
 				m.player.z = 5.0
@@ -422,6 +434,9 @@ func apply_test_args(args: PackedStringArray) -> void:
 				m.ui.boss.visible = false
 				m.player.x = m.grotto.marks.S.x + 2.0
 				m.player.z = m.grotto.marks.S.y + 1.0
+			if sc.has("altar"):
+				m.player.x = m.grotto.GROTTO_X + m.cave.GROTTO_ALTAR.x + 1.6
+				m.player.z = m.cave.GROTTO_ALTAR.y + 0.8
 			m.snap_mate()
 		if sc.get("hill", false): # the wind hills, one mill turning, Mulgyeol and Noeul along
 			m.night_q = 4
@@ -535,6 +550,9 @@ func apply_test_args(args: PackedStringArray) -> void:
 				var wx: float = Main.WORK.FLOOR_X[wi]
 				m.player.x = wx + [18.0, 8.0, 10.0][wi]
 				m.player.z = [7.6, 9.0, 14.0][wi]
+				if sc.has("altar"):
+					m.player.x = wx + m.cave.WORK_ALTAR.x + 1.6
+					m.player.z = m.cave.WORK_ALTAR.y + 1.2
 				m.snap_mates()
 			if sc.has("under"): # the lamp hall below the castle, the plug pulled
 				m.castle_q = 3
@@ -636,7 +654,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.enter_cave()
 		m.close_story()
 		m.shrine_seen = true
-		m.skill_up = 0
+		m.woke[0] = true
 		m.player.x = Main.CAVE_X + 8.0
 		m.player.z = 18.6
 	if sc.get("journal", false): # the journal mid-game: two map scraps, the firefly errand on, the whirl woken
@@ -647,7 +665,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.fly_q = 1
 		m.has_skip = true
 		m.shrine_seen = true
-		m.skill_up = 0
+		m.woke[0] = true
 		m.marsh.found = [true, false, true]
 		m.set_quest(Main.NIGHT_REST_QUEST)
 		m.toggle_journal(true)

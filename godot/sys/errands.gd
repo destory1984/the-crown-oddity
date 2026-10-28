@@ -7,7 +7,7 @@ const Main := preload("res://main.gd")
 var m: Main
 
 const NG_KEEP := ["lv", "xp", "max_hp", "atk", "gold", "pots", "has_pearl", "has_feather", "has_acorn", "has_ring", "has_shoes",
-	"has_armour", "has_tea", "has_shard", "has_bookmark", "has_lamp", "has_medal", "has_oar_ring", "has_whistle", "has_oil", "has_cushion", "has_bait", "has_buckler", "has_sprout", "work_hp", "skill_up", "stats", "feats", "trial_best", "race_best", "fish", "pip_max", "pip_awards"]
+	"has_armour", "has_tea", "has_shard", "has_bookmark", "has_lamp", "has_medal", "has_oar_ring", "has_whistle", "has_oil", "has_cushion", "has_bait", "has_buckler", "has_sprout", "work_hp", "woke", "stats", "feats", "trial_best", "race_best", "fish", "pip_max", "pip_awards"]
 const OAR_AT := Vector2(9.0, 11.0) # middle of the north-west marsh pond, reachable only by water skip
 
 func _init(main: Main) -> void:
@@ -177,7 +177,7 @@ func hint_open(key: String) -> bool:
 		"mail": return m.doran_q >= 3 and m.lake_q >= 4 and m.mail_q < 2
 		# the cave (open once the Brick King is down)
 		"crystals": return m.story_step >= 6 and not m.has_ring
-		"shrine": return m.story_step >= 6 and m.skill_up < 0
+		"shrine": return m.story_step >= 6 and not m.woke[0]
 		"post": return m.has_skip and m.post_q < 3
 		# the lake (open after the night chase)
 		"grotto": return m.lake_q >= 4 and m.grotto_q < 4
