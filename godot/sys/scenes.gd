@@ -73,6 +73,10 @@ const SCENES := {
 	"knight": {"play": true, "village": true, "castle": true, "knight": true, "hour": 15.0},
 	"shrine": {"play": true, "shrine": true},
 	"journal": {"play": true, "journal": true},
+	"journal_late": {"play": true, "journal": true, "late": true, "win": Vector2i(960, 540)}, # a late-game journal on a 960x540 window, keyboard (lap 6)
+	"journal_late_touch": {"play": true, "journal": true, "late": true, "win": Vector2i(960, 540), "touch": true},
+	"hud_gems_touch": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "touch": true, "late": true, "win": Vector2i(960, 540), "mates": true}, # token gems and two companions, touch (lap 6)
+	"hud_gems": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "late": true, "win": Vector2i(960, 540), "mates": true},
 	"wolves": {"play": true, "village": true, "forest": true, "wolves": true, "hour": 16.5},
 	"trial": {"play": true, "village": true, "trial": true, "hour": 21.0},
 	"cage": {"play": true, "village": true, "forest": true, "cage": true, "hour": 14.0},
@@ -222,6 +226,17 @@ func apply_test_args(args: PackedStringArray) -> void:
 		if sc.get("wound", false): # the land wound again: the fountain flows
 			m.story_step = 12
 			m.village.fountain_set(true)
+		if sc.has("win"): # a small window: the viewport's visible size, as the layout tests set it
+			var root: Window = m.get_tree().root
+			root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+			root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+			root.content_scale_size = sc.win
+		if sc.get("late", false): # far in the story: most side stories found, five tokens earned
+			scene_late(m)
+		if sc.get("mates", false):
+			m.lake_q = 4
+			m.join_mate()
+			m.join_noeul()
 		if sc.get("touch", false):
 			m.hud_build.enable_touch()
 		if sc.get("pip_hint", false):
@@ -668,6 +683,15 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.woke[0] = true
 		m.marsh.found = [true, false, true]
 		m.set_quest(Main.NIGHT_REST_QUEST)
+		if sc.has("win"):
+			var root: Window = m.get_tree().root
+			root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+			root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+			root.content_scale_size = sc.win
+		if sc.get("late", false):
+			scene_late(m)
+		if sc.get("touch", false):
+			await m.hud_build.enable_touch()
 		m.toggle_journal(true)
 	if sc.get("ways", false): # the waystone list by Bori's cottage
 		m.story_step = 9
@@ -859,3 +883,15 @@ func apply_test_args(args: PackedStringArray) -> void:
 			m.get_viewport().get_texture().get_image().save_png(path)
 			print("SHOT ", path)
 			m.get_tree().quit())
+
+# a late-game state for the journal and the HUD shots (and the lap 6 layout test): every side story started, five tokens lit
+const LATE := {"story_step": 12, "errand": 3, "kid_q": 3, "doran_q": 3, "fly_q": 3, "mail_q": 2, "mail_got": [true, true, true],
+	"has_skip": true, "shrine_seen": true, "lake_q": 4, "forest_q": 3, "hill_q": 3, "castle_q": 3, "cloud_q": 3, "grotto_q": 4,
+	"south_q": 5, "clock_q": 5, "post_q": 4, "mill_q": 5, "shore_q": 3, "magpie_q": 3, "hollow_q": 4, "trial_best": 95.0,
+	"race_best": 41.0, "tokens": [true, true, true, true, false, true]}
+
+func scene_late(m) -> void:
+	for k in LATE:
+		var v = LATE[k]
+		m.set(k, v.duplicate() if v is Array else v)
+	m.woke[0] = true

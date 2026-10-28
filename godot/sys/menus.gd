@@ -608,9 +608,17 @@ func journal_column(parent: Control, pos: Vector2, size: Vector2) -> RichTextLab
 	r.bbcode_enabled = true
 	r.position = pos
 	r.size = size
-	r.scroll_active = false
-	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	r.scroll_active = true # a late-game journal is longer than its column: the wheel and a finger drag scroll it
+	r.mouse_filter = Control.MOUSE_FILTER_STOP
 	r.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	var vb := r.get_v_scroll_bar()
+	vb.modulate = Color(1, 1, 1, 0.6)
+	var drag_by := func(dy: float): vb.value -= dy
+	r.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseMotion and (ev.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0: # a touch drag arrives as a mouse drag
+			drag_by.call(ev.relative.y)
+		elif ev is InputEventScreenDrag and not ProjectSettings.get_setting("input_devices/pointing/emulate_mouse_from_touch", true):
+			drag_by.call(ev.relative.y))
 	r.add_theme_font_override("normal_font", m.ui_font)
 	r.add_theme_font_size_override("normal_font_size", 15)
 	r.add_theme_color_override("default_color", Color("#e9dfc4"))
@@ -633,10 +641,13 @@ func journal_bbcode(lines: Array) -> String:
 func toggle_journal(show: bool) -> void:
 	if show:
 		m.ui.help.visible = false
+		m.hud_build.fit_journal()
 		var lines: Array = journal_lines()
 		var cut: int = lines.find(tr("도전 과제"))
 		m.ui.journal_text.text = journal_bbcode(lines.slice(0, cut))
 		m.ui.journal_text2.text = journal_bbcode(lines.slice(cut))
+		m.ui.journal_text.scroll_to_line(0)
+		m.ui.journal_text2.scroll_to_line(0)
 		m.ui.ending_btn.visible = m.garden_zone.ending_seen()
 	m.ui.journal.visible = show
 	if show:

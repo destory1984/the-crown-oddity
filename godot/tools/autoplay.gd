@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -695,6 +695,97 @@ func run() -> void:
 		main.combat.update_plants(1.5) # by hand: in a full run another test's slash could restart the shake meanwhile
 		var settled: bool = main.combat.plant_hit.z > 1.3
 		check("plant_shake", told and settled, "tall plant materials %d, blow passed on %s, settled after 1.5 s %s" % [tall, told, settled])
+	if want.call("lap6_ui"):
+		# GPT lap 6 (v0.1.71): the late-game journal scrolls and fits a 960x540 window, the token gems clear the companion rows,
+		# and the quest line keeps off the gems and every touch key
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		var root: Window = main.get_tree().root
+		var scale0 := [root.content_scale_mode, root.content_scale_aspect, root.content_scale_size]
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root.content_scale_size = Vector2i(960, 540)
+		var keep := {}
+		for k in main.scenes.LATE:
+			keep[k] = main.get(k).duplicate() if main.get(k) is Array else main.get(k)
+		var keep_woke: bool = main.woke[0]
+		var rows: Array = []
+		var all_ok := true
+		for touch in [false, true]:
+			if touch:
+				await main.enable_touch()
+			await wait(0.1)
+			var vs: Vector2 = main.get_viewport().get_visible_rect().size
+			main.scenes.scene_late(main)
+			main.toggle_journal(true)
+			await wait(0.1)
+			var j: Control = main.ui.journal
+			var jr: Rect2 = j.get_global_transform() * Rect2(Vector2.ZERO, j.size)
+			var j_in: bool = jr.position.x >= -0.5 and jr.position.y >= -0.5 and jr.end.x <= vs.x + 0.5 and jr.end.y <= vs.y + 0.5
+			var scrolls := true
+			var dragged := true
+			var tail_ok := true
+			var heights := []
+			for c in [main.ui.journal_text, main.ui.journal_text2]:
+				var rt: RichTextLabel = c
+				var vb: VScrollBar = rt.get_v_scroll_bar()
+				var content: float = rt.get_content_height()
+				heights.append("%d/%d" % [int(content), int(rt.size.y)])
+				scrolls = scrolls and rt.scroll_active and rt.mouse_filter == Control.MOUSE_FILTER_STOP
+				if content > rt.size.y + 1.0: # the long column: a drag moves it, and the end of the text can be reached
+					var ev := InputEventMouseMotion.new()
+					ev.button_mask = MOUSE_BUTTON_MASK_LEFT
+					ev.relative = Vector2(0, -40)
+					var v0: float = vb.value
+					rt.gui_input.emit(ev)
+					dragged = dragged and vb.value > v0
+					vb.value = vb.max_value
+					tail_ok = tail_ok and vb.value + vb.page >= content - 2.0
+			# the late journal's long column really is longer than its box, so it needs the scroll
+			var long_col: bool = main.ui.journal_text.get_content_height() > main.ui.journal_text.size.y
+			main.toggle_journal(false)
+			# HUD: gems, companion rows, status box, touch keys
+			for i in 2:
+				main.ui.mate_rows[i].row.visible = true
+			main.hud_build.layout_top()
+			var gem_box := Rect2()
+			var first := true
+			for g in main.ui.hud.token_spots():
+				var gr := Rect2(g - Vector2(6, 6), Vector2(12, 12))
+				gem_box = gr if first else gem_box.merge(gr)
+				first = false
+			var mr: Rect2 = main.hud_build.mates_rect()
+			var name_r := Rect2()
+			for i in 2:
+				var lab: Control = main.ui.mate_rows[i].row.get_child(1)
+				var lr := Rect2(lab.global_position, lab.get_combined_minimum_size())
+				name_r = lr if i == 0 else name_r.merge(lr)
+			var clear: bool = not gem_box.intersects(mr) and not gem_box.intersects(name_r)
+			var in_status: bool = main.hud_build.status_rect().encloses(gem_box)
+			var blocks: Array = main.hud_build.quest_blocks(false)
+			var missed := 0
+			var keyn := 0
+			if main.touch_layer != null:
+				for kr in main.hud_build.touch_rects():
+					keyn += 1
+					if not blocks.any(func(b): return (b as Rect2).encloses(kr)):
+						missed += 1
+			var ok: bool = j_in and scrolls and dragged and tail_ok and long_col and clear and in_status and missed == 0 and (keyn >= 6 or not touch)
+			all_ok = all_ok and ok
+			rows.append("%s: journal %s in %s, column content/box %s, scroll+drag+end %s/%s/%s; gems y %d-%d, mates y %d (name y %d), clear %s; status ends y %d, gem box %s inside %s; touch keys %d, %d outside the avoid list" % [
+				"touch" if touch else "keys", jr, vs, heights, scrolls, dragged, tail_ok, int(gem_box.position.y), int(gem_box.end.y), int(mr.position.y), int(name_r.position.y), clear, int(main.hud_build.status_rect().end.y), gem_box, in_status, keyn, missed])
+		main.disable_touch()
+		for i in 2:
+			main.ui.mate_rows[i].row.visible = false
+		for k in keep:
+			main.set(k, keep[k])
+		main.woke[0] = keep_woke
+		root.content_scale_mode = scale0[0]
+		root.content_scale_aspect = scale0[1]
+		root.content_scale_size = scale0[2]
+		await wait(0.1)
+		check("lap6_ui", all_ok, " | ".join(rows))
 	if want.call("pip_rest_far"):
 		# resting by a lit lantern fills the moon light in every area, not just the village (v0.1.53): a monster 4.5 tiles
 		# off does not notice her while she rests there, and the pips still come in

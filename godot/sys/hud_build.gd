@@ -36,12 +36,15 @@ func village_sign() -> void:
 	m.add_child(g)
 	m.rocks.append({"x": 43.6, "z": 18.6, "r": 0.25})
 
+const MATES_TOP := 162.0 # lap 6: the first companion row sits below the gem row (its gems end at y 152); the name label starts 2 px above
+const STATUS_H := 158.0 # the bars, the moon gauge and the gem row end here (gems y 146 + 6, 6 px air)
+
 # 3. companions' status under Sora's bars: portrait, name and a bar that fills as their next blow comes ready
 func build_mate_hud(root: Control) -> void:
 	m.ui.mate_rows = []
 	for i in 2:
 		var row := Control.new()
-		row.position = Vector2(140, 150 + i * 34) # layout_top moves the rows beside the big portrait ring
+		row.position = Vector2(140, MATES_TOP + i * 34) # layout_top moves the rows beside the big portrait ring; they start under the token gems (hud.gd token_spots, y 146 + 6)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(row)
 		var face := TextureRect.new()
@@ -104,8 +107,9 @@ func enable_touch() -> void:
 	m.cfg.text = maxi(int(m.cfg.text), 2) # text a size up on a small screen
 	m.apply_settings()
 	await m.get_tree().process_frame # the sheets know their size a frame later
-	for sheet in [m.ui.journal, m.ui.ways, m.ui.help]:
+	for sheet in [m.ui.ways, m.ui.help]:
 		fit_sheet(sheet)
+	fit_journal()
 	m.ui.set_card.pivot_offset = m.ui.set_card.size / 2.0
 	m.ui.set_card.scale = Vector2.ONE * minf(1.0, (m.get_viewport().get_visible_rect().size.y - 16.0) / m.ui.set_card.size.y)
 	m.menus.size_back_keys(m.ui.set_card)
@@ -143,7 +147,7 @@ func big_portrait() -> bool:
 # the four bars with their numbers and the moon gauge
 func status_rect() -> Rect2:
 	var half := 109.0 if m.touch_ui else 0.0 # phones draw the bars half as long (hud.gd bar_w)
-	return Rect2(0, 0, 548 - half, 136) if big_portrait() else Rect2(0, 0, 472 - half, 136)
+	return Rect2(0, 0, 548 - half, STATUS_H) if big_portrait() else Rect2(0, 0, 472 - half, STATUS_H)
 
 # sun and moon dial, zone name and sub-line, 60 px lower under the big ring
 func dial_rect() -> Rect2:
@@ -200,9 +204,17 @@ func quest_blocks(with_player := true) -> Array:
 		if (b as Control).visible:
 			out.append((b as Control).get_global_rect())
 	if m.touch_layer != null:
-		var tk: Dictionary = m.touch_layer.keys()
-		for n in ["zoom_in", "zoom_out"]:
-			out.append(Rect2(tk[n][0] - Vector2.ONE * tk[n][1], Vector2.ONE * tk[n][1] * 2.0)) # round coins drawn at their own size
+		out.append_array(touch_rects())
+	return out
+
+# the drawn box of every touch key (touch.gd keys(): centre and radius): zoom coins, bracelet, guard, dodge, attack and the skill icons
+func touch_rects() -> Array:
+	var out: Array = []
+	if m.touch_layer == null:
+		return out
+	var tk: Dictionary = m.touch_layer.keys()
+	for n in tk:
+		out.append(Rect2(tk[n][0] - Vector2.ONE * tk[n][1], Vector2.ONE * tk[n][1] * 2.0))
 	return out
 
 func update_side() -> void:
@@ -244,7 +256,11 @@ func layout_top() -> void:
 		by = 14.0
 	elif vs.x - 202.0 - x0 >= 440.0:
 		bx = (x0 + vs.x - 202.0) / 2.0 - 220.0
-		by = 140.0
+		by = STATUS_H + 2.0 # under the gem row
+	elif m.touch_ui and vs.x - 202.0 - x0 >= 220.0: # a phone: shrunk in the band beside the minimap, so the quest line keeps the rows under it clear of the shield and dodge keys
+		bx = x0
+		by = STATUS_H + 2.0
+		bs = minf(1.0, (vs.x - 202.0 - x0) / 440.0)
 	else:
 		bx = x0
 		by = 202.0
@@ -273,9 +289,12 @@ func layout_top() -> void:
 		cands.append([status_rect().end.x + 8.0, vs.x - 202.0, 62.0, true])
 		if b.visible:
 			cands.append([status_rect().end.x + 8.0, vs.x - 202.0, boss_end + 16.0, true])
-	cands.append([x0, vs.x - 202.0, 150.0, false])
+	var band_r := vs.x - 202.0 # the band's right edge: the minimap column; on touch also the shield key's left edge
+	if m.touch_layer != null:
+		band_r = minf(band_r, (m.touch_layer.keys().guard[0] as Vector2).x - (m.touch_layer.keys().guard[1] as float) - 8.0)
+	cands.append([x0, band_r, STATUS_H + 12.0, false]) # its ornaments reach 12 px up: clear of the gem row's box
 	if b.visible:
-		cands.append([x0, vs.x - 202.0, boss_end + 12.0, false])
+		cands.append([x0, band_r, boss_end + 12.0, false])
 	var low := maxf(maxf(mates.end.y, boss_end), 194.0) + 14.0
 	cands.append([dial_rect().end.x + 4.0, vs.x - 8.0, low, false])
 	cands.append([8.0, vs.x - 8.0, dial_rect().end.y + 14.0, false])
@@ -363,6 +382,20 @@ func fit_sheet(c: Control) -> void:
 	c.scale = Vector2.ONE * minf(1.0, minf((vs.y - 16.0) / sz.y, (vs.x - 16.0) / sz.x))
 	m.menus.size_back_keys(c)
 
+# the journal keeps its bottom-left place beside the menu keys while the whole sheet fits above the bottom edge; on a small
+# window or a touch screen it is centred and shrunk like the other sheets (lap 6: at 960x540 its top sat at y -128)
+func fit_journal() -> void:
+	var j: Control = m.ui.journal
+	var vs := m.get_viewport().get_visible_rect().size
+	if not m.touch_ui and vs.y - 668.0 >= 8.0 and vs.x >= 816.0:
+		place(j, Control.PRESET_BOTTOM_LEFT, Vector2(8, -668), Vector2(800, 567))
+		j.scale = Vector2.ONE
+		j.pivot_offset = Vector2.ZERO
+		m.menus.size_back_keys(j)
+	else:
+		place(j, Control.PRESET_CENTER, Vector2(-400, -283.5), Vector2(800, 567))
+		fit_sheet(j)
+
 # the autoplay test turns the touch layer off again, and the menu keys go back to the bottom left
 func disable_touch() -> void:
 	m.touch_ui = false
@@ -377,7 +410,7 @@ func disable_touch() -> void:
 	for sheet in [m.ui.journal, m.ui.ways, m.ui.help, m.ui.set_card]:
 		sheet.scale = Vector2.ONE
 		m.menus.size_back_keys(sheet)
-	place(m.ui.journal, Control.PRESET_BOTTOM_LEFT, Vector2(8, -668), Vector2(800, 567))
+	fit_journal()
 	place(m.ui.ways, Control.PRESET_BOTTOM_LEFT, Vector2(8, -401), Vector2(400, 300))
 	use_touch_help(false)
 	for c in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn, m.ui.mini.get_parent()]: # the touch layer hid them under sheets
@@ -767,7 +800,7 @@ func build_hud() -> void:
 	var journal_title := label(journal, "일지", Vector2(62, 20), 14, Color("#a99d84"))
 	m.menus.menu_rule(journal, Vector2(14, 60), 772)
 	m.ui.journal_text = m.menus.journal_column(journal, Vector2(14, 70), Vector2(420, 487))
-	m.ui.journal_text2 = m.menus.journal_column(journal, Vector2(450, 70), Vector2(336, 487)) # the right column: feats and keepsakes
+	m.ui.journal_text2 = m.menus.journal_column(journal, Vector2(450, 70), Vector2(336, 437)) # the right column: feats and keepsakes; ends above the ending button (y 515)
 	m.menus.back_key(journal, func(): m.toggle_journal(false)).set_meta("title", journal_title)
 	m.ui.ending_btn = m.menus.set_button(journal, "엔딩 다시 보기", Vector2(626, 515), Vector2(160, 38), func(): m.garden_zone.replay_ending())
 	journal.visible = false
