@@ -9,6 +9,12 @@ var m: Main
 const MATE_OFF := {"mulgyeol": Vector3(-1.3, 0, -0.6), "noeul": Vector3(1.3, 0, -0.6)}
 const MATE_BACK := {"mulgyeol": 1.3, "noeul": 2.5}
 const MATE_REST := 10.0
+# breathing while they stand (the owner, 2026-10-28, showing a pixel fighter's idle: "가만히 있을 때에도 조금씩 숨을
+# 헐떡이면서 움직이잖아", tried on Noeul and Mulgyeol first): art/folk/<id>_breath.png holds four frames of the standing
+# picture with the head eased down 0, 2, 3, 2 px and the chest between (tools/breath.py); a frame every 0.25 s
+const BREATH_STEP := 0.25
+var breath_tex := {}  # id -> its breathing sheet
+var breath_keep := {} # id -> [texture, hframes] put back when he moves
 
 var trailing := {} # id -> following on her footsteps because she walks along his side spot's line
 
@@ -222,6 +228,23 @@ func sora_resting() -> bool:
 		return false
 	return not m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 7.0)
 
+func breathe(id: String, spr: Sprite3D, on: bool) -> void:
+	if not breath_tex.has(id):
+		breath_tex[id] = load("res://art/folk/%s_breath.png" % id)
+	if breath_keep.has(id) and spr.texture != breath_tex[id]: # a scene changed his picture meanwhile: keep that one
+		breath_keep.erase(id)
+	if on:
+		if not breath_keep.has(id):
+			breath_keep[id] = [spr.texture, spr.hframes]
+			spr.texture = breath_tex[id]
+			spr.hframes = 4
+		spr.frame = int(m.t / BREATH_STEP) % 4
+	elif breath_keep.has(id):
+		spr.texture = breath_keep[id][0]
+		spr.hframes = breath_keep[id][1]
+		spr.frame = 0
+		breath_keep.erase(id)
+
 func noeul_sit(on: bool) -> void:
 	if on == m.noeul_sitting or m.mate2 == null:
 		return
@@ -274,15 +297,18 @@ func update_mate2(dt: float) -> void:
 	var goal := mate_goal("noeul")
 	var to := goal - m.mate2.position
 	var sit := to.length() <= 0.45 and sora_resting() and m.mate2.position.distance_to(me) < 3.0
+	if sit:
+		breathe("noeul", spr, false)
 	noeul_sit(sit)
 	if sit: # sitting by her: no monster is near, so nothing to throw dust at
 		return
 	if to.length() > 0.3:
 		m.mate2.position = mate_step(m.mate2.position, to.normalized() * minf(to.length() - 0.3, dt * 5.5))
+		breathe("noeul", spr, false)
 		spr.frame = 1
 		spr.flip_h = m.screen_left(Vector2(to.x, to.z))
 	else:
-		spr.frame = 0
+		breathe("noeul", spr, true)
 	m.folk.hop("noeul", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP)
 	if m.mate != null and m.mate.visible: # never on top of Mulgyeol
 		var apart := Vector3(m.mate2.position.x - m.mate.position.x, 0, m.mate2.position.z - m.mate.position.z)
@@ -297,6 +323,7 @@ func update_mate2(dt: float) -> void:
 			target = e
 	if target != null and m.mate2_cd <= 0.0 and not m.story_open:
 		m.mate2_cd = 1.6 if m.hollow_q >= 4 else 2.0 # helpers, not the fighters (the owner, 2026-10-27): 1.4 -> 2.0 s
+		breathe("noeul", spr, false)
 		spr.frame = 2
 		m.damage_enemy(target, m.player.atk * 0.4, Vector2(m.mate2.position.x, m.mate2.position.z), 2.0)
 		m.burst(Vector3(target.x, 0.8, target.z), Color("#9a9a9a"), 12, 2.0)
@@ -338,6 +365,8 @@ func update_mate(dt: float) -> void:
 	var to := goal - m.mate.position
 	var stop := 1.4 if target != null else 0.3
 	var sit := target == null and to.length() <= 0.45 and sora_resting() and m.mate.position.distance_to(me) < 3.0
+	if sit:
+		breathe("mulgyeol", spr, false)
 	mulgyeol_sit(sit)
 	if sit: # sitting by her: nothing near, so nothing to fight
 		m.mate.position.y = 0.0
@@ -350,7 +379,11 @@ func update_mate(dt: float) -> void:
 		m.mate.position.y = 0.0
 	m.mate.position.y = 0.0
 	m.folk.hop("mulgyeol", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP)
-	spr.frame = 1 if fmod(m.t, 3.0) < 0.3 else 0
+	if to.length() > stop or target != null:
+		breathe("mulgyeol", spr, false)
+		spr.frame = 1 if fmod(m.t, 3.0) < 0.3 else 0
+	else:
+		breathe("mulgyeol", spr, true)
 	if target != null and best < 1.9 and m.mate_cd <= 0.0 and not m.story_open:
 		m.mate_cd = 1.6 # 1.0 -> 1.6 s, so Sora does the fighting
 		m.damage_enemy(target, m.player.atk * m.mate_power(), Vector2(m.mate.position.x, m.mate.position.z), 3.0)

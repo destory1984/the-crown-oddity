@@ -15,14 +15,14 @@ const ROWS := """################################################
 #....=.........=.........=........1...2...3....#
 #....=.........=.........=.......:::::::::::::.#
 #....===========.........=.......:::::::::::::.#
-#..............=.........=.......::::::::::::L.#
-#.........L.oooooooo.L...=.......:::::::::::::.#
-#...........oooooooo.....=.......:::::::::::::.#
-#L..M.......oooooooo.....=.....................#
-G=S=========oooooooo===========================F
-#L..........oooooooo.....=.....................#
-#.........L.oooooooo.L...=........##########...#
-#..............=.........=........#........#...#
+#..........oooooooooo....=.......::::::::::::L.#
+#.........LooooooooooL...=.......:::::::::::::.#
+#..........oooooooooo....=.......:::::::::::::.#
+#L..M......ooooUUoooo....=.....................#
+G=S========ooooUUoooo==========================F
+#L.........oooooooooo....=.....................#
+#.........LooooooooooL...=........##########...#
+#..........oooooooooo....=........#........#...#
 #..HHH.........=.......b.=.b......#........#...#
 #..HHH...L.....=.......d.=.d......#...Q....#.L.#
 #....=.........=.........=........#........#...#
@@ -84,12 +84,12 @@ func char_at(x: float, z: float) -> String:
 # fence and houses block; everything else is walkable ground
 func blocked(x: float, z: float) -> bool:
 	var c := char_at(x, z)
-	return c in "#HTI~B"
+	return c in "#HTI~BU"
 
 # the marsh's look in the village's own colours (DESIGN.md, section 다른 지역도 늪만큼 보기 좋게): a tidy lawn over
 # speckled tops, warm cobbled streets, short mown grass and flowerbeds round the square and the houses. Nothing
 # grows on or next to a street, the square, a door, a stall, the pier, a lantern, a mark or a villager's spot.
-const GRASS_CLEAR := "=o#H:123TIPf~BLdbSGMFKQN"
+const GRASS_CLEAR := "=o#H:123TIPf~BLdbSGMFKQNU"
 const BED_NEAR := "oH" # tiles two steps from the square or a house get flowers instead of plain grass
 const YARD := Rect2i(34, 12, 10, 7) # the target yard, fence and all: the throwing game needs its floor bare
 var grass_tiles: Array = [] # world tiles that got mown grass
@@ -208,7 +208,7 @@ func build(m: Node) -> void:
 			var col := Color("#5e8f30")
 			match c:
 				"=": col = Color("#b8a888")
-				"o": col = Color("#9a9a8e")
+				"o", "U": col = Color("#9a9a8e")
 				"#": col = Color("#6a4a2c")
 				"H": col = Color("#4a6a2c")
 				":", "1", "2", "3": col = Color("#a89880")
@@ -226,7 +226,7 @@ func build(m: Node) -> void:
 			var xf := Transform3D(Basis().scaled(Vector3(1, hgt, 1)), Vector3(w.x, hgt / 2.0 - 0.4, w.y))
 			if c == "=":
 				path.append(xf)
-			elif not c in "o#H:123Pf": # lawn: the speckled top brings the colour (dress)
+			elif not c in "oU#H:123Pf": # lawn: the speckled top brings the colour (dress)
 				ground.append(xf)
 			else:
 				blocks.append([xf, col])
@@ -322,6 +322,7 @@ func build(m: Node) -> void:
 		tw.tween_callback(func(): spr.frame = 0)
 		m.rocks.append({"x": w.x, "z": w.y, "r": 0.45, "folk": f.id}) # main.gd clears it while he sleeps
 	build_work_props(m)
+	build_fountain(m)
 	simji_node = simji(m)
 	simji_node.position = Vector3(marks.M.x, 0, marks.M.y)
 	m.add_child(simji_node)
@@ -447,6 +448,7 @@ func map_tex(width: int) -> ImageTexture:
 				"~", "B": col = Color("#2c5a8a")
 				"P", "f": col = Color("#6a5034")
 				"Q", "N": col = Color("#ffd060")
+				"U": col = Color("#70acb8")
 			if FIELD.has_point(Vector2i(x, z)):
 				col = Color("#5a3a2a")
 			img.set_pixel(VILLAGE_X + x, z, col)
@@ -646,3 +648,132 @@ func house_draft(m: Node, at: Vector3, k: int, labelled := true) -> void:
 	t.no_depth_test = true
 	t.position = Vector3(0, 3.4, 0)
 	g.add_child(t)
+
+# ---- the moonkeepers' fountain (the owner, 2026-10-28: "마을 중앙에 광장을 만들고, 분수나 조형물 같은걸 세우자"; the square
+# grew from 8x6 to 10x8, lore and lines talked over with GPT): an eight-sided stone basin on the four U tiles in the
+# middle of the square, the main road splitting round it. Eight stone keepers stand on the rim holding hands, brass
+# cuffs at their wrists (the winding bracelets); one joined hand is hardened to brick (Hangyeol's, who tried to wind
+# the land alone). A low brass outlet with a crown relief in the middle. Dry, with dust and leaves, until the land is
+# wound again (story_step 12); then water stands in the basin and wells from the outlet.
+const FOUNTAIN := Vector2(15.5, 9.5) # village tiles, the middle of the four U tiles
+var fountain_water: Node3D # the water, shown once the land is wound
+var fountain_dust: Node3D  # the dry basin's leaves, hidden then
+var fountain_wet := false
+var fountain_said: Array = [] # the lines E by the basin showed last (autoplay fountain)
+
+func fountain_at() -> Vector2:
+	return Vector2(VILLAGE_X + FOUNTAIN.x, FOUNTAIN.y)
+
+func fountain_part(g: Node3D, mesh: Mesh, mat: Material, pos: Vector3, rot_y := 0.0) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.position = pos
+	mi.rotation.y = rot_y
+	g.add_child(mi)
+	return mi
+
+func fountain_cyl(r: float, h: float, sides := 8) -> CylinderMesh:
+	var c := CylinderMesh.new()
+	c.top_radius = r
+	c.bottom_radius = r
+	c.height = h
+	c.radial_segments = sides
+	return c
+
+func fountain_box(size: Vector3) -> BoxMesh:
+	var bm := BoxMesh.new()
+	bm.size = size
+	return bm
+
+func build_fountain(m: Node) -> void:
+	var g := Node3D.new()
+	g.position = Vector3(fountain_at().x, 0, fountain_at().y)
+	m.add_child(g)
+	var rim: Material = m.mat_color(Color("#c5baa0"))
+	var stone: Material = m.mat_color(Color("#918b7d"))
+	var base: Material = m.mat_color(Color("#7a7468")) # the basin's side, darker than the square's paving
+	var dust: Material = m.mat_color(Color("#716857"))
+	var brass: Material = m.mat_color(Color("#a58a50"), 0.45)
+	var brick: Material = m.mat_color(Color("#986d58"))
+	var leaf: Material = m.mat_color(Color("#8a5a2c"))
+	var top := 0.32
+	fountain_part(g, fountain_cyl(0.96, top - 0.05), base, Vector3(0, (top - 0.05) / 2.0, 0), PI / 8.0) # the basin
+	fountain_part(g, fountain_cyl(0.98, 0.05), rim, Vector3(0, top - 0.025, 0), PI / 8.0) # its pale rim
+	fountain_part(g, fountain_cyl(0.78, 0.02), dust, Vector3(0, top + 0.005, 0), PI / 8.0) # its dry floor
+	# the eight keepers on the rim, between their joined arms
+	var rr := 0.86
+	for k in 8:
+		var ang := TAU * k / 8.0
+		var p := Vector3(cos(ang) * rr, 0, sin(ang) * rr)
+		fountain_part(g, fountain_box(Vector3(0.15, 0.28, 0.13)), stone, p + Vector3(0, top + 0.14, 0), -ang)
+		fountain_part(g, fountain_cyl(0.075, 0.13, 8), stone, p + Vector3(0, top + 0.35, 0))
+		# arms to the next keeper: a bar along the chord, brass cuffs at both wrists, Hangyeol's hand in brick
+		var mid := ang + TAU / 16.0
+		var chord := 2.0 * rr * sin(TAU / 16.0)
+		var mp := Vector3(cos(mid), 0, sin(mid)) * rr * cos(TAU / 16.0) + Vector3(0, top + 0.19, 0)
+		fountain_part(g, fountain_box(Vector3(chord, 0.05, 0.05)), brick if k == 0 else stone, mp, -mid - PI / 2.0)
+		var along := Vector3(-sin(mid), 0, cos(mid))
+		for side in [-1.0, 1.0]:
+			fountain_part(g, fountain_box(Vector3(0.07, 0.07, 0.07)), brass, mp + along * side * chord * 0.3, -mid)
+	# the middle: a stone column with a small upper bowl, the outlet over it a brass cap with five crown points
+	fountain_part(g, fountain_cyl(0.13, 0.78), stone, Vector3(0, top + 0.39, 0))
+	fountain_part(g, fountain_cyl(0.36, 0.1), rim, Vector3(0, top + 0.8, 0), PI / 8.0)
+	fountain_part(g, fountain_cyl(0.17, 0.08), brass, Vector3(0, top + 0.89, 0))
+	for k in 5:
+		var a := TAU * k / 5.0
+		fountain_part(g, fountain_box(Vector3(0.05, 0.08, 0.05)), brass, Vector3(cos(a) * 0.14, top + 0.97, sin(a) * 0.14))
+	fountain_dust = Node3D.new()
+	g.add_child(fountain_dust)
+	for k in 5:
+		var a: float = m.rnd(0, TAU)
+		var d: float = m.rnd(0.25, 0.65)
+		fountain_part(fountain_dust, fountain_box(Vector3(0.12, 0.015, 0.07)), leaf, Vector3(cos(a) * d, top + 0.02, sin(a) * d), m.rnd(0, PI))
+	fountain_water = Node3D.new()
+	g.add_child(fountain_water)
+	var water := StandardMaterial3D.new()
+	water.albedo_color = Color("#70acb8", 0.85)
+	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	water.roughness = 0.1
+	water.metallic_specular = 0.8
+	fountain_part(fountain_water, fountain_cyl(0.79, 0.03), water, Vector3(0, top + 0.03, 0), PI / 8.0)
+	var spout := StandardMaterial3D.new()
+	spout.albedo_color = Color("#d8f0f4", 0.7)
+	spout.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var jet := fountain_part(fountain_water, fountain_cyl(0.05, 0.22, 6), spout, Vector3(0, top + 1.1, 0))
+	fountain_part(fountain_water, fountain_cyl(0.33, 0.02), water, Vector3(0, top + 0.86, 0), PI / 8.0) # the upper bowl full
+	var fall := CylinderMesh.new() # a thin sheet of water from the upper bowl's lip into the basin
+	fall.top_radius = 0.36
+	fall.bottom_radius = 0.6
+	fall.height = 0.76
+	fall.radial_segments = 16
+	fall.cap_top = false
+	fall.cap_bottom = false
+	var sheet := StandardMaterial3D.new()
+	sheet.albedo_color = Color("#bfe4ea", 0.35)
+	sheet.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sheet.cull_mode = BaseMaterial3D.CULL_DISABLED
+	fountain_part(fountain_water, fall, sheet, Vector3(0, top + 0.41, 0))
+	var tw := jet.create_tween().set_loops() # the water wells up and settles
+	tw.tween_property(jet, "scale", Vector3(1.2, 1.25, 1.2), 0.6).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(jet, "scale", Vector3(1, 0.85, 1), 0.6).set_trans(Tween.TRANS_SINE)
+	m.rocks.append({"x": fountain_at().x, "z": fountain_at().y, "r": 1.0})
+	var t := Timer.new() # the ending winds the land while Sora is elsewhere: look now and then
+	t.wait_time = 1.0
+	t.autostart = true
+	g.add_child(t)
+	t.timeout.connect(func(): fountain_set(m.story_step >= 12))
+	fountain_set(m.story_step >= 12)
+
+func fountain_set(wet: bool) -> void:
+	fountain_wet = wet
+	fountain_water.visible = wet
+	fountain_dust.visible = not wet
+
+# E beside the basin: Sora's look at it, dry or flowing
+func fountain_key(m: Node, me: Vector2) -> bool:
+	if me.distance_to(fountain_at()) > 1.9:
+		return false
+	fountain_said = m.STORY.FOUNTAIN_WET if fountain_wet else m.STORY.FOUNTAIN_DRY
+	m.show_story("", fountain_said)
+	return true

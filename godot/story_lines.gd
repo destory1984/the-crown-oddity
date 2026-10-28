@@ -115,6 +115,15 @@ const VILLAGE := [
 	"소라|determined|저기요! 길을 물어봐도 될까요?",
 ]
 
+# the moonkeepers' fountain on the village square (village.gd fountain_key), dry until the land is wound again
+const FOUNTAIN_DRY := [
+	"소라|calm|물이 없네. 나뭇잎만 모였어.",
+	"소라|surprised|여덟 사람이 손을 잡고 있어. 이 손만 벽돌처럼 굳었네.",
+]
+const FOUNTAIN_WET := [
+	"소라|laugh|물이 나온다! 손에 닿으니까 시원해.",
+]
+
 const SIMJI := [
 	"심지|simji_serious|그 왕관…… 보석이 아직 숨을 쉬는구나. 달지기의 것이지.",
 	"소라|surprised|할머니도 똑같이 말했어요. 이 팔찌로 땅을 감는다고요.",
@@ -2088,6 +2097,7 @@ const FOLK_CHAT := {
 		["rain", "빗물은 막고 바람길은 남겨 둬야지."],
 		["after_lake", "물가 등불도 배에서 보이겠구나."],
 		["after_ending", "불 세다 말고 새잎 구경을 다 했네."],
+		["after_ending", "물소리에 등불 세던 걸 잊었구나."],
 		["festival", "허허, 오늘은 사람 수부터 세야겠어."],
 		["errand", "기름은 챙겼는데 불 셋이 마음에 걸려."],
 		["day,pair:doran", "도란, 봉투엔 기름손 안 댈 테니 줘."],

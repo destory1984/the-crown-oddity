@@ -97,9 +97,9 @@ func enable_touch() -> void:
 		m.touch_layer.set_script(load("res://touch.gd"))
 		m.touch_layer.main = m
 		m.ui.root.add_child(m.touch_layer)
-	var col := [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn] # two by two, 56 px, left of the minimap
+	var col := [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn] # two by two, 60 px like the zoom coins and the skills, 8 px apart, left of the minimap
 	for i in col.size():
-		place(col[i], Control.PRESET_TOP_RIGHT, Vector2(-194 - 8 - 56 - (1 - i % 2) * 64, 8 + (i / 2) * 64), Vector2(56, 56))
+		place(col[i], Control.PRESET_TOP_RIGHT, Vector2(-194 - 8 - 60 - (1 - i % 2) * 68, 8 + (i / 2) * 68), Vector2(60, 60))
 	use_touch_help(true)
 	m.cfg.text = maxi(int(m.cfg.text), 2) # text a size up on a small screen
 	m.apply_settings()
@@ -142,7 +142,8 @@ func big_portrait() -> bool:
 
 # the four bars with their numbers and the moon gauge
 func status_rect() -> Rect2:
-	return Rect2(0, 0, 548, 136) if big_portrait() else Rect2(0, 0, 472, 136)
+	var half := 109.0 if m.touch_ui else 0.0 # phones draw the bars half as long (hud.gd bar_w)
+	return Rect2(0, 0, 548 - half, 136) if big_portrait() else Rect2(0, 0, 472 - half, 136)
 
 # sun and moon dial, zone name and sub-line, 60 px lower under the big ring
 func dial_rect() -> Rect2:
@@ -201,7 +202,7 @@ func quest_blocks(with_player := true) -> Array:
 	if m.touch_layer != null:
 		var tk: Dictionary = m.touch_layer.keys()
 		for n in ["zoom_in", "zoom_out"]:
-			out.append(Rect2(tk[n][0] - Vector2.ONE * tk[n][1] * 1.1, Vector2.ONE * tk[n][1] * 2.2))
+			out.append(Rect2(tk[n][0] - Vector2.ONE * tk[n][1], Vector2.ONE * tk[n][1] * 2.0)) # round coins drawn at their own size
 	return out
 
 func update_side() -> void:
@@ -740,7 +741,7 @@ func build_hud() -> void:
 		["touch_dodge", "화살표", "구르기 (때맞추면 섬광)"], ["touch_guard", "방패 (누른 채)", "막기 (때맞추면 반격, Lv4부터 1초 모아 칼)"],
 		["touch_crown", "팔찌 (E)", "말 걸기, 상자 열기, 들어가기, 팔찌 쓰기"],
 		["skill_0", "기술 그림 셋", "회오리·불씨탄·빛파동 (기세 30·15·60)"], ["skill_3", "초록 물약 병", "회복약"],
-		["touch_zoom_in", "돋보기 둘", "확대·축소"], ["key_help", "물음표", "조작법"], ["key_sound", "스피커", "효과음 켜고 끄기"],
+		["key_zoom_in", "돋보기 둘", "확대·축소"], ["key_help", "물음표", "조작법"], ["key_sound", "스피커", "효과음 켜고 끄기"],
 		["key_journal", "할 일 판", "일지 (할 일과 곁이야기)"], ["key_gear", "톱니바퀴", "설정"]]
 	m.ui.help_touch_rows = []
 	for r in trows:

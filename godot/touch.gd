@@ -18,23 +18,27 @@ var tex := {}
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	for n in ["attack", "dodge", "guard", "crown", "stick_base", "stick_knob", "zoom_in", "zoom_out"]:
+	for n in ["attack", "dodge", "guard", "crown", "stick_base", "stick_knob"]:
 		tex[n] = load("res://art/ui/touch_%s.png" % n)
+	for n in ["zoom_in", "zoom_out"]: # the menu keys' round coins (art/ui/key_*.png)
+		tex[n] = load("res://art/ui/key_%s.png" % n)
 
 # where each key sits (centre, radius) for the screen as it is now; the skills are the HUD's own icons
 func keys() -> Dictionary:
 	var vs := get_viewport_rect().size
 	var k := {
 		"attack": [Vector2(vs.x - 80, vs.y - 196), 58.0],
+		# guard, dodge and the bracelet one size (the owner, 2026-10-28: "이 3개 아이콘도 크기 통일"; the bracelet was 38)
 		"dodge": [Vector2(vs.x - 196, vs.y - 158), 42.0],
 		"guard": [Vector2(vs.x - 176, vs.y - 270), 42.0],
-		"crown": [Vector2(vs.x - 64, vs.y - 300), 38.0],
-		# a column left of the menu keys, level with their two rows: clear of the boss bar and the quest line under them
-		"zoom_in": [Vector2(vs.x - 358, 36), 26.0],
-		"zoom_out": [Vector2(vs.x - 358, 100), 26.0],
+		"crown": [Vector2(vs.x - 64, vs.y - 300), 42.0],
+		# round coins like the menu keys, 60 px, a column left of them level with their two rows: clear of the boss bar
+		# and the quest line under them
+		"zoom_in": [Vector2(vs.x - 368, 38), 30.0],
+		"zoom_out": [Vector2(vs.x - 368, 106), 30.0],
 	}
 	for i in 4: # the skill icons hud.gd draws (U I O and the potion)
-		k["skill%d" % i] = [Vector2(vs.x - 270 + i * 76, vs.y - 59), 36.0]
+		k["skill%d" % i] = [main.ui.hud.skill_spot(i), main.ui.hud.skill_size() / 2.0 + 2.0]
 	return k
 
 # the keys are for play only: a story, the shop, a sheet or the settings take taps as clicks
@@ -139,4 +143,5 @@ func _draw() -> void:
 		var c: Vector2 = k[n][0]
 		var r: float = k[n][1]
 		var lit := held.values().has(n)
-		draw_texture_rect(tex[n], Rect2(c - Vector2(r, r) * 1.1, Vector2(r, r) * 2.2), false, Color(1.2, 1.2, 1.2) if lit else Color(1, 1, 1, 0.9))
+		var sc := 1.0 if n.begins_with("zoom") else 1.1 # the coins are drawn at their own size, the diamonds a little over it
+		draw_texture_rect(tex[n], Rect2(c - Vector2(r, r) * sc, Vector2(r, r) * 2.0 * sc), false, Color(1.2, 1.2, 1.2) if lit else Color(1, 1, 1, 0.9))

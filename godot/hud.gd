@@ -42,9 +42,23 @@ func bar(at: Vector2, w: float, frac: float, col: Color, label: String, value: S
 func bars_x() -> float:
 	return 250.0 if main.hud_build.big_portrait() else 182.0
 
+# the bars' length: half on phones (the owner, 2026-10-28, on a phone: "status들이 너무 크다. bar를 반으로 줄여")
+func bar_w() -> float:
+	return 109.0 if main.touch_ui else 218.0
+
 # where the bars end, without their numbers
 func bars_end() -> float:
-	return bars_x() + 218.0
+	return bars_x() + bar_w()
+
+# the four skill coins: 68 px, or 60 px on phones like the menu and zoom coins (the owner, 2026-10-28: "아이콘 크기 및
+# 모양도 제각각이고.. 다 통일"); 8 px apart, the last 8 px from the right edge, centres 59 px over the bottom
+func skill_size() -> float:
+	return 60.0 if main.touch_ui else 68.0
+
+func skill_spot(i: int) -> Vector2:
+	var vs := get_viewport_rect().size
+	var sz := skill_size()
+	return Vector2(vs.x - 8.0 - sz / 2.0 - (3 - i) * (sz + 8.0), vs.y - 59.0)
 
 var pips_drawn := 0 # diamonds in the moon gauge at the last draw (autoplay pips)
 
@@ -85,11 +99,11 @@ func _draw() -> void:
 	text(lb + Vector2(-20, 6), str(p.lv), 17 if big else 15, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	# ---- bars
 	var x0 := bars_x()
-	bar(Vector2(x0, 34), 218, p.hp / p.max_hp, Color("#e03a44"), "체력", "%d/%d" % [ceili(p.hp), p.max_hp])
-	bar(Vector2(x0, 56), 218, p.mp / p.max_mp, Color("#f08a2a"), "기세", "%d/%d" % [int(p.mp), p.max_mp], p.mp >= 60.0)
-	bar(Vector2(x0, 78), 218, p.sp / 100.0, Color("#f2e2b0"), "기력", "%d/100" % int(p.sp))
+	bar(Vector2(x0, 34), bar_w(), p.hp / p.max_hp, Color("#e03a44"), "체력", "%d/%d" % [ceili(p.hp), p.max_hp])
+	bar(Vector2(x0, 56), bar_w(), p.mp / p.max_mp, Color("#f08a2a"), "기세", "%d/%d" % [int(p.mp), p.max_mp], p.mp >= 60.0)
+	bar(Vector2(x0, 78), bar_w(), p.sp / 100.0, Color("#f2e2b0"), "기력", "%d/100" % int(p.sp))
 	var need: int = p.lv * 25
-	bar(Vector2(x0, 100), 218, float(p.xp) / need, Color("#8de07a"), "경험", "%d/%d" % [p.xp, need])
+	bar(Vector2(x0, 100), bar_w(), float(p.xp) / need, Color("#8de07a"), "경험", "%d/%d" % [p.xp, need])
 	# the bracelets' moon gauge: pip_max small diamonds (8 at the start, up to 12; 12 end at x 354, under the 400 px bars)
 	text(Vector2(x0 - 45, 130), "달빛", 15, DIM)
 	var spots := pip_spots()
@@ -148,8 +162,9 @@ func _draw() -> void:
 	var cds: Array = p.cds
 	var cd_max := [main.SKILL_CD[0], main.SKILL_CD[1], main.SKILL_CD[2], 2.0]
 	for i in 4:
-		var sc := Vector2(vs.x - 270 + i * 76, vs.y - 59) # 8 px apart, the last icon and the key tags 8 px from the right and bottom edges
-		draw_texture_rect(icons[i], Rect2(sc - Vector2(34, 34), Vector2(68, 68)), false)
+		var sc := skill_spot(i) # 8 px apart, the last icon and the key tags 8 px from the right and bottom edges
+		var half := skill_size() / 2.0
+		draw_texture_rect(icons[i], Rect2(sc - Vector2(half, half), Vector2(half, half) * 2.0), false)
 		var frac: float = cds[i] / cd_max[i]
 		var cant: bool = i < 3 and p.mp < main.skill_cost(i)
 		if frac > 0.0 or cant: # cooldown sweep, or dim when there is not enough momentum
@@ -157,15 +172,15 @@ func _draw() -> void:
 			var sweep := TAU * (frac if frac > 0.0 else 1.0)
 			for k in 25:
 				var a1: float = -PI / 2 + sweep * k / 24.0
-				pts.append(sc + Vector2(cos(a1), sin(a1)) * 31) # over the moon-stone coin's gem (v0.0.101)
+				pts.append(sc + Vector2(cos(a1), sin(a1)) * half * 0.91) # over the moon-stone coin's gem (v0.0.101)
 			draw_colored_polygon(pts, Color(0, 0, 0, 0.6))
 		# under every coin its name, the key first on a keyboard (button draft 3, the owner 2026-10-27)
 		var kb := sc + Vector2(0, 42)
 		text(kb + Vector2(-38, 5), names[i] if main.touch_ui else keys[i] + " " + names[i], 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 76)
 		if i == 3:
-			text(sc + Vector2(14, 30), "×%d" % p.pots, 12, TEXT)
+			text(sc + Vector2(half * 0.41, half * 0.88), "×%d" % p.pots, 12, TEXT)
 	# the bottom-left buttons' names, on the same line (the buttons are hud_build.icon_button, 68 px at x 8, 84, 160, 236)
-	if main.ui.hint.visible:
+	if main.ui.hint.visible and not main.touch_ui: # phones moved these keys up beside the minimap
 		var left := [["H", "도움말"], ["M", "소리"], ["Q", "할 일"], ["Esc", "설정"]]
 		for i in 4:
 			var at := Vector2(8 + i * 76 + 34, vs.y - 17)

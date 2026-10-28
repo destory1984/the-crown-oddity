@@ -33,6 +33,9 @@ const SCENES := {
 	"far": {"play": true, "village": true, "far": true, "hour": 14.0},
 	"pier": {"play": true, "village": true, "vat": Vector2(32, 29), "hour": 14.0},
 	"inn": {"play": true, "village": true, "vat": Vector2(8, 30), "hour": 14.0},
+	"fountain": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0}, # the square's fountain, dry
+	"fountain_wet": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "wound": true}, # after the ending
+	"phone_hud": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "touch": true}, # the touch layout
 	"forest": {"play": true, "village": true, "forest": true, "hour": 16.0},
 	"forest_night": {"play": true, "village": true, "forest": true, "hour": 22.0},
 	"mold": {"play": true, "village": true, "mold": true, "hour": 21.0},
@@ -212,6 +215,11 @@ func apply_test_args(args: PackedStringArray) -> void:
 		if sc.has("vat"): # a spot in village tiles
 			m.player.x = Main.VILLAGE.VILLAGE_X + sc.vat.x
 			m.player.z = sc.vat.y
+		if sc.get("wound", false): # the land wound again: the fountain flows
+			m.story_step = 12
+			m.village.fountain_set(true)
+		if sc.get("touch", false):
+			m.hud_build.enable_touch()
 		if sc.get("forest", false): # the hardened forest, first wall ahead
 			m.night_q = 4
 			m.forest_q = 1

@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes"]
 
@@ -590,6 +590,54 @@ func run() -> void:
 		var budget: int = area[4]
 		check(area[0], planted.size() >= lo and bad == 0 and dup.size() == planted.size() and meshes_ok and tufts == want_tufts and tufts <= budget,
 			"planted tiles %d (at least %d), on a blocked tile or next to a path/mark/used spot %d, tufts %d of %d expected, budget %d" % [planted.size(), lo, bad, tufts, want_tufts, budget])
+	if want.call("fountain"):
+		# the moonkeepers' fountain (v0.1.38): its four tiles block, E beside it reads the dry lines, and once the land is
+		# wound (story_step 12) the water shows and the lines change
+		var v0: bool = main.in_village
+		var s0: int = main.story_step
+		main.close_story()
+		main.in_village = true
+		var fa: Vector2 = main.village.fountain_at()
+		var blocks: bool = main.village.blocked(fa.x - 0.5, fa.y - 0.5) and main.village.blocked(fa.x + 0.5, fa.y + 0.5)
+		var road_round: bool = not main.village.blocked(fa.x - 0.5, fa.y - 1.5) and not main.village.blocked(fa.x + 0.5, fa.y + 1.5)
+		reset_to(fa + Vector2(0, 1.6))
+		main.story_step = 0
+		main.village.fountain_set(false)
+		main.village.fountain_said = []
+		main.crown_key()
+		var dry_ok: bool = main.story_open and "나뭇잎" in str(main.village.fountain_said)
+		main.close_story()
+		main.story_step = 12
+		await get_tree().create_timer(1.2).timeout
+		var wet_ok: bool = main.village.fountain_water.visible and not main.village.fountain_dust.visible
+		main.crown_key()
+		var wet_line: bool = main.story_open and "시원해" in str(main.village.fountain_said)
+		main.close_story()
+		main.story_step = s0
+		main.village.fountain_set(s0 >= 12)
+		main.in_village = v0
+		check("fountain", blocks and road_round and dry_ok and wet_ok and wet_line,
+			"blocks %s, road round it %s, dry lines %s, water after the winding %s, wet line %s" % [blocks, road_round, dry_ok, wet_ok, wet_line])
+	if want.call("mate_breath"):
+		# Noeul and Mulgyeol breathe while they stand (v0.1.39): the breathing sheet with four frames that turn over,
+		# and their own picture back the moment they move
+		var spr := Sprite3D.new()
+		spr.texture = load("res://art/folk/noeul.png")
+		spr.hframes = 3
+		var t0: float = main.t
+		main.mates.breathe("noeul", spr, true)
+		var on_sheet: bool = spr.texture.resource_path.ends_with("noeul_breath.png") and spr.hframes == 4
+		var seen := {}
+		for k in 4:
+			main.t = t0 + k * main.mates.BREATH_STEP + 0.01
+			main.mates.breathe("noeul", spr, true)
+			seen[spr.frame] = true
+		main.t = t0
+		main.mates.breathe("noeul", spr, false)
+		var back: bool = spr.texture.resource_path.ends_with("noeul.png") and spr.hframes == 3
+		spr.free()
+		check("mate_breath", on_sheet and seen.size() == 4 and back,
+			"breathing sheet %s, frames seen %d of 4, own picture back %s" % [on_sheet, seen.size(), back])
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -2217,7 +2265,7 @@ func run() -> void:
 		var mates_r := Rect2(140, 150, 146, 64) # the companions' two rows (build_mate_hud)
 		var clear: bool = not quest_r.intersects(mates_r) and not boss_r.intersects(mates_r) and (quest_r.end.x <= vs.x - 194.0 or quest_r.position.y >= 202.0) and main.ui.quest.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART
 		for n in ["zoom_in", "zoom_out"]:
-			var zr := Rect2(tk[n][0] - Vector2.ONE * tk[n][1] * 1.1, Vector2.ONE * tk[n][1] * 2.2)
+			var zr := Rect2(tk[n][0] - Vector2.ONE * tk[n][1], Vector2.ONE * tk[n][1] * 2.0)
 			clear = clear and not zr.intersects(boss_r) and not zr.intersects(quest_r)
 			for b in [main.ui.hint, main.ui.sound_btn, main.ui.journal_btn, main.ui.settings_btn]:
 				clear = clear and not zr.intersects((b as Control).get_global_rect())
@@ -4534,7 +4582,7 @@ func run() -> void:
 		var spr: Sprite3D = main.mate2.get_child(0)
 		var mspr: Sprite3D = main.mate.get_child(0)
 		await wait(1.5)
-		var standing: bool = not main.noeul_sitting and spr.hframes == 3 and not main.mulgyeol_sitting and mspr.hframes == 2
+		var standing: bool = not main.noeul_sitting and spr.hframes in [3, 4] and not main.mulgyeol_sitting and mspr.hframes in [2, 4] # 4: the breathing sheet (v0.1.39)
 		main.last_input_t = main.t - 20.0 # no key for 20 s
 		await wait(1.0)
 		var sat: bool = main.noeul_sitting and spr.hframes == 1 and spr.texture.resource_path.ends_with("noeul_rest.png")
@@ -4543,7 +4591,7 @@ func run() -> void:
 		main.last_input_t = main.t
 		await wait(0.4)
 		release()
-		var up: bool = not main.noeul_sitting and spr.hframes == 3 and spr.texture.resource_path.ends_with("noeul.png") and not main.mulgyeol_sitting and mspr.hframes == 2 and mspr.texture.resource_path.ends_with("mulgyeol.png") and absf(mspr.offset.y - 85.0) < 0.1
+		var up: bool = not main.noeul_sitting and spr.texture.resource_path.get_file() in ["noeul.png", "noeul_breath.png"] and not main.mulgyeol_sitting and mspr.texture.resource_path.get_file() in ["mulgyeol.png", "mulgyeol_breath.png"] and absf(mspr.offset.y - 85.0) < 0.1
 		main.player.vx = 0.0
 		main.player.vz = 0.0
 		await wait(1.0)
