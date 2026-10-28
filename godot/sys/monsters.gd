@@ -674,6 +674,25 @@ func refill_field(area: String) -> void:
 		if not alive:
 			spawn_field(area, i, spots[i])
 
+# v0.1.72: a boss or mini-boss counts as "in a fight" from the moment she comes within 12 tiles or hurts it, until it dies
+# or she is 40 tiles away, so resting cannot heal her just by stepping out of the bar's range (the owner chose "bosses get
+# tougher", 2026-10-28; boss7 review)
+const FIGHT_KEYS := ["boss", "noeul", "turtle", "crab", "hawk", "knight", "mole", "mold", "mill_guard"]
+func mark_fight(e: Dictionary, d: float) -> void:
+	for k in FIGHT_KEYS:
+		if e.get(k, false):
+			if d >= 40.0:
+				e.fight = false
+			elif d < 12.0 or e.hp < e.max_hp:
+				e.fight = true
+			return
+
+func boss_fight_on(px: float, pz: float) -> bool:
+	for e in m.enemies:
+		if not e.dead and e.get("fight", false) and Vector2(e.x - px, e.z - pz).length() < 40.0:
+			return true
+	return false
+
 func update_enemies(dt: float, gy: float) -> void:
 	pack_prepare(dt)
 	m.brick_foes.village_moths()
@@ -697,6 +716,7 @@ func update_enemies(dt: float, gy: float) -> void:
 		var to := Vector2(m.player.x - e.x, m.player.z - e.z)
 		var d := to.length()
 		var ev := Vector2.ZERO
+		mark_fight(e, d)
 		var boss: bool = e.get("boss", false)
 		if boss:
 			update_boss(e, dt, d, to, gy)

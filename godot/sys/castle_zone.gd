@@ -290,7 +290,7 @@ func spawn_knight(echo := false) -> void:
 	body.add_child(eye)
 	root.scale = Vector3.ONE * 1.25
 	m.add_child(root)
-	var hp := 1520.0 if echo else 1760.0 # was 950 / 1100: x1.6 (the owner, 2026-10-28: "30분이 걸렸다, 3시간 목표" - bosses tougher)
+	var hp := 2200.0 # v0.1.72: knight was 1760, Hangyeol's echo 1520 (the owner chose 'bosses get tougher' 2026-10-28; boss7 review, middle step)
 	m.enemies.append({"x": at.x, "z": at.y, "hp": hp, "max_hp": int(hp), "node": root, "shadow": m.blob(1.3), "t": 0.0, "echo": echo,
 		"atk_cd": 1.5, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"knight": true, "cave": true, "wind": 0.0, "stun": 0.0, "tired": 0.0, "dash": 0.0, "dir": Vector2.ZERO,

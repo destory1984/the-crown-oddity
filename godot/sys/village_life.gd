@@ -211,7 +211,7 @@ func spawn_noeul_duel(second := false, cloak := false) -> void:
 	var node := Node3D.new()
 	node.add_child(noeul_sprite())
 	m.add_child(node)
-	var hp := 1600.0 if cloak else (1328.0 if second else 715.0) # was 1000 / 830 / 550: x1.6 for the second duel and the cloak, x1.3 for the first (the owner, 2026-10-28: "30분이 걸렸다, 3시간 목표" - bosses tougher)
+	var hp := 2200.0 if cloak else (2000.0 if second else 1100.0) # v0.1.72: was 715 / 1328 / 1600 (the owner chose 'bosses get tougher' 2026-10-28; boss7 review, middle step)
 	m.enemies.append({"x": at.x, "z": at.y, "hp": hp, "max_hp": int(hp), "node": node, "shadow": m.blob(0.8), "t": 0.0,
 		"atk_cd": 2.0, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"noeul": true, "second": second or cloak, "cloak": cloak, "cave": true, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "stun": 0.0, "next": "dash", "rings": []})

@@ -134,7 +134,7 @@ func spawn_turtle() -> void:
 		eye.position = Vector3(side, 0.75, 1.92)
 		body.add_child(eye)
 	m.add_child(root)
-	m.enemies.append({"x": at.x, "z": at.y, "hp": 1170.0, "max_hp": 1170, "node": root, "shadow": m.blob(1.6), "t": 0.0,
+	m.enemies.append({"x": at.x, "z": at.y, "hp": 1600.0, "max_hp": 1600, "node": root, "shadow": m.blob(1.6), "t": 0.0,
 		"atk_cd": 2.0, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"turtle": true, "cave": true, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO, "stun": 0.0, "next": "stomp", "spins": 0})
 
@@ -599,7 +599,7 @@ func spawn_crab() -> void:
 		eye.position = Vector3(side, 1.38, 0.45)
 		body.add_child(eye)
 	m.add_child(root)
-	m.enemies.append({"x": at.x, "z": at.y, "hp": 760.0, "max_hp": 760, "node": root, "shadow": m.blob(1.5), "t": 0.0,
+	m.enemies.append({"x": at.x, "z": at.y, "hp": 1500.0, "max_hp": 1500, "node": root, "shadow": m.blob(1.5), "t": 0.0,
 		"atk_cd": 1.5, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"crab": true, "cave": true, "wind": 0.0, "stun": 0.0, "next": ""})
 

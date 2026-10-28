@@ -466,7 +466,7 @@ func spawn_mill_guard() -> void:
 	var at: Vector2 = m.hill.south_marks.K
 	m.spawn_enemy(at)
 	var e: Dictionary = m.enemies[m.enemies.size() - 1]
-	e.hp = 300.0 + m.foe_lv() * 30
+	e.hp = 300.0 + m.foe_lv() * 45 # v0.1.72: factor was 30 (the owner chose 'bosses get tougher' 2026-10-28; boss7 review, middle step)
 	e.max_hp = int(e.hp)
 	e.size_k = 1.7
 	e.mill_guard = true
@@ -694,7 +694,7 @@ func spawn_hawk() -> void:
 		body.add_child(eye)
 	root.scale = Vector3.ONE * 1.4
 	m.add_child(root)
-	m.enemies.append({"x": at.x, "z": at.y, "hp": 1248.0, "max_hp": 1248, "node": root, "shadow": m.blob(1.2), "t": 0.0,
+	m.enemies.append({"x": at.x, "z": at.y, "hp": 1500.0, "max_hp": 1500, "node": root, "shadow": m.blob(1.2), "t": 0.0,
 		"atk_cd": 2.5, "hurt": 0.0, "kx": 0.0, "kz": 0.0, "wx": at.x, "wz": at.y, "dead": false, "respawn": 0.0,
 		"hawk": true, "cave": true, "air": true, "y": 2.8, "wind": 0.0, "dash": 0.0, "dir": Vector2.ZERO,
 		"stun": 0.0, "target": Vector2.ZERO, "egg_cd": 1.5, "eggs": []})

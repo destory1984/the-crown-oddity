@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -786,6 +786,77 @@ func run() -> void:
 		root.content_scale_size = scale0[2]
 		await wait(0.1)
 		check("lap6_ui", all_ok, " | ".join(rows))
+	if want.call("boss_hp7"):
+		# v0.1.72 (the owner chose "bosses get tougher", 2026-10-28; boss7 review): moderate HP raises, and resting is
+		# blocked all through a boss fight, not just inside the bar's range
+		var rows := []
+		var all_ok := true
+		var want_hp := {"turtle": 1600, "crab": 1500, "hawk": 1500, "knight": 2200}
+		main.lake_zone.spawn_turtle()
+		main.lake_zone.spawn_crab()
+		main.hill_zone.spawn_hawk()
+		main.castle_zone.spawn_knight(false)
+		var kn_echo_hp := 0
+		main.castle_zone.spawn_knight(true) # the first knight is alive, so this returns early: the echo is checked below
+		for k in want_hp:
+			var f: Array = main.enemies.filter(func(e): return e.get(k, false) and not e.dead)
+			var ok: bool = f.size() == 1 and f[0].max_hp == want_hp[k] and f[0].hp == float(want_hp[k])
+			all_ok = all_ok and ok
+			rows.append("%s %s" % [k, f[0].max_hp if f.size() == 1 else -1])
+			for e in f:
+				main.enemies.erase(e)
+				if is_instance_valid(e.node):
+					e.node.queue_free()
+		main.castle_zone.spawn_knight(true)
+		var ec: Array = main.enemies.filter(func(e): return e.get("echo", false) and not e.dead)
+		all_ok = all_ok and ec.size() == 1 and ec[0].max_hp == 2200
+		rows.append("echo %d" % (ec[0].max_hp if ec.size() == 1 else -1))
+		for e in ec:
+			main.enemies.erase(e)
+			if is_instance_valid(e.node):
+				e.node.queue_free()
+		for sc in [[false, false, 1100], [true, false, 2000], [false, true, 2200]]:
+			main.village_life.spawn_noeul_duel(sc[0], sc[1])
+			var nf: Array = main.enemies.filter(func(e): return e.get("noeul", false) and not e.dead)
+			all_ok = all_ok and nf.size() == 1 and nf[0].max_hp == sc[2]
+			rows.append("noeul %d" % (nf[0].max_hp if nf.size() == 1 else -1))
+			for e in nf:
+				main.enemies.erase(e)
+				if is_instance_valid(e.node):
+					e.node.queue_free()
+		# the mill guardian: 300 + 45 per foe level
+		main.hill_zone.spawn_mill_guard()
+		var mg: Array = main.enemies.filter(func(e): return e.get("mill_guard", false) and not e.dead)
+		var mg_ok: bool = mg.size() == 1 and mg[0].max_hp == int(300.0 + main.foe_lv() * 45)
+		all_ok = all_ok and mg_ok
+		rows.append("mill %d" % (mg[0].max_hp if mg.size() == 1 else -1))
+		for e in mg:
+			main.enemies.erase(e)
+			if is_instance_valid(e.node):
+				e.node.queue_free()
+		# rest healing: nothing 12 tiles from an awake boss, normal once it is beaten
+		calm_enemies(true)
+		main.village_life.spawn_noeul_duel(false, false)
+		var nb: Dictionary = main.enemies.filter(func(e): return e.get("noeul", false) and not e.dead)[0]
+		reset_to(Vector2(nb.x + 12.0, nb.z))
+		main.ui.boss.visible = false
+		main.story_open = false
+		main.monsters.mark_fight(nb, 5.0) # she came close once and woke it
+		main.monsters.mark_fight(nb, 12.0)
+		main.player.hp = main.player.max_hp * 0.5
+		main.idle_t = 10.0
+		var h0: float = main.player.hp
+		main.combat.rest_heal(1.0)
+		var blocked: bool = main.player.hp == h0
+		nb.dead = true
+		main.combat.rest_heal(1.0)
+		var healed: bool = main.player.hp > h0
+		all_ok = all_ok and blocked and healed
+		rows.append("rest 12 tiles from awake boss blocked=%s, after it is beaten healed=%s" % [blocked, healed])
+		main.enemies.erase(nb)
+		if is_instance_valid(nb.node):
+			nb.node.queue_free()
+		check("boss_hp7", all_ok, " | ".join(rows))
 	if want.call("pip_rest_far"):
 		# resting by a lit lantern fills the moon light in every area, not just the village (v0.1.53): a monster 4.5 tiles
 		# off does not notice her while she rests there, and the pips still come in
@@ -5124,7 +5195,7 @@ func run() -> void:
 		main.close_story()
 		await wait(0.2)
 		var echoes: Array = main.enemies.filter(func(e): return e.get("echo", false) and not e.dead)
-		var rose: bool = echoes.size() == 1 and echoes[0].max_hp == 1520
+		var rose: bool = echoes.size() == 1 and echoes[0].max_hp == 2200
 		if echoes.size() == 1:
 			var ec: Dictionary = echoes[0]
 			main.damage_enemy(ec, 100000.0, Vector2(ec.x, ec.z) - ec.face) # from behind: his shield keeps his front
@@ -5140,7 +5211,7 @@ func run() -> void:
 		calm_enemies(false)
 		main.in_garden = false
 		check("road", arrived and shut and roots and page and hook and fell and stood and rose and beaten and arena and kept,
-			"arrived at the yard=%s roots shut/unwound=%s/%s fifth page=%s hook=%s fell off and back=%s footprint holds=%s brick Hangyeol 1520=%s beaten opens the gate=%s arena=%s saved and waystone=%s" % [arrived, shut, roots, page, hook, fell, stood, rose, beaten, arena, kept])
+			"arrived at the yard=%s roots shut/unwound=%s/%s fifth page=%s hook=%s fell off and back=%s footprint holds=%s brick Hangyeol 2200=%s beaten opens the gate=%s arena=%s saved and waystone=%s" % [arrived, shut, roots, page, hook, fell, stood, rose, beaten, arena, kept])
 	if want.call("mill"):
 		# the sparrows' mill below the wind hills' south fence
 		if main.intro:
@@ -5196,7 +5267,7 @@ func run() -> void:
 		var wet: bool = main.player_can(hx + 20, 33.5)
 		main.skipping = false
 		var guards: Array = main.enemies.filter(func(e): return e.get("mill_guard", false) and not e.dead)
-		var guard_ok: bool = guards.size() == 1 and guards[0].max_hp == 300 + main.foe_lv() * 30
+		var guard_ok: bool = guards.size() == 1 and guards[0].max_hp == 300 + main.foe_lv() * 45
 		park_mates(true)
 		var g0: int = main.player.gold
 		if guards.size() == 1:
@@ -6511,7 +6582,7 @@ func run() -> void:
 		main.close_story()
 		await wait(0.2)
 		var cloaks: Array = main.enemies.filter(func(e): return e.get("cloak", false) and not e.dead)
-		var big: bool = cloaks.size() == 1 and cloaks[0].max_hp == 1600
+		var big: bool = cloaks.size() == 1 and cloaks[0].max_hp == 2200
 		if cloaks.size() == 1:
 			main.damage_enemy(cloaks[0], 100000.0, Vector2(main.player.x, main.player.z))
 			await wait(1.4)
@@ -6551,7 +6622,7 @@ func run() -> void:
 		main.close_story()
 		var given: bool = main.hollow_q == 4 and main.player.max_hp == hp1 and main.pip_awards.has("lantern") and main.thirteenth != null and not main.thirteenth.get_meta("dark", false) # v0.0.47: a pip in place of max HP +15
 		check("hollow", shut and opened and woke == fm.south.size() and north1 == north0 and hogs.size() == 2 and dry and wet and lit and big and beaten and curled and hit and door and lantern and kept and given,
-			"gate shut/opened=%s/%s woke=%d of %d north unchanged=%s hogs=%d stream dry/skip=%s/%s three memories (pips 5)=%s cloak 1600=%s beaten=%s curled blocks=%s dizzy hits=%s sunset door=%s lantern=%s saved=%s Simji=%s (hollow_q %d, max HP %d -> %d, awards %s)" % [shut, opened, woke, fm.south.size(), north1 == north0, hogs.size(), dry, wet, lit, big, beaten, curled, hit, door, lantern, kept, given, main.hollow_q, hp1, main.player.max_hp, str(main.pip_awards.keys())])
+			"gate shut/opened=%s/%s woke=%d of %d north unchanged=%s hogs=%d stream dry/skip=%s/%s three memories (pips 5)=%s cloak 2200=%s beaten=%s curled blocks=%s dizzy hits=%s sunset door=%s lantern=%s saved=%s Simji=%s (hollow_q %d, max HP %d -> %d, awards %s)" % [shut, opened, woke, fm.south.size(), north1 == north0, hogs.size(), dry, wet, lit, big, beaten, curled, hit, door, lantern, kept, given, main.hollow_q, hp1, main.player.max_hp, str(main.pip_awards.keys())])
 		main.hour = 12.0
 		reset_to(main.village.marks.M + Vector2(-1.2, 0))
 	if want.call("undercroft"):

@@ -512,7 +512,7 @@ const REST_HEAL := 0.02
 var rest_glow_t := 0.0
 
 func rest_heal(dt: float) -> void:
-	if m.idle_t < REST_HEAL_WAIT or m.player.hp <= 0.0 or m.player.hp >= m.player.max_hp or m.ui.boss.visible or m.story_open:
+	if m.idle_t < REST_HEAL_WAIT or m.player.hp <= 0.0 or m.player.hp >= m.player.max_hp or m.ui.boss.visible or m.story_open or m.monsters.boss_fight_on(m.player.x, m.player.z): # v0.1.72: any woken boss, bar or not
 		return
 	for e in m.enemies:
 		if not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 6.0: # props (squirrel cages) do not attack
