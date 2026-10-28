@@ -762,7 +762,8 @@ func update_enemies(dt: float, gy: float) -> void:
 		else:
 			gid_of(e)
 			pack_next.append(e)
-		if d < 7 and not m.intro and archer:
+		var hidden: bool = m.lamp_safe and not boss # resting by a lit lantern at night: not noticed (hud_build.update_pips)
+		if d < 7 and not m.intro and archer and not hidden:
 			if e.get("hop", 0.0) > 0.0: # the hop back: 1.2 tiles in 0.3 s, no damage
 				e.hop -= dt
 				ev = e.hop_dir * 4.0
@@ -777,10 +778,13 @@ func update_enemies(dt: float, gy: float) -> void:
 				ev = -to / maxf(d, 0.01) * 1.6
 			elif d > 5.5:
 				ev = to / d * 1.6
-		elif d < 7 and not m.intro:
+		elif d < 7 and not m.intro and not hidden:
 			ev = pack_move(e, d, to)
 		else:
-			if Vector2(e.wx - e.x, e.wz - e.z).length() < 0.3 or m.rng.randf() < 0.005:
+			if hidden and d < 4.0: # wandering near the lantern's light: it drifts off the other way
+				e.wx = e.x - to.x / maxf(d, 0.01) * 3.0
+				e.wz = e.z - to.y / maxf(d, 0.01) * 3.0
+			elif Vector2(e.wx - e.x, e.wz - e.z).length() < 0.3 or m.rng.randf() < 0.005:
 				e.wx = e.x + m.rnd(-3, 3)
 				e.wz = e.z + m.rnd(-3, 3)
 			var w := Vector2(e.wx - e.x, e.wz - e.z)

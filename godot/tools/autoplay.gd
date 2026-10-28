@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes"]
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -693,6 +693,56 @@ func run() -> void:
 		await get_tree().create_timer(1.5).timeout
 		var settled: bool = main.combat.plant_hit.z > 1.3
 		check("plant_shake", told and settled, "tall plant materials %d, blow passed on %s, settled after 1.5 s %s" % [tall, told, settled])
+	if want.call("pip_rest_far"):
+		# resting by a lit lantern fills the moon light in every area, not just the village (v0.1.53): a monster 4.5 tiles
+		# off does not notice her while she rests there, and the pips still come in
+		# it walks into four areas, which marks them visited: put the progress and the test save back afterwards, or the
+		# next run loads story step 10 from it
+		var keep_q := [main.story_step, main.forest_q, main.lake_q, main.hill_q]
+		var keep_save: String = FileAccess.get_file_as_string(main.SAVE_PATH) if FileAccess.file_exists(main.SAVE_PATH) else ""
+		var rows := []
+		var all_ok := true
+		for z in [["marsh", -1.0, 100.0], ["forest", 180.0, 216.0], ["lake", 270.0, 310.0], ["hill", 310.0, 350.0]]:
+			match z[0]:
+				"forest": main.enter_forest()
+				"lake": main.enter_lake()
+				"hill": main.enter_hill()
+			main.close_story()
+			var lamps: Array = main.lanterns.filter(func(l): return l.position.x > z[1] and l.position.x < z[2] and not l.get_meta("dark", false))
+			if lamps.is_empty():
+				rows.append("%s: no lamp" % z[0])
+				all_ok = false
+				continue
+			var lamp = lamps[0]
+			calm_enemies(true)
+			main.hour = 23.0
+			main.crown_pips = 0
+			reset_to(Vector2(lamp.position.x + 0.4, lamp.position.z + 1.0))
+			main.last_input_t = main.t - 5.0
+			main.spawn_enemy(Vector2(main.player.x + 4.5, main.player.z))
+			var gob: Dictionary = main.enemies[main.enemies.size() - 1]
+			var closest := 99.0
+			for k in 32:
+				await wait(0.25)
+				closest = minf(closest, Vector2(gob.x - main.player.x, gob.z - main.player.z).length())
+			var got: int = main.crown_pips
+			var ok: bool = got >= 2 and closest > 2.5
+			all_ok = all_ok and ok
+			rows.append("%s lamp (%.0f, %.0f): pips %d in 8 s, goblin came within %.1f" % [z[0], lamp.position.x, lamp.position.z, got, closest])
+			gob.dead = true
+			gob.respawn = 9999.0
+			if is_instance_valid(gob.node):
+				gob.node.visible = false
+		main.return_to_start()
+		main.story_step = keep_q[0]
+		main.forest_q = keep_q[1]
+		main.lake_q = keep_q[2]
+		main.hill_q = keep_q[3]
+		if keep_save != "":
+			var sf := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+			sf.store_string(keep_save)
+			sf.close()
+		check("pip_rest_far", all_ok, " | ".join(rows))
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -6894,8 +6944,8 @@ func run() -> void:
 		await wait(8.5)
 		var pips_wall: int = main.crown_pips
 		var sees_through_wall: bool = main.line_clear(Vector2(441.4, 6.4), Vector2(441.0, 8.5))
-		behind.x = 444.0 # now in her own hall
-		behind.z = 4.0
+		behind.x = 442.2 # now in her own hall, 1.3 tiles off: by a lantern only one this near stops the rest (v0.1.53)
+		behind.z = 5.4
 		main.crown_pips = 0
 		main.rest_said = false
 		main.ui.toast.modulate.a = 0.0
@@ -6903,11 +6953,11 @@ func run() -> void:
 		await wait(1.0)
 		var said_once: bool = main.rest_said and "쉴 수 없다" in main.ui.toast.text
 		for pin in 14: # hold the monster in the hall while she tries to rest
-			behind.x = 444.0
-			behind.z = 4.0
+			behind.x = 442.2
+			behind.z = 5.4
 			await wait(0.5)
 		var pips_room: int = main.crown_pips
-		var clear_room: bool = main.line_clear(Vector2(441.4, 6.4), Vector2(444.0, 4.0))
+		var clear_room: bool = main.line_clear(Vector2(441.4, 6.4), Vector2(442.2, 5.4))
 		main.lanterns.erase(lamp)
 		lamp.queue_free()
 		var behind_note := "monster dead=%s at %s" % [behind.dead, Vector2(behind.x, behind.z)]

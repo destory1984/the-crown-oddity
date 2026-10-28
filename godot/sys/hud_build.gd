@@ -953,6 +953,7 @@ func build_hud() -> void:
 
 func update_pips(dt: float) -> void:
 	m.pip_flash -= dt
+	m.lamp_safe = false
 	var by_oak := m.forest_zone.oak_warm()
 	var night_now := m.is_night() or m.in_clock() or m.in_workshop() or by_oak # underground the clock room and the deep workshop rest as at night, and by the old oak's warm roots
 	var heal: bool = m.has_cushion and night_now and m.player.hp < m.player.max_hp
@@ -965,12 +966,16 @@ func update_pips(dt: float) -> void:
 		if not l.get_meta("dark", false) and l != m.dark_lamp and Vector2(l.position.x - me.x, l.position.z - me.z).length() < 2.0:
 			near_lamp = true
 	near_lamp = near_lamp or by_oak
+	var still := Vector2(m.player.vx, m.player.vz).length() < 0.3
+	# by a lit lantern at night, standing still with no key for 0.8 s, monsters do not notice her (monsters.gd) and only
+	# one right beside her (2.5 tiles) stops the rest (the owner, 2026-10-28: "마을에 있는 등불에서만 차는구나": out in
+	# the fields a monster within 6 tiles always came for her)
+	m.lamp_safe = near_lamp and night_now and still and m.t - m.last_input_t > 0.8
 	var calm := true
 	for e in m.enemies:
-		if not e.dead and Vector2(e.x - me.x, e.z - me.z).length() < 6.0 and m.line_clear(Vector2(me.x, me.z), Vector2(e.x, e.z)):
+		if not e.dead and Vector2(e.x - me.x, e.z - me.z).length() < (2.5 if m.lamp_safe else 6.0) and m.line_clear(Vector2(me.x, me.z), Vector2(e.x, e.z)):
 			calm = false # only a monster that can reach her sight counts, not one behind a wall
 	var jar := m.fly_q >= 3
-	var still := Vector2(m.player.vx, m.player.vz).length() < 0.3
 	if not calm and (near_lamp or jar) and still and m.crown_pips < m.pip_max:
 		if not m.rest_said:
 			m.rest_said = true
