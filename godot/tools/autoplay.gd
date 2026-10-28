@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -9365,6 +9365,84 @@ func run() -> void:
 		main.castle.door_open = false
 		check("gate_fix4", page_shut and jour_held and hide and jour_seen and never_early and page_open and exits_ok and cloud_exit and yard_ok and out_ok and key_ok and follow and resumed and walks_on and old_ok and reraid,
 			"third page while held: no door-opens line=%s, once done it opens=%s; workshop journal held=%s hidden early=%s found=%s not before the castle=%s; every workshop floor marks its exit=%s; cloud exit=%s; pond yard fight=%s, outside post=%s, key after the latch=%s; doorkeeper marked walking, waiting, stopped=%s; save mid-escort resumes=%s keeps the raid=%s, old save at the stand=%s raids again=%s" % [page_shut, page_open, jour_held, hide, jour_seen, never_early, exits_ok, cloud_exit, yard_ok, out_ok, key_ok, follow, resumed, walks_on, old_ok, reraid])
+		main.return_to_start()
+	if want.call("gate_fix5"):
+		# GPT lap 5: the work lamps are marked in the deep workshop on the diary's line, the key chest moves the cave line to the door,
+		# the marsh steps back to a villager are marked at the village entrance, a beaten raid survives a restart before E resumes
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		calm_enemies(true)
+		# 8. in the workshop early by the diary's discovery line: next_spot, not the exit
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_hill = true
+		main.castle_q = 1
+		main.work_q = 0
+		main.castle.door_open = false
+		main.set_quest("성 일기를 더 찾아 읽자")
+		main.workshop_zone.enter_floor(0, "A")
+		main.close_story()
+		var w8: Vector3 = main.quest_marks.quest_target()
+		var w8n: Vector3 = main.workshop_zone.next_spot()
+		var lamps_ok: bool = main.in_workshop() and w8 != Vector3.INF and w8n != Vector3.INF and Vector2(w8.x, w8.z).distance_to(Vector2(w8n.x, w8n.z)) < 0.1 			and Vector2(w8.x, w8.z).distance_to(main.workshop_zone.fl(0).marks.S) > 0.5
+		main.workshop_zone.leave_up(0)
+		await wait(0.2)
+		main.close_story()
+		# 9. the painting first, then the key chest: the line moves on to the door and still has a mark
+		main.in_hill = false
+		main.saw_painting = true
+		main.has_key = false
+		main.has_skip = false
+		main.cave_door_open = false
+		main.enter_cave()
+		main.close_story()
+		main.set_quest("열쇠를 찾아 잠긴 문을 열자")
+		reset_to(main.cave_marks.K)
+		tap(KEY_E)
+		await wait(0.2)
+		main.close_story()
+		var key_line: bool = main.has_key and main.quest_raw.begins_with("얻은 열쇠로")
+		var ct9: Vector3 = main.quest_marks.quest_target()
+		var door_mark: bool = ct9 != Vector3.INF and Vector2(ct9.x, ct9.z).distance_to(main.cave_marks.D) < 0.1
+		main.leave_cave()
+		main.close_story()
+		main.has_key = false
+		# 10. the marsh: the letter delivered, the oar fetched: the village entrance
+		var mt: Array = []
+		for ql in ["마을의 뱃사공 물결에게 가 보자 (E)", "노를 마을의 물결에게 가져가자 (E)"]:
+			main.set_quest(ql)
+			var t10: Vector3 = main.quest_marks.quest_target()
+			mt.append(t10 != Vector3.INF and Vector2(t10.x, t10.z).distance_to(main.quest_marks.VILLAGE_WAY) < 0.1)
+		var marsh_ok: bool = mt[0] and mt[1]
+		# 11. a beaten raid not yet resumed is saved again as beaten
+		main.in_hill = true
+		main.quarters_q = 3
+		main.doll_shed = false
+		main.doll_keep_shed = true
+		main.save_game()
+		var sv11 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var kept: bool = bool(sv11.get("doll_raid", false))
+		main.doll_keep_shed = false
+		main.doll_shed = true
+		main.save_game()
+		var sv12 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var raid_open: bool = bool(sv12.get("doll_raid", false)) == main.doll_bits().is_empty()
+		main.doll_shed = false
+		main.save_game()
+		var sv13 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var fresh: bool = not bool(sv13.get("doll_raid", false))
+		main.quarters_q = 0
+		main.load_quarters({})
+		main.in_hill = false
+		check("gate_fix5", lamps_ok and key_line and door_mark and marsh_ok and kept and raid_open and fresh,
+			"early in the workshop marks the work lamps=%s; key chest after the painting: line to the door=%s, mark on the door=%s; marsh steps back to a villager marked at the village entrance=%s; beaten raid kept across the entry autosave=%s, shed-and-beaten saved=%s, not shed not saved=%s" % [lamps_ok, key_line, door_mark, marsh_ok, kept, raid_open, fresh])
 		main.return_to_start()
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

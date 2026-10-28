@@ -671,6 +671,8 @@ func cave_interact() -> bool:
 		m.burst(m.key_chest.position + Vector3(0, 0.6, 0), Color("#ffd84a"), 24, 2.5)
 		m.sfx(784, 0.12, "triangle", 0.25)
 		m.toast("녹슨 열쇠를 얻었다")
+		if not m.has_skip and m.quest_raw.begins_with("열쇠를 찾아"): # painting first, then the chest: the line moves on to the door
+			m.set_quest("얻은 열쇠로 잠긴 문을 열자")
 		m.ui.mini.map_tex = cave_map_tex()
 		m.save_game() # kept at once: a reload used to put the key back in the chest (the owner, 2026-10-25)
 		return true

@@ -31,7 +31,7 @@ func save_game() -> void:
 		"seals": m.garden.seals.map(func(sl): return sl.open),
 		"stairs_wall": m.stairs.wall_open, "stairs_lamps": m.stairs.lamps.map(func(l): return l.lit),
 		"castle_q": m.castle_q, "bars": m.castle.bars, "levers": m.castle.levers.map(func(lv): return lv.up), "vault": m.castle.vault_open, "has_armour": m.has_armour, "castle_gate": m.castle.gate_open, "castle_pages": m.castle.pages.map(func(pg): return pg.read),
-		"doll_at": [m.doll_at.x, m.doll_at.y], "doll_i": m.doll_i, "doll_raid": m.doll_shed and m.doll_bits().is_empty(),
+		"doll_at": [m.doll_at.x, m.doll_at.y], "doll_i": m.doll_i, "doll_raid": (m.doll_shed and m.doll_bits().is_empty()) or m.doll_keep_shed, # keep_shed: a loaded beaten raid not yet resumed
 		"quarters_q": m.quarters_q, "quarters_box": m.quarters_box, "has_buckler": m.has_buckler, "quarters_again": m.quarters_again,
 		"oak_q": m.oak_q, "oak_knots": m.forest.knots.map(func(k): return k.open), "has_sprout": m.has_sprout, "oak_hogs": m.oak_hogs_beaten, "letter_back": m.letter_back,
 		"under_drained": m.under.drained, "under_door": m.under.door_open, "under_guards": m.under_guards_done, "under_chest": m.under_chest_open,

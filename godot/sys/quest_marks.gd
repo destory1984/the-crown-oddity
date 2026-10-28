@@ -113,6 +113,8 @@ func line_target(raw: String) -> Vector3:
 	if m.in_workshop(): # the deep workshop is no area of the road: its own steps for the moon door's gate, else the way up and out
 		if raw.begins_with("옥좌의 방으로 가기 전에") and not m.moon_tokens.workshop_done():
 			return m.workshop_zone.next_spot()
+		if m.moon_tokens.holds("knight") and not m.moon_tokens.workshop_done(): # in early by the diary's discovery line: the work lamps, whatever the main line says
+			return m.workshop_zone.next_spot()
 		return back_way()
 	match here():
 		"marsh": at = marsh_target(raw)
@@ -195,6 +197,9 @@ func marsh_target(raw: String) -> Vector3:
 		return over(m.errands.OAR_AT, 1.6)
 	if raw.begins_with("동쪽 강을"):
 		return over(VILLAGE_WAY)
+	for name in m.castle_zone.MARK_FOLK: # a line that sends her back to a villager (the letter delivered, the oar fetched): the village entrance first
+		if raw.contains(name + "에게"):
+			return over(VILLAGE_WAY)
 	return Vector3.INF
 
 func cave_target(raw: String) -> Vector3:
