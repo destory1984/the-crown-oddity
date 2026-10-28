@@ -710,7 +710,7 @@ func journal_lines() -> Array:
 		side.call("서재의 달지기 책", tr("끝") if m.tokens[5] else tr("%d/5 읽음") % m.castle.books.filter(func(b): return b.read).size())
 		side.call("성의 보물고", tr("끝") if m.castle.vault_open else (tr("상자를 열자") if m.castle.vault_solved() else tr("경비실의 지렛대 셋")))
 		side.call("성 아래 잠긴 층", m.castle_zone.under_journal())
-	if m.castle_q >= 3:
+	if m.workshop_zone.journal_shown():
 		side.call("끝내지 못한 등불", m.workshop_zone.work_journal())
 	if m.errand >= 1:
 		side.call("장터 과녁", (tr("메달, 최고 %d개") % m.target_best) if m.has_medal else (tr("최고 %d개 / 6개면 메달") % m.target_best if m.target_best > 0 else tr("장터 울타리 안 과녁 기둥에서 E")))

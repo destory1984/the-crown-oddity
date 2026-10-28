@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -6005,7 +6005,7 @@ func run() -> void:
 		main.close_story()
 		await wait(1.0)
 		var walks: bool = main.doll_at.distance_to(main.CASTLE.DOLL_PATH[0]) > 0.5
-		var mark_walk: bool = no_mark.call()
+		var mark_walk: bool = at_mark.call(main.doll_at) # the gold ! follows him while he walks (v0.1.69)
 		# 5. in the dining hall the heaps' three bits run at him; one that reaches him knocks his spring out
 		main.doll_at = Vector2(456.3, 30.1)
 		main.doll_i = 5
@@ -6096,7 +6096,7 @@ func run() -> void:
 		reset_to(Vector2(460, 31))
 		main.load_quarters(JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH)))
 		await wait(0.3)
-		var mid: bool = main.quarters_q == 3 and not main.doll_walk and main.doll_at == main.CASTLE.DOLL_PATH[0] \
+		var mid: bool = main.quarters_q == 3 and not main.doll_walk and main.doll_at == Vector2(458, 31) \
 			and main.doll_bits().is_empty() and not main.castle.bunk_open
 		main.write_new_round()
 		var ng = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
@@ -9225,6 +9225,147 @@ func run() -> void:
 			"new-round file drops the pond, valley, mill, trial, workshop and quarters flags and keeps the best time=%s, the gates hold again=%s (%s), trial must be cleared again=%s" % [file_ok, all_hold, hold_txt, trial_again])
 		main.ng = 0
 		main.trial_best = 0.0
+	if want.call("gate_fix4"):
+		# GPT lap 4 on the v0.1.68 gates: the doorkeeper's walk is saved, exits are marked in the separate areas, the pond yard fight
+		# is marked, the workshop journal opens early, the third diary page only says the door opens when it does
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_hill = true
+		main.forest_q = 3
+		main.lake_q = 4
+		main.hill_q = 3
+		main.castle_q = 1
+		main.garden_q = 0
+		main.work_q = 0
+		main.work_seen = false
+		main.work_door = false
+		main.has_unbrick = true
+		main.castle.open_gate()
+		main.castle.door_open = false
+		main.castle.door.visible = true
+		for pg in main.castle.pages:
+			pg.read = false
+		main.castle.pages[0].read = true
+		main.castle.pages[1].read = true
+		calm_enemies(true)
+		# 6. the third page while the cradle holds the door: no "opens" line; once the cradle is let go it does open
+		reset_to(main.castle.pages[2].pos + Vector2(1.0, 0))
+		tap(KEY_E)
+		await wait(0.2)
+		var shut_txt := plain(" ".join(PackedStringArray(main.story_lines.map(func(l): return str(l)))))
+		var page_shut: bool = main.story_open and "닫힌 채" in shut_txt and not "열렸다" in shut_txt and not main.castle.door_open
+		main.close_story()
+		await wait(0.2)
+		main.close_story()
+		# 3. the journal shows the workshop lines: the gate held
+		var jl: String = plain("\n".join(PackedStringArray(main.journal_lines())))
+		var jour_held: bool = "끝내지 못한 등불" in jl
+		main.castle.pages[2].read = false # two pages read, the door not found yet: nothing
+		var hide: bool = not main.workshop_zone.journal_shown()
+		main.work_seen = true # found
+		var jour_seen: bool = main.workshop_zone.journal_shown()
+		main.work_seen = false
+		main.castle_q = 0
+		var never_early: bool = not main.workshop_zone.journal_shown()
+		main.castle_q = 1
+		main.work_q = 5
+		main.castle.door_open = false
+		reset_to(main.castle.pages[2].pos + Vector2(1.0, 0))
+		tap(KEY_E)
+		await wait(0.2)
+		var open_txt := plain(" ".join(PackedStringArray(main.story_lines.map(func(l): return str(l)))))
+		var page_open: bool = "열렸다" in open_txt and main.castle.door_open
+		main.close_story()
+		await wait(0.2)
+		main.close_story()
+		# 2. after the cradle, every workshop floor marks its way up and out
+		main.work_door = true
+		main.set_quest("옥좌의 방으로 가자")
+		var exits_ok := true
+		for i in 3:
+			main.workshop_zone.enter_floor(i, "A")
+			main.work_q = 5
+			main.close_story()
+			var wt: Vector3 = main.quest_marks.quest_target()
+			exits_ok = exits_ok and main.in_workshop() and wt != Vector3.INF and Vector2(wt.x, wt.z).distance_to(main.workshop_zone.fl(i).marks.S) < 0.1
+		main.workshop_zone.leave_up(0)
+		await wait(0.2)
+		main.close_story()
+		# 7. the cloud mound: a line for the hill marks the cloud's exit
+		main.enter_cloud()
+		main.close_story()
+		main.set_quest("성으로 가기 전에: 참새 방앗간을 되살리자")
+		var ct: Vector3 = main.quest_marks.quest_target()
+		var cloud_exit: bool = main.in_cloud() and ct != Vector3.INF and Vector2(ct.x, ct.z).distance_to(main.cloud.marks.S) < 0.1
+		main.enter_hill()
+		main.close_story()
+		# 4. the lower pond's second chain: shut in the yard the mark is the yard fight, then the water clock's key
+		main.in_hill = false
+		main.in_lake = true
+		main.tokens[2] = true
+		main.south_q = 2
+		main.south_ambush_on = true
+		main.set_quest("숲으로 가기 전에: 아랫못의 물시계를 되살리자")
+		reset_to(Vector2(300.0, 31.0))
+		var yt: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var yard_ok: bool = main.lake_zone.in_south_yard(Vector2(300.0, 31.0)) and yt != Vector3.INF and Vector2(yt.x, yt.z).distance_to(main.lake.marks.l) < 0.1
+		main.south_ambush_on = false
+		reset_to(main.lake.marks.P)
+		var pt: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var out_ok: bool = pt != Vector3.INF and Vector2(pt.x, pt.z).distance_to(main.lake.ropes[1]) < 0.1
+		main.south_q = 3
+		var kt: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var key_ok: bool = kt != Vector3.INF and Vector2(kt.x, kt.z).distance_to(main.lake.marks.K) < 0.1
+		main.south_q = 0
+		main.in_lake = false
+		main.in_hill = true
+		# 5. + 1. the doorkeeper: the mark follows him walking, waiting or stopped; a save mid-escort resumes from where he stood
+		main.castle_q = 3
+		main.quarters_q = 3
+		main.castle.open_gate()
+		reset_to(main.castle.marks.S + Vector2(3, 0))
+		main.close_story()
+		main.doll_at = Vector2(458.0, 31.0)
+		main.doll_i = 6
+		main.doll_shed = true
+		var follow := true
+		for st in [[true, false], [true, true], [false, false]]:
+			main.doll_walk = st[0]
+			main.doll_wait = st[1]
+			var dq: Vector3 = main.quest_marks.line_target("달의 계단을 오르기 전에: 숙소의 깡통 문지기를 침방까지 모시자")
+			var dst: Vector3 = main.castle_zone.quarters_target()
+			follow = follow and dq != Vector3.INF and Vector2(dq.x, dq.z).distance_to(main.doll_at) < 0.1 and dst != Vector3.INF
+		main.save_game()
+		var sv = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		main.doll_at = main.CASTLE.DOLL_PATH[0]
+		main.doll_i = 1
+		main.doll_shed = false
+		main.load_quarters(sv)
+		await wait(0.1)
+		var resumed: bool = main.quarters_q == 3 and main.doll_at == Vector2(458.0, 31.0) and main.doll_i == 6 and not main.doll_walk \
+			and absf(main.castle.doll.position.x - 458.0) < 0.01 and main.doll_keep_shed
+		main.castle_zone.doll_resume()
+		var walks_on: bool = main.doll_walk and main.doll_shed and main.doll_at == Vector2(458.0, 31.0)
+		sv.erase("doll_at") # an older save: back at the stand
+		main.load_quarters(sv)
+		var old_ok: bool = main.doll_at == main.CASTLE.DOLL_PATH[0] and main.doll_i == 1 and not main.doll_keep_shed
+		main.castle_zone.doll_resume()
+		var reraid: bool = not main.doll_shed
+		main.quarters_q = 0
+		main.load_quarters({})
+		main.castle.door_open = false
+		check("gate_fix4", page_shut and jour_held and hide and jour_seen and never_early and page_open and exits_ok and cloud_exit and yard_ok and out_ok and key_ok and follow and resumed and walks_on and old_ok and reraid,
+			"third page while held: no door-opens line=%s, once done it opens=%s; workshop journal held=%s hidden early=%s found=%s not before the castle=%s; every workshop floor marks its exit=%s; cloud exit=%s; pond yard fight=%s, outside post=%s, key after the latch=%s; doorkeeper marked walking, waiting, stopped=%s; save mid-escort resumes=%s keeps the raid=%s, old save at the stand=%s raids again=%s" % [page_shut, page_open, jour_held, hide, jour_seen, never_early, exits_ok, cloud_exit, yard_ok, out_ok, key_ok, follow, resumed, walks_on, old_ok, reraid])
+		main.return_to_start()
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)

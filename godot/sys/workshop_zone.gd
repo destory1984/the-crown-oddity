@@ -631,6 +631,12 @@ func bench_look() -> void:
 		bench.visible = m.work_q >= 6
 
 # ---- journal, waystones, save
+# the detailed lines show from the first castle visit once the door was found or the moon door's gate held (GPT lap 4)
+func journal_shown() -> bool:
+	if m.castle_q >= 3:
+		return true
+	return m.castle_q >= 1 and (m.work_seen or m.work_q >= 1 or (m.castle.pages_read() >= 3 and m.moon_tokens.holds("knight")))
+
 func work_journal() -> String:
 	match m.work_q:
 		0: return tr("큰 방 북동쪽 구석, 손 둘 새긴 문 (E)")

@@ -531,6 +531,14 @@ const PAGE_3 := [
 	"||성 깊은 곳에서 무언가 덜컥 풀리는 소리가 났다. 옥좌의 방으로 가는 달 문이 열렸다.",
 ]
 
+# the third page while the workshop's cradle still holds the moon door shut (sys/tokens.gd "knight")
+const PAGE_3_SHUT := [
+	PAGE_3[0],
+	PAGE_3[1],
+	PAGE_3[2],
+	"||성 깊은 곳에서 무언가 덜컥 걸리는 소리가 났다. 옥좌의 방으로 가는 달 문은 닫힌 채다. 작업장의 끝내지 못한 등불이 풀려야 열릴 것 같다.",
+]
+
 const PAGE_AGAIN := [
 	"||한결의 일기다. 이미 읽은 장이다.",
 ]

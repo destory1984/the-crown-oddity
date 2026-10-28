@@ -97,12 +97,23 @@ func road_way(goal: String) -> Vector3:
 			return over(m.garden.marks.C) if goal == "garden" and m.garden_q >= 1 else Vector3.INF
 	return Vector3.INF
 
+# a separate area with no line of its own (the cloud mound, the workshop floors; the undercroft keeps its own quiet lamp marks): the line leads out of it, so mark
+# its exit; the grotto and the clock room do the same in their own target functions
+func back_way() -> Vector3:
+	if m.in_workshop():
+		return over(m.workshop_zone.fl(m.workshop_zone.floor_here()).marks.S, 2.0)
+	if m.in_cloud():
+		return over(m.cloud.marks.S)
+	return Vector3.INF
+
 func line_target(raw: String) -> Vector3:
 	if raw == "":
 		return Vector3.INF
 	var at := Vector3.INF
-	if m.in_workshop() and raw.begins_with("옥좌의 방으로 가기 전에"): # the deep workshop is no area of the road: its own steps
-		return m.workshop_zone.next_spot()
+	if m.in_workshop(): # the deep workshop is no area of the road: its own steps for the moon door's gate, else the way up and out
+		if raw.begins_with("옥좌의 방으로 가기 전에") and not m.moon_tokens.workshop_done():
+			return m.workshop_zone.next_spot()
+		return back_way()
 	match here():
 		"marsh": at = marsh_target(raw)
 		"cave": at = cave_target(raw)
@@ -117,6 +128,8 @@ func line_target(raw: String) -> Vector3:
 		"clock": at = clock_target(raw)
 	if at == Vector3.INF and road_goal(raw) != "":
 		at = road_way(road_goal(raw))
+	if at == Vector3.INF and here() == "":
+		at = back_way()
 	if at == Vector3.INF and led(raw, "정원 문 앞에서: 달지기 표식 %d/4를 밝히자 (일지 Q)"):
 		at = token_target()
 	return at
@@ -244,14 +257,22 @@ func pond_target() -> Vector3:
 	match m.south_q:
 		0: return over(m.lake.marks.Y, 2.2)
 		1: return over(m.lake.ropes[0], 2.2)
-		2: return over(m.lake.ropes[1], 2.2)
+		2:
+			var me := Vector2(m.player.x, m.player.z)
+			if m.south_ambush_on or m.lake_zone.in_south_yard(me): # shut in the yard: the fight, then the latch
+				var spots: Array = []
+				for e in m.enemies:
+					if e.get("south_ambush", false) and not e.dead:
+						spots.append(Vector2(e.x, e.z))
+				return either(nearest(spots), m.lake.marks.l, 2.6)
+			return over(m.lake.ropes[1], 2.2)
 		3: return over(m.lake.marks.K, 2.2)
 	return Vector3.INF
 
 # in the grotto the pearl line leads to the crab, then its chest, then back out
 func grotto_target(raw: String) -> Vector3:
 	if not raw.begins_with("숲으로 가기 전에"):
-		return Vector3.INF
+		return over(m.grotto.marks.S) # any other line is for the island outside
 	return grotto_pearl()
 
 func grotto_pearl() -> Vector3:
@@ -402,6 +423,8 @@ func clock_target(raw: String) -> Vector3:
 		return over(cm.O, 2.4)
 	if raw.begins_with("한결의 손잡이"):
 		return over(cm.J, 1.9)
+	if road_goal(raw) != "": # a line for the road above: back up the ladder
+		return over(cm.U)
 	return Vector3.INF
 
 # the shore's side step under the quest (the owner hit "물가에 걸린 것을 보자" with nothing on the minimap)

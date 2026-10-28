@@ -232,7 +232,8 @@ func castle_key() -> bool:
 		if me.distance_to(p.pos) < 1.5:
 			var first: bool = not p.read
 			p.read = true
-			m.show_story("", [Main.STORY.PAGE_1, Main.STORY.PAGE_2, Main.STORY.PAGE_3][m.castle.pages_read() - 1] if first else Main.STORY.PAGE_AGAIN)
+			var page3: Array = Main.STORY.PAGE_3_SHUT if m.moon_tokens.holds("knight") else Main.STORY.PAGE_3 # the door opens in the text only if it does
+			m.show_story("", [Main.STORY.PAGE_1, Main.STORY.PAGE_2, page3][m.castle.pages_read() - 1] if first else Main.STORY.PAGE_AGAIN)
 			if first:
 				m.sfx(660, 0.2, "triangle", 0.2)
 				if m.castle.pages_read() == 3 and not m.castle.door_open:
@@ -541,7 +542,8 @@ func wind_doll() -> void:
 func doll_resume() -> void:
 	m.doll_walk = true
 	m.doll_wait = false
-	m.doll_shed = false # the heaps rise again for this walk
+	m.doll_shed = m.doll_keep_shed # the heaps rise again for this walk (not after a load that saved them beaten)
+	m.doll_keep_shed = false
 	m.castle.doll_wound(true)
 	if m.castle.doll_drop != null:
 		m.castle.doll_drop.visible = false
@@ -668,7 +670,7 @@ func quarters_target() -> Vector3:
 		2:
 			return Vector3(mk.k.x, 2.5, mk.k.y) if m.tally_seen else Vector3(mk.m.x, 2.3, mk.m.y)
 		3:
-			return Vector3.INF if m.doll_walk else Vector3(m.doll_at.x, 2.4, m.doll_at.y)
+			return Vector3(m.doll_at.x, 2.4, m.doll_at.y) # walking, waiting or stopped: the mark follows him
 		4:
 			return Vector3(mk.o.x, 1.9, mk.o.y)
 	return Vector3.INF
@@ -823,7 +825,17 @@ func load_quarters(d: Dictionary) -> void:
 		m.doll_at = Vector2(463, 36)
 	elif m.quarters_q >= 5:
 		m.doll_at = m.castle.marks.h
+	m.doll_keep_shed = false
+	var saved = d.get("doll_at", null)
+	var path: Array = Main.CASTLE.DOLL_PATH
+	if m.quarters_q == 3 and saved is Array and saved.size() == 2: # a save mid-escort: he stands where he was, E walks him on
+		m.doll_at = Vector2(float(saved[0]), float(saved[1]))
+		m.doll_i = clampi(int(d.get("doll_i", 1)), 1, path.size())
+		m.doll_keep_shed = bool(d.get("doll_raid", false))
 	m.castle.quarters_look(m.quarters_q, m.castle_q >= 3 and m.quarters_q == 0, m.quarters_box)
+	if m.quarters_q == 3:
+		var face: Vector2 = path[mini(m.doll_i, path.size() - 1)] - m.doll_at
+		m.castle.doll_place(m.doll_at, face if face.length() > 0.01 else Vector2(1, 0))
 
 func in_under() -> bool:
 	return m.in_hill and m.player.x >= Main.UNDER.UNDER_X - 0.5 and m.player.x < Main.VILLAGE.VILLAGE_X - 0.5
