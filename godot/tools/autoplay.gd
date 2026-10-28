@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -8749,6 +8749,58 @@ func run() -> void:
 		main.tokens = [false, false, false, false, false, false]
 		main.stairs.wall_open = wall0
 		main.stairs.door_open = door0
+		main.return_to_start()
+	if want.call("token_fix2"):
+		# GPT report 2 on v0.1.66: the ring earned in the cave refreshes the kept stairs line on leaving, the grotto has a mark
+		# out after the first pearl, and a new round judges the trial by this round's hill token (the best time is kept)
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		var old_best: float = main.trial_best
+		var door0: bool = main.stairs.door_open
+		main.stairs.door_open = true
+		main.tokens = [false, false, true, true, true, false]
+		main.road_q = 0
+		main.garden_q = 0
+		main.in_cave = true
+		main.quest_before_cave = main.moon_tokens.garden_need_line() # 3/4, kept from before the cave
+		main.moon_tokens.earn(main.moon_tokens.RING) # the fourth token, earned inside
+		main.leave_cave()
+		var cave_ok: bool = main.moon_tokens.count() == 4 and not main.quest_raw.begins_with("정원 문 앞에")
+		# the grotto: the pearl is in, the line is the east gate; the mark leads out of the grotto
+		main.in_cave = false
+		main.in_village = false
+		main.in_forest = false
+		main.in_garden = false
+		main.in_hill = false
+		main.in_lake = true
+		main.lake_q = 4
+		main.grotto_q = 4
+		main.set_quest("물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자")
+		reset_to(main.grotto.marks.C)
+		main.close_story() # entering the grotto opens its story
+		main.story_open = false
+		var g1: Vector3 = main.quest_marks.quest_target()
+		var grotto_ok: bool = main.in_grotto() and g1 != Vector3.INF and Vector2(g1.x, g1.z).distance_to(main.grotto.marks.S) < 0.5
+		# a new round: the trial best is kept, the hill token is not
+		main.trial_best = 95.0
+		main.hill_q = 3
+		main.tokens = [false, false, false, false, false, false]
+		var jl1: String = "
+".join(PackedStringArray(main.journal_lines()))
+		var t_open: bool = main.errands.hint_open("trial") and "이번 회차" in jl1 and "최고 기록 1분 35초" in jl1
+		main.tokens[main.moon_tokens.HILL] = true
+		var jl2: String = "
+".join(PackedStringArray(main.journal_lines()))
+		var t_done: bool = not main.errands.hint_open("trial") and "이번 회차" not in jl2 and "최고 기록 1분 35초" in jl2
+		check("token_fix2", cave_ok and grotto_ok and t_open and t_done,
+			"ring earned in the cave leaves the stairs line fresh=%s, the grotto mark leads to its exit=%s, trial hint + journal open with a kept best and no hill token=%s, done with the token=%s" % [cave_ok, grotto_ok, t_open, t_done])
+		main.trial_best = old_best
+		main.stairs.door_open = door0
+		main.tokens = [false, false, false, false, false, false]
 		main.return_to_start()
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

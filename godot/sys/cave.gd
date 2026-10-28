@@ -820,6 +820,8 @@ func leave_cave() -> void:
 	m.snap_mates()
 	var back := m.quest_before_cave if m.quest_before_cave != "" else m.main_road_quest() # older saves kept no quest
 	m.set_quest("동쪽 강을 물수제비 걸음으로 건너, 마을 불빛을 찾아라" if first_time else back)
+	if not first_time:
+		m.moon_tokens.refresh_quest() # a token earned inside (the crystal ring) skipped its refresh: the kept line may be stale
 	if m.ui.has("outside_map"):
 		m.ui.mini.map_tex = m.ui.outside_map
 	m.ui.zone_name.text = "갈대늪"

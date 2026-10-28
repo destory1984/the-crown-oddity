@@ -718,7 +718,13 @@ func journal_lines() -> Array:
 			side.call("장터의 반짝이 도둑", [tr(""), tr("밤에 장터를 지켜보자"), tr("부두 끝의 꺼진 달 등불을 켜자 (E)"), tr("끝")][m.magpie_q])
 		side.call("유리병 편지", tr("끝") if m.village.bottles_got() == m.village.bottles.size() else tr("%d/3 · 연못에 떠 있다") % m.village.bottles_got())
 	if m.hill_q >= 3 or m.trial_best > 0.0:
-		side.call("달빛 시련", tr("최고 기록 %d분 %02d초") % [int(m.trial_best) / 60, int(m.trial_best) % 60] if m.trial_best > 0.0 else tr("바람 언덕 동쪽 선돌에서"))
+		var best_txt: String = tr("최고 기록 %d분 %02d초") % [int(m.trial_best) / 60, int(m.trial_best) % 60]
+		if m.trial_best <= 0.0:
+			side.call("달빛 시련", tr("바람 언덕 동쪽 선돌에서"))
+		elif m.tokens[m.moon_tokens.HILL]:
+			side.call("달빛 시련", best_txt)
+		else: # a new round: the best time is kept, the deed is not
+			side.call("달빛 시련", tr("이번 회차는 바람 언덕 동쪽 선돌에서") + " · " + best_txt)
 	out.append("")
 	out.append(tr("도전 과제"))
 	for i in Main.FEATS.size():

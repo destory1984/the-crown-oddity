@@ -80,6 +80,8 @@ func road_way(goal: String) -> Vector3:
 			return over(m.village.marks.K if goal == "lake" else m.village.marks.F)
 		"lake":
 			return Vector3.INF if goal == "lake" else over(m.lake.marks.S)
+		"grotto": # the pearl is in and the line moved on to the east gate: out of the grotto first
+			return over(m.grotto.marks.S)
 		"forest":
 			return over(m.forest.marks.E) if goal in east.slice(1) else Vector3.INF
 		"hill":

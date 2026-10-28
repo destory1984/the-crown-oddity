@@ -203,7 +203,7 @@ func hint_open(key: String) -> bool:
 		"mill": return m.hill_q >= 3 and m.mill_q < 5
 		"cloud": return m.hill_q >= 3 and m.cloud_q < 3
 		"cloud_path": return m.cloud_q >= 1 and not m.has_shard
-		"trial": return m.hill_q >= 3 and m.trial_best <= 0.0
+		"trial": return m.hill_q >= 3 and (m.trial_best <= 0.0 or not m.tokens[m.moon_tokens.HILL]) # a new round keeps the best time but not the hill token
 		# the castle, its stairs and the garden
 		"pages": return m.castle_q >= 1 and m.castle.pages_read() < 3
 		"books": return m.castle_q >= 1 and not m.tokens[5]

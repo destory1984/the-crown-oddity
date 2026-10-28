@@ -365,6 +365,7 @@ func faint() -> void:
 				e.wind = 0.0
 		if m.story_step > 7: # a later visit: the village's quest comes back with her
 			m.set_quest(m.quest_before_cave if m.quest_before_cave != "" else m.main_road_quest())
+			m.moon_tokens.refresh_quest()
 	m.player.hp = float(m.player.max_hp)
 	m.player.x = Main.START.x
 	m.player.z = Main.START.y
