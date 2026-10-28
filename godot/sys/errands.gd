@@ -195,7 +195,7 @@ func hint_open(key: String) -> bool:
 		"grotto": return m.lake_q >= 4 and m.grotto_q < 4
 		"south": return m.lake_q >= 4 and m.south_q < 5
 		# the forest (open once Mulgyeol joins)
-		"squirrels": return m.lake_q >= 4 and not m.has_acorn
+		"squirrels": return m.lake_q >= 4 and not m.tokens[m.moon_tokens.SQUIRRELS] # this round's cages, not the kept acorn
 		"grove": return m.lake_q >= 4 and not m.forest.chest_open
 		"hollow": return m.forest_q >= 3 and m.hollow_q < 4
 		# the wind hills (open once Noeul turns) and the clouds above

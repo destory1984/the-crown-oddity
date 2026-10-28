@@ -434,6 +434,8 @@ func load_game() -> void:
 			m.set_quest(main_road_quest())
 	else:
 		m.set_quest(["", "팔목의 팔찌를 만져 보자 (E)", "서쪽 오두막으로 가 보자", "북쪽 벽돌왕이 늪의 물길을 막고 있다", "", Main.CAVE_QUEST][clampi(m.story_step, 0, 5)])
+	if m.story_step >= 6:
+		m.moon_tokens.mend_quest() # a saved line that points at a gate which holds names its need instead
 	if turtle_cut: # the fight starts over from the pier
 		m.set_quest("부두의 물결에게 말을 걸자 (E)")
 	if bool(d.get("in_village", false)) and m.errand == 0: # saved on arrival before the quest changed (GPT playtest 5)

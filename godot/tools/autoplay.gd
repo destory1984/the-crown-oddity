@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -5824,6 +5824,7 @@ func run() -> void:
 		main.crown_pips = 8
 		main.hour = 22.0
 		main.player.hp = 50.0
+		main.idle_t = 0.0 # the 2 s stay under REST_HEAL_WAIT (3 s), so only the cushion mends
 		await wait(2.0)
 		var hp_night: float = main.player.hp
 		var rested: bool = hp_night >= 56.5 and hp_night <= 59.5
@@ -5833,6 +5834,7 @@ func run() -> void:
 				near_foe = minf(near_foe, Vector2(e.x - main.player.x, e.z - main.player.z).length())
 		main.hour = 13.0
 		main.player.hp = 50.0
+		main.idle_t = 0.0
 		await wait(1.0)
 		var by_day: bool = main.player.hp == 50.0
 		# 10. saves keep it (the shore part of a load, so other places stay as they are); a save made while floating
@@ -8641,6 +8643,113 @@ func run() -> void:
 		check("token_new_round", file_ok and none and kept and gates and ring_again,
 			"new-round file has six empty tokens and the keepsakes=%s, loaded with no tokens=%s keeping pearl/ring/bookmark=%s, the four gates hold=%s, crystals open again=%s" % [file_ok, none, kept, gates, ring_again])
 		main.ng = 0
+	if want.call("token_fix"):
+		# GPT report on v0.1.62/65: a held gate renames the quest (also on load), the stairs line has a mark, this round's
+		# cages decide the squirrel journal and hint, and a squirrel cage (prop) does not stop resting
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		main.tokens = [false, false, false, false, false, false]
+		main.has_pearl = false
+		main.lake_q = 4
+		main.forest_q = 0
+		main.hill_q = 0
+		main.castle_q = 0
+		main.road_q = 0
+		main.garden_q = 0
+		var old_line := "물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"
+		main.set_quest(old_line)
+		main.save_game()
+		main.load_game() # an old save at lake_q 4, forest_q 0, no pearl: the gate line, not the shut east gate
+		var load_ok: bool = main.quest_raw.begins_with("숲으로 가기 전에")
+		main.set_quest(old_line)
+		main.story_open = false
+		main.moon_tokens.gate("forest", main.village.marks.F)
+		var gate_ok: bool = main.quest_raw.begins_with("숲으로 가기 전에")
+		main.close_story()
+		main.set_quest("언덕 동쪽 끝 길로, 달지기들의 성에 가자") # the hill gate: the squirrel line
+		main.forest_q = 3
+		main.story_open = false
+		main.moon_tokens.gate("hill", main.forest.marks.E)
+		var gate2_ok: bool = main.quest_raw.begins_with("언덕으로 가기 전에")
+		main.close_story()
+		# the stairs line (3 required tokens, the library missing) has a mark: out of the stairs, then the unread book
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_cave = false
+		main.in_garden = false
+		main.in_hill = true
+		main.hill_q = 3
+		main.castle_q = 3
+		var wall0: bool = main.stairs.wall_open
+		var door0: bool = main.stairs.door_open
+		main.stairs.wall_open = true
+		main.stairs.door_open = true
+		main.tokens = [false, false, true, true, true, false]
+		main.set_quest(main.moon_tokens.garden_need_line())
+		reset_to(main.stairs.marks.N + Vector2(0, 0.3))
+		var t1: Vector3 = main.quest_marks.quest_target()
+		var s_ok: bool = main.in_stairs() and t1 != Vector3.INF and Vector2(t1.x, t1.z).distance_to(main.stairs.marks.S) < 0.5
+		var read0: Array = main.castle.books.map(func(b): return b.read) # earlier tests may have read them
+		main.castle.books[0].read = false
+		var unread: Array = main.castle.books.filter(func(b): return not b.read).map(func(b): return b.pos)
+		reset_to(main.castle.marks.S + Vector2(2.0, 0.0))
+		var t2: Vector3 = main.quest_marks.quest_target()
+		var c_ok: bool = main.in_castle() and t2 != Vector3.INF and not unread.is_empty() and unread.any(func(p): return Vector2(t2.x, t2.z).distance_to(p) < 0.5)
+		for i in main.castle.books.size():
+			main.castle.books[i].read = read0[i]
+		main.tokens = [false, false, true, true, false, true] # the hill deed missing instead: out of the castle, then the hill's deed
+		var t3: Vector3 = main.quest_marks.quest_target()
+		var w_ok: bool = t3 != Vector3.INF and Vector2(t3.x, t3.z).distance_to(main.castle.marks.S) < 0.5
+		reset_to(main.hill.marks.S + Vector2(2.0, 0.0))
+		var t4: Vector3 = main.quest_marks.quest_target()
+		var h_ok: bool = not main.in_castle() and not main.in_stairs() and t4 != Vector3.INF and Vector2(t4.x, t4.z).distance_to(main.castle.marks.S) > 30.0
+		# the squirrels: the kept acorn does not finish this round's cages
+		main.tokens = [false, false, false, false, false, false]
+		main.has_acorn = true
+		main.forest_q = 1
+		main.lake_q = 4
+		main.forest.freed = [false, false, false, false, false]
+		var jl1: String = "
+".join(PackedStringArray(main.journal_lines()))
+		var open1: bool = main.errands.hint_open("squirrels")
+		var j_open: bool = "0/5 구함" in jl1 and open1
+		main.tokens[3] = true
+		var jl2: String = "
+".join(PackedStringArray(main.journal_lines()))
+		var j_done: bool = not main.errands.hint_open("squirrels") and "0/5 구함" not in jl2
+		main.tokens = [false, false, false, false, false, false]
+		main.has_acorn = false
+		# resting beside a cage
+		var keep_e: Array = main.enemies.duplicate()
+		var boss1: bool = main.ui.boss.visible
+		main.ui.boss.visible = false
+		main.story_open = false
+		main.enemies.clear()
+		var mx: float = float(main.player.max_hp)
+		main.player.hp = mx * 0.5
+		main.idle_t = 4.0
+		main.enemies.append({"x": main.player.x + 1.5, "z": main.player.z, "dead": false, "prop": true})
+		main.combat.rest_heal(1.0)
+		var by_cage: float = main.player.hp - mx * 0.5
+		main.player.hp = mx * 0.5
+		main.enemies[0]["prop"] = false
+		main.combat.rest_heal(1.0)
+		var by_foe: float = main.player.hp - mx * 0.5
+		main.enemies.clear()
+		main.enemies.append_array(keep_e)
+		main.ui.boss.visible = boss1
+		main.player.hp = mx
+		check("token_fix", load_ok and gate_ok and gate2_ok and s_ok and c_ok and w_ok and h_ok and j_open and j_done and absf(by_cage - mx * 0.02) < 0.01 and by_foe == 0.0,
+			"old save loads on the pearl line=%s, forest gate renames=%s, hill gate renames=%s, stairs mark leads out=%s, castle mark on an unread book=%s, castle exit toward the hill deed=%s, hill mark=%s, squirrel journal open + hint with the acorn kept=%s, done with the token=%s, rest by a cage healed %.2f (want %.2f), by a real foe %.2f" % [load_ok, gate_ok, gate2_ok, s_ok, c_ok, w_ok, h_ok, j_open, j_done, by_cage, mx * 0.02, by_foe])
+		main.tokens = [false, false, false, false, false, false]
+		main.stairs.wall_open = wall0
+		main.stairs.door_open = door0
+		main.return_to_start()
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)

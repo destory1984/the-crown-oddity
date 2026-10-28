@@ -687,7 +687,7 @@ func journal_lines() -> Array:
 		side.call("큰 태엽 방", [tr(""), tr("빈터 한가운데 구멍으로"), tr("굳은 톱니 셋 %d/3") % m.clock_gears.count(true), tr("왕관 무늬에 팔찌를 대자"), tr("다 같이 밀자"), tr("끝") if m.clock_box else tr("열쇠 북쪽 궤짝")][m.clock_q])
 	if m.forest_q >= 1:
 		var nf: int = m.forest.freed.filter(func(f): return f).size()
-		side.call("갇힌 다람쥐", tr("끝") if m.has_acorn else tr("%d/5 구함") % nf)
+		side.call("갇힌 다람쥐", tr("끝") if m.tokens[m.moon_tokens.SQUIRRELS] else tr("%d/5 구함") % nf) # this round's cages (a new round keeps the acorn, not the freed squirrels)
 		if m.forest_zone.oak_ready():
 			side.call("다람쥐 나무", m.forest_zone.oak_journal())
 		side.call("숲의 달 순서 돌", tr("끝") if m.forest.chest_open else (tr("상자를 열자") if m.forest.solved else tr("숲 북서쪽 숲터")))

@@ -91,6 +91,7 @@ func gate(area: String, at: Vector2) -> bool:
 	m.player.vx = 0.0
 	m.player.vz = 0.0
 	m.snap_mates()
+	m.set_quest(need_line(area)) # the gold "!" and the minimap leave the shut gate for the deed that opens it
 	m.show_story("", Main.STORY.GATE[area])
 	return false
 
@@ -117,8 +118,25 @@ func hill_line() -> String:
 
 func stairs_line(otherwise: String) -> String:
 	if holds("garden") and m.stairs.door_open:
-		return tr("정원 문 앞에서: 달지기 표식 %d/4를 밝히자 (일지 Q)") % mini(count(), STAIRS_NEED)
+		return garden_need_line()
 	return otherwise
+
+func garden_need_line() -> String:
+	return tr("정원 문 앞에서: 달지기 표식 %d/4를 밝히자 (일지 Q)") % mini(count(), STAIRS_NEED)
+
+# the line that names what a held gate wants
+func need_line(area: String) -> String:
+	match area:
+		"forest": return lake_line()
+		"hill": return forest_line()
+		"castle": return hill_line()
+	return garden_need_line()
+
+# a quest line that still points at a gate that holds (an old save, or one made before the tokens) is swapped for its need line
+func mend_quest() -> void:
+	var goal: String = m.quest_marks.road_goal(m.quest_raw)
+	if goal in ["forest", "hill", "castle", "garden"] and holds(goal):
+		m.set_quest(need_line(goal))
 
 # the tokens' count on the stairs line moves with each new token, and a need line that no longer holds goes back to the road
 func refresh_quest() -> void:

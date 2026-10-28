@@ -515,7 +515,7 @@ func rest_heal(dt: float) -> void:
 	if m.idle_t < REST_HEAL_WAIT or m.player.hp <= 0.0 or m.player.hp >= m.player.max_hp or m.ui.boss.visible or m.story_open:
 		return
 	for e in m.enemies:
-		if not e.dead and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 6.0:
+		if not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 6.0: # props (squirrel cages) do not attack
 			return
 	m.player.hp = minf(float(m.player.max_hp), m.player.hp + m.player.max_hp * REST_HEAL * dt)
 	rest_glow_t += dt
