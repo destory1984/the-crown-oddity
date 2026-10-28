@@ -95,12 +95,12 @@ const YARD := Rect2i(34, 12, 10, 7) # the target yard, fence and all: the throwi
 var grass_tiles: Array = [] # world tiles that got mown grass
 var bed_tiles: Array = []   # world tiles that got a flowerbed
 var dress_meshes: Array = [] # the tuft MultiMeshes (the tests count them)
-var cosmos_tiles: Array = [] # the flower-bed and flower-field tiles, five cosmos clumps each
-var path_flowers: Array = [] # lawn tiles beside a street, four clumps each on the side away from the street
+var cosmos_tiles: Array = [] # the flower-bed and flower-field tiles, four cosmos clumps each
+var path_flowers: Array = [] # lawn tiles beside a street, in runs of three with three bare between, three clumps each
 var cosmos_spots := 0 # clumps planted (the tests count them)
 # open lawns sown solid with cosmos in rows of one colour (the owner, 2026-10-28: "마을은 꽃밭과 꽃길을 만들어줘",
-# not flowers dotted about): east of the well road, west of the inn, the inn's back lawn, and between the pond and the inn road
-const FLOWER_FIELDS := [Rect2i(27, 19, 19, 4), Rect2i(1, 19, 9, 5), Rect2i(1, 29, 14, 6), Rect2i(17, 29, 8, 5)]
+# not flowers dotted about; then "마을에 꽃이 너무 많아, 절제해서"): only the inn's back lawn is a field now
+const FLOWER_FIELDS := [Rect2i(2, 30, 10, 4)]
 
 # local tiles that are used but have no char of their own: villagers' spots, the kid goblin and its guards, the
 # hardened field, the work props, the target yard
@@ -149,8 +149,8 @@ func dress(m: Node, ground: Array, path: Array) -> void:
 		var lt := Vector2i(int(t.x) - VILLAGE_X, int(t.y))
 		if FLOWER_FIELDS.any(func(r): return r.has_point(lt)):
 			cosmos_tiles.append(t)
-	# the street borders: lawn tiles with a street tile beside them (not on a corner only) and nothing else used within one
-	# tile; their clumps stand in the half away from the street so the street stays clear
+	# the street borders: lawn tiles on the south or east side of a street (not on a corner only) with nothing else used
+	# within one tile, in runs of three tiles with three left bare; their clumps stand in the half away from the street
 	path_flowers = []
 	var sides: Array = [] # per border tile, the unit step away from the street
 	var near_used := GRASS_CLEAR.replace("=", "")
@@ -162,7 +162,9 @@ func dress(m: Node, ground: Array, path: Array) -> void:
 			for st in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 				if at.call(x + st.x, z + st.y) == "=":
 					away -= Vector2(st)
-			if away == Vector2.ZERO or d.near_clear(at, x, z, near_used, keep):
+			if away == Vector2.ZERO or away.x + away.y < 0.0 or d.near_clear(at, x, z, near_used, keep):
+				continue
+			if (x + z) % 6 >= 3:
 				continue
 			path_flowers.append(Vector2(VILLAGE_X + x, z))
 			sides.append(away.normalized())
@@ -171,16 +173,16 @@ func dress(m: Node, ground: Array, path: Array) -> void:
 	var white: Texture2D = d.cosmos_tex(["#ffffff", "#fff4fa", "#ffe4f2", "#ffd0e8"])
 	var texs: Array = [pink, deep, white]
 	var spots: Array = [[], [], []]
-	# beds and fields: a row of one colour each (z), five clumps a tile so no lawn shows between them
+	# beds and fields: a row of one colour each (z), four clumps a tile
 	for t in cosmos_tiles:
-		spots[int(t.y) % 3].append_array(d.spots_on([t], 0.0, 5, 0.8, 1.1))
+		spots[int(t.y) % 3].append_array(d.spots_on([t], 0.0, 4, 0.8, 1.1))
 	# the borders: one colour a street side, clumps 0.1 - 0.45 tile off the tile centre away from the street
 	for i in path_flowers.size():
 		var t: Vector2 = path_flowers[i]
 		var away: Vector2 = sides[i]
 		var across := Vector2(-away.y, away.x)
-		for k in 4:
-			var p: Vector2 = t + away * d.rnd(0.1, 0.45) + across * (k - 1.5) * 0.25
+		for k in 3:
+			var p: Vector2 = t + away * d.rnd(0.1, 0.45) + across * (k - 1) * 0.3
 			spots[(1 if away.x + away.y > 0.0 else 0)].append(Vector4(p.x, 0.0, p.y, d.rnd(0.75, 1.0)))
 	cosmos_spots = 0
 	for i in 3:
