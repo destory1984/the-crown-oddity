@@ -504,6 +504,25 @@ func use_skill(i: int) -> void:
 				m.player.hp = minf(float(m.player.max_hp), m.player.hp + heal)
 				m.pop_num(here + Vector3(0, 1.6, 0), "+" + str(heal), Color("#7aff8a"))
 
+# standing still out of a fight mends her slowly (the owner, 2026-10-28: "체력은 가만히 있으면 다시 회복 안 되나?"):
+# after REST_HEAL_WAIT seconds without moving, swinging, rolling or guarding, and with no monster within 6 tiles and
+# no boss awake, REST_HEAL of her max HP a second. Slow enough that potions and the reed cushion still count.
+const REST_HEAL_WAIT := 3.0
+const REST_HEAL := 0.02
+var rest_glow_t := 0.0
+
+func rest_heal(dt: float) -> void:
+	if m.idle_t < REST_HEAL_WAIT or m.player.hp <= 0.0 or m.player.hp >= m.player.max_hp or m.ui.boss.visible or m.story_open:
+		return
+	for e in m.enemies:
+		if not e.dead and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 6.0:
+			return
+	m.player.hp = minf(float(m.player.max_hp), m.player.hp + m.player.max_hp * REST_HEAL * dt)
+	rest_glow_t += dt
+	if rest_glow_t >= 1.5:
+		rest_glow_t = 0.0
+		m.burst(Vector3(m.player.x, m.ground_y + 0.1, m.player.z), Color("#9fe07a"), 4, 0.6)
+
 func drink_potion() -> void:
 	if m.player.pots <= 0:
 		m.toast("회복약이 없다")

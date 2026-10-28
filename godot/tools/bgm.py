@@ -626,7 +626,7 @@ def _mk(slot, k):
 
 
 TRACKS_NEW = {f"{s}_{k + 2}": _mk(s, k) for s in SPECS for k in range(4)}
-DROPPED = ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "night_2"]  # the owner took these out (2026-10-27, 6 more 10-28); sys/music.gd skips them
+DROPPED = ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "field_marsh_4", "field_marsh_5", "night_2"]  # the owner took these out (2026-10-27, 8 more 10-28); sys/music.gd skips them
 TRACKS_NEW["village"] = lambda: lantern_variant("village", S("D", "maj", 96, "I V vi IV", "vi iii IV V", "IV I V I", 250, (0,), bpb=3, lead="accordion", bars=24))
 
 

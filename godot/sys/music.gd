@@ -19,13 +19,13 @@ const FADE_OUT := 1.5
 const FADE_IN := 2.0
 var fade_tw: Tween
 const VARIANTS := 5 # <name>.ogg, <name>_2.ogg .. <name>_5.ogg (the owner, 2026-10-27: 5 per place)
-const DROPPED := ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "night_2"] # tunes the owner took out (2026-10-27, and 6 more in the tune review page 10-28); their files are gone
+const DROPPED := ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "field_marsh_4", "field_marsh_5", "night_2"] # tunes the owner took out (2026-10-27, and 8 more 10-28); their files are gone
 
 # how many tunes a place has once the dropped ones are taken out
 func count_for(name: String) -> int:
 	# "boss_final_4" is not one of "boss": only the name itself or the name and a number count
 	return VARIANTS - DROPPED.filter(func(f): return f == name or (f.begins_with(name + "_") and f.trim_prefix(name + "_").is_valid_int())).size()
-const ROTATE := 100.0 # about two loops of a tune, then the place's next one
+const ROTATE := 100.0 # about two loops of a tune, then the place's next one, from the end of the loop it is in
 
 var players: Array = []
 var cur := "" # the tune that is playing (or being faded in)
@@ -33,6 +33,7 @@ var cur_i := 0 # which of the two players has it
 var turn := {} # place -> which of its five tunes plays next
 var cur_file := "" # the file playing, e.g. "village_3"
 var played := 0.0 # seconds the current file has played
+var due := false # ROTATE seconds played and the loop at its end: the place's next tune may come in
 var forced := "" # "다음 곡": stays until the area's own pick changes
 var forced_from := ""
 var pending := false # a "다음 곡" is waiting for its 0.35 s gap
@@ -144,8 +145,9 @@ func file_for(name: String) -> String:
 
 # crossfade from the tune that is playing to `name` (not restarted when it already plays)
 func play(name: String) -> void:
-	if name == "" or (name == cur and played < ROTATE):
+	if name == "" or (name == cur and not due):
 		return
+	due = false
 	if fade_tw != null and fade_tw.is_valid():
 		fade_tw.kill() # a fade still under way: the place changed again
 	var old: AudioStreamPlayer = players[cur_i]
@@ -190,7 +192,7 @@ func step_tune(dir: int) -> void:
 	turn[place] = 0 if file == place else int(file.get_slice("_", file.get_slice_count("_") - 1)) - 1
 	forced = place
 	forced_from = pick()
-	played = ROTATE # plays even when it is the place's tune already
+	due = true # plays even when it is the place's tune already
 	play(place)
 	help_t = 0.0
 
@@ -213,10 +215,19 @@ func next_tune() -> void:
 			play(forced))
 	help_t = 0.0
 
+# the tune playing is in the last FADE_OUT seconds of its loop, so its fade-out ends where the tune ends
+func loop_ending() -> bool:
+	var p: AudioStreamPlayer = players[cur_i]
+	if not p.playing or p.stream == null:
+		return true
+	return p.get_playback_position() >= p.stream.get_length() - FADE_OUT
+
 # every frame, before the world waits for a sheet or a story: the music keeps going
 func update(dt: float) -> void:
 	warm += dt
 	played += dt
+	if not due and played >= ROTATE and loop_ending():
+		due = true
 	if warm < 1.0:
 		return # the first second is silent: a run that quits at once (the dev.py check) never leaves a stream in use
 	pick_t -= dt

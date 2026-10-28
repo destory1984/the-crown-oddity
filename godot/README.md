@@ -17,7 +17,7 @@ Godot_v4.7.2-stable_win64.exe --path .
 
 | 인자 | 하는 일 |
 |---|---|
-| `--scene=이름` | 정해 둔 장면으로 바로 간다 (start, village, forest, hill, turtle, mold, crab, cloud, knight, shrine, wolves, trial, cage, race, moonflower, house, festival, cloudpath, ways 등 44개) |
+| `--scene=이름` | 정해 둔 장면으로 바로 간다 (start, village, forest, hill, turtle, mold, crab, cloud, knight, shrine, wolves, trial, cage, race, moonflower, house, festival, cloudpath, ways 등 117개) |
 | `--shot=파일.png` | 장면을 띄우고 몇 초 뒤 화면을 저장하고 끝난다 |
 | `--hour=22` | 시각을 정한다 |
 | `--pseudo` | 번역 표를 거친 글을 [대괄호]로 감싼다 |
@@ -28,9 +28,10 @@ Godot_v4.7.2-stable_win64.exe --path .
 
 | 파일 | 하는 일 |
 |---|---|
-| `main.gd` | 갈대늪 지도, 소라, 전투와 기술, 괴물과 보스 10마리, 동료, 이야기 흐름, 저장, 카메라, 화면 |
+| `main.gd` | 게임의 뼈대: 상태 값, 매 프레임 흐름, 입력, 카메라, 바뀐 것 목록. 나머지 일은 `sys/` 가 나눠 맡는다 |
+| `sys/` | main.gd에서 나눈 파일 36개. 전투(`combat.gd`), 괴물(`monsters.gd`), 동료(`mates.gd`), 저장(`save.gd`), 이야기 상자(`story.gd`), 배경 음악(`music.gd`), 상태창 만들기(`hud_build.gd`), 지역마다의 일(`lake_zone.gd`, `forest_zone.gd`, `hill_zone.gd`, `castle_zone.gd`, `garden_zone.gd` 등) |
 | `marsh.gd` | 갈대늪 곁이야기: 지도 조각 3개와 달지기 상자, 밤에만 나오는 반딧불 6마리 |
-| `village.gd` | 등불 마을 (32x24칸), 주민, 꼬마 고블린 |
+| `village.gd` | 등불 마을 (48x36칸), 주민, 장터, 광장 분수 |
 | `lake.gd` | 남쪽 호수와 섬 (30x24칸), 수문, 물결의 오두막 |
 | `grotto.gd` | 섬 밑 물빛 동굴 (30x20칸), 물수제비로 건너는 깊은 물, 벽돌 게, 물빛 진주 |
 | `forest.gd` | 굳은 숲 (36x22칸), 벽돌 벽 3개, 북서쪽 달 순서 돌 수수께끼 |
@@ -41,10 +42,11 @@ Godot_v4.7.2-stable_win64.exe --path .
 | `story_lines.gd` | 모든 대사. 한 줄은 `"말하는이|얼굴|대사"` 꼴이다 |
 | `hud.gd`, `frame.gd`, `minimap.gd` | 상태창, 금테 틀, 미니맵 |
 | `shaders/` | 지형 블록, 흔들리는 풀, 물, 틸트시프트, 동굴 |
-| `i18n/text.csv` | 번역 표. 화면 글 약 640줄. 지금은 한국어 칸만 채웠다 |
-| `art/` | 소라 걷기와 쉬는 몸짓, 주민과 노을의 픽셀 그림, 초상화, 이야기 삽화 12장, 제목 그림 |
+| `i18n/text.csv` | 번역 표. 화면 글 약 2,900줄. 지금은 한국어 칸만 채웠다 |
+| `art/` | 소라 걷기와 쉬는 몸짓, 주민과 노을의 픽셀 그림, 초상화, 이야기 삽화 15장, 제목 그림 |
 | `tools/dev.py` | 검사, 화면 찍기, 자동 시험, 웹 내보내기, 배포를 한 번에 하는 도구 |
-| `tools/autoplay.gd` | 자동 시험 88개. 처음 깨어나기부터 끝 장면까지 따라간다 |
+| `tools/bgm.py` | 배경 음악 짓기. 9곳에 곳마다 2 → 5곡 |
+| `tools/autoplay.gd` | 자동 시험 203개. 처음 깨어나기부터 끝 장면까지 따라간다 |
 
 ## 개발 도구
 
@@ -61,7 +63,7 @@ python tools/dev.py shot village
 ```
 
 - `check`: 스크립트 오류와 번역 표가 코드와 맞는지 본다.
-- `test`: 자동 시험 88개를 돌린다. 약 7분 걸린다.
+- `test`: 자동 시험 203개를 돌린다. 약 11분 걸린다. `test 이름1,이름2` 로 몇 개만 돌릴 수도 있다.
 - `shot`: 장면 하나를 찍어 `shots/` 에 저장한다.
 - 한국어 글을 넣거나 고치면 `python tools/i18n.py` 로 번역 표를 다시 만든다.
 

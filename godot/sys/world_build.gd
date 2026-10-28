@@ -559,12 +559,45 @@ func chop_trees(reach: float, f: Vector2, cone: float, all_round: bool) -> void:
 		var y := m.height_at(t.x, t.z)
 		m.burst(Vector3(t.x, y + 0.7, t.z), Color("#a8743a"), 10, 2.2)
 		m.sfx(140.0 + t.hits * 30.0, 0.08, "square", 0.18, -60.0)
-		(t.trunk as Node3D).rotation.z = 0.04 * (1 if t.hits % 2 == 0 else -1) # a shiver at each cut
+		var away := d.normalized() if d.length() > 0.01 else f
 		if t.hits >= TREE_HITS:
-			fell_tree(t, d.normalized() if d.length() > 0.01 else f)
+			fell_tree(t, away)
+		else:
+			shake_tree(t, away)
+
+const TREE_SHAKE := 0.16 # radians of the first swing; it dies down over TREE_SHAKE_T
+const TREE_SHAKE_T := 0.9
+
+# a cut tree rocks about its foot, away from Sora first, three swings that die down, then stands as it was
+func shake_tree(t: Dictionary, away: Vector2) -> void:
+	if not t.has("rest"):
+		var rest: Array = []
+		for i in t.count:
+			rest.append(tree_mm.get_instance_transform(t.first + i))
+		t.rest = rest
+		t.trunk_rest = (t.trunk as Node3D).transform
+	if t.get("tw") is Tween and (t.tw as Tween).is_valid():
+		(t.tw as Tween).kill()
+	var pivot := Vector3(t.x, m.height_at(t.x, t.z), t.z)
+	var axis := Vector3(away.y, 0, -away.x).normalized()
+	var tw := m.create_tween()
+	tw.tween_method(func(k: float): pose_tree(t, pivot, Basis(axis, -TREE_SHAKE * exp(-4.0 * k) * sin(k * TAU * 3.0))), 0.0, 1.0, TREE_SHAKE_T)
+	t.tw = tw
+
+# the tree turned by `rot` about its foot, from where it stood before the first cut
+func pose_tree(t: Dictionary, pivot: Vector3, rot: Basis) -> void:
+	for i in t.count:
+		var o: Transform3D = t.rest[i]
+		tree_mm.set_instance_transform(t.first + i, Transform3D(rot * o.basis, pivot + rot * (o.origin - pivot)))
+	var tr0: Transform3D = t.trunk_rest
+	(t.trunk as Node3D).transform = Transform3D(rot * tr0.basis, pivot + rot * (tr0.origin - pivot))
 
 func fell_tree(t: Dictionary, away: Vector2) -> void:
 	t.down = true
+	if t.get("tw") is Tween and (t.tw as Tween).is_valid():
+		(t.tw as Tween).kill() # still rocking from the last cut: it falls from where it stood
+	if t.has("rest"):
+		pose_tree(t, Vector3(t.x, m.height_at(t.x, t.z), t.z), Basis())
 	m.rocks.erase(t.rock)
 	var pivot := Vector3(t.x, m.height_at(t.x, t.z), t.z)
 	var axis := Vector3(away.y, 0, -away.x).normalized() # falls away from Sora

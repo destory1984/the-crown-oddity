@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
@@ -832,6 +832,49 @@ func run() -> void:
 		main.ng = ng0
 		main.banner_t = 0.0
 		check("round_badge", badge == "★ 2회차 · 난이도 ×1.5" and banner, "badge '%s', banner %s" % [badge, banner])
+	if want.call("tree_shake"):
+		# a cut that does not fell the tree rocks it, crown and trunk, and it settles back where it stood (v0.1.64)
+		var wb = main.world_build
+		var ok := false
+		var info := "no standing marsh tree"
+		for t in wb.marsh_trees:
+			if t.down:
+				continue
+			var leaf0: Transform3D = wb.tree_mm.get_instance_transform(t.first)
+			var trunk0: Transform3D = (t.trunk as Node3D).transform
+			wb.shake_tree(t, Vector2(1, 0))
+			var tw: Tween = t.tw
+			tw.custom_step(0.12) # stepped by hand: the test's world may stand paused
+			# the headless test renderer keeps no MultiMesh transforms (all identity): the leaves are judged only where it does
+			var leaf_moved: bool = leaf0 == Transform3D() or not wb.tree_mm.get_instance_transform(t.first).is_equal_approx(leaf0)
+			var trunk_moved: bool = not (t.trunk as Node3D).transform.is_equal_approx(trunk0)
+			tw.custom_step(wb.TREE_SHAKE_T)
+			var back: bool = wb.tree_mm.get_instance_transform(t.first).origin.distance_to(leaf0.origin) < 0.02 \
+				and (t.trunk as Node3D).transform.origin.distance_to(trunk0.origin) < 0.02
+			ok = leaf_moved and trunk_moved and back and t.hits == 0 and not t.down
+			info = "leaves moved %s, trunk moved %s, back in place %s, hits %d" % [leaf_moved, trunk_moved, back, t.hits]
+			break
+		check("tree_shake", ok, info)
+	if want.call("rest_heal"):
+		# standing still with no monster near mends 2% of max HP a second after 3 s; not before, not with one near (v0.1.65)
+		main.close_story()
+		var keep_e: Array = main.enemies.duplicate()
+		var hp0: float = main.player.hp
+		var boss0: bool = main.ui.boss.visible
+		main.ui.boss.visible = false
+		main.enemies.clear()
+		var mx: float = float(main.player.max_hp)
+		main.player.hp = mx * 0.5
+		main.idle_t = 1.0
+		main.combat.rest_heal(1.0)
+		var early: bool = is_equal_approx(main.player.hp, mx * 0.5)
+		main.idle_t = 4.0
+		main.combat.rest_heal(1.0)
+		var healed: float = main.player.hp - mx * 0.5
+		main.enemies.append_array(keep_e)
+		main.ui.boss.visible = boss0
+		main.player.hp = hp0
+		check("rest_heal", early and absf(healed - mx * 0.02) < 0.01, "nothing at 1 s=%s, healed %.2f at 4 s (want %.2f)" % [early, healed, mx * 0.02])
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -2955,9 +2998,13 @@ func run() -> void:
 				loops = loops and st is AudioStreamOggVorbis and st.loop
 		main.music.play("village")
 		var f0: String = main.music.cur_file
+		# past ROTATE the tune is not cut in the middle of a loop; at the loop's end the next one comes
 		main.music.played = main.music.ROTATE + 1.0
 		main.music.play("village")
-		loops = loops and main.music.cur_file != f0 and main.music.cur_file.begins_with(main.music.cur)
+		var kept: bool = main.music.cur_file == f0
+		main.music.due = true
+		main.music.play("village")
+		loops = loops and kept and main.music.cur_file != f0 and main.music.cur_file.begins_with(main.music.cur)
 		# put the state back
 		for k in keep:
 			main.set(k, keep[k])
