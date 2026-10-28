@@ -35,7 +35,7 @@ func save_game() -> void:
 		"oak_q": m.oak_q, "oak_knots": m.forest.knots.map(func(k): return k.open), "has_sprout": m.has_sprout, "oak_hogs": m.oak_hogs_beaten, "letter_back": m.letter_back,
 		"under_drained": m.under.drained, "under_door": m.under.door_open, "under_guards": m.under_guards_done, "under_chest": m.under_chest_open,
 		"under_side": m.under_side_open, "under_diary": m.under_diary_read, "has_lamp": m.has_lamp, "cave_quest": m.quest_before_cave,
-		"pip_max": m.pip_max, "pip_awards": m.pip_awards.keys(), "tokens": m.tokens}
+		"pip_max": m.pip_max, "pip_awards": m.pip_awards.keys(), "tokens": m.tokens, "trial_won": m.trial_won, "stairs_seen": m.stairs_seen, "moon_door": m.castle.door_open}
 	d.merge(m.workshop_zone.save_data())
 	var f := FileAccess.open(m.SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -213,6 +213,8 @@ func load_game() -> void:
 		m.forest.freed[i] = bool(fr[i])
 	m.has_acorn = bool(d.get("has_acorn", false))
 	m.trial_best = float(d.get("trial_best", 0.0))
+	m.trial_won = bool(d.get("trial_won", m.trial_best > 0.0)) # a save from before v0.1.68: any clear counts (a new round writes false)
+	m.stairs_seen = bool(d.get("stairs_seen", bool(d.get("stairs_wall", false)) or int(d.get("garden_q", 0)) >= 1))
 	m.race_best = float(d.get("race_best", 0.0))
 	var bks: Array = d.get("books", [])
 	for i in mini(bks.size(), m.castle.books.size()):
@@ -334,7 +336,7 @@ func load_game() -> void:
 	var cps: Array = d.get("castle_pages", [])
 	for i in mini(cps.size(), m.castle.pages.size()):
 		m.castle.pages[i].read = bool(cps[i])
-	if m.castle.pages_read() == 3:
+	if m.castle.pages_read() == 3 and bool(d.get("moon_door", true)): # v0.1.68 holds the moon door for the workshop; an older save is past it
 		m.castle.open_door()
 	if bool(d.get("in_hill", false)):
 		var hx: float = m.player.x
@@ -473,6 +475,7 @@ func old_quest_words(q: String) -> String:
 func main_road_quest() -> String:
 	if m.garden_q >= 5: return m.garden_zone.clock_quest()
 	if m.castle_q >= 3: return m.moon_tokens.stairs_line("동쪽 문을 지나 정원 한가운데로 가자")
+	if m.castle_q >= 1 and m.hill_q >= 3: return m.castle_zone.castle_quest() # the pages, the moon door or the workshop it waits for
 	if m.hill_q >= 3: return m.moon_tokens.hill_line()
 	if m.forest_q >= 3: return m.moon_tokens.forest_line()
 	if m.lake_q >= 4: return m.moon_tokens.lake_line()

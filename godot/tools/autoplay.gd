@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -1187,7 +1187,9 @@ func run() -> void:
 		var repaired: bool = main.story_step == 10
 		var tk0: Array = main.tokens.duplicate()
 		main.tokens[3] = true # the squirrels token, or the line names the cages (v0.1.62)
+		main.hollow_q = 3 # and the south valley (v0.1.68)
 		var road: String = main.main_road_quest()
+		main.hollow_q = 0
 		main.tokens = tk0
 		main.story_step = st0
 		main.forest_q = fq0
@@ -1675,10 +1677,12 @@ func run() -> void:
 		main.lake_q = 4
 		main.forest_q = 0
 		main.tokens[2] = true # the road to the forest asks for the pearl token (v0.1.62)
+		main.south_q = 4 # and the lower pond's water clock (v0.1.68)
 		main.hour = 22.0
 		reset_to(main.village.marks.F + Vector2(-0.3, 0))
 		await wait(1.5)
 		var entered: bool = main.in_forest and main.forest_q == 1
+		main.south_q = 0 # the pond deed was only for the gate
 		main.close_story()
 		await wait(0.2)
 		var w0: Dictionary = main.forest.walls[0]
@@ -1716,6 +1720,7 @@ func run() -> void:
 		main.forest_q = 3
 		main.hill_q = 0
 		main.tokens[3] = true # the way east out of the forest asks for the squirrels token (v0.1.62)
+		main.hollow_q = 3 # and the south valley (v0.1.68)
 		main.in_village = false
 		main.in_forest = true
 		main.hour = 22.0
@@ -1723,6 +1728,7 @@ func run() -> void:
 		await wait(1.5)
 		var shields: Array = main.enemies.filter(func(e): return not e.dead and e.get("shield", 0) > 0)
 		var entered: bool = main.in_hill and main.hill_q == 1 and shields.size() == 3 and main.mate2 != null
+		main.hollow_q = 0 # the valley deed was only for the gate
 		main.close_story()
 		var sg: Dictionary = shields[0] if shields.size() > 0 else {}
 		var hp0: float = sg.get("hp", 0.0)
@@ -2087,6 +2093,10 @@ func run() -> void:
 		main.hill_q = 3
 		main.castle_q = 0
 		main.tokens[4] = true # the way to the castle asks for the hill deed (v0.1.62)
+		main.mill_q = 5 # both the mill and the trial since v0.1.68
+		main.trial_won = true
+		main.work_q = 5 # and the moon door opens only after the deep workshop (v0.1.68)
+		main.work_seen = true # the workshop door's first look (a story box within 6 tiles of it) would stop the vent crossing
 		main.has_unbrick = true
 		main.has_skip = true
 		main.crown_pips = 8
@@ -2103,6 +2113,8 @@ func run() -> void:
 		reset_to(main.hill.marks.X + Vector2(-0.3, 0))
 		await wait(1.0)
 		var entered: bool = main.in_castle() and main.castle_q == 1
+		main.mill_q = 0 # the mill and the trial were only for the gate
+		main.trial_won = false
 		main.close_story()
 		await wait(0.1)
 		calm_enemies(true)
@@ -2135,6 +2147,7 @@ func run() -> void:
 			main.close_story()
 			await wait(0.1)
 		var door: bool = main.castle.pages_read() == 3 and main.castle.door_open and main.player_can(cx + 31, 13)
+		main.work_q = 0 # set only to let the moon door open (v0.1.68); a later test hands the lantern to Simji at work_q 5
 		reset_to(main.castle.marks.K + Vector2(-4.0, 0))
 		await wait(0.3)
 		var woke: bool = main.castle_q == 2
@@ -3953,8 +3966,10 @@ func run() -> void:
 		main.garden_q = 0
 		var tk1: Array = main.tokens.duplicate()
 		main.tokens[3] = true # the squirrels token, or the line names the cages (v0.1.62)
+		main.hollow_q = 3 # and the south valley (v0.1.68)
 		main.leave_cave()
 		main.tokens = tk1
+		main.hollow_q = 0
 		cave_q = cave_q and plain(main.ui.quest.text) == main.tr("숲 동쪽 끝 길로, 바람 언덕에 가자")
 		main.forest_q = road0[0]
 		main.hill_q = road0[1]
@@ -6714,6 +6729,8 @@ func run() -> void:
 		calm_enemies(true)
 		var ws = main.workshop_zone
 		var door: Vector2 = main.WORK_DOOR
+		main.castle_q = 0 # v0.1.68: bricked only before the castle was entered; after that the door answers, knight or not
+		ws.door_look()
 		reset_to(door + Vector2(0, 0.9))
 		tap(KEY_E)
 		await wait(0.1)
@@ -8400,6 +8417,7 @@ func run() -> void:
 		main.close_story()
 		var q1: bool = main.main_road_quest().begins_with("숲으로 가기 전에")
 		main.tokens[2] = true
+		main.south_q = 4
 		reset_to(vf + Vector2(-0.3, 0))
 		await wait(1.5)
 		var o1: bool = main.in_forest and main.forest_q == 1
@@ -8430,6 +8448,7 @@ func run() -> void:
 		var q2b: bool = main.main_road_quest().ends_with("3/5")
 		main.forest.freed = [false, false, false, false, false]
 		main.tokens[3] = true
+		main.hollow_q = 3
 		reset_to(fe + Vector2(-0.3, 0))
 		main.player.inv = 99.0
 		await wait(1.5)
@@ -8453,6 +8472,9 @@ func run() -> void:
 		var mark3: Vector3 = main.quest_marks.line_target(main.quest_raw)
 		var m3: bool = mark3 != Vector3.INF and (Vector2(mark3.x, mark3.z).distance_to(main.hill.south_marks.G) < 0.1 or Vector2(mark3.x, mark3.z).distance_to(main.hill.marks.R) < 0.1)
 		main.moon_tokens.earn(4) # the deed done: the need line goes back to the road
+		main.mill_q = 5 # both the mill and the trial (v0.1.68)
+		main.trial_won = true
+		main.moon_tokens.refresh_quest()
 		var back3: bool = main.quest_raw == "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
 		reset_to(hx + Vector2(-0.3, 0))
 		main.player.inv = 99.0
@@ -8479,6 +8501,7 @@ func run() -> void:
 		main.castle_q = 1
 		var never: bool = not main.moon_tokens.holds("forest") and not main.moon_tokens.holds("hill") and not main.moon_tokens.holds("castle")
 		main.forest_q = 0
+		main.south_q = 4
 		main.moon_tokens.earn(2) # the pearl: the line goes back to the road
 		var back4: bool = not main.quest_raw.begins_with("숲으로 가기 전에")
 		if not (m4 and holds_all and never and back4):
@@ -8514,6 +8537,7 @@ func run() -> void:
 		main.hollow_q = 4
 		main.garden_q = 0
 		main.road_q = 0
+		main.quarters_q = 5 # the castle gate asks for the quarters (v0.1.68)
 		main.open_stairs()
 		main.garden.roots_open = false
 		main.garden.gate_open = false
@@ -8789,10 +8813,12 @@ func run() -> void:
 		main.trial_best = 95.0
 		main.hill_q = 3
 		main.tokens = [false, false, false, false, false, false]
+		main.trial_won = false
 		var jl1: String = "
 ".join(PackedStringArray(main.journal_lines()))
 		var t_open: bool = main.errands.hint_open("trial") and "이번 회차" in jl1 and "최고 기록 1분 35초" in jl1
 		main.tokens[main.moon_tokens.HILL] = true
+		main.trial_won = true
 		var jl2: String = "
 ".join(PackedStringArray(main.journal_lines()))
 		var t_done: bool = not main.errands.hint_open("trial") and "이번 회차" not in jl2 and "최고 기록 1분 35초" in jl2
@@ -8802,6 +8828,403 @@ func run() -> void:
 		main.stairs.door_open = door0
 		main.tokens = [false, false, false, false, false, false]
 		main.return_to_start()
+	if want.call("gate_pond"):
+		# v0.1.68 (the owner, 2026-10-29): after the pearl, the lower pond's water clock must be wound before the village east gate opens
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		main.tokens = [false, false, true, false, false, false]
+		main.night_q = 4
+		main.lake_q = 4
+		main.forest_q = 0
+		main.hill_q = 0
+		main.castle_q = 0
+		main.south_q = 0
+		main.garden_q = 0
+		main.in_forest = false
+		main.in_hill = false
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_village = true
+		var vf: Vector2 = main.village.marks.F
+		reset_to(vf + Vector2(-0.3, 0))
+		await wait(1.0)
+		var held: bool = main.in_village and not main.in_forest and main.forest_q == 0 and main.story_open and main.story_lines.size() == 1 \
+			and "아랫못" in main.story_lines[0] and Vector2(main.player.x, main.player.z).distance_to(vf) > 1.0
+		main.close_story()
+		var line: String = main.main_road_quest()
+		var named: bool = line == "숲으로 가기 전에: 아랫못의 물시계를 되살리자"
+		var jl: String = "\n".join(PackedStringArray(main.journal_lines()))
+		var jour: bool = "아랫못의 물시계 아직" in plain(jl) and "물빛 진주 끝" in plain(jl)
+		# the gold "!" in the lake follows the pond's steps
+		main.in_village = false
+		main.in_lake = true
+		reset_to(main.lake.marks.P)
+		main.set_quest(line)
+		var spots: Array = [main.lake.marks.Y, main.lake.ropes[0], main.lake.ropes[1], main.lake.marks.K]
+		var marks_ok := true
+		for q in 4:
+			main.south_q = q
+			var t: Vector3 = main.quest_marks.line_target(main.quest_raw)
+			marks_ok = marks_ok and t != Vector3.INF and Vector2(t.x, t.z).distance_to(spots[q]) < 0.1
+		# from the village the mark leads to the south gate
+		main.in_lake = false
+		main.in_village = true
+		reset_to(vf + Vector2(-3, 0))
+		var mv: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var from_village: bool = mv != Vector3.INF and Vector2(mv.x, mv.z).distance_to(main.village.marks.K) < 0.1
+		# the clockwork wound: the line goes back to the road and the gate opens
+		main.south_q = 3
+		main.lake_zone.south_key() # not near the spring: nothing
+		main.south_q = 4
+		main.moon_tokens.refresh_quest()
+		var back: bool = main.quest_raw == "물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"
+		reset_to(vf + Vector2(-0.3, 0))
+		await wait(1.5)
+		var opened: bool = main.in_forest and main.forest_q == 1
+		main.close_story()
+		# the pond alone does not open it without the pearl, and a save already in the forest is never locked again
+		main.tokens[2] = false
+		main.forest_q = 0
+		var needs_pearl: bool = main.moon_tokens.holds("forest")
+		main.forest_q = 1
+		var never: bool = not main.moon_tokens.holds("forest")
+		main.forest_q = 0
+		main.south_q = 0
+		check("gate_pond", held and named and jour and marks_ok and from_village and back and opened and needs_pearl and never,
+			"east gate held with the pond story=%s, line names the water clock=%s, journal=%s, marks on weir/ropes/spring=%s, from the village=%s, wound: line back=%s opens=%s, pearl still needed=%s, never re-locked=%s" % [held, named, jour, marks_ok, from_village, back, opened, needs_pearl, never])
+		main.return_to_start()
+	if want.call("gate_valley"):
+		# after the second Noeul duel and the five squirrels, the south valley (lamps, cloak, hollow) opens the forest's east end
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		main.tokens = [false, false, true, true, false, false]
+		main.forest.freed = [true, true, true, true, true]
+		main.forest_q = 3
+		main.hill_q = 0
+		main.castle_q = 0
+		main.hollow_q = 0
+		main.garden_q = 0
+		main.in_village = false
+		main.in_lake = false
+		main.in_hill = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_forest = true
+		var fe: Vector2 = main.forest.marks.E
+		reset_to(fe + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.0)
+		var held: bool = main.in_forest and not main.in_hill and main.hill_q == 0 and main.story_open and main.story_lines.size() == 1 \
+			and "골짜기" in main.story_lines[0] and Vector2(main.player.x, main.player.z).distance_to(fe) > 1.0
+		main.close_story()
+		var line: String = main.main_road_quest()
+		var named: bool = line == "언덕으로 가기 전에: 숲 남쪽 골짜기의 기억을 되살리자"
+		main.set_quest(line)
+		reset_to(main.forest.marks.N)
+		var marks_ok := true
+		for l in main.forest.mem_lamps:
+			l.lit = false # earlier tests may have lit them
+		main.hollow_q = 0
+		var t0: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		marks_ok = marks_ok and t0 != Vector3.INF and Vector2(t0.x, t0.z).distance_to(main.forest.marks.G) < 0.1
+		main.hollow_q = 1
+		var t1: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var lamp_ok := false
+		for l in main.forest.mem_lamps:
+			if not l.lit and Vector2(t1.x, t1.z).distance_to(l.pos) < 0.1:
+				lamp_ok = true
+		marks_ok = marks_ok and lamp_ok
+		main.hollow_q = 2
+		var t2: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		marks_ok = marks_ok and t2 != Vector3.INF
+		var jl: String = plain("\n".join(PackedStringArray(main.journal_lines())))
+		var jour: bool = "남쪽 골짜기의 기억 아직" in jl and "다람쥐 다섯 끝" in jl
+		main.hollow_q = 3
+		main.moon_tokens.refresh_quest()
+		var back: bool = main.quest_raw == "숲 동쪽 끝 길로, 바람 언덕에 가자" or main.quest_raw == main.forest_zone.east_quest()
+		reset_to(fe + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.5)
+		var opened: bool = main.in_hill and main.hill_q == 1
+		main.close_story()
+		main.hill_q = 0
+		main.hollow_q = 0
+		main.tokens[3] = false
+		var needs_sq: bool = main.moon_tokens.holds("hill")
+		main.tokens[3] = true
+		main.hill_q = 1
+		var never: bool = not main.moon_tokens.holds("hill")
+		main.hill_q = 0
+		check("gate_valley", held and named and marks_ok and jour and back and opened and needs_sq and never,
+			"east end held with the valley story=%s, line=%s, marks on gate/lamp/door=%s, journal=%s, hollow opened: line back=%s opens=%s, squirrels still needed=%s, never re-locked=%s" % [held, named, marks_ok, jour, back, opened, needs_sq, never])
+		main.return_to_start()
+	if want.call("gate_castle"):
+		# the hill -> castle gate needs BOTH the sparrow mill and the moon trial (v0.1.68; it was either)
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		main.tokens = [false, false, false, false, false, false]
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_hill = true
+		main.hill_q = 3
+		main.castle_q = 0
+		main.mill_q = 0
+		main.trial_won = false
+		var hx: Vector2 = main.hill.marks.X
+		reset_to(hx + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.0)
+		var held: bool = main.in_hill and not main.in_castle() and main.castle_q == 0 and main.story_open and main.story_lines.size() == 1 \
+			and "풍차" in main.story_lines[0] and "시험" in main.story_lines[0]
+		main.close_story()
+		var both: bool = main.main_road_quest() == "성으로 가기 전에: 참새 방앗간을 되살리고 달빛 시련을 마치자"
+		# only the trial done (the old rule opened here)
+		main.trial_won = true
+		main.moon_tokens.earn(main.moon_tokens.HILL)
+		var only_trial: bool = main.moon_tokens.holds("castle") and main.main_road_quest() == "성으로 가기 전에: 참새 방앗간을 되살리자"
+		main.set_quest(main.main_road_quest())
+		reset_to(main.hill.marks.S + Vector2(2, 0))
+		var mt: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var mark_mill: bool = mt != Vector3.INF and Vector2(mt.x, mt.z).distance_to(main.hill.south_marks.G) < 0.1
+		reset_to(hx + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.0)
+		var held2: bool = main.in_hill and main.castle_q == 0 and main.story_open and "풍차" in main.story_lines[0]
+		main.close_story()
+		# only the mill done
+		main.trial_won = false
+		main.mill_q = 5
+		var only_mill: bool = main.moon_tokens.holds("castle") and main.main_road_quest() == "성으로 가기 전에: 달빛 시련을 마치자"
+		main.set_quest(main.main_road_quest())
+		reset_to(main.hill.marks.S + Vector2(2, 0))
+		var mt2: Vector3 = main.quest_marks.line_target(main.quest_raw)
+		var mark_trial: bool = mt2 != Vector3.INF and Vector2(mt2.x, mt2.z).distance_to(main.hill.marks.R) < 0.1
+		var jl: String = plain("\n".join(PackedStringArray(main.journal_lines())))
+		var jour: bool = "참새 방앗간 끝" in jl and "달빛 시련 아직" in jl
+		# both: the line goes back to the road and the gate opens
+		main.trial_won = true
+		main.moon_tokens.refresh_quest()
+		var back: bool = main.quest_raw == "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
+		reset_to(hx + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.5)
+		var opened: bool = main.in_castle() and main.castle_q == 1
+		main.close_story()
+		# the trial hint and the journal follow this round's clear; a save already in the castle is never locked again
+		main.trial_won = false
+		main.castle_q = 1
+		var never: bool = not main.moon_tokens.holds("castle")
+		main.castle_q = 0
+		var hint: bool = main.errands.hint_open("trial")
+		main.mill_q = 0
+		main.trial_won = false
+		check("gate_castle", held and both and only_trial and mark_mill and held2 and only_mill and mark_trial and jour and back and opened and never and hint,
+			"castle gate held with both needs=%s, line both=%s, trial only holds + line=%s mark on the mill=%s held again=%s, mill only holds + line=%s mark on the trial stone=%s, journal=%s, both: line back=%s opens=%s, never re-locked=%s, trial hint open=%s" % [held, both, only_trial, mark_mill, held2, only_mill, mark_trial, jour, back, opened, never, hint])
+		main.return_to_start()
+	if want.call("gate_knight"):
+		# the throne room's moon door stays shut after the third page until the deep workshop's cradle is let go (v0.1.68)
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_hill = true
+		main.forest_q = 3
+		main.lake_q = 4
+		main.hill_q = 3
+		main.castle_q = 1
+		main.garden_q = 0
+		main.work_q = 0
+		main.work_door = false
+		main.has_unbrick = true
+		main.castle.open_gate()
+		main.castle.door_open = false
+		main.castle.door.visible = true
+		for pg in main.castle.pages:
+			pg.read = false
+		main.castle.pages[0].read = true
+		main.castle.pages[1].read = true
+		var cx: float = main.CASTLE.CASTLE_X
+		calm_enemies(true)
+		# the workshop's door opens before the knight (the loosened start condition)
+		var ready: bool = main.workshop_zone.door_ready()
+		main.castle_q = 0
+		var not_before_castle: bool = not main.workshop_zone.door_ready()
+		main.castle_q = 1
+		# the third page
+		reset_to(main.castle.pages[2].pos + Vector2(1.0, 0))
+		tap(KEY_E)
+		await wait(0.2)
+		main.close_story()
+		await wait(0.2)
+		var gate_story: bool = main.story_open and main.story_lines.size() >= 1 and "수리 요람" in main.story_lines[main.story_lines.size() - 1]
+		main.close_story()
+		var shut: bool = main.castle.pages_read() == 3 and not main.castle.door_open and not main.player_can(cx + 31, 13)
+		var named: bool = main.quest_raw == "옥좌의 방으로 가기 전에: 작업장 깊은 곳의 수리 요람을 풀자"
+		reset_to(main.castle.marks.S + Vector2(3, 0))
+		var mk: Vector3 = main.quest_marks.quest_target()
+		var mark_door: bool = mk != Vector3.INF and Vector2(mk.x, mk.z).distance_to(main.WORK_DOOR) < 0.1
+		var jl: String = plain("\n".join(PackedStringArray(main.journal_lines())))
+		var jour: bool = "작업장의 수리 요람 아직" in jl
+		main.save_game() # a held door is saved shut, so a load keeps it shut
+		var held_save = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var new_shut: bool = held_save.get("moon_door", true) == false and main.moon_tokens.holds("knight")
+		# inside the workshop the mark follows the floor's devices
+		main.work_door = true
+		for l in main.wfloors[0].lamps:
+			l.lit = false # earlier tests may have lit them
+		main.wfloors[0].groups[0].open = false
+		main.workshop_zone.enter_floor(0, "A")
+		main.set_quest(main.moon_tokens.knight_need_line())
+		await wait(0.3)
+		main.close_story()
+		var wk: Vector3 = main.quest_marks.quest_target()
+		var mark_work: bool = main.in_workshop() and wk != Vector3.INF
+		main.workshop_zone.leave_up(0)
+		await wait(0.2)
+		# the cradle let go: the door gives when she is back in the castle
+		main.work_q = 5
+		main.moon_tokens.refresh_quest()
+		reset_to(main.castle.pages[2].pos)
+		for k in 3: # the door's first look after the leave-up may be open: close it, the door gives after
+			main.close_story()
+			await wait(0.3)
+		var opened: bool = main.castle.door_open and main.player_can(cx + 31, 13)
+		var back: bool = main.quest_raw == "옥좌의 방으로 가자"
+		# old saves: pages all read with no "moon_door" key are past the gate; a new save that says shut stays shut
+		main.save_game()
+		var sd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		sd["castle_pages"] = [true, true, true]
+		sd["work_q"] = 0
+		sd["castle_q"] = 1
+		sd.erase("moon_door")
+		var f := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(JSON.stringify(sd))
+		f.close()
+		main.load_game()
+		var old_open: bool = main.castle.door_open and not main.moon_tokens.holds("knight")
+		main.castle_q = 2
+		var never: bool = not main.moon_tokens.holds("knight")
+		check("gate_knight", ready and not_before_castle and gate_story and shut and named and mark_door and jour and mark_work and opened and back and old_open and new_shut and never,
+			"workshop door ready before the knight=%s (not before the castle=%s), third page: gate story=%s door shut=%s line=%s mark on the workshop door=%s journal=%s mark inside=%s, cradle let go: door opens=%s line back=%s, old save open=%s, new save shut=%s, fight begun never locks=%s" % [ready, not_before_castle, gate_story, shut, named, mark_door, jour, mark_work, opened, back, old_open, new_shut, never])
+		main.castle.door_open = false
+		main.return_to_start()
+	if want.call("gate_quarters"):
+		# after the knight, the quarters (tin doorkeeper walked to his bunk) must be done before the castle's east gate opens the moon stairs
+		main.return_to_start()
+		if main.intro:
+			main.start_game(false)
+		await wait(0.2)
+		main.close_story()
+		main.story_step = maxi(main.story_step, 11)
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_garden = false
+		main.in_cave = false
+		main.in_hill = true
+		main.forest_q = 3
+		main.hill_q = 3
+		main.castle_q = 3
+		main.garden_q = 0
+		main.quarters_q = 0
+		main.stairs_seen = false
+		var stairs_door0: bool = main.stairs.door_open
+		main.stairs.door_open = false # earlier tests may have opened it
+		main.castle.open_gate()
+		calm_enemies(true)
+		var ce: Vector2 = main.castle.marks.E
+		reset_to(ce + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.0)
+		var held: bool = main.in_castle() and not main.in_stairs() and main.story_open and main.story_lines.size() == 1 \
+			and "깡통" in main.story_lines[0] and Vector2(main.player.x, main.player.z).distance_to(ce) > 1.0
+		main.close_story()
+		var named: bool = main.quest_raw == "달의 계단을 오르기 전에: 숙소의 깡통 문지기를 침방까지 모시자"
+		var jl: String = plain("\n".join(PackedStringArray(main.journal_lines())))
+		var jour: bool = "숙소의 깡통 문지기 아직" in jl
+		var marks_ok := true
+		main.quarters_q = 0
+		var t0: Vector3 = main.quest_marks.quest_target()
+		marks_ok = marks_ok and t0 != Vector3.INF and Vector2(t0.x, t0.z).distance_to(main.castle.marks.K) < 0.1
+		main.quarters_q = 1
+		var t1: Vector3 = main.quest_marks.quest_target()
+		marks_ok = marks_ok and t1 != Vector3.INF and Vector2(t1.x, t1.z).distance_to(main.castle.marks.Q) < 0.1
+		main.quarters_q = 2
+		var t2: Vector3 = main.quest_marks.quest_target()
+		marks_ok = marks_ok and t2 != Vector3.INF
+		# the resume states are untouched: quarters_q 3 is still the walk, 4 the ledger
+		var resume: bool = main.moon_tokens.holds("stairs") and not main.moon_tokens.quarters_done()
+		main.quarters_q = 5
+		main.moon_tokens.refresh_quest()
+		var back: bool = main.quest_raw == "동쪽 문을 지나 정원 한가운데로 가자"
+		reset_to(ce + Vector2(-0.3, 0))
+		main.player.inv = 99.0
+		await wait(1.5)
+		var opened: bool = main.in_stairs()
+		main.close_story()
+		# once the stairs were entered, or the garden reached, the gate never shuts again (a new round resets stairs_seen)
+		main.quarters_q = 0
+		var seen: bool = main.stairs_seen and not main.moon_tokens.holds("stairs")
+		main.stairs_seen = false
+		main.garden_q = 1
+		var past: bool = not main.moon_tokens.holds("stairs")
+		main.garden_q = 0
+		var shut0: bool = main.moon_tokens.holds("stairs")
+		check("gate_quarters", held and named and jour and marks_ok and resume and back and opened and seen and past and shut0,
+			"east gate held with the quarters story=%s, line=%s, journal=%s, marks on spring/door/doll=%s, partial quarters still hold=%s, done: line back=%s opens=%s, entered stairs never relocks=%s, garden reached=%s, none holds=%s" % [held, named, jour, marks_ok, resume, back, opened, seen, past, shut0])
+		main.stairs_seen = false
+		main.stairs.door_open = stairs_door0
+		main.return_to_start()
+	if want.call("gate_new_round"):
+		# a new round resets the deeds the gates ask for, so every gate holds again (v0.1.68)
+		main.return_to_start()
+		main.south_q = 5
+		main.hollow_q = 4
+		main.mill_q = 5
+		main.trial_won = true
+		main.work_q = 6
+		main.quarters_q = 5
+		main.trial_best = 80.0
+		main.write_new_round()
+		main.castle.door_open = false # the castle node outlives a load in this process; a real new round builds it again
+		for pg in main.castle.pages:
+			pg.read = false
+		var nd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var keys_gone := true
+		for k in ["south_q", "hollow_q", "mill_q", "work_q", "quarters_q"]:
+			keys_gone = keys_gone and int(nd.get(k, 0)) == 0 and not main.errands.NG_KEEP.has(k)
+		var file_ok: bool = keys_gone and nd.get("trial_won", true) == false and float(nd.get("trial_best", 0.0)) == 80.0
+		main.load_game()
+		var all_hold: bool = main.moon_tokens.holds("forest") and main.moon_tokens.holds("hill") and main.moon_tokens.holds("castle") and main.moon_tokens.holds("knight")
+		var hold_txt := "%s %s %s %s (castle_q %d, door %s, work_q %d)" % [main.moon_tokens.holds("forest"), main.moon_tokens.holds("hill"), main.moon_tokens.holds("castle"), main.moon_tokens.holds("knight"), main.castle_q, main.castle.door_open, main.work_q]
+		var trial_again: bool = not main.trial_won and main.trial_best == 80.0 and main.errands.hint_open("trial") == (main.hill_q >= 3)
+		check("gate_new_round", file_ok and all_hold and trial_again,
+			"new-round file drops the pond, valley, mill, trial, workshop and quarters flags and keeps the best time=%s, the gates hold again=%s (%s), trial must be cleared again=%s" % [file_ok, all_hold, hold_txt, trial_again])
+		main.ng = 0
+		main.trial_best = 0.0
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)

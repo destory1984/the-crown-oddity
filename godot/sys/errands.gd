@@ -155,6 +155,7 @@ func write_new_round() -> void:
 			keep[k] = d[k]
 	keep["hp"] = keep.get("max_hp", 100)
 	keep["tokens"] = [false, false, false, false, false, false] # the pearl, ring and bookmark stay, the tokens start again
+	keep["trial_won"] = false # the best time is kept, the clear is not (the castle gate asks for it again)
 	var f := FileAccess.open(m.SAVE_PATH, FileAccess.WRITE)
 	f.store_string(JSON.stringify(keep))
 	f.close()
@@ -203,7 +204,7 @@ func hint_open(key: String) -> bool:
 		"mill": return m.hill_q >= 3 and m.mill_q < 5
 		"cloud": return m.hill_q >= 3 and m.cloud_q < 3
 		"cloud_path": return m.cloud_q >= 1 and not m.has_shard
-		"trial": return m.hill_q >= 3 and (m.trial_best <= 0.0 or not m.tokens[m.moon_tokens.HILL]) # a new round keeps the best time but not the hill token
+		"trial": return m.hill_q >= 3 and not m.trial_won # a new round keeps the best time but not the clear (the castle gate asks for it)
 		# the castle, its stairs and the garden
 		"pages": return m.castle_q >= 1 and m.castle.pages_read() < 3
 		"books": return m.castle_q >= 1 and not m.tokens[5]

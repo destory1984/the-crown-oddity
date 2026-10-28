@@ -13,7 +13,8 @@ const VILLAGE_WAY := Vector2(47.0, 20.5) # where the marsh's east bank walks int
 const ROAD_GOALS := [["물결과 함께 남쪽 호수를 풀자", "lake"], ["마을 남쪽 문으로 호수에", "lake"],
 	["물결과 함께 마을 동쪽 문으로", "forest"], ["숲 동쪽 끝 길로", "hill"], ["언덕 동쪽 끝 길로", "castle"],
 	["동쪽 문을 지나 정원 한가운데로", "garden"], ["꼭대기 문을 지나 정원으로", "garden"], ["정원 한가운데로 돌아가", "garden"],
-	["숲으로 가기 전에", "lake"], ["언덕으로 가기 전에", "forest"], ["성으로 가기 전에", "hill"]] # the moonkeeper tokens' gate lines (sys/tokens.gd)
+	["숲으로 가기 전에", "lake"], ["언덕으로 가기 전에", "forest"], ["성으로 가기 전에", "hill"],
+	["옥좌의 방으로 가기 전에", "castle"], ["달의 계단을 오르기 전에", "castle"]] # the moonkeeper tokens' gate lines (sys/tokens.gd)
 
 func _init(main: Main) -> void:
 	m = main
@@ -89,6 +90,8 @@ func road_way(goal: String) -> Vector3:
 		"castle":
 			return over(m.castle.marks.E) if goal == "garden" else Vector3.INF
 		"stairs":
+			if goal == "castle": # the castle's quarters gate line: back down
+				return over(m.stairs.marks.S)
 			return over(m.stairs.marks.N) if goal == "garden" else Vector3.INF
 		"garden":
 			return over(m.garden.marks.C) if goal == "garden" and m.garden_q >= 1 else Vector3.INF
@@ -98,6 +101,8 @@ func line_target(raw: String) -> Vector3:
 	if raw == "":
 		return Vector3.INF
 	var at := Vector3.INF
+	if m.in_workshop() and raw.begins_with("옥좌의 방으로 가기 전에"): # the deep workshop is no area of the road: its own steps
+		return m.workshop_zone.next_spot()
 	match here():
 		"marsh": at = marsh_target(raw)
 		"cave": at = cave_target(raw)
@@ -230,8 +235,17 @@ func lake_target(raw: String) -> Vector3:
 		return over(Vector2(m.lake_npc.position.x, m.lake_npc.position.z), 2.9)
 	if raw.contains("벽돌 거북"):
 		return either(foe_at("turtle"), m.lake.marks.T, 3.4)
-	if raw.begins_with("숲으로 가기 전에"): # the grotto's steps on the island, for the pearl
-		return over(m.lake.marks.G, 2.6)
+	if raw.begins_with("숲으로 가기 전에"): # the grotto's steps on the island for the pearl, then the lower pond's next step
+		return over(m.lake.marks.G, 2.6) if not m.tokens[m.moon_tokens.PEARL] else pond_target()
+	return Vector3.INF
+
+# the lower pond: the weir, the two rope posts (Mulgyeol swims down their chains), the water clockwork's key
+func pond_target() -> Vector3:
+	match m.south_q:
+		0: return over(m.lake.marks.Y, 2.2)
+		1: return over(m.lake.ropes[0], 2.2)
+		2: return over(m.lake.ropes[1], 2.2)
+		3: return over(m.lake.marks.K, 2.2)
 	return Vector3.INF
 
 # in the grotto the pearl line leads to the crab, then its chest, then back out
@@ -265,8 +279,25 @@ func forest_target(raw: String) -> Vector3:
 		return either(foe_at("noeul"), m.forest.marks.N, 2.9)
 	if led(raw, "언덕으로 가기 전에: 숲의 다람쥐 우리 다섯을 열자 %d/5"):
 		return cage_target()
+	if raw.begins_with("언덕으로 가기 전에: 숲 남쪽 골짜기"):
+		return valley_target()
 	return Vector3.INF
 
+# the south valley's next step: the grey gate, the memory lamps, the empty cloak, the sunset door, Noeul's hollow
+func valley_target() -> Vector3:
+	var f = m.forest
+	match m.hollow_q:
+		0: return over(f.marks.G, 2.4)
+		1:
+			var dark: Array = f.mem_lamps.filter(func(l): return not l.lit).map(func(l): return l.pos)
+			if not dark.is_empty():
+				return over(nearest(dark), 2.2)
+			return either(foe_at("cloak"), f.marks.C, 2.9)
+		2:
+			if not f.doors[1].open:
+				return over(f.doors[1].pos, 2.2)
+			return over(f.boxes[1].pos, 1.8)
+	return Vector3.INF
 func cage_target() -> Vector3: # the nearest cage still shut
 	var shut: Array = []
 	for i in Main.FOREST.CAGES.size():
@@ -293,9 +324,21 @@ func hill_target(raw: String) -> Vector3:
 func hill_deed_target() -> Vector3:
 	var sm: Dictionary = m.hill.south_marks
 	var mill: Vector2 = [sm.G, sm.Q, sm.P, sm.K, sm.c, sm.c][clampi(m.mill_q, 0, 5)]
-	return over(nearest([mill, m.hill.marks.R]), 2.4)
+	var spots: Array = []
+	if m.mill_q < 5:
+		spots.append(mill)
+	if not m.trial_won: # the castle gate asks for both since v0.1.68
+		spots.append(m.hill.marks.R)
+	return over(nearest(spots), 2.4) if not spots.is_empty() else Vector3.INF
 
 func castle_target(raw: String) -> Vector3:
+	if raw.begins_with("옥좌의 방으로 가기 전에"): # the deep workshop's door in the great hall's corner
+		return over(Main.WORK_DOOR, 2.0)
+	if raw.begins_with("달의 계단을 오르기 전에"): # the quarters: the knight's spring, the clockwork door, then its own marks
+		var at: Vector3 = m.castle_zone.quarters_target()
+		if at != Vector3.INF:
+			return at
+		return over(m.castle.marks.K if m.quarters_q == 0 else m.castle.marks.Q, 1.9)
 	if raw.begins_with("성문의 벽돌") and not m.castle.gate_open:
 		var gate: Array = m.castle.gate_nodes.map(func(n): return Vector2(n.position.x, n.position.z))
 		return either(nearest(gate), Vector2.INF)

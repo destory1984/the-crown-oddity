@@ -41,9 +41,10 @@ func in_workshop() -> bool:
 func floor_here() -> int:
 	return Main.WORK.floor_of(m.player.x)
 
-# GPT's conditions (chapter 7): the knight beaten, Noeul and Mulgyeol along, the unbricking learned
+# GPT's conditions (chapter 7): Noeul and Mulgyeol along, the unbricking learned. v0.1.68 (the owner, 2026-10-29): no longer the
+# knight beaten - the throne room's moon door waits for the workshop, so the workshop must open before the knight.
 func door_ready() -> bool:
-	return m.story_step >= 10 and m.castle_q >= 3 and m.forest_q >= 3 and m.lake_q >= 4 and m.has_unbrick
+	return m.story_step >= 10 and m.castle_q >= 1 and m.forest_q >= 3 and m.lake_q >= 4 and m.has_unbrick
 
 # ---- the door in the great hall's north-east corner: bricked until the knight falls, then a cracked maintenance door
 # with two hands carved on one handle; open, a dark doorway with steps going down
@@ -101,18 +102,18 @@ func build() -> void:
 func door_look() -> void:
 	if door_node == null:
 		return
-	door_bricks.visible = m.castle_q < 3
-	door_closed.visible = m.castle_q >= 3 and not m.work_door
+	door_bricks.visible = m.castle_q < 1
+	door_closed.visible = m.castle_q >= 1 and not m.work_door
 	door_open_look.visible = m.work_door
 
-# the castle minimap marks the door with the violet stair once the knight has uncovered it
+# the castle minimap marks the door with the violet stair from the first visit to the castle
 func castle_spots() -> Array:
-	return [Main.UNDER_STAIR, Main.WORK_DOOR] if m.castle_q >= 3 else [Main.UNDER_STAIR]
+	return [Main.UNDER_STAIR, Main.WORK_DOOR] if m.castle_q >= 1 else [Main.UNDER_STAIR]
 
 func door_key() -> bool:
 	if m.work_door or Vector2(m.player.x, m.player.z).distance_to(Main.WORK_DOOR) > 1.5:
 		return false
-	if m.castle_q < 3:
+	if m.castle_q < 1:
 		m.toast("벽돌로 메운 자리다. 안쪽에서 무언가가 붙들고 있다")
 		return true
 	if not door_ready():
@@ -133,7 +134,14 @@ func update_castle() -> void:
 	if m.story_open or m.fade_rect.color.a > 0.0 or m.gust_dir != Vector2.ZERO:
 		return
 	var d := Vector2(m.player.x, m.player.z).distance_to(Main.WORK_DOOR)
-	if m.castle_q >= 3 and not m.work_seen and d < 6.0:
+	if m.castle.pages_read() == 3 and not m.castle.door_open and not m.moon_tokens.holds("knight"): # the cradle let go: the moon door gives
+		m.castle_zone.open_moon_door()
+		m.moon_tokens.refresh_quest()
+		m.toast("달의 문이 열렸다. 옥좌의 방으로 가자")
+	elif m.castle.pages_read() == 3 and not m.castle.door_open and m.toast_t <= 0.0 \
+			and Vector2(m.player.x, m.player.z).distance_to(Vector2(Main.CASTLE.CASTLE_X + 30, 13.5)) < 1.8:
+		m.toast("달의 문이 굳게 닫혀 있다. 작업장의 수리 요람이 풀려야 열린다")
+	if m.castle_q >= 1 and not m.work_seen and d < 6.0:
 		m.work_seen = true
 		m.show_story("", m.cast_lines(Main.STORY.WORK_DOOR_SEEN))
 		m.save_game()
@@ -206,6 +214,26 @@ func spawn_foe(at: Vector2, kind: String, i: int) -> void:
 	e.work = i
 
 # side stories keep the quest line on the main road: each floor says its goal in a longer toast
+# the gold "!" for the knight gate's line (sys/quest_marks.gd): the next part of the workshop, floor by floor
+func next_spot() -> Vector3:
+	var i := floor_here()
+	var f = fl(i)
+	var me := Vector2(m.player.x, m.player.z)
+	var at := Vector2.INF
+	if m.work_q >= i + 2 and f.marks.has("V"): # this floor is done: the way down
+		at = f.marks.V
+	elif i == 0:
+		var dark: Array = f.lamps.filter(func(l): return not l.lit).map(func(l): return l.pos)
+		at = m.quest_marks.nearest(dark) if not dark.is_empty() else m.quest_marks.nearest(f.groups.filter(func(g): return not g.open).map(func(g): return g.at))
+	elif i == 1:
+		at = f.marks.P if not m.work_pulled else m.quest_marks.nearest(f.groups.filter(func(g): return not g.open).map(func(g): return g.at))
+	elif m.work_q >= 4: # the cradle: the next latch, then the cradle itself
+		var shut: Array = f.latches.filter(func(l): return not l.wound).map(func(l): return l.pos)
+		at = m.quest_marks.nearest(shut) if not shut.is_empty() else f.marks.O
+	else:
+		at = m.quest_marks.nearest(f.groups.filter(func(g): return not g.open).map(func(g): return g.at))
+	return Vector3.INF if at == Vector2.INF or me == Vector2.INF else m.quest_marks.over(at, 2.0)
+
 func goal_toast(i: int) -> void:
 	m.toast(["작업등 둘을 팔찌로 켜자 (E). 두 빛이 겹치는 곳에 길이 있다", "사슬 기둥 곁에서 E: 물결이 쇠 뚜껑을 당긴다. 그 밑 마개를 팔찌로", "벽의 죔쇠 둘을 팔찌로 풀자 (E). 빨간 동그라미가 뜨면 벽 틈으로"][i])
 	m.toast_t = 4.5
@@ -528,6 +556,7 @@ func steady_mates(f) -> void:
 
 func release(f) -> void:
 	m.work_q = 5
+	m.moon_tokens.refresh_quest() # the moon door gate asked for the cradle
 	f.release_look()
 	var first := give_reward()
 	var lines: Array = Main.STORY.WORK_RELEASE.duplicate()

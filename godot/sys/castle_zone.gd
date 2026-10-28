@@ -14,6 +14,7 @@ func _init(main: Main) -> void:
 # ---- 달의 계단 (between the castle and the garden): four landings, four powers of the crown
 func enter_stairs() -> void:
 	clear_quarters_job()
+	m.stairs_seen = true
 	m.in_hill = true
 	m.in_garden = false
 	m.player.x = m.stairs.marks.S.x
@@ -138,6 +139,8 @@ func castle_quest() -> String:
 	if not m.castle.gate_open:
 		return "성문의 벽돌을 팔찌로 풀자 (E)"
 	if not m.castle.door_open:
+		if m.castle.pages_read() == 3: # the moon door waits for the deep workshop (the owner, 2026-10-29)
+			return m.moon_tokens.knight_need_line() if m.moon_tokens.holds("knight") else "옥좌의 방으로 가자"
 		return tr("성 안에 흩어진 한결의 일기를 찾자 (E) %d/3") % m.castle.pages_read()
 	return "옥좌의 방으로 가자"
 
@@ -233,14 +236,21 @@ func castle_key() -> bool:
 			if first:
 				m.sfx(660, 0.2, "triangle", 0.2)
 				if m.castle.pages_read() == 3 and not m.castle.door_open:
-					m.castle.open_door()
-					m.shake = 0.3
-					m.sfx(150, 0.6, "triangle", 0.3, -40)
-					m.ui.mini.map_tex = castle_map()
+					if m.moon_tokens.holds("knight"):
+						m.after_story = func(): m.moon_tokens.hold_note("knight") # the page's lines first, then the bracelet
+					else:
+						open_moon_door()
 				m.set_quest(castle_quest())
 				m.save_game()
 			return true
 	return false
+
+# the moon door to the throne room: after the third page, and (v0.1.68) once the deep workshop's cradle is let go
+func open_moon_door() -> void:
+	m.castle.open_door()
+	m.shake = 0.3
+	m.sfx(150, 0.6, "triangle", 0.3, -40)
+	m.ui.mini.map_tex = castle_map()
 
 func spawn_knight(echo := false) -> void:
 	if m.enemies.any(func(e): return e.get("knight", false) and not e.dead):
@@ -403,8 +413,8 @@ func knight_beaten() -> void:
 	if not pip_lines.is_empty(): # after who he was, before Noeul asks about the garden
 		lines = lines.slice(0, lines.size() - 1) + [Main.STORY.KNIGHT_PIP] + pip_lines + [lines[lines.size() - 1]]
 	m.show_story("", lines)
-	m.set_quest("동쪽 문을 지나 정원 한가운데로 가자")
-	m.workshop_zone.door_look() # the bricks in the great hall's corner fall: the deep workshop's door
+	m.set_quest(m.moon_tokens.stairs_line("동쪽 문을 지나 정원 한가운데로 가자")) # the quarters first, if the doorkeeper is not seen to his bunk
+	m.workshop_zone.door_look()
 	m.ui.mini.map_tex = castle_map()
 	m.save_game()
 
@@ -755,6 +765,7 @@ func quarters_sit() -> void:
 	m.doll_at = m.castle.marks.h
 	m.quarters_q = 5
 	m.has_buckler = true
+	m.moon_tokens.refresh_quest() # the stairs gate asked for the quarters
 	var lines: Array = Main.STORY.QUARTERS_REST.duplicate()
 	if not give:
 		lines[0] = Main.STORY.QUARTERS_REST_AGAIN

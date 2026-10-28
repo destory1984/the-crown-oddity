@@ -439,6 +439,7 @@ func mill_key() -> bool:
 		m.burst(Vector3(sm.c.x, 0.8, sm.c.y), Color("#e8d27a"), 40, 3.0)
 		m.sfx(784, 0.12, "triangle", 0.25)
 		m.moon_tokens.earn(m.moon_tokens.HILL)
+		m.moon_tokens.refresh_quest()
 		m.save_game()
 		return true
 	return false

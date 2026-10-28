@@ -243,6 +243,7 @@ func open_hollow_box(i: int) -> void:
 			m.toast(tr("회복약 %d개, 금화 40") % n)
 		1: # Noeul's hollow
 			m.hollow_q = 3
+			m.moon_tokens.refresh_quest() # the hill gate asked for the valley
 			m.show_story("", Main.STORY.HOLLOW_LETTER)
 			m.toast("열셋째 등불 · 마을의 심지에게 가져가자")
 		2: # Hangyeol's pack

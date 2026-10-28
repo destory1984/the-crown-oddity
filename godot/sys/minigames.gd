@@ -138,7 +138,9 @@ func clear_trial() -> void:
 	m.burst(Vector3(m.player.x, 1.6, m.player.z), Color("#dfe8ff"), 40, 4.0)
 	m.sfx(784, 0.3, "triangle", 0.25)
 	m.toast(tr("달빛 시련을 마쳤다: %d분 %02d초") % [int(secs) / 60, int(secs) % 60] + ("" if first else tr(" (금화 +80)")))
+	m.trial_won = true
 	m.moon_tokens.earn(m.moon_tokens.HILL) # the hill deed (also in a new round, when the best time was kept)
+	m.moon_tokens.refresh_quest() # the castle gate asks for the mill too: the line moves on (earn does it only for a new token)
 	m.save_game()
 
 func build_race() -> void:

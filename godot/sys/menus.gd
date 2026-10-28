@@ -721,7 +721,7 @@ func journal_lines() -> Array:
 		var best_txt: String = tr("최고 기록 %d분 %02d초") % [int(m.trial_best) / 60, int(m.trial_best) % 60]
 		if m.trial_best <= 0.0:
 			side.call("달빛 시련", tr("바람 언덕 동쪽 선돌에서"))
-		elif m.tokens[m.moon_tokens.HILL]:
+		elif m.trial_won:
 			side.call("달빛 시련", best_txt)
 		else: # a new round: the best time is kept, the deed is not
 			side.call("달빛 시련", tr("이번 회차는 바람 언덕 동쪽 선돌에서") + " · " + best_txt)

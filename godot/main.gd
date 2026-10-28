@@ -557,6 +557,7 @@ var trial_wave := 0          # 0 idle, 1..5 the wave being fought
 var trial_wait := 0.0        # pause before the next wave
 var trial_start := 0.0
 var trial_best := 0.0        # best clear in seconds (0: never cleared)
+var trial_won := false       # cleared in THIS round (v0.1.68: the castle gate needs the mill and the trial; the best time is kept across rounds, this is not)
 var trial_stone: Node3D
 
 # ---- the pinwheel race on the wind hills (west of the gorge): E at the race post starts a 25 s run;
@@ -700,6 +701,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.68: 길목 다섯이 곁일을 더 요구한다. 호수 → 숲은 아랫못의 물시계, 숲 → 언덕은 남쪽 골짜기의 기억, 언덕 → 성은 참새 풍차와 달의 시험 둘 다, 성의 달의 문은 작업장의 수리 요람, 달의 계단은 숙소의 깡통 문지기를 마쳐야 열린다. 작업장은 기사를 쓰러뜨리기 전에도 들어갈 수 있다. 막히면 소라가 물러서고 할 일 줄, 금빛 !, 미니맵, 일지(Q)가 필요한 일을 가리킨다. 이미 지난 저장은 다시 잠기지 않고 새 바퀴에서는 다시 닫힌다. GPT 추정으로 이야기만 따라가는 시간이 47분 → 약 72분이 된다.",
 	"· v0.1.67: 동굴에서 수정 반지를 네 번째 표식으로 얻고 나와도 정원 문 안내가 3/4에 머무르던 것을 4/4로 새로 고친다. 첫 진주를 얻은 직후 물빛 동굴 안에서도 출구에 금빛 ! 와 미니맵 표시가 나온다. 새 회차에서 달빛 시련 실마리와 일지는 이번 회차의 언덕 표식으로 판단하고 최고 기록은 따로 보인다.",
 	"· v0.1.66: 옛 저장이나 닫힌 관문에서 돌아선 뒤 할 일 줄이 부족한 표식의 일(숲 앞은 진주)로 바뀐다. 정원 문 앞 줄(3/4)에 !와 미니맵 표시가 생겨 가장 가까운 빠진 표식으로 이끈다. 새 바퀴의 일지와 마을 사람 말이 이번 바퀴 다람쥐 우리(0/5)로 판단한다. 다람쥐 우리 곁에서도 가만히 있으면 체력이 초당 2% 찬다",
 	"· v0.1.65: 가만히 있으면 체력이 찬다. 3초 동안 움직이지도 베지도 막지도 않고, 6칸 안에 괴물이 없고 우두머리와 싸우는 중이 아니면 1초에 최대 체력의 2%씩 찬다(체력 100이면 50초에 가득).",
@@ -1460,6 +1462,7 @@ var stairs = STAIRS.new()
 const UNDER := preload("res://undercroft.gd")
 var under = UNDER.new()     # 성 아래 잠긴 층, a side zone under the castle's great hall (Sora is still in_hill there)   # 달의 계단 from the castle's east gate up to the garden (Sora is still in_hill there)
 var stairs_spawned := false
+var stairs_seen := false     # stepped onto the moon stairs once (v0.1.68: the quarters gate never closes again after that)
 var castle = CASTLE.new()   # 가라앉은 달지기 성 between the hill and the garden (Sora is still in_hill in there)
 var castle_q := 0           # 0 never entered, 1 inside, 2 fighting the knight, 3 knight beaten (east gate open)
 var castle_spawned := false
@@ -2261,7 +2264,8 @@ func _process(dt: float) -> void:
 		fade_then(castle_zone.leave_castle)
 	if in_castle() and Vector2(player.x, player.z).distance_to(castle.marks.E) < 0.8 and fade_rect.color.a == 0.0:
 		if castle_q >= 3 or garden_q >= 1:
-			fade_then(enter_stairs)
+			if moon_tokens.gate("stairs", castle.marks.E): # the quarters' tin doorkeeper seen to his bunk (the owner, 2026-10-29)
+				fade_then(enter_stairs)
 		elif toast_t <= 0.0:
 			toast("동쪽 문이 굳게 닫혀 있다")
 	if in_castle() and gust_dir == Vector2.ZERO and Vector2(player.x, player.z).distance_to(UNDER_STAIR) < 0.6 and fade_rect.color.a == 0.0:

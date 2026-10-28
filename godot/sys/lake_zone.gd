@@ -254,6 +254,7 @@ func south_key() -> bool:
 			return true
 		m.lake.turn_spring()
 		m.south_q = 4
+		m.moon_tokens.refresh_quest() # the forest gate asked for the water clock
 		m.burst(Vector3(m.lake.marks.K.x, 1.2, m.lake.marks.K.y), Color("#e8c84a"), 30, 3.0)
 		m.burst(Vector3(m.lake.marks.W.x, 0.5, m.lake.marks.W.y), Color("#9fd4ff"), 36, 3.5)
 		m.shake = 0.2
