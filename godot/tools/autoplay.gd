@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
@@ -200,11 +200,11 @@ func run() -> void:
 		await wait(0.3)
 		check("start_click", not main.intro and absf(main.cam_yaw - main.CAM_YAW) < 0.001, "title closes on a mouse click, camera back to the fixed angle (yaw %.3f)" % main.cam_yaw)
 		check("story_opens", main.story_open, "opening illustration shows after the title")
-		for k in 30:
+		for k in 60: # clicks wait 0.6 s after the box opens and 0.25 s after each line (v0.1.60)
 			if not main.story_open:
 				break
 			click()
-			await wait(0.05)
+			await wait(0.1)
 		await wait(0.7)
 		check("story_closes", not main.story_open and not main.ui.story.visible, "two clicks page through and close it")
 	if main.intro:
@@ -539,8 +539,10 @@ func run() -> void:
 				for dx in range(-1, 2):
 					if main.hill.char_at(t.x + dx, t.y + dz) in main.hill.GRASS_CLEAR:
 						near_clear += 1
-		var mesh: bool = main.veg_meshes.any(func(mm): return mm.instance_count == tiles.size() * 6)
-		check("hill_dressing", tiles.size() > 400 and near_clear == 0 and mesh, "hill grass tiles %d, next to the path or a used spot %d, tuft mesh of six a tile=%s" % [tiles.size(), near_clear, mesh])
+		# no grass tufts since v0.1.54, flowers in patches instead
+		var mesh: bool = not main.veg_meshes.any(func(mm): return mm.instance_count == tiles.size() * 6)
+		var flowers: int = main.hill.flower_spots
+		check("hill_dressing", tiles.size() > 400 and near_clear == 0 and mesh and flowers >= 600, "hill grass tiles %d, next to the path or a used spot %d, no tuft mesh=%s, flower clumps %d (patch tiles %d)" % [tiles.size(), near_clear, mesh, flowers, main.hill.bloom_tiles.size()])
 	# the other maps' ground dressing: no planted tile on or next to a path, a mark or a used spot, some tiles in
 	# every map, the tuft meshes hold exactly their tiles' tufts, and the whole map stays inside its tuft budget
 	for area in [["village_dressing", main.village, main.village.VILLAGE_X, 250, 3600], ["lake_dressing", main.lake, main.lake.LAKE_X, 150, 2600],
@@ -690,7 +692,7 @@ func run() -> void:
 		await get_tree().process_frame
 		await get_tree().process_frame
 		var told: bool = tall > 0 and (main.plant_mats[0] as ShaderMaterial).get_shader_parameter("hit").z < 1.0
-		await get_tree().create_timer(1.5).timeout
+		main.combat.update_plants(1.5) # by hand: in a full run another test's slash could restart the shake meanwhile
 		var settled: bool = main.combat.plant_hit.z > 1.3
 		check("plant_shake", told and settled, "tall plant materials %d, blow passed on %s, settled after 1.5 s %s" % [tall, told, settled])
 	if want.call("pip_rest_far"):
@@ -743,6 +745,93 @@ func run() -> void:
 			sf.store_string(keep_save)
 			sf.close()
 		check("pip_rest_far", all_ok, " | ".join(rows))
+	if want.call("sora_breath"):
+		# standing still Sora breathes (v0.1.54): the breath sheet, four frames turning over in a second
+		main.idle_name = ""
+		var seen := {}
+		var on_sheet := false
+		for k in 5:
+			main.sora.update_idle(0.25)
+			on_sheet = main.hero.texture.resource_path.get_file() == "breath.png"
+			seen[int(main.hero.region_rect.position.x / (main.hero.texture.get_width() / 4.0))] = true
+		main.idle_name = ""
+		check("sora_breath", on_sheet and seen.size() == 4, "breath sheet %s, frames seen %d of 4" % [on_sheet, seen.size()])
+	if want.call("rest_why"):
+		# by day, standing by a lit lantern says why the moon light does not fill (v0.1.55)
+		var h0: float = main.hour
+		var lamp = main.lanterns.filter(func(l): return l.position.x < 100.0 and not l.get_meta("dark", false) and l != main.dark_lamp) # the marsh, where she starts
+		var said := false
+		if not lamp.is_empty():
+			calm_enemies(true)
+			main.hour = 12.0
+			main.crown_pips = 0
+			main.rest_why_said = false
+			main.toast_t = 0.0
+			reset_to(Vector2(lamp[0].position.x + 0.4, lamp[0].position.z + 1.0))
+			await wait(1.8)
+			said = main.rest_why_said and "낮에는" in main.ui.toast.text
+		main.hour = h0
+		main.crown_pips = main.pip_max
+		check("rest_why", said, "marsh lamps lit %d, day reason said %s" % [lamp.size(), said])
+	if want.call("hawk_unstick"):
+		# a downed hawk whose win never landed is counted as beaten after 2 s, so the hill does not stall (v0.1.56)
+		var q0: int = main.hill_q
+		var qr: String = main.quest_raw
+		var keep := [main.player.gold, main.player.xp, main.player.lv]
+		main.hill_q = 2
+		var stale := {"hawk": true, "dead": true, "cave": true, "x": main.hill.marks.B.x, "z": main.hill.marks.B.y}
+		main.enemies.append(stale)
+		for k in 30:
+			main.hill_zone.hawk_unstick(0.1)
+		var moved_on: bool = main.hill_q == 3 and not main.enemies.has(stale)
+		main.close_story()
+		main.hill_q = q0
+		main.set_quest(qr)
+		main.player.gold = keep[0]
+		main.player.xp = keep[1]
+		main.player.lv = keep[2]
+		check("hawk_unstick", moved_on, "hill_q after 3 s with only a downed hawk: %d, stale entry gone %s" % [3 if moved_on else 2, not main.enemies.has(stale)])
+	if want.call("camp_diary"):
+		# Hangyeol's camp: E between the hook and the diary reads the diary while the quest is on it (v0.1.59)
+		var q0: int = main.road_q
+		var qr: String = main.quest_raw
+		var k: Vector2 = main.garden.road_marks.k
+		var j: Vector2 = main.garden.road_marks.j
+		main.road_q = 2
+		main.player.x = (k.x + j.x) / 2.0
+		main.player.z = (k.y + j.y) / 2.0
+		main.close_story()
+		main.garden_zone.road_key()
+		var moved_on: bool = main.road_q == 3
+		main.close_story()
+		main.road_q = q0
+		main.set_quest(qr)
+		check("camp_diary", moved_on, "standing between the hook and the diary, E with the quest on the diary: road_q %d (want 3)" % (3 if moved_on else 2))
+	if want.call("click_guard"):
+		# a click right as a story box opens does not skip its first line; one a moment later does (v0.1.60)
+		main.close_story()
+		await wait(0.6)
+		main.show_story("", ["||첫째 줄", "||둘째 줄"])
+		main.ui.story_text.visible_characters = -1
+		click()
+		await wait(0.05)
+		var kept: bool = main.story_open and main.story_lines.size() == 1
+		await wait(0.7)
+		click()
+		await wait(0.05)
+		var moved: bool = main.story_lines.is_empty()
+		main.close_story()
+		check("click_guard", kept and moved, "early click kept the first line %s, a later click moved on %s" % [kept, moved])
+	if want.call("round_badge"):
+		# from the second round the HUD says the round and its difficulty, and a banner opens it (v0.1.61)
+		var ng0: int = main.ng
+		main.ng = 1
+		var badge: String = main.errands.round_badge()
+		main.errands.round_banner()
+		var banner: bool = main.ui.banner_title.text == "2회차 시작" and "1.5" in main.ui.banner_sub.text
+		main.ng = ng0
+		main.banner_t = 0.0
+		check("round_badge", badge == "★ 2회차 · 난이도 ×1.5" and banner, "badge '%s', banner %s" % [badge, banner])
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -6060,11 +6149,11 @@ func run() -> void:
 		reset_to(Vector2(199, 12))
 		main.rest_t = 0.0
 		await wait(3.5)
-		var warm: bool = main.crown_pips == 1
+		var warm: bool = main.crown_pips >= 1 # 2 when an earlier test left the moonflower tea (1.8 s a pip)
 		reset_to(Vector2(204, 12.4))
 		main.rest_t = 0.0
 		await wait(3.5)
-		var lamp_day: bool = main.crown_pips == 1
+		var lamp_day: bool = main.crown_pips >= 1
 		# 5. the west knot (1 pip), the east one (the hedgehogs roll out), the south one waits for them
 		main.crown_pips = 8
 		main.player.inv = 99.0

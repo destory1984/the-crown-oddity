@@ -115,6 +115,17 @@ func festival_key() -> bool:
 func ng_mult() -> float:
 	return 1.0 + 0.5 * m.ng
 
+# "★ 2회차 · 난이도 ×1.5": under the place's name on the HUD, from the second round on
+func round_badge() -> String:
+	return tr("★ %d회차 · 난이도 ×%s") % [m.ng + 1, ("%.1f" % ng_mult()).trim_suffix(".0")]
+
+# the big banner once a new round begins
+func round_banner() -> void:
+	m.ui.banner_title.text = tr("%d회차 시작") % (m.ng + 1)
+	m.ui.banner_sub.text = tr("괴물이 처음보다 %s배 단단하고 아프다") % ("%.1f" % ng_mult()).trim_suffix(".0")
+	m.ui.banner.modulate.a = 1.0
+	m.banner_t = 4.0
+
 func ng_key() -> bool:
 	if not m.in_garden or m.garden_q < 5 or Vector2(m.player.x, m.player.z).distance_to(m.garden.marks.C) > 3.0:
 		return false

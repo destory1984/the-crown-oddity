@@ -699,6 +699,14 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.61: 2회차부터 왼쪽 위 지역 이름 아래에 '★ 2회차 · 난이도 ×1.5'처럼 지금 회차와 괴물 배율을 금빛으로 늘 띄운다. 새 회차가 시작되면 화면 가운데에 '2회차 시작 · 괴물이 처음보다 1.5배 단단하고 아프다'가 4초 뜬다.",
+	"· v0.1.60: 싸우며 누르던 클릭이 막 열린 이야기 상자를 휙 넘겨 버리지 않게 했다. 상자가 열린 뒤 0.6초, 새 줄이 뜬 뒤 0.25초 동안은 클릭을 받지 않는다(키는 그대로). 넘겨 버린 엔딩은 일지(Q)의 '엔딩 다시 보기'로 다시 볼 수 있다.",
+	"· v0.1.59: 한결의 야영터에서 일기를 읽어도 할 일이 넘어가지 않던 것을 고쳤다. 갈고리와 일기장이 대각선 한 칸 거리라 E가 늘 갈고리를 먼저 집었다. 이제 둘 다 가까우면 더 가까운 쪽을, 할 일이 일기일 때는 일기를 먼저 읽는다.",
+	"· v0.1.58: 왼쪽 위 글자를 한 단계씩 키웠다. 체력·기세·기력·경험·달빛 이름과 수치 15 → 16, 동무 이름 15 → 16과 상태 13 → 14, 지역 이름 17 → 18과 그 아래 줄 14 → 15.",
+	"· v0.1.57: 바람 언덕의 잔디 풀숲(한 칸에 6포기)을 걷어 내고 꽃을 늘렸다. 등불 둘레 흰 아네모네는 그대로이고, 비탈에 3×3칸 꽃 무리를 다섯 덩이에 두 덩이꼴로 심었다(보라 아네모네, 노랑·하늘빛 들꽃, 한 칸에 4포기). 꽃은 모두 777 → 940포기쯤이다.",
+	"· v0.1.56: 바람 언덕에서 벽돌 매가 나오지 않고 느낌표만 떠 있던 막힘을 고쳤다. 쓰러진 매가 이긴 처리 없이 남아 있으면 2초 뒤 이긴 것으로 마무리하고, 바위턱에서 14칸 넘게 떨어진 매는 제자리로 돌아간다.",
+	"· v0.1.55: 등불 곁에서 달빛이 차지 않을 때 까닭을 한 번 알려 준다. 낮에 켜진 등불 곁에 1.2초 서 있으면 '낮에는 달빛이 차지 않는다. 밤 9시부터 켜진 등불 곁에서 쉬자', 밤에 꺼진 등불 곁이면 '꺼진 등불 곁에서는 달빛이 차지 않는다'.",
+	"· v0.1.54: 소라도 가만히 서 있으면 숨을 고른다. 머리와 어깨가 0.25초마다 0 → 1 → 2 → 1픽셀 오르내린다(art/sora/*/breath.png). 예전 서 있기 그림(눈 깜박임, 옆보기, 윙크)은 10초 넘게 쉴 때 하는 몸짓 가운데 하나가 되었다.",
 	"· v0.1.53: 마을 밖 등불에서도 달빛이 찬다. 밤에 켜진 등불 곁에서 0.8초 넘게 가만히 쉬면 괴물이 소라를 알아채지 못해 쫓아오지 않고, 근처를 어슬렁거리던 괴물도 반대쪽으로 멀어진다. 쉬기를 막는 괴물도 6칸 안에서 2.5칸 안으로 좁혔다. 예전에는 들판 등불 둘레에 늘 괴물이 다가와 마을 등불에서만 차는 것처럼 보였다. 우두머리는 그대로다.",
 	"· v0.1.52: 소라가 10시, 2시 방향(위쪽 대각선)으로 걸을 때 한쪽 발만 늘 앞에 나가 있던 것을 고쳤다. 걸음 네 칸 가운데 뒤 두 칸의 다리를 좌우로 뒤집어 두 발이 번갈아 나간다(tools/sora_legs.py).",
 	"· v0.1.51: 소라의 베기가 닿으면 둘레의 키 큰 풀과 꽃(코스모스, 억새, 아네모네, 고사리, 물풀, 부들)이 바깥으로 크게 휘었다가 흔들리며 1초 남짓에 가라앉는다. 잔디 같은 낮은 풀은 그대로다.",
@@ -1281,6 +1289,8 @@ const SKILL_CD := [3.0, 1.2, 6.0]
 var woke := [false, false, false]
 var shrine_seen := false
 var shrine_nodes: Array = []
+var rest_why_t := 0.0 # seconds she has stood where the moon light cannot fill (hud_build.rest_why)
+var rest_why_said := false
 var lamp_safe := false # resting by a lit lantern at night: monsters do not notice her (hud_build.update_pips)
 var plant_mats: Array = [] # the tall plants' grass materials (combat.gd plants_hit)
 
@@ -1936,6 +1946,9 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F9: # asks first (save.ask_reset)
 		save.ask_reset()
 		get_viewport().set_input_as_handled()
+		return
+	if story_open and event is InputEventMouseButton and event.pressed and story.click_too_soon():
+		get_viewport().set_input_as_handled() # a click from the fight, not for the box (story.gd click_too_soon)
 		return
 	if story_open and ((event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed)):
 		story.next_story()

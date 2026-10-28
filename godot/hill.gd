@@ -107,14 +107,14 @@ func _open_round(x: int, z: int) -> bool:
 
 var anemone_tiles: Array = [] # tiles with wind anemones (round the rest lanterns)
 var silver_tiles: Array = []  # tiles with silver grass (beside the fence and the gorge)
+var bloom_tiles: Array = []   # tiles in the flower patches out on the slopes (v0.1.54)
+var flower_spots := 0         # flower clumps on the hill, anemones and patches (autoplay hill_dressing)
 
 func dress(m: Node, ground: Array, path: Array, tiles: Array) -> void:
 	var d = m.dressing
 	d.ground_blocks(ground, HILL_X, d.speckle_tex([Color("#7aa84a"), Color("#88b656"), Color("#88b656"), Color("#9cc464")]))
 	d.ground_blocks(path, HILL_X, d.speckle_tex([Color("#b0a178"), Color("#c2b48a"), Color("#c2b48a"), Color("#d4c79e")]))
-	var tuft: Texture2D = d.tuft_tex(["#6c9638", "#7aa440", "#88b048", "#9cbf54", "#b4cf68", "#cde08a", "#e6efb2"], 0.7, 3,
-		["#fff6d8", "#ffe36a", "#c9b8ff"])
-	d.grass(tuft, 0.8, 0.5, d.spots_on(tiles, 0.0, 6), 0.2)
+	# no grass tufts: flowers instead (the owner, 2026-10-28: "바람의 언덕에 (풀) 없애고, 꽃을 늘리자")
 	# wind anemones within 2.5 tiles of the rest lanterns, silver grass on the tiles beside the fence and the gorge
 	# (the owner, 2026-10-28)
 	var lamps: Array = []
@@ -124,6 +124,7 @@ func dress(m: Node, ground: Array, path: Array, tiles: Array) -> void:
 				lamps.append(Vector2(HILL_X + x, z))
 	var anemone: Array = []
 	var silver: Array = []
+	var bloom: Array = []
 	for t in tiles:
 		if lamps.any(func(l): return l.distance_to(t) <= 2.5):
 			anemone.append(t)
@@ -139,9 +140,26 @@ func dress(m: Node, ground: Array, path: Array, tiles: Array) -> void:
 					edge = true
 		if edge and (tx + tz) % 2 == 0:
 			silver.append(t)
+		elif not edge and posmod(int(floor(tx / 3.0)) * 7 + int(floor(tz / 3.0)) * 13, 5) < 2:
+			bloom.append(t) # patches of three by three tiles, two blocks in five, so bare slope runs between them
 	anemone_tiles = anemone
 	silver_tiles = silver
-	d.grass(d.anemone_tex(["#ffffff", "#f4f0ff", "#e2d6ff", "#ffffff"]), 0.8, 0.85, d.spots_on(anemone, 0.0, 3, 0.8, 1.1), 0.24, false)
+	bloom_tiles = bloom
+	# the patches take one colour each: pale violet anemones, or yellow and sky-blue wild flowers, by block
+	var violet: Array = []
+	var sunny: Array = []
+	for t in bloom:
+		if posmod(int(floor((int(t.x) - HILL_X) / 3.0)) + int(floor(int(t.y) / 3.0)), 2) == 0:
+			violet.append(t)
+		else:
+			sunny.append(t)
+	var sa: Array = d.spots_on(anemone, 0.0, 3, 0.8, 1.1)
+	var sv: Array = d.spots_on(violet, 0.0, 4, 0.95, 1.25)
+	var ss: Array = d.spots_on(sunny, 0.0, 4, 0.95, 1.25)
+	flower_spots = sa.size() + sv.size() + ss.size()
+	d.grass(d.anemone_tex(["#ffffff", "#f4f0ff", "#e2d6ff", "#ffffff"]), 0.8, 0.85, sa, 0.24, false)
+	d.grass(d.anemone_tex(["#d9c8ff", "#c6b0f4", "#ece2ff", "#b9a2ec"]), 0.8, 0.85, sv, 0.24, false)
+	d.grass(d.anemone_tex(["#ffe36a", "#fff2a8", "#9fd0ff", "#ffd84a"]), 0.8, 0.85, ss, 0.24, false)
 	d.grass(d.plume_tex(), 1.0, 1.25, d.spots_on(silver, 0.0, 1, 0.85, 1.15), 0.26, false)
 
 func build(m: Node) -> void:

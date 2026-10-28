@@ -96,10 +96,15 @@ func road_key() -> bool:
 				m.toast("뿌리 벽돌이 흙으로 풀렸다")
 				m.save_game()
 				return true
-	if me.distance_to(m.garden.road_marks.k) < 1.6:
+	# the hook (k) and the diary (j) stand one diagonal tile apart: E took the hook first wherever she stood, so the
+	# diary the quest asked for never opened (the owner, 2026-10-28: "읽어도 그대로야"). Now the nearer one, and the
+	# diary first while the quest is on it.
+	var dk := me.distance_to(m.garden.road_marks.k)
+	var dj := me.distance_to(m.garden.road_marks.j)
+	if dk < 1.6 and not (dj < 1.6 and (m.road_q < 3 or dj <= dk)):
 		m.show_story("", Main.STORY.ROAD_HOOK13 if m.hollow_q >= 3 else Main.STORY.ROAD_HOOK)
 		return true
-	if me.distance_to(m.garden.road_marks.j) < 1.6:
+	if dj < 1.6:
 		m.show_story("", m.road_page_lines())
 		if m.road_q < 3:
 			m.road_q = 3

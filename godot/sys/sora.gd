@@ -13,7 +13,7 @@ const IDLE_ACTS := [
 	"rest-rope", "rest-scope", "rest-sit", "rest-sleep", "rest-snack", "rest-socks", "rest-spin", "rest-star",
 	"rest-stretch", "rest-string", "rest-sway", "rest-tea", "rest-tilt", "rest-umbrella", "rest-water",
 	"rest-wave", "rest-wave2", "rest-yawn", "rest-yoyo", "see-aurora", "see-hush", "see-point", "see-snap",
-	"see-up", "see-wow"
+	"see-up", "see-wow", "idle" # "idle": the old standing loop (blink, look aside, wink) as one of the acts
 ]
 const IDLE_LONG := ["rest-snack", "rest-tea", "rest-water", "rest-nod", "rest-sleep", "rest-yoyo", "rest-juggle", "rest-knit", "rest-draw", "rest-music", "rest-string"] # these play twice as long
 const BUCKLER_GUARD := 0.16   # the flash guard window with the buckler (0.12 without)
@@ -143,19 +143,22 @@ func set_hero_idle(name: String, frame: int) -> void:
 	m.hero.offset = m.walk_off
 
 func update_idle(dt: float) -> void:
-	if m.idle_name == "": # just stopped: breathe, facing the viewer
-		m.idle_name = "idle"
+	# just stopped: breathe, facing the viewer, the head and shoulders easing 1-2 px down and up a frame every 0.25 s
+	# (art/sora/*/breath.png; the owner, 2026-10-28: "가만히 있을 때에도 조금씩 숨을 헐떡이면서 움직이잖아", Noeul and
+	# Mulgyeol first)
+	if m.idle_name == "":
+		m.idle_name = "breath"
 		m.idle_k = 0.0
 		m.idle_left = m.rnd(3.0, 6.0)
-	m.idle_k += dt * (1.4 if m.idle_name == "idle" else 1.8) # slow, calm frames: breathing 1.4 per second, actions 1.8
+	m.idle_k += dt * (4.0 if m.idle_name == "breath" else (1.4 if m.idle_name == "idle" else 1.8)) # breathing 4 frames a second, the old loop 1.4, actions 1.8
 	m.idle_left -= dt
 	if m.idle_left <= 0.0:
 		var calm: bool = m.combat.nearest_enemy(7.0) == null
-		if m.idle_name == "idle" and calm and m.t - m.last_input_t >= 10.0:
+		if m.idle_name == "breath" and calm and m.t - m.last_input_t >= 10.0:
 			m.idle_name = IDLE_ACTS.pick_random()
 			m.idle_left = 8.9 if m.idle_name in IDLE_LONG else 4.45 # two or four loops of four frames
 		else:
-			m.idle_name = "idle"
+			m.idle_name = "breath"
 			m.idle_left = m.rnd(2.0, 4.0)
 		m.idle_k = 0.0
 	set_hero_idle(m.idle_name, mini(int(m.idle_k * 1.2), 3) if m.idle_name == "see-hush" else int(m.idle_k) % 4) # the hush plays once and holds

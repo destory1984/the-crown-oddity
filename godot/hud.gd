@@ -67,8 +67,8 @@ func bar(at: Vector2, w: float, frac: float, col: Color, label: String, value: S
 	draw_rect(Rect2(at - Vector2(1, 1), Vector2(w + 2, h + 2)), GOLD_DIM, false, 1.0)
 	diamond(at + Vector2(-6, h / 2.0), 5, GOLD)
 	diamond(at + Vector2(w + 6, h / 2.0), 5, GOLD)
-	text(at + Vector2(-45, 10), label, 15, DIM) # 11 -> 14 -> 15 and the numbers 12 -> 14 -> 15 (the owner, 2026-10-27: too small, then +1)
-	text(at + Vector2(w + 16, 11), value, 15, TEXT)
+	text(at + Vector2(-45, 10), label, 16, DIM) # 11 -> 14 -> 15 -> 16 and the numbers 12 -> 14 -> 15 -> 16 (the owner, 2026-10-27/28: too small, then +1, +1)
+	text(at + Vector2(w + 16, 11), value, 16, TEXT)
 
 # where the bars start: past the portrait ring and its right diamond (182, or 250 beside the big ring)
 func bars_x() -> float:
@@ -139,7 +139,7 @@ func _draw() -> void:
 	var need: int = p.lv * 25
 	bar(Vector2(x0, 100), bar_w(), float(p.xp) / need, Color("#8de07a"), "경험", "%d/%d" % [p.xp, need])
 	# the bracelets' moon gauge: pip_max small diamonds (8 at the start, up to 12; 12 end at x 354, under the 400 px bars)
-	text(Vector2(x0 - 45, 130), "달빛", 15, DIM)
+	text(Vector2(x0 - 45, 130), "달빛", 16, DIM)
 	var spots := pip_spots()
 	pips_drawn = spots.size()
 	for i in spots.size():
@@ -178,8 +178,10 @@ func _draw() -> void:
 		if ph.x < 0.98:
 			draw_circle(sp + Vector2(11.0 * 2.0 * ph.x * ph.y, -1.0), 10.8, Color("#0b1530"))
 	# zone name, small, under the dial
-	text(Vector2(10, 254 + low), main.ui.zone_name.text, 17, TEXT) # 14 / 11 -> 17 / 14 (the owner, 2026-10-27)
-	text(Vector2(10, 275 + low), main.ui.zone_sub.text, 14, DIM)
+	text(Vector2(10, 254 + low), main.ui.zone_name.text, 18, TEXT) # 14 / 11 -> 17 / 14 -> 18 / 15 (the owner, 2026-10-27/28)
+	text(Vector2(10, 276 + low), main.ui.zone_sub.text, 15, DIM)
+	if main.ng > 0: # the round and how much tougher than the first the monsters are
+		text(Vector2(10, 299 + low), main.errands.round_badge(), 15, GOLD)
 	# ---- quest ornaments: from the box hud_build laid the quest text out in, so no line crosses the text
 	if main.ui.quest.visible and main.hud_build.quest_deco.size != Vector2.ZERO:
 		var d: Rect2 = main.hud_build.quest_deco

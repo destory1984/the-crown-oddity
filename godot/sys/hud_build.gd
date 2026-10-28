@@ -51,7 +51,7 @@ func build_mate_hud(root: Control) -> void:
 		face.size = Vector2(28, 28)
 		face.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(face)
-		label(row, ["물결", "노을"][i], Vector2(34, -2), 15, Color("#f6d27a")) # 13 -> 15, the state 11 -> 13 (the owner, 2026-10-27)
+		label(row, ["물결", "노을"][i], Vector2(34, -2), 16, Color("#f6d27a")) # 13 -> 15 -> 16, the state 11 -> 13 -> 14 (the owner, 2026-10-27/28)
 		var back := ColorRect.new()
 		back.color = Color(0.1, 0.1, 0.15, 0.8)
 		back.position = Vector2(34, 21)
@@ -64,7 +64,7 @@ func build_mate_hud(root: Control) -> void:
 		fill.size = Vector2(110, 6)
 		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(fill)
-		var act := label(row, "", Vector2(82, 0), 13, Color("#c9bfa6"))
+		var act := label(row, "", Vector2(84, 0), 14, Color("#c9bfa6"))
 		act.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		row.visible = false
 		m.ui.mate_rows.append({"row": row, "fill": fill, "act": act})
@@ -951,11 +951,38 @@ func build_hud() -> void:
 	for k in ["zone", "stats"]:
 		pass
 
+# what keeps the moon light from filling where she stands still by a lantern, or "" when nothing does (or she is
+# not by one): day by a lit lantern, or night by an unlit one
+func rest_why(night_now: bool) -> String:
+	if m.crown_pips >= m.pip_max or m.story_open or Vector2(m.player.vx, m.player.vz).length() >= 0.3 or m.fly_q >= 3:
+		return ""
+	var me := Vector2(m.player.x, m.player.z)
+	var lit := false
+	var dark := false
+	for l in m.lanterns:
+		if l != m.dark_lamp and Vector2(l.position.x - me.x, l.position.z - me.y).length() < 2.0:
+			if l.get_meta("dark", false):
+				dark = true
+			else:
+				lit = true
+	if lit and not night_now:
+		return "낮에는 달빛이 차지 않는다. 밤 9시부터 켜진 등불 곁에서 쉬자" + ("" if m.touch_ui else " (T: 3시간 뒤로)")
+	if dark and not lit and night_now:
+		return "꺼진 등불 곁에서는 달빛이 차지 않는다"
+	return ""
+
 func update_pips(dt: float) -> void:
 	m.pip_flash -= dt
 	m.lamp_safe = false
 	var by_oak := m.forest_zone.oak_warm()
 	var night_now := m.is_night() or m.in_clock() or m.in_workshop() or by_oak # underground the clock room and the deep workshop rest as at night, and by the old oak's warm roots
+	var why := rest_why(night_now)
+	m.rest_why_t = m.rest_why_t + dt if why != "" else 0.0
+	if why == "":
+		m.rest_why_said = false
+	elif m.rest_why_t > 1.2 and not m.rest_why_said:
+		m.rest_why_said = true
+		m.toast(why)
 	var heal: bool = m.has_cushion and night_now and m.player.hp < m.player.max_hp
 	if (m.crown_pips >= m.pip_max or not night_now) and not heal:
 		m.rest_t = 0.0

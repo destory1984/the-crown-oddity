@@ -134,7 +134,20 @@ func touch_words(t: String) -> String:
 
 # small: the picture sits small in the corner above the box and the game stays in view, as in a talk scene
 # (the old painting in the last house's cupboard; the owner, 2026-10-25)
+# clicks that were meant for the fight ran on into a story box that opened meanwhile and skipped it (the owner,
+# 2026-10-28: the ending "클릭을 잘못했는데, 휙하고 지나가버렸어"): a click is not taken for 0.6 s after the box opens and
+# 0.25 s after a new line (main.gd _input); keys stay as they were
+const CLICK_OPEN_WAIT := 0.6
+const CLICK_LINE_WAIT := 0.25
+var opened_at := -10.0
+var line_at := -10.0
+
+func click_too_soon() -> bool:
+	var now := Time.get_ticks_msec() / 1000.0
+	return now - opened_at < CLICK_OPEN_WAIT or now - line_at < CLICK_LINE_WAIT
+
 func show_story(path: String, lines: Array, small := false) -> void:
+	opened_at = Time.get_ticks_msec() / 1000.0
 	small_pic = small
 	fit_story()
 	m.story_lines = lines.duplicate()
@@ -152,6 +165,7 @@ func show_story(path: String, lines: Array, small := false) -> void:
 	m.create_tween().tween_property(m.ui.story, "modulate:a", 1.0, 0.6)
 
 func show_line(line: String) -> void:
+	line_at = Time.get_ticks_msec() / 1000.0
 	if line.begins_with("@"): # "@res://art/story/x.jpg": the picture changes here, then the next line shows
 		m.ui.story_img.texture = load(line.substr(1))
 		show_line(m.story_lines.pop_front())
@@ -216,6 +230,8 @@ func start_game(with_story := true) -> void:
 	if not m.intro:
 		return
 	m.intro = false
+	if m.ng > 0 and m.story_step == 0:
+		m.errands.round_banner()
 	m.cam_yaw = Main.CAM_YAW # the title screen orbits the camera; play always starts from the same angle
 	if m.pip_note != "": # an old save's pips came back: said once, when play starts
 		var note := m.pip_note

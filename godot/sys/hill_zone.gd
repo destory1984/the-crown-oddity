@@ -632,11 +632,36 @@ func update_hill(dt: float) -> void:
 	for mill in m.hill.mills:
 		if mill.turning:
 			mill.blades.rotation.z += dt * 1.6
+	hawk_unstick(dt)
 	if m.hill_q == 2 and not m.story_open and Vector2(m.player.x, m.player.z).distance_to(m.hill.marks.B) < 6.0 \
 			and not m.enemies.any(func(e): return e.get("hawk", false)): # a downed hawk too: hill_q turns 3 only 1 s after the blow,
 			# and standing by its ledge in that second called a second hawk (the owner, 2026-10-26)
 		m.show_story("", Main.STORY.HAWK_IN)
 		m.after_story = spawn_hawk
+
+# the hawk fight could stall with the gold "!" over its ledge and no hawk coming (the owner, 2026-10-28: "이 느낌표는
+# 뭐?"): a downed hawk whose win never landed kept the next one away, and a live one far off its ledge never hunted.
+# A hawk down 2 s with hill_q still 2 counts as beaten; a live one more than 14 tiles off its ledge flies back to it.
+var hawk_down_t := 0.0
+
+func hawk_unstick(dt: float) -> void:
+	if m.hill_q != 2:
+		hawk_down_t = 0.0
+		return
+	var live: Array = m.enemies.filter(func(e): return e.get("hawk", false) and not e.dead)
+	var down: Array = m.enemies.filter(func(e): return e.get("hawk", false) and e.dead)
+	hawk_down_t = hawk_down_t + dt if live.is_empty() and not down.is_empty() else 0.0
+	if hawk_down_t > 2.0:
+		hawk_down_t = 0.0
+		for e in down:
+			m.enemies.erase(e)
+		hawk_beaten()
+	var c: Vector2 = m.hill.marks.B
+	for e in live:
+		if Vector2(e.x, e.z).distance_to(c) > 14.0:
+			e.x = c.x
+			e.z = c.y
+			e.hp = float(e.max_hp)
 
 func spawn_hawk() -> void:
 	if m.enemies.any(func(e): return e.get("hawk", false) and not e.dead):
