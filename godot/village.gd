@@ -903,6 +903,17 @@ const TOY_TAPS := [[440.0, 0.07], [330.0, 0.055], [247.0, 0.04]]
 var toy_taps := 0 # taps heard (autoplay toy_taps)
 var toy_tap_last := -1 # the number of the last tap
 
+# how far a brick can roll from p along dir before it would touch a fence, a house, water or the map's edge (the owner,
+# 2026-10-30: struck again and again, two bricks rolled off the village into the blank outside)
+func roll_room(p: Vector2, dir: Vector2, want: float) -> float:
+	var d := 0.0
+	while d + 0.1 <= want:
+		var q := p + dir * (d + 0.1)
+		if blocked(q.x, q.y) or blocked(q.x + dir.x * 0.3, q.y + dir.y * 0.3):
+			break
+		d += 0.1
+	return d
+
 func bricks_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool) -> void:
 	var me := Vector2(m.player.x, m.player.z)
 	var sent := 0
@@ -914,7 +925,10 @@ func bricks_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool)
 		if d.length() > reach + 0.6 or not (all_round or d.normalized().dot(f) > cone - 0.2):
 			continue
 		var away := (d.normalized() if d.length() > 0.05 else f).rotated(m.rnd(-0.6, 0.6))
-		var dist: float = m.rnd(1.2, 2.6)
+		var dist: float = roll_room(Vector2(b.position.x, b.position.z), away, m.rnd(1.2, 2.6))
+		if dist < 0.3: # against a fence or a wall: it bounces back the way the blow came
+			away = -away
+			dist = roll_room(Vector2(b.position.x, b.position.z), away, m.rnd(0.6, 1.2))
 		var to := Vector2(b.position.x, b.position.z) + away * dist
 		var t: float = 0.5 + dist * 0.25
 		var axis := Vector3(away.y, 0, -away.x) # roll over the edge facing the way it goes
