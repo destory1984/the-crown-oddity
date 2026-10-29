@@ -38,6 +38,8 @@ func sfx_stream(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide :=
 		for i in n:
 			var k := float(i) / n
 			var f := freq * pow(maxf(30.0, freq + slide) / freq, k) if slide != 0.0 else freq
+			if wave == "babble_old": # an old voice wavers: 5.5 Hz, 4% either way
+				f *= 1.0 + 0.04 * sin(TAU * 5.5 * i / rate)
 			phase += f / rate
 			var x := fmod(phase, 1.0)
 			var v: float
@@ -53,11 +55,16 @@ func sfx_stream(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide :=
 					v = lp * 1.8 * pow(1.0 - k, 3.0) + 0.6 * sin(phase * TAU) * minf(1.0, k * 20.0)
 				"babble": # a spoken syllable: a round tone with its octave, quick in, quick out
 					v = (sin(phase * TAU) + 0.35 * sin(phase * TAU * 2.0)) * minf(1.0, k * 12.0)
+				"babble_deep", "babble_old": # a grown man's or an old voice: more 2nd and 3rd harmonics, so a low pitch still carries
+					v = (sin(phase * TAU) + 0.6 * sin(phase * TAU * 2.0) + 0.35 * sin(phase * TAU * 3.0)) * 0.7 * minf(1.0, k * (8.0 if wave == "babble_old" else 12.0))
+					if wave == "babble_old": # and a little breath
+						lp = lerpf(lp, randf_range(-1.0, 1.0), 0.3)
+						v += lp * 0.12
 				"noise":
 					lp = lerpf(lp, randf_range(-1.0, 1.0), 0.18) # one-pole low-pass takes the hiss off
 					v = lp * 2.2 * (0.6 + 0.4 * sin(phase * TAU))
 				_: v = sin(phase * TAU)
-			v *= vol * pow(0.0001 if not wave in ["step", "babble"] else (0.01 if wave == "step" else 0.08), k) # exponential fade like the web version; a syllable keeps its body
+			v *= vol * pow(0.0001 if not (wave == "step" or wave.begins_with("babble")) else (0.01 if wave == "step" else 0.08), k) # exponential fade like the web version; a syllable keeps its body
 			data.encode_s16(i * 2, int(clampf(v, -1.0, 1.0) * 32767.0))
 		stream = AudioStreamWAV.new()
 		stream.format = AudioStreamWAV.FORMAT_16_BITS
@@ -68,8 +75,15 @@ func sfx_stream(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide :=
 
 # a voice under the typing, a blip for every other Hangul syllable, pitched by who speaks and by the syllable's vowel
 # (the owner, 2026-10-29: "자막이 흐를 때에 동숲처럼 말소리 비슷한게 나오게"); narration stays quiet
-const VOICE := {"소라": 640.0, "콩알": 720.0, "토리": 700.0, "여울": 560.0, "다래": 420.0, "심지": 520.0, "물결": 430.0,
-	"노을": 330.0, "도란": 300.0, "두솔": 280.0, "차돌": 260.0, "새참": 380.0, "보리": 400.0, "한결": 300.0}
+# each voice: [pitch Hz, syllable s, timbre, a blip every n syllables] (the owner, 2026-10-29: "사람마다 목소리 톤이 좀
+# 달라야지.. 심지 할아버지는 나이도 많고 & 남자이니까 약간 저음으로"): kids high and quick, grown men low and chesty,
+# the old ones low, wavering and slower
+const VOICE := {"소라": [640.0, 0.08, "babble", 2], "콩알": [720.0, 0.07, "babble", 2], "토리": [700.0, 0.07, "babble", 2],
+	"노을": [330.0, 0.08, "babble", 2], "여울": [560.0, 0.08, "babble", 2], "물결": [430.0, 0.08, "babble", 2],
+	"새참": [380.0, 0.09, "babble", 2], "도란": [300.0, 0.09, "babble", 2], "차돌": [260.0, 0.09, "babble_deep", 2],
+	"두솔": [190.0, 0.10, "babble_deep", 2], "한결": [300.0, 0.09, "babble", 2],
+	"심지": [150.0, 0.12, "babble_old", 3], "보리": [330.0, 0.11, "babble_old", 3], "다래": [350.0, 0.11, "babble_old", 3]}
+const VOICE_ANY := [480.0, 0.08, "babble", 2]
 # semitones by vowel (jungseong order ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ): open vowels low, ㅣ ㅔ high
 const VOWEL_STEP := [0, 3, 2, 4, -1, 4, 1, 4, -3, 0, 2, 2, -2, -4, -2, 2, 3, -3, -1, 4, 6]
 var babble_n := 0
@@ -78,17 +92,17 @@ func babble(from: int, to: int) -> void:
 	var who: String = m.ui.story_who.text
 	if who == "" or to <= from or not bool(m.cfg.get("voice", true)):
 		return
-	var base: float = VOICE.get(who.get_slice(" ", 0), 480.0)
+	var voice: Array = VOICE.get(who.get_slice(" ", 0), VOICE_ANY)
 	var text: String = m.ui.story_text.text
 	for i in range(maxi(from, 0), mini(to, text.length())):
 		var c := text.unicode_at(i)
 		if c < 0xAC00 or c > 0xD7A3:
 			continue
 		babble_n += 1
-		if babble_n % 2 == 0:
+		if babble_n % int(voice[3]) != 1 % int(voice[3]):
 			continue
 		var step: int = VOWEL_STEP[((c - 0xAC00) / 28) % 21] + randi_range(-1, 1)
-		sfx(snappedf(base * pow(2.0, step / 12.0), 1.0), 0.08, "babble", 0.32) # 0.09 for 0.055 s was lost under the music (the owner, 2026-10-29: "소리가 너무 작아")
+		sfx(snappedf(float(voice[0]) * pow(2.0, step / 12.0), 1.0), float(voice[1]), String(voice[2]), 0.32 if voice[2] == "babble" else 0.36) # 0.09 for 0.055 s was lost under the music (the owner, 2026-10-29: "소리가 너무 작아")
 
 func footstep() -> void:
 	if m.t - m.last_step < STEP_GAP:

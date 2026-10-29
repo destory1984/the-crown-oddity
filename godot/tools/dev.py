@@ -6,6 +6,8 @@
     python tools/dev.py build                 export the web build to export/web/
     python tools/dev.py ship -m "message"     check, commit here, build, copy build + source into the
                                               site repo and commit there. Never pushes.
+    python tools/dev.py ship -m "..." --quick a,b   same, but runs only the named tests, not the full suite; the full
+                                              suite then runs before the next push (the owner, 2026-10-30)
     python tools/dev.py kill                  close stray Godot processes
     python tools/dev.py test [NAME]           autoplay tests (tools/autoplay.gd); exit code = failures
     python tools/dev.py sound                 write every effect to shots/sounds/*.wav and print its shape
@@ -211,8 +213,11 @@ def bump_version():
     return v
 
 
-def ship(message):
-    if check() or test(None):
+def ship(message, quick=None):
+    if quick is not None and not quick:
+        print("--quick needs the batch's test names (a,b,c)")
+        return 1
+    if check() or test(quick):
         print("SHIP STOPPED: fix the failures above first")
         return 1
     v = bump_version()
@@ -263,6 +268,7 @@ def main():
     ap.add_argument("--hour")
     ap.add_argument("--pseudo", action="store_true", help="shot: pseudo-translate text to spot strings missing from i18n/text.csv")
     ap.add_argument("--day")
+    ap.add_argument("--quick", help="ship: run only these tests (comma list) instead of the full suite")
     a = ap.parse_args()
     if a.cmd == "kill":
         print(f"closed {kill()} Godot process(es)")
@@ -286,7 +292,7 @@ def main():
     if a.cmd == "ship":
         if not a.message:
             ap.error("ship needs -m MESSAGE")
-        return ship(a.message)
+        return ship(a.message, a.quick)
 
 
 if __name__ == "__main__":
