@@ -512,12 +512,12 @@ func build_settings(root: Control) -> void:
 	m.ui.news = news
 	m.ui.news_more = more
 	# About
-	# About as in Space Oddity (the owner, 2026-10-28): who made it, why, the code and a way to send a note; no Carl Sagan
+	# About as in Space Oddity (the owner, 2026-10-28): who made it, the code and a way to send a note; no Carl Sagan.
+	# The "만든 이유" row went (the owner, 2026-10-29: "설정 -> about -> 만든 이유 -> 삭제").
 	var about := [
 		["만든 사람", "우주 한량, 우주 토끼, 구스테 단톡방 사람들", 0.0, "", ""], # the owner, 2026-10-27
-		["만든 이유", "2026.10.22, Space Oddity 다음으로 손바닥만 한 태엽 정원을 걸어 다니는 RPG를 만들고 싶었다.", 56.0, "", ""],
-		["만든 코드", "이 게임의 코드는 모두 공개되어 있다.", 140.0, "깃허브에서 보기", SOURCE_URL],
-		["의견", "넣고 싶은 것, 틀린 곳을 알려 주세요 (깃허브 계정 필요).", 232.0, "의견 보내기", SOURCE_URL + "/issues"],
+		["만든 코드", "이 게임의 코드는 모두 공개되어 있다.", 56.0, "깃허브에서 보기", SOURCE_URL],
+		["의견", "넣고 싶은 것, 틀린 곳을 알려 주세요 (깃허브 계정 필요).", 148.0, "의견 보내기", SOURCE_URL + "/issues"],
 	]
 	m.ui.about_links = []
 	for r in about:

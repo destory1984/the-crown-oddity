@@ -6,11 +6,11 @@ const Main := preload("res://main.gd")
 
 var m: Main
 
+# three waves (the owner, 2026-10-29: "달빛 시련 5회 -> 3회"; it had five): goblins with archers, shields with wolves,
+# then the warden
 const TRIAL_WAVES := [
-	["g", "g", "g", "g"],
 	["g", "g", "g", "a", "a"],
-	["w", "w", "w"],
-	["s", "s", "a", "a", "g"],
+	["s", "s", "a", "w", "w"],
 	["W", "w", "w"], # W: the trial warden, a big goblin
 ]
 const RACE_TIME := 25.0
@@ -89,12 +89,24 @@ func spawn_trial_wave() -> void:
 			mats[2].albedo_color = Color("#6a6a78")
 			mats[5].albedo_color = Color("#dfe8ff")
 		m.burst(Vector3(at.x, 0.6, at.y), Color("#dfe8ff"), 12, 2.0)
-	m.toast(tr("달빛 시련 %d/5") % m.trial_wave)
+	m.toast(tr("달빛 시련 %d/%d") % [m.trial_wave, TRIAL_WAVES.size()])
 	m.sfx(330 + m.trial_wave * 60, 0.3, "triangle", 0.2)
+
+# the trial's place on the quest line while it runs (the owner, 2026-10-29: "바람 언덕 달빛 시련을 몇 번하고 있는지
+# 보여주는게 필요해"): which of the five waves, and how many of its foes still stand. Only the shown text changes;
+# quest_raw (and so the save) keeps the real line, and it comes back when the trial ends.
+func trial_line() -> String:
+	if m.trial_wait > 0.0:
+		return tr("달빛 시련 %d/%d · 곧 몰려온다") % [m.trial_wave, TRIAL_WAVES.size()]
+	return tr("달빛 시련 %d/%d · 남은 괴물 %d") % [m.trial_wave, TRIAL_WAVES.size(), trial_foes().size()]
 
 func update_trial(dt: float) -> void:
 	if m.trial_wave == 0:
 		return
+	var shown: String = m.quest_shown(trial_line())
+	if m.ui.quest.text != shown:
+		m.ui.quest.text = shown
+		m.ui.quest.visible = true
 	if not m.in_hill or Vector2(m.player.x, m.player.z).distance_to(m.hill.marks.R) > 9.0:
 		end_trial("선돌에서 멀어져 시련이 끝났다")
 		return
@@ -119,12 +131,14 @@ func end_trial(msg: String) -> void:
 		e.shadow.queue_free()
 	m.trial_wave = 0
 	m.trial_wait = 0.0
+	m.set_quest(m.quest_raw) # the real line back in place of the wave count
 	m.toast(msg)
 
 func clear_trial() -> void:
 	var secs := m.t - m.trial_start
 	var first := m.trial_best <= 0.0
 	m.trial_wave = 0
+	m.set_quest(m.quest_raw) # the real line back in place of the wave count
 	if first:
 		m.player.max_hp += 20
 		m.player.atk += 3

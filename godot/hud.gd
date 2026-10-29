@@ -52,6 +52,36 @@ func draw_pip_hint() -> void:
 func diamond(c: Vector2, r: float, col: Color) -> void:
 	draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), col)
 
+# the plate under the place's name, its sub-name and (from the second round) the round badge: as wide as the widest
+# of them, from above the name's letters to below the last line
+var zone_plate_rect := Rect2() # last drawn, for the tests
+func zone_plate(low: float) -> void:
+	var lines := [[main.ui.zone_name.text, 18], [main.ui.zone_sub.text, 15]]
+	if main.ng > 0:
+		lines.append([main.errands.round_badge(), 15])
+	var w := 0.0
+	for l in lines:
+		w = maxf(w, main.ui_font.get_string_size(tr(l[0]), HORIZONTAL_ALIGNMENT_LEFT, -1, l[1]).x)
+	if w <= 0.0:
+		zone_plate_rect = Rect2()
+		return
+	var bottom := (299.0 if main.ng > 0 else 276.0) + low + 8.0
+	zone_plate_rect = Rect2(Vector2(2, 254 + low - 21), Vector2(w + 18, bottom - (254 + low - 21)))
+	draw_style_box(navy_plate(), zone_plate_rect)
+
+var status_plate_rect := Rect2() # last drawn, for the tests
+var quest_plate_rect := Rect2()
+var plate_box: StyleBoxFlat
+# navy glass with a dim gold rim (#091627 at 72%, #e8b018 at 55%): the story box's colours, under HUD letters
+func navy_plate() -> StyleBoxFlat:
+	if plate_box == null:
+		plate_box = StyleBoxFlat.new()
+		plate_box.bg_color = Color(0.035, 0.086, 0.153, 0.72)
+		plate_box.border_color = Color(0.91, 0.69, 0.09, 0.55)
+		plate_box.set_border_width_all(1)
+		plate_box.set_corner_radius_all(8)
+	return plate_box
+
 func text(at: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0) -> void:
 	s = tr(s) # drawn text is not auto-translated like Labels are
 	draw_string_outline(main.ui_font, at, s, align, width, size, 4, Color(0, 0, 0, 0.7 * col.a)) # fades with the text
@@ -140,8 +170,13 @@ func _draw() -> void:
 	draw_circle(lb, lr, Color("#0b1530"))
 	draw_arc(lb, lr, 0, TAU, 32, GOLD, 2.0, true)
 	text(lb + Vector2(-20, 6), str(p.lv), 17 if big else 15, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 40)
-	# ---- bars
+	# ---- bars, on the navy plate (labels, bars, values, the moon gauge and the tokens)
 	var x0 := bars_x()
+	var vw := 0.0
+	for v in ["%d/%d" % [ceili(p.hp), p.max_hp], "%d/%d" % [int(p.mp), p.max_mp], "%d/%d" % [p.xp, p.lv * 25]]:
+		vw = maxf(vw, main.ui_font.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x)
+	status_plate_rect = Rect2(Vector2(x0 - 52, 22), Vector2(bar_w() + 52 + 16 + vw + 12, 142))
+	draw_style_box(navy_plate(), status_plate_rect)
 	bar(Vector2(x0, 34), bar_w(), p.hp / p.max_hp, Color("#e03a44"), "체력", "%d/%d" % [ceili(p.hp), p.max_hp])
 	bar(Vector2(x0, 56), bar_w(), p.mp / p.max_mp, Color("#f08a2a"), "기세", "%d/%d" % [int(p.mp), p.max_mp], p.mp >= 60.0)
 	bar(Vector2(x0, 78), bar_w(), p.sp / 100.0, Color("#f2e2b0"), "기력", "%d/100" % int(p.sp))
@@ -199,7 +234,9 @@ func _draw() -> void:
 		var ph: Vector2 = main.moon_phase()
 		if ph.x < 0.98:
 			draw_circle(sp + Vector2(11.0 * 2.0 * ph.x * ph.y, -1.0), 10.8, Color("#0b1530"))
-	# zone name, small, under the dial
+	# zone name, small, under the dial, on a dark plate in the story box's navy and gold so it reads over any ground
+	# (the owner, 2026-10-29: the round badge over a bright field, "잘 보이게, 뒷면에 .. 뭘 좀 넣어줘")
+	zone_plate(low)
 	text(Vector2(10, 254 + low), main.ui.zone_name.text, 18, TEXT) # 14 / 11 -> 17 / 14 -> 18 / 15 (the owner, 2026-10-27/28)
 	text(Vector2(10, 276 + low), main.ui.zone_sub.text, 15, DIM)
 	if main.ng > 0: # the round and how much tougher than the first the monsters are
@@ -207,6 +244,8 @@ func _draw() -> void:
 	# ---- quest ornaments: from the box hud_build laid the quest text out in, so no line crosses the text
 	if main.ui.quest.visible and main.hud_build.quest_deco.size != Vector2.ZERO:
 		var d: Rect2 = main.hud_build.quest_deco
+		quest_plate_rect = d.grow_individual(14, 0, 14, 0)
+		draw_style_box(navy_plate(), quest_plate_rect)
 		var cx := d.get_center().x
 		var half := d.size.x / 2.0
 		for y in [d.position.y + 4.0, d.end.y - 4.0]:

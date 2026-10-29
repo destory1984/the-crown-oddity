@@ -314,6 +314,7 @@ func attack() -> void:
 		m.world_build.chop_trees(reach, f, cone, spin or slam)
 	if m.in_village and m.in_house < 0:
 		m.village.fountain_hit(m, reach, f, cone, spin or slam)
+		m.village.bricks_hit(m, reach, f, cone, spin or slam)
 	var me := Vector2(m.player.x, m.player.z)
 	plants_hit(me if spin or slam else me + f * reach * 0.6, reach + 0.4 if spin or slam else reach * 0.9)
 	if slam:

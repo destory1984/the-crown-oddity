@@ -14,6 +14,7 @@ const MATE_REST := 10.0
 # picture with the head eased down 0, 2, 3, 2 px and the chest between (tools/breath.py); a frame every 0.25 s
 const BREATH_STEP := 0.25
 var breath_tex := {}  # id -> its breathing sheet
+const SIT_BREATH_STEP := 0.35 # sitting breathes slower than standing
 var breath_keep := {} # id -> [texture, hframes] put back when he moves
 
 var trailing := {} # id -> following on her footsteps because she walks along his side spot's line
@@ -252,10 +253,10 @@ func noeul_sit(on: bool) -> void:
 	var spr: Sprite3D = m.mate2.get_child(0)
 	if m.noeul_tex == null:
 		m.noeul_tex = spr.texture
-		m.noeul_rest_tex = load("res://art/folk/noeul_rest.png")
+		m.noeul_rest_tex = load("res://art/folk/noeul_rest_breath.png")
 	spr.frame = 0
 	spr.texture = m.noeul_rest_tex if on else m.noeul_tex
-	spr.hframes = 1 if on else 3
+	spr.hframes = 4 if on else 3
 	spr.frame = 0
 
 func mulgyeol_sit(on: bool) -> void:
@@ -265,9 +266,9 @@ func mulgyeol_sit(on: bool) -> void:
 	var spr: Sprite3D = m.mate.get_child(0)
 	if m.mulgyeol_tex == null:
 		m.mulgyeol_tex = spr.texture
-		m.mulgyeol_rest_tex = load("res://art/folk/mulgyeol_rest.png")
+		m.mulgyeol_rest_tex = load("res://art/folk/mulgyeol_rest_breath.png")
 	spr.texture = m.mulgyeol_rest_tex if on else m.mulgyeol_tex
-	spr.hframes = 1 if on else 2
+	spr.hframes = 4 if on else 2
 	spr.frame = 0
 	spr.offset = Vector2(0, 90 if on else 85)
 
@@ -301,6 +302,7 @@ func update_mate2(dt: float) -> void:
 		breathe("noeul", spr, false)
 	noeul_sit(sit)
 	if sit: # sitting by her: no monster is near, so nothing to throw dust at
+		spr.frame = int(m.t / SIT_BREATH_STEP) % 4 # breathing as he sits
 		return
 	if to.length() > 0.3:
 		m.mate2.position = mate_step(m.mate2.position, to.normalized() * minf(to.length() - 0.3, dt * 5.5))
@@ -372,6 +374,7 @@ func update_mate(dt: float) -> void:
 		breathe("mulgyeol", spr, false)
 	mulgyeol_sit(sit)
 	if sit: # sitting by her: nothing near, so nothing to fight
+		spr.frame = int(m.t / SIT_BREATH_STEP + 2.0) % 4 # breathing as he sits, out of step with Noeul
 		m.mate.position.y = 0.0
 		m.folk.hop("mulgyeol", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP) # settles a hop that was still in the air
 		return

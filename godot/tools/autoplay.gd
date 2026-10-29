@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_gate", "corridor_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
@@ -1197,6 +1197,62 @@ func run() -> void:
 			return t / maxf(1.0, a.size())
 		check("babble", sora_b.size() >= 4 and noeul_b.size() >= 4 and avg.call(sora_b) > avg.call(noeul_b) and quiet,
 			"Sora %d blips avg %.0f Hz, Noeul %d avg %.0f Hz, narration quiet %s" % [sora_b.size(), avg.call(sora_b), noeul_b.size(), avg.call(noeul_b), quiet])
+	if want.call("trial_count"):
+		# the moon trial shows its wave and the foes left on the quest line, and the real line comes back (v0.1.85)
+		var qr0: String = main.quest_raw
+		var h0: bool = main.in_hill
+		var px: float = main.player.x
+		var pz: float = main.player.z
+		main.in_hill = true
+		main.player.x = main.hill.marks.R.x + 2.0
+		main.player.z = main.hill.marks.R.y
+		main.trial_wave = 2
+		main.trial_wait = 0.0
+		main.minigames.update_trial(0.0)
+		var during: String = plain(main.ui.quest.text)
+		var shows: bool = "2/3" in during and "남은 괴물" in during and main.quest_raw == qr0
+		main.minigames.end_trial("시험")
+		var back: bool = plain(main.ui.quest.text) == plain(main.quest_shown(qr0))
+		main.in_hill = h0
+		main.player.x = px
+		main.player.z = pz
+		check("trial_count", shows and back, "during '%s', real line kept %s, back after %s" % [during, main.quest_raw == qr0, back])
+	if want.call("toy_bricks"):
+		# a blow at a village brick pile sends its bricks rolling apart, each its own way, and they settle (v0.1.87)
+		var bs: Array = main.village.toy_bricks
+		var ok := false
+		var info := "no toy bricks"
+		if not bs.is_empty():
+			var b0: MeshInstance3D = bs[0]
+			var px: float = main.player.x
+			var pz: float = main.player.z
+			main.player.x = b0.position.x - 0.8
+			main.player.z = b0.position.z
+			var before: Array = bs.map(func(b): return b.position)
+			var r0: int = main.village.toy_rolls
+			main.village.bricks_hit(main, 1.4, Vector2(1, 0), 0.3, true)
+			await wait(1.5)
+			var moved := 0
+			var flat := true
+			for i in bs.size():
+				var b: MeshInstance3D = bs[i]
+				if b.position.distance_to(before[i]) > 0.5:
+					moved += 1
+					flat = flat and not b.has_meta("rolling") and absf(b.position.y - 0.1) < 0.01
+			ok = main.village.toy_rolls - r0 >= 3 and moved >= 3 and flat
+			info = "rolled %d, moved %d, settled flat %s" % [main.village.toy_rolls - r0, moved, flat]
+			main.player.x = px
+			main.player.z = pz
+		check("toy_bricks", ok, info)
+	if want.call("hud_plates"):
+		# the place's name, the status bars and the quest line sit on navy plates that hold all their letters (v0.1.92)
+		main.set_quest("옥좌의 방으로 가자")
+		await wait(0.3)
+		var h = main.ui.hud
+		var zone_ok: bool = h.zone_plate_rect.size.x > 40.0 and h.zone_plate_rect.size.y > 30.0
+		var status_ok: bool = h.status_plate_rect.size.x > h.bar_w() + 52.0
+		var quest_ok: bool = h.quest_plate_rect.size.x >= main.hud_build.quest_deco.size.x
+		check("hud_plates", zone_ok and status_ok and quest_ok, "zone %s status %s quest %s" % [h.zone_plate_rect, h.status_plate_rect, h.quest_plate_rect])
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -2661,7 +2717,7 @@ func run() -> void:
 		main.close_story()
 		var cleared: bool = main.trial_best > 0.0 and main.tokens[4] and main.player.gold >= g0 + 300 and main.player.max_hp == hp0 + 20 + 12 * (main.player.lv - lv0) # kills level her up too
 		calm_enemies(false)
-		check("trial", began and waves == 5 and cleared, "began=%s waves seen=%d cleared=%s best %.1f s" % [began, waves, cleared, main.trial_best])
+		check("trial", began and waves == 3 and cleared, "began=%s waves seen=%d cleared=%s best %.1f s" % [began, waves, cleared, main.trial_best])
 	if want.call("squirrels"):
 		if main.intro:
 			main.start_game(false)
@@ -5194,8 +5250,8 @@ func run() -> void:
 		var standing: bool = not main.noeul_sitting and spr.hframes in [3, 4] and not main.mulgyeol_sitting and mspr.hframes in [2, 4] # 4: the breathing sheet (v0.1.39)
 		main.last_input_t = main.t - 20.0 # no key for 20 s
 		await wait(1.0)
-		var sat: bool = main.noeul_sitting and spr.hframes == 1 and spr.texture.resource_path.ends_with("noeul_rest.png")
-		var msat: bool = main.mulgyeol_sitting and mspr.hframes == 1 and mspr.texture.resource_path.ends_with("mulgyeol_rest.png") and absf(mspr.offset.y - 90.0) < 0.1 			and Vector2(main.mate.position.x - main.mate2.position.x, main.mate.position.z - main.mate2.position.z).length() >= 0.9
+		var sat: bool = main.noeul_sitting and spr.hframes == 4 and spr.texture.resource_path.ends_with("noeul_rest_breath.png")
+		var msat: bool = main.mulgyeol_sitting and mspr.hframes == 4 and mspr.texture.resource_path.ends_with("mulgyeol_rest_breath.png") and absf(mspr.offset.y - 90.0) < 0.1 			and Vector2(main.mate.position.x - main.mate2.position.x, main.mate.position.z - main.mate2.position.z).length() >= 0.9
 		hold_world(Vector2(1, 0))
 		main.last_input_t = main.t
 		await wait(0.4)

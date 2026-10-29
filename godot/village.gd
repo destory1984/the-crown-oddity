@@ -300,6 +300,7 @@ func build(m: Node) -> void:
 			var bb: MeshInstance3D = m.box(Vector3(0.3, 0.2, 0.2), m.mat_color(Color("#b4231e") if k % 2 == 0 else Color("#2f5fb8")))
 			bb.position = Vector3(b.x + m.rnd(-0.3, 0.3), 0.1 + (k / 2) * 0.2, b.y + m.rnd(-0.3, 0.3))
 			m.add_child(bb)
+			toy_bricks.append(bb)
 	for f in FOLK:
 		var w := Vector2(VILLAGE_X + f.at.x, f.at.y)
 		folk_pos[f.id] = w
@@ -887,6 +888,50 @@ func fountain_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: boo
 		fountain_slosh.tween_property(fountain_water, "position:y", y0 - amp * 0.6, 0.12).set_trans(Tween.TRANS_SINE)
 	fountain_slosh.tween_property(fountain_water, "position:y", y0, 0.15)
 	fountain_slosh.parallel().tween_property(fountain_water, "rotation:x", 0.0, 0.15)
+
+# ---- the toy brick piles by the dark lamps: a blow scatters them, each brick its own way, tumbling end over end
+# along the ground and settling where it stops (the owner, 2026-10-29: "마을에 있는 이 오브젝트.. 공격하면, 따로따로
+# 데굴데굴 굴러가게 해보자"). They lie where they fell until the village is built again (a load).
+var toy_bricks: Array = []
+var toy_rolls := 0 # bricks sent rolling (autoplay toy_bricks)
+
+func bricks_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool) -> void:
+	var me := Vector2(m.player.x, m.player.z)
+	var sent := 0
+	for bb in toy_bricks:
+		var b: MeshInstance3D = bb
+		if b.has_meta("rolling"):
+			continue
+		var d := Vector2(b.position.x, b.position.z) - me
+		if d.length() > reach + 0.6 or not (all_round or d.normalized().dot(f) > cone - 0.2):
+			continue
+		var away := (d.normalized() if d.length() > 0.05 else f).rotated(m.rnd(-0.6, 0.6))
+		var dist: float = m.rnd(1.2, 2.6)
+		var to := Vector2(b.position.x, b.position.z) + away * dist
+		var t: float = 0.5 + dist * 0.25
+		var axis := Vector3(away.y, 0, -away.x) # roll over the edge facing the way it goes
+		var turns := dist / 0.2 # about one quarter turn for each 0.2 tiles, like a brick tipping over and over
+		b.set_meta("rolling", true)
+		toy_rolls += 1
+		sent += 1
+		var start := b.position
+		var basis0 := b.basis
+		var tw := b.create_tween()
+		tw.tween_method(func(k: float):
+			var e := 1.0 - pow(1.0 - k, 2.0) # fast off the blow, slowing down
+			var pos := Vector2(start.x, start.z).lerp(to, e)
+			var hop := absf(sin(k * PI * 3.0)) * 0.35 * (1.0 - k) # three hops, each lower
+			b.position = Vector3(pos.x, 0.1 + hop, pos.y)
+			b.basis = Basis(axis.normalized(), -e * turns * PI / 2.0) * basis0, 0.0, 1.0, t)
+		tw.tween_callback(func():
+			# settle flat on a face, keeping the way it ended up turned around the up axis
+			var yaw := atan2(-b.basis.z.x, -b.basis.z.z)
+			b.basis = Basis(Vector3.UP, yaw)
+			b.position.y = 0.1
+			b.remove_meta("rolling"))
+		m.burst(Vector3(b.position.x, 0.3, b.position.z), Color("#d8c8a8"), 4, 1.2)
+	if sent > 0: # a clatter of toy bricks
+		m.sfx(m.rnd(180.0, 220.0), 0.1, "square", 0.08, -60.0)
 
 func fountain_set(wet: bool) -> void:
 	fountain_wet = wet
