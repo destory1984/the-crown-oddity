@@ -121,3 +121,47 @@ func footstep() -> void:
 		sfx(m.rnd(130.0, 170.0), 0.05, "triangle", v * 1.6, -40.0)
 	else:
 		sfx(m.rnd(70.0, 120.0), 0.09, "step", v)
+	if wet_steps > 0: # the first steps after a water skip still drip, each one quieter (delight idea 41)
+		sfx(WET_FREQ[wet_steps], 0.07, "splash", WET_VOL[wet_steps])
+		wet_steps -= 1
+
+# water skipped across and left behind: the next three footsteps carry a drop of it
+const WET_FREQ := [0.0, 760.0, 880.0, 1000.0]
+const WET_VOL := [0.0, 0.015, 0.03, 0.05]
+var wet_steps := 0
+var skip_was := false
+
+# on_skip_water: she is skipping over open water this frame; the frame she is not, after one that she was, is a landing
+func skip_track(on_skip_water: bool) -> void:
+	if skip_was and not on_skip_water:
+		wet_steps = 3
+	skip_was = on_skip_water
+
+# the wood answers a chest's lid by what is in it: a deep knock for loot, a higher hollow one for the little that is left (delight idea 42)
+func chest_knock(rich: bool) -> void:
+	if rich:
+		sfx(147, 0.14, "triangle", 0.2, -30.0)
+		m.get_tree().create_timer(0.07).timeout.connect(func(): sfx(220, 0.12, "triangle", 0.12, -20.0))
+	else:
+		sfx(262, 0.1, "triangle", 0.16, -40.0)
+		m.get_tree().create_timer(0.06).timeout.connect(func(): sfx(392, 0.08, "triangle", 0.1, -30.0))
+
+# a windmill that has just stopped: its shaft gives one last creak, two falling tones (delight idea 44)
+var mill_creaks := 0
+
+func mill_creak() -> void:
+	mill_creaks += 1
+	sfx(210, 0.16, "triangle", 0.09, -70.0)
+	m.get_tree().create_timer(0.12).timeout.connect(func(): sfx(168, 0.2, "triangle", 0.08, -60.0))
+
+# a brick struck again and again clacks in three pitches in turn, and not twice inside 0.06 s (delight idea 49)
+const CLACK := [620.0, 740.0, 880.0]
+const CLACK_GAP := 0.06
+
+func brick_clack(e: Dictionary) -> void:
+	if m.t - float(e.get("clack_t", -10.0)) < CLACK_GAP:
+		return
+	e.clack_t = m.t
+	var n: int = int(e.get("clack_n", 0))
+	e.clack_n = n + 1
+	sfx(CLACK[n % 3], 0.06, "square", 0.15, -300.0)

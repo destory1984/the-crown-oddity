@@ -231,6 +231,7 @@ func player_hit(dmg: int, src: Vector2, attacker: Dictionary) -> String:
 			return "flash_guard"
 		m.player.sp = maxf(0.0, m.player.sp - 15.0)
 		m.sfx(520, 0.05, "triangle", 0.1, -80) # blocked: a light tick
+		m.effects.stud_spin(here + Vector3(m.player.face.x * 0.9, 0.0, m.player.face.y * 0.9)) # a stud falls and spins (idea 51)
 		hurt_player(int(ceil(dmg * 0.3)), gy)
 		return "guard"
 	hurt_player(dmg, gy)

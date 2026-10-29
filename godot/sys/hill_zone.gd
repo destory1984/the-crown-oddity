@@ -17,6 +17,7 @@ const SCENIC := [{"at": Vector2(328.5, 8.5), "look": Vector2(1, 0)}, {"at": Vect
 var scenic_seen: Array = []
 var scenic_at := -1 # the view being taken in, -1 for none
 var shop_flag: Node3D # the miller's little flag beside the big windmill: it flutters a moment after the windmill turns again (delight idea 7)
+var mill_was_turning := false # the mill's sails or the wind-run hubs were turning last frame (delight idea 44)
 var shop_flag_t := 0.0 # how long the big windmill has been turning
 const SHOP_FLAG_LAG := 1.2
 var post_mark: Label3D
@@ -572,12 +573,20 @@ func mill_guard_beaten() -> void:
 	m.show_story("", Main.STORY.MILL_GUARD_DOWN)
 	m.save_game()
 
+# the sails were turning last frame and are not now, and she is at the mill: the shaft's last creak (delight idea 44)
+func mill_edge(turning: bool, at_mill: bool) -> void:
+	if mill_was_turning and not turning and at_mill:
+		m.sound.mill_creak()
+	mill_was_turning = turning
+
 func update_mill(dt: float) -> void:
 	var me := Vector2(m.player.x, m.player.z)
 	var sm: Dictionary = m.hill.south_marks
 	m.hill.sparrows.visible = m.hill_q >= 3 and not m.hill.gate_open
 	if m.mill_q >= 3:
 		m.hill.mill4.blades.rotation.z += dt * 1.2
+	var turning: bool = m.mill_q >= 3 or (m.windrun_on and not m.windrun_got.is_empty())
+	mill_edge(turning, me.y > Main.HILL.MILL_Z - 0.5)
 	update_shop_flag(dt)
 	for i in m.windrun_nodes.size():
 		if (m.windrun_on and i in m.windrun_got) or m.mill_q >= 3:
@@ -718,6 +727,8 @@ func update_hill(dt: float) -> void:
 	update_bridge_ribbons()
 	if m.player.x < Main.GROTTO.GROTTO_X - 0.5:
 		update_mill(dt)
+	else:
+		mill_was_turning = false
 	for mill in m.hill.mills:
 		if mill.turning:
 			mill.blades.rotation.z += dt * 1.6

@@ -33,7 +33,7 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 	if e.get("curl", 0.0) > 0.0: # a curled brick hedgehog: every side is spikes
 		m.pop_num(Vector3(e.x, 1.2, e.z), "막음", Color("#c8c8d0"))
 		m.burst(Vector3(e.x, 0.5, e.z), Color("#8a8a90"), 6, 2.0)
-		m.sfx(700, 0.06, "square", 0.15, -300)
+		m.sound.brick_clack(e)
 		return
 	if e.get("dizzy", 0.0) > 0.0:
 		amt *= 1.3
@@ -54,7 +54,7 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 		e.shield -= 1
 		m.pop_num(Vector3(e.x, 1.4, e.z), "막음", Color("#c8c8d0"))
 		m.burst(Vector3(e.x, 0.6, e.z), Color("#c8962a"), 8, 2.0)
-		m.sfx(700, 0.06, "square", 0.15, -300)
+		m.sound.brick_clack(e)
 		if e.shield <= 0:
 			e.shield_node.queue_free()
 			m.toast("방패가 깨졌다")
@@ -80,7 +80,7 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 		if from_dir.dot(e.face) > 0.34: # within about 70 degrees either side of where the shield points
 			m.pop_num(Vector3(e.x, 2.2, e.z), "막음", Color("#c8c8d0"))
 			m.burst(Vector3(e.x + e.face.x * 0.6, 1.2, e.z + e.face.y * 0.6), Color("#c8962a"), 6, 2.0)
-			m.sfx(700, 0.06, "square", 0.15, -300)
+			m.sound.brick_clack(e)
 			return
 	var crit := force_crit or m.rng.randf() < (0.25 if m.has_ring else 0.15)
 	if crit:
@@ -285,17 +285,24 @@ func attack() -> void:
 	var reach := 2.6 if slam else (2.0 if spin else 1.7)
 	var mult: float = 2.4 if slam else (1.6 if spin else ([1.0, 1.15, 1.4][mini(m.player.combo, 2)] if not last else 1.8))
 	var hit_any := false
+	var air_in := false # a foe in the air lay inside the cut's reach (idea 57)
+	var low_in := false
 	for e in m.enemies:
 		if e.dead:
 			continue
 		var d := Vector2(e.x - m.player.x, e.z - m.player.z)
 		if d.length() < reach and (spin or slam or d.normalized().dot(f) > cone):
+			if e.get("air", false):
+				air_in = true
+			else:
+				low_in = true
 			var countering := m.counter_t > 0.0
 			damage_enemy(e, m.player.atk * (2.5 if countering else mult), Vector2(m.player.x, m.player.z), 7.0 if last else 3.0,
 				countering, 0.14 if countering else (0.09 if last else 0.05))
 			m.player.mp = minf(m.player.max_mp, m.player.mp + 5.0)
 			m.last_hit_t = m.t
 			hit_any = true
+	air_whiff(air_in and not low_in)
 	if hit_any and m.counter_t > 0.0:
 		m.counter_t = 0.0
 	if hit_any:
@@ -336,6 +343,23 @@ func attack() -> void:
 	m.player.vx += step.x * lunge
 	m.player.vz += step.y * lunge
 	m.sfx(180.0 + m.player.combo * 60.0, 0.07, "sawtooth", 0.12, 300.0)
+
+# swinging again at a foe too high to reach: the second miss in a row (within 3 s) says why, once per 8 s (delight idea 57)
+var air_whiffs := 0
+var air_whiff_t := -10.0
+var air_hint_t := -10.0
+var air_hints := 0
+
+func air_whiff(missed_high: bool) -> void:
+	if not missed_high:
+		air_whiffs = 0
+		return
+	air_whiffs = air_whiffs + 1 if m.t - air_whiff_t < 3.0 else 1
+	air_whiff_t = m.t
+	if air_whiffs == 2 and m.t - air_hint_t > 8.0:
+		air_hint_t = m.t
+		air_hints += 1
+		m.toast(tr("너무 높이 떠 있어 칼이 닿지 않는다. 내려앉을 때를 기다리자"))
 
 # Lv3: running with Shift, J dashes 3 m ahead and cuts everything along the way
 const DASH_TIME := 0.14 # the dash slash is a visible slide, not a blink (the user, 2026-10-25: Sora "warps" when keys are mashed)
@@ -432,7 +456,10 @@ func charged_slash() -> void:
 	m.player.atk_cd = 0.5
 	var f: Vector2 = m.player.face
 	var here := Vector3(m.player.x, m.height_at(m.player.x, m.player.z), m.player.z)
-	m.effects.slash_fx(here + Vector3(f.x * 0.8, 0, f.y * 0.8), -atan2(f.y, f.x), true, 1.8, true)
+	m.effects.release_dust(here) # the dust goes out first, the light follows 0.06 s behind (idea 54)
+	var slash_at := here + Vector3(f.x * 0.8, 0, f.y * 0.8)
+	var slash_ang := -atan2(f.y, f.x)
+	m.get_tree().create_timer(0.06).timeout.connect(func(): m.effects.slash_fx(slash_at, slash_ang, true, 1.8, true))
 	for e in m.enemies:
 		if e.dead:
 			continue

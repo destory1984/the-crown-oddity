@@ -947,6 +947,7 @@ func open_clock_box() -> void:
 	m.clock_box = true
 	m.garden.chest_look(true)
 	var lines: Array = Main.STORY.CLOCK_CHEST.duplicate()
+	m.sound.chest_knock(not m.has_oil) # the first time it holds the oil; a new round's lid has little left
 	if not m.has_oil:
 		m.has_oil = true
 		m.player.max_hp += 20

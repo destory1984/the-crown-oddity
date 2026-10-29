@@ -364,6 +364,7 @@ func update_folk_sleep(dt: float) -> void:
 		var home: Vector2 = m.village.folk_pos[id]
 		var door: Vector2 = m.village.doors[folk_home(id)]
 		var st: String = m.folk_state.get(id, "out")
+		var st0 := st
 		var k: float = m.folk_walk_t.get(id, 0.0)
 		if night and st in ["out", "coming"]:
 			st = "going" if watching else "in"
@@ -410,6 +411,10 @@ func update_folk_sleep(dt: float) -> void:
 			m.folk_rocks[id].z = at.y
 		m.folk_state[id] = st
 		m.folk_walk_t[id] = k
+		if st == "in" and st0 != "in": # he is home: the window of his house burns low (idea 40)
+			m.village.pane_set(m, folk_home(id), false)
+		elif st != "in" and st0 == "in":
+			m.village.pane_set(m, folk_home(id), true)
 		if m.sleeper_nodes.has(id) and place_sleeper(id, st == "in" and m.in_house == folk_home(id)):
 			rolls[folk_bed(id)[1]] = true
 		if not m.door_z.has(id):

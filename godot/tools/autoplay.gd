@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -12630,6 +12630,364 @@ func run() -> void:
 		var untouched: bool = main.hill.bridged == bridged0 and main.hill.bridge.get_child_count() == planks0
 		check("d39_ribbons", built39 and order and height and apart and rails and still and moving and untouched,
 			"10 strips=%s peaks 0.5 s apart along the bridge=%s each lifts 1.1 rad=%s not together=%s both rails alike=%s still while the bridge is down=%s move once it is up=%s bridge unchanged=%s" % [built39, order, height, apart, rails, still, moving, untouched])
+	if want.call("d40_windows"):
+		# when a villager has come home at night his house's window pane burns down to 0.25 over 2.6 to 5.0 s (a little different per house); the others stay at 1.5; by day it comes back up (idea 40)
+		var vl40: Object = main.village
+		var keep40 := {"hour": main.hour, "sleep": main.sleep_off, "mail": main.mail_got[1], "village": main.in_village, "house": main.in_house}
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.in_village = true
+		main.in_house = -1
+		main.sleep_off = false
+		main.mail_got[1] = false
+		main.hour = 12.0
+		main.update_folk_sleep(0.0)
+		main.update_folk_sleep(30.0)
+		for i in vl40.house_panes.size():
+			vl40.pane_set(main, i, true)
+		await wait(1.2)
+		var panes40: Array = vl40.house_panes
+		var built40: bool = not panes40.is_empty() and panes40.size() == vl40.doors.size() and panes40.all(func(p): return is_equal_approx(p.emission_energy_multiplier, 1.5))
+		var homes40 := {}
+		for id in main.SLEEP_IDS:
+			if main.folk_awake_here(id):
+				homes40[main.folk_home(id)] = true
+		main.hour = 23.0
+		main.update_folk_sleep(0.0)
+		main.update_folk_sleep(30.0)
+		await wait(0.6)
+		var dimming: bool = homes40.keys().all(func(i): return panes40[i].emission_energy_multiplier < 1.45 and panes40[i].emission_energy_multiplier > 0.26)
+		var others := true
+		for i in panes40.size():
+			if not homes40.has(i) and not is_equal_approx(panes40[i].emission_energy_multiplier, 1.5):
+				others = false
+		var secs := {}
+		for i in homes40.keys():
+			secs[vl40.pane_dim_secs(i)] = true
+		var differ: bool = homes40.size() >= 2 and secs.size() >= 2 and secs.keys().all(func(s): return s >= 2.6 and s <= 5.0)
+		await wait(6.0)
+		var settled: bool = homes40.keys().all(func(i): return is_equal_approx(panes40[i].emission_energy_multiplier, 0.25))
+		main.hour = 12.0
+		main.update_folk_sleep(0.0)
+		main.update_folk_sleep(30.0)
+		await wait(1.3)
+		var back40: bool = panes40.all(func(p): return is_equal_approx(p.emission_energy_multiplier, 1.5))
+		main.hour = keep40.hour
+		main.sleep_off = keep40.sleep
+		main.mail_got[1] = keep40.mail
+		main.in_village = keep40.village
+		main.in_house = keep40.house
+		calm_enemies(false)
+		check("d40_windows", built40 and dimming and others and differ and settled and back40,
+			"one pane per house, all lit=%s homes dim in progress=%s other houses stay lit=%s dim times differ (2.6 to 5.0 s)=%s settle at 0.25=%s lit again by day=%s" % [built40, dimming, others, differ, settled, back40])
+	if want.call("d41_wet_steps"):
+		# landing from a water skip wets the next three footsteps: splash tones 1000, 880, 760 Hz and ever quieter, then dry again; no landing, no drops (idea 41)
+		var sd41: Object = main.sound
+		sd41.wet_steps = 0
+		sd41.skip_was = false
+		sd41.skip_track(false)
+		sd41.skip_track(false)
+		var dry41: bool = sd41.wet_steps == 0
+		sd41.skip_track(true) # skipping over the water ...
+		sd41.skip_track(true)
+		var still_on: bool = sd41.wet_steps == 0
+		sd41.skip_track(false) # ... and onto the bank
+		var landed: bool = sd41.wet_steps == 3
+		main.sfx_log.clear()
+		var seq: Array = []
+		for i in 4:
+			main.last_step = -10.0
+			sd41.footstep()
+			seq.append(main.sfx_log.filter(func(s): return s.begins_with("splash:")).size())
+		var drops: bool = seq == [1, 2, 3, 3]
+		var order41: bool = main.sfx_log.filter(func(s): return s.begins_with("splash:")) == ["splash:1000", "splash:880", "splash:760"]
+		var quieter: bool = sd41.WET_VOL[3] > sd41.WET_VOL[2] and sd41.WET_VOL[2] > sd41.WET_VOL[1] and sd41.WET_VOL[1] > 0.0
+		check("d41_wet_steps", dry41 and still_on and landed and drops and order41 and quieter and sd41.wet_steps == 0,
+			"no drops without a skip=%s none while still skipping=%s landing wets 3 steps=%s three drops, a fourth step dry=%s in order 1000/880/760=%s each quieter=%s" % [dry41, still_on, landed, drops, order41, quieter])
+	if want.call("d42_chest_knock"):
+		# a chest's lid knocks deep (147 then 220) for loot and higher (262 then 392) when little is left; the field chest, which always holds gold and a potion, knocks deep (idea 42)
+		var sd42: Object = main.sound
+		main.sfx_log.clear()
+		sd42.chest_knock(true)
+		await wait(0.2)
+		var deep: bool = main.sfx_log.has("triangle:147") and main.sfx_log.has("triangle:220") and not main.sfx_log.has("triangle:262")
+		main.sfx_log.clear()
+		sd42.chest_knock(false)
+		await wait(0.2)
+		var light: bool = main.sfx_log.has("triangle:262") and main.sfx_log.has("triangle:392") and not main.sfx_log.has("triangle:147")
+		marsh_world()
+		main.intro = false
+		var c42: Dictionary = main.chests[0]
+		var open42: bool = c42.open
+		var gold42: int = main.player.gold
+		var pots42: int = main.player.pots
+		c42.open = false
+		reset_to(Vector2(c42.x, c42.z))
+		main.sfx_log.clear()
+		main.interact()
+		await wait(0.2)
+		var field: bool = c42.open and main.player.gold > gold42 and main.player.pots == pots42 + 1 and main.sfx_log.has("triangle:147") and main.sfx_log.has("triangle:220")
+		c42.open = open42
+		if not open42:
+			c42.node.texture = main.chest_shut_tex
+		main.player.gold = gold42
+		main.player.pots = pots42
+		calm_enemies(false)
+		check("d42_chest_knock", deep and light and field,
+			"loot knock 147/220=%s thin knock 262/392=%s the field chest opens with the deep one=%s" % [deep, light, field])
+	if want.call("d44_mill_creak"):
+		# the moment the sails stop, with her at the mill, the shaft creaks once: two falling triangle tones; still turning, far from the mill, or already stopped: nothing (idea 44)
+		var hz44: Object = main.hill_zone
+		var sd44: Object = main.sound
+		hz44.mill_was_turning = false
+		var n0: int = sd44.mill_creaks
+		hz44.mill_edge(true, true)
+		hz44.mill_edge(true, true)
+		var turning_quiet: bool = sd44.mill_creaks == n0
+		hz44.mill_edge(false, false) # stopped while she is away
+		var far_quiet: bool = sd44.mill_creaks == n0 and not hz44.mill_was_turning
+		hz44.mill_edge(true, true)
+		main.sfx_log.clear()
+		hz44.mill_edge(false, true)
+		var creaked: bool = sd44.mill_creaks == n0 + 1 and main.sfx_log.has("triangle:210")
+		await wait(0.25)
+		var second: bool = main.sfx_log.has("triangle:168")
+		hz44.mill_edge(false, true) # already stopped
+		var once44: bool = sd44.mill_creaks == n0 + 1
+		check("d44_mill_creak", turning_quiet and far_quiet and creaked and second and once44,
+			"turning: none=%s stopped while away: none=%s stops at the mill: one creak (210)=%s then 168=%s only once=%s" % [turning_quiet, far_quiet, creaked, second, once44])
+	if want.call("d49_clack"):
+		# a struck brick clacks 620, 740, 880, 620 Hz in turn, nothing twice inside 0.06 s, each target counting for itself (idea 49)
+		main.close_story()
+		main.intro = false
+		reset_to(Vector2(30, 30))
+		var curl49 := {"curl": 5.0, "x": 31.0, "z": 30.0}
+		var shield49 := {"shield": 9, "x": 33.0, "z": 30.0}
+		main.sfx_log.clear()
+		for i in 4:
+			main.damage_enemy(curl49, 5.0, Vector2(30, 30))
+			if i == 0:
+				main.damage_enemy(curl49, 5.0, Vector2(30, 30)) # the same frame: swallowed
+			await wait(0.1)
+		var sq: Array = main.sfx_log.filter(func(s): return s in ["square:620", "square:740", "square:880"])
+		var cycle: bool = sq == ["square:620", "square:740", "square:880", "square:620"]
+		main.sfx_log.clear()
+		main.damage_enemy(shield49, 5.0, Vector2(30, 30))
+		var own: bool = main.sfx_log.has("square:620") and shield49.shield == 8
+		var old_gone: bool = not main.sfx_log.has("square:700")
+		check("d49_clack", cycle and own and old_gone,
+			"four blows ring 620/740/880/620 with the same-frame one swallowed=%s another brick starts at 620=%s the old single 700 is gone=%s (%s)" % [cycle, own, old_gone, sq])
+	if want.call("d51_stud"):
+		# a plain block (not a flash guard, not a hit from behind) drops one stud in front of her: it falls, spins like a top until about 1 s, lies still and is gone by 1.6 s; no loot, no new foe (idea 51)
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		var fx51: Object = main.effects
+		var gold51: int = main.player.gold
+		var pots51: int = main.player.pots
+		var foes51: int = main.enemies.size()
+		reset_to(Vector2(30, 30))
+		var y51: float = main.ground_y
+		main.player.face = Vector2(1, 0)
+		main.player.sp = 100.0
+		main.flash_cd = 0.0
+		main.guarding = true
+		main.guard_since = main.t - 1.0
+		var s0: int = fx51.studs_made
+		var r51: String = main.player_hit(10, Vector2(31, 30), dummy)
+		var made: bool = r51 == "guard" and fx51.studs_made == s0 + 1
+		var stud: Node3D = fx51.last_stud
+		var ahead: bool = absf(stud.position.x - 30.9) < 0.05 and absf(stud.position.z - 30.0) < 0.05 and stud.position.y > y51 + 0.8
+		reset_to(Vector2(30, 30)) # a flash guard, a hit from behind and no guard at all: no stud
+		main.guarding = true
+		main.guard_since = main.t
+		var rf: String = main.player_hit(10, Vector2(31, 30), dummy)
+		reset_to(Vector2(30, 30))
+		main.guarding = true
+		main.guard_since = main.t - 1.0
+		var rb: String = main.player_hit(10, Vector2(29, 30), dummy)
+		reset_to(Vector2(30, 30))
+		main.guarding = false
+		var rn: String = main.player_hit(10, Vector2(31, 30), dummy)
+		var quiet51: bool = rf == "flash_guard" and rb == "hit" and rn == "hit" and fx51.studs_made == s0 + 1
+		await wait(0.5)
+		var low: bool = stud.position.y < y51 + 0.2
+		var y_a: float = stud.rotation.y
+		await wait(0.1)
+		var spins: bool = absf(stud.rotation.y - y_a) > 0.3
+		await wait(0.7)
+		var y_b: float = stud.rotation.y
+		await wait(0.1)
+		var rests: bool = is_equal_approx(stud.rotation.y, y_b) and stud.position.y < y51 + 0.2
+		await wait(0.6)
+		var gone: bool = not is_instance_valid(stud)
+		var nothing: bool = main.player.gold == gold51 and main.player.pots == pots51 and main.enemies.size() == foes51
+		calm_enemies(false)
+		check("d51_stud", made and ahead and quiet51 and low and spins and rests and gone and nothing,
+			"plain block drops one stud=%s (%s) in front of her=%s flash guard / behind / unguarded: none=%s on the ground by 0.5 s=%s spinning then=%s still at 1.3 s=%s gone by 1.9 s=%s no loot or foe=%s" % [made, r51, ahead, quiet51, low, spins, rests, gone, nothing])
+	if want.call("d52_wall_dust"):
+		# a goblin's lunge stopped by a wall shakes three grains of dust loose from it, once per lunge; a lunge into open ground makes none (idea 52)
+		var fx52: Object = main.effects
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		park_mates(true)
+		var C52 := open_field()
+		reset_to(C52)
+		var wall := Vector2(-1, -1)
+		for gz in range(12, 56):
+			for gx in range(8, 46):
+				var p := Vector2(gx + 0.5, gz + 0.5)
+				if wall.x < 0.0 and main.walkable(p.x, p.y) and not main.walkable(p.x + 1.0, p.y) and not main.walkable(p.x + 1.0, p.y + 0.3) and not main.walkable(p.x + 1.0, p.y - 0.3):
+					var x := p.x
+					while main.walkable(x + 0.05, p.y):
+						x += 0.05
+					wall = Vector2(x, p.y)
+		var found: bool = wall.x >= 0.0
+		var blocked_dust := 0
+		var open_dust := 0
+		if found:
+			for trial in 2:
+				reset_to(C52 + Vector2(0, 7.0)) # Sora is well away from the cut
+				var at52: Vector2 = wall if trial == 0 else C52
+				main.spawn_enemy(at52)
+				var g: Dictionary = main.enemies[main.enemies.size() - 1]
+				g.cave = true
+				g.hp = 99999.0
+				g.atk_cd = 99.0
+				g.x = at52.x
+				g.z = at52.y
+				g.ldir = Vector2(1, 0)
+				g.ldash = 0.15
+				var w0: int = fx52.wall_dusts
+				await wait(0.5)
+				if trial == 0:
+					blocked_dust = fx52.wall_dusts - w0
+				else:
+					open_dust = fx52.wall_dusts - w0
+				g.dead = true
+				g.node.queue_free()
+				g.shadow.queue_free()
+		reset_to(C52)
+		calm_enemies(false)
+		park_mates(false)
+		check("d52_wall_dust", found and blocked_dust == 1 and open_dust == 0,
+			"a wall edge found=%s a lunge into it makes one burst of dust (%d)=%s a lunge over open ground makes none (%d)" % [found, blocked_dust, blocked_dust == 1, open_dust])
+	if want.call("d54_release_dust"):
+		# letting go of a charged cut shoves eight grains of dust outward from her feet at once, and the light follows 0.06 s later (idea 54)
+		var fx54: Object = main.effects
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.in_village = false
+		reset_to(Vector2(30, 30))
+		main.player.face = Vector2(1, 0)
+		var r0: int = fx54.release_dusts
+		var n54: int = main.fx.size()
+		main.combat.charged_slash()
+		var dust_now: bool = fx54.release_dusts == r0 + 1 and main.fx.size() == n54 + 8
+		var grains: Array = main.fx.slice(n54, n54 + 8).map(func(f): return f.node)
+		await wait(0.3)
+		var out54: bool = grains.all(func(g): return is_instance_valid(g) and Vector2(g.position.x - 30.0, g.position.z - 30.0).length() > 0.9)
+		await wait(1.0) # all of it has faded
+		main.player.atk_cd = 0.0
+		var f0: int = main.fx.size()
+		main.combat.charged_slash()
+		var only_dust: bool = main.fx.size() == f0 + 8
+		await wait(0.12)
+		var light_after: bool = main.fx.size() > f0 + 8
+		calm_enemies(false)
+		check("d54_release_dust", dust_now and out54 and only_dust and light_after,
+			"eight grains of dust appear with the release=%s gone out past 0.9 tiles by 0.3 s=%s right after it only the dust is there=%s the light joins within 0.12 s=%s" % [dust_now, out54, only_dust, light_after])
+	if want.call("d55_calm"):
+		# the last foe within 12 tiles falls: the motes' gravity drops to -0.5 and returns to 0.05 by 3 s; a foe left near, walking off, or nothing killed: no change (idea 55)
+		var mo: Object = main.monsters
+		var fx55: Object = main.effects
+		main.close_story()
+		main.intro = false
+		reset_to(Vector2(30, 30))
+		var saved55: Array = main.enemies
+		var foe := {"x": 33.0, "z": 30.0, "dead": false}
+		var foe2 := {"x": 34.0, "z": 31.0, "dead": false}
+		var c0: int = fx55.calms
+		var k0: int = main.stats.kills
+		mo.kills_prev = k0
+		mo.kill_seen_t = -10.0
+		main.enemies = [foe, foe2]
+		mo.foes_near_prev = false
+		mo.update_calm()
+		foe.x = 60.0 # both walk off, nothing killed
+		foe2.x = 60.0
+		mo.update_calm()
+		var walked: bool = fx55.calms == c0
+		foe.x = 33.0
+		foe2.x = 34.0
+		mo.update_calm()
+		foe.dead = true # one of two falls: one is still near
+		main.stats.kills += 1
+		mo.update_calm()
+		var two: bool = fx55.calms == c0
+		foe2.dead = true # the last falls
+		main.stats.kills += 1
+		mo.update_calm()
+		var settled55: bool = fx55.calms == c0 + 1
+		main.enemies = saved55
+		main.stats.kills = k0
+		mo.kills_prev = k0
+		mo.foes_near_prev = false
+		await wait(0.7)
+		var low55: bool = main.motes.gravity.y < -0.3
+		await wait(3.0)
+		var back55: bool = is_equal_approx(main.motes.gravity.y, 0.05)
+		check("d55_calm", walked and two and settled55 and low55 and back55,
+			"both walk off: none=%s one of two falls: none=%s the last falls: settles=%s gravity low=%s (%.2f) back to 0.05=%s" % [walked, two, settled55, low55, main.motes.gravity.y, back55])
+	if want.call("d57_air_whiff"):
+		# swinging twice in a row (within 3 s) at a foe that is in reach but in the air shows the hint once; a third swing, a cut that lands on a low foe, or an air foe out of reach: none (idea 57)
+		var cb: Object = main.combat
+		main.close_story()
+		main.intro = false
+		main.in_village = false
+		main.guarding = false
+		calm_enemies(true)
+		reset_to(Vector2(30, 30))
+		var saved57: Array = main.enemies
+		var hawk := {"x": 31.0, "z": 30.0, "dead": false, "air": true}
+		var low57 := {"x": 31.0, "z": 30.0, "dead": false, "shield": 99}
+		main.enemies = [hawk]
+		cb.air_whiffs = 0
+		cb.air_whiff_t = -10.0
+		cb.air_hint_t = -10.0
+		var h0: int = cb.air_hints
+		var swing := func():
+			main.player.atk_cd = 0.0
+			main.player.face = Vector2(1, 0)
+			main.player.combo_t = 0.0
+			main.attack()
+		main.ui.toast.text = ""
+		swing.call()
+		var first: bool = cb.air_hints == h0 and main.ui.toast.text == ""
+		swing.call()
+		var second: bool = cb.air_hints == h0 + 1 and plain(main.ui.toast.text).contains("높이")
+		main.ui.toast.text = ""
+		swing.call()
+		var third: bool = cb.air_hints == h0 + 1 and main.ui.toast.text == ""
+		cb.air_whiffs = 0 # a low foe stands there too: the cut lands, so it is no whiff
+		cb.air_hint_t = -10.0
+		main.enemies = [hawk, low57]
+		swing.call()
+		swing.call()
+		var landed: bool = cb.air_hints == h0 + 1 and cb.air_whiffs == 0
+		hawk.x = 36.0 # in the air but out of reach
+		main.enemies = [hawk]
+		swing.call()
+		swing.call()
+		var far57: bool = cb.air_hints == h0 + 1
+		main.enemies = saved57
+		main.ui.toast.text = ""
+		calm_enemies(false)
+		check("d57_air_whiff", first and second and third and landed and far57,
+			"first miss silent=%s second shows the hint=%s third silent=%s a cut that lands resets=%s out of reach: none=%s" % [first, second, third, landed, far57])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

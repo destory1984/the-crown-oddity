@@ -797,6 +797,7 @@ func open_quarters_box() -> void:
 		m.show_story("", Main.STORY.QUARTERS_BOX)
 	var c: Vector2 = m.castle.marks.c
 	m.burst(Vector3(c.x, 0.6, c.y), Color("#f2ead8"), 24, 2.0)
+	m.sound.chest_knock(not m.quarters_again)
 	m.sfx(784, 0.12, "triangle", 0.25)
 	m.ui.mini.map_tex = castle_map()
 	m.save_game()

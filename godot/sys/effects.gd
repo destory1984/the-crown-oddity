@@ -225,6 +225,73 @@ func slash_fx(pos: Vector3, ang: float, big: bool, span := 1.8, gear := false) -
 			n.rotation.y += dt * 9.0
 			n.scale = Vector3.ONE * maxf(0.05, 1.0 - (life - delay) / 0.32))
 
+# a stud knocked off a brick by a blocked blow: it drops in front of Sora, spins like a top and lies still (delight idea 51)
+const STUD_COLORS := [Color("#d8322a"), Color("#f2c230"), Color("#2f6fd8")]
+var studs_made := 0
+var last_stud: Node3D
+
+func stud_spin(at: Vector3) -> Node3D:
+	var g := Node3D.new()
+	last_stud = g
+	m.brick(g, [], Vector3(0.2, 0.12, 0.2), Vector3.ZERO, STUD_COLORS[studs_made % 3])
+	studs_made += 1
+	var y0 := at.y
+	g.position = at + Vector3(0, 0.9, 0)
+	add_fx(g, 1.6, func(n: Node3D, k: float, dt: float):
+		var t := k * 1.6
+		n.position.y = y0 + 0.06 + 0.84 * maxf(0.0, 1.0 - pow(t / 0.3, 2.0)) # a quick drop, then it lies on the ground
+		var rest := clampf((t - 0.3) / 0.7, 0.0, 1.0) # the spin dies away over 0.7 s
+		n.rotation.y += dt * 22.0 * (1.0 - rest) * (1.0 if t >= 0.3 else 0.4)
+		n.rotation.z = 0.35 * (1.0 - rest) * (1.0 if t >= 0.3 else 0.0)
+		n.scale = Vector3.ONE * clampf((1.6 - t) / 0.3, 0.0, 1.0))
+	return g
+
+# a charge stopped by a wall: three grains of dust shake loose from the wall side and sift down, pushed back the way
+# the force came from (delight idea 52)
+var wall_dusts := 0
+
+func wall_dust(at: Vector3, dir: Vector2) -> void:
+	wall_dusts += 1
+	for i in 3:
+		var d := m.box(Vector3.ONE * 0.09, m.mat_color(Color("#b8a888")))
+		var side := (i - 1) * 0.22
+		var from := at + Vector3(dir.x * 0.35 - dir.y * side, 1.1 + 0.15 * i, dir.y * 0.35 + dir.x * side)
+		d.position = from
+		var drift := Vector3(-dir.x, 0, -dir.y) * 0.6
+		add_fx(d, 0.7, func(n: Node3D, k: float, _dt: float):
+			n.position = from + drift * k + Vector3(0, -(from.y - at.y - 0.05) * k * k, 0)
+			n.rotation.y = k * 3.0
+			n.scale = Vector3.ONE * (1.0 - maxf(0.0, k - 0.6) / 0.4))
+
+# the release of a charged cut: the dust at her feet is shoved outward before the light follows (delight idea 54)
+var release_dusts := 0
+
+func release_dust(at: Vector3) -> void:
+	release_dusts += 1
+	for i in 8:
+		var a := TAU * i / 8.0
+		var dir := Vector3(cos(a), 0, sin(a))
+		var d := m.box(Vector3.ONE * 0.1, m.mat_color(Color("#d8c8a0")))
+		d.position = at + dir * 0.3 + Vector3(0, 0.08, 0)
+		var from := d.position
+		add_fx(d, 0.5, func(n: Node3D, k: float, _dt: float):
+			n.position = from + dir * (1.4 * sqrt(k)) + Vector3(0, 0.25 * sin(k * PI), 0)
+			n.scale = Vector3.ONE * (1.0 - k))
+
+# the last foe near her has fallen: the floating motes settle, a little gravity for 3 s (never touches a warning mark)
+var calm_tw: Tween
+var calms := 0
+
+func settle_motes() -> void:
+	calms += 1
+	if calm_tw != null and calm_tw.is_valid():
+		calm_tw.kill()
+	var rest := Vector3(0, 0.05, 0)
+	calm_tw = m.create_tween()
+	calm_tw.tween_property(m.motes, "gravity", Vector3(0, -0.5, 0), 0.4)
+	calm_tw.tween_interval(1.4)
+	calm_tw.tween_property(m.motes, "gravity", rest, 1.2)
+
 func pillar(pos: Vector3) -> void:
 	var mm := MeshInstance3D.new()
 	var c := CylinderMesh.new()

@@ -704,7 +704,27 @@ func boss_fight_on(px: float, pz: float) -> bool:
 			return true
 	return false
 
+# the last foe within 12 tiles falls (a kill in the last 1 s, none left near): the floating motes settle (delight idea 55)
+const CALM_R := 12.0
+var foes_near_prev := false
+var kills_prev := 0
+var kill_seen_t := -10.0
+
+func update_calm() -> void:
+	var near := false
+	for e in m.enemies:
+		if not e.dead and not e.get("prop", false) and not e.has("practice") and not e.has("cage") and not e.get("scare", false) 				and Vector2(e.x - m.player.x, e.z - m.player.z).length() < CALM_R:
+			near = true
+			break
+	if m.stats.kills != kills_prev:
+		kills_prev = m.stats.kills
+		kill_seen_t = m.t
+	if foes_near_prev and not near and m.t - kill_seen_t < 1.0 and m.player.hp > 0 and not m.intro:
+		m.effects.settle_motes()
+	foes_near_prev = near
+
 func update_enemies(dt: float, gy: float) -> void:
+	update_calm()
 	pack_prepare(dt)
 	m.brick_foes.village_moths()
 	for e in m.enemies.duplicate():
@@ -839,8 +859,14 @@ func update_enemies(dt: float, gy: float) -> void:
 		e.dizzy = e.get("dizzy", 0.0) - dt
 		var nx: float = e.x + ev.x * dt
 		var nz: float = e.z + ev.y * dt
-		if m.walkable(nx, e.z): e.x = nx
-		if m.walkable(e.x, nz): e.z = nz
+		var blocked_x: bool = not m.walkable(nx, e.z)
+		var blocked_z: bool = not m.walkable(e.x, nz)
+		if not blocked_x: e.x = nx
+		if not blocked_z: e.z = nz
+		if e.get("ldash", 0.0) > 0.0 and (blocked_x or blocked_z):
+			if not e.get("lblocked", false): # the lunge ran into a wall: dust falls from it, once per lunge (idea 52)
+				e.lblocked = true
+				m.effects.wall_dust(Vector3(e.x, m.height_at(e.x, e.z), e.z), e.ldir)
 		if archer:
 			archer_aim(e, dt, d, to)
 		else:
@@ -893,6 +919,7 @@ func goblin_attack(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 		e.lwind -= dt
 		if e.lwind <= 0.0:
 			e.ldash = 0.15
+			e.lblocked = false
 			tele_clear(e)
 	elif e.get("ldash", 0.0) > 0.0:
 		e.ldash -= dt

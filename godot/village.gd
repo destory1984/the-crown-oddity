@@ -414,6 +414,29 @@ func kid_goblin(m: Node) -> Node3D:
 func house(m: Node, at: Vector3) -> void:
 	house_draft(m, at, 4, false)
 
+# each house's window pane, in build order like doors: it burns down to a glimmer once someone has come home, over a
+# time that is a little different from house to house, and comes back up when they go out (delight idea 40)
+const PANE_LIT := 1.5
+const PANE_DIM := 0.25
+var house_panes: Array = []
+var pane_tw: Dictionary = {}
+
+func pane_dim_secs(i: int) -> float:
+	return 2.6 + 0.4 * float((i * 3) % 7)
+
+func pane_set(m: Node, i: int, lit: bool) -> void:
+	if i < 0 or i >= house_panes.size():
+		return
+	var mat: StandardMaterial3D = house_panes[i]
+	var goal := PANE_LIT if lit else PANE_DIM
+	if is_equal_approx(mat.emission_energy_multiplier, goal) and not pane_tw.has(i):
+		return
+	if pane_tw.has(i) and pane_tw[i].is_valid():
+		pane_tw[i].kill()
+	var tw: Tween = m.create_tween()
+	tw.tween_property(mat, "emission_energy_multiplier", goal, 1.0 if lit else pane_dim_secs(i))
+	pane_tw[i] = tw
+
 # the tall old lamplighter: GPT pixel sprite (two idle frames) and the glow of his own lamp
 func simji(m: Node) -> Node3D:
 	var g := Node3D.new()
@@ -638,7 +661,9 @@ func house_draft(m: Node, at: Vector3, k: int, labelled := true) -> void:
 			add.call(Vector3(0.5, 0.85, 0.06), Vector3(-0.5, 1.1, 0.72), Color("#5a3a26"))
 			for sx in [0.35, 0.95]:
 				add.call(Vector3(0.18, 0.45, 0.06), Vector3(sx, 1.35, 0.72), Color("#3a6ac8"))
-			add.call(Vector3(0.4, 0.45, 0.06), Vector3(0.65, 1.35, 0.71), Color("#ffc46a"), Vector3.ZERO, true)
+			var pane: MeshInstance3D = add.call(Vector3(0.4, 0.45, 0.06), Vector3(0.65, 1.35, 0.71), Color("#ffc46a"), Vector3.ZERO, true)
+			if not labelled:
+				house_panes.append(pane.material_override) # a real village house: its window dims when its folk come home (idea 40)
 			for st in 3:
 				add.call(Vector3(0.6, 0.08, 0.25), Vector3(-0.5, 0.48 - st * 0.18, 1.5 + st * 0.25), Color("#9a7448"))
 	if not labelled:
