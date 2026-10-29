@@ -263,18 +263,29 @@ func make_wolf() -> Node3D:
 	var g := Node3D.new()
 	root.add_child(g)
 	var mats: Array = []
-	var fur := Color("#7a6a5a")
+	# a toy wolf (draft 4 of five, the owner, 2026-10-29: "굳은 숲에 악어가 사는게 맞는거니?" -> "4"): the long low body,
+	# short legs, flat snout and the stud row down its back read as a crocodile. Now an orange brick body up on legs
+	# twice as long, the head held high with tall pointed ears, a blue collar with a gold bell, the tail raised, and
+	# no studs on the back.
+	var fur := Color("#c8562e")
 	var dark := Color("#3a3230")
-	brick(g, mats, Vector3(0.36, 0.3, 0.8), Vector3(0, 0.38, 0), fur)          # body
-	brick(g, mats, Vector3(0.32, 0.3, 0.34), Vector3(0, 0.55, 0.5), fur)       # head
-	brick(g, mats, Vector3(0.2, 0.14, 0.2), Vector3(0, 0.48, 0.74), dark, false) # snout
-	brick(g, mats, Vector3(0.08, 0.14, 0.06), Vector3(-0.1, 0.76, 0.46), dark, false) # ears
-	brick(g, mats, Vector3(0.08, 0.14, 0.06), Vector3(0.1, 0.76, 0.46), dark, false)
-	brick(g, mats, Vector3(0.07, 0.07, 0.03), Vector3(-0.08, 0.6, 0.67), Color("#ffc23a"), false, true) # eyes
-	brick(g, mats, Vector3(0.07, 0.07, 0.03), Vector3(0.08, 0.6, 0.67), Color("#ffc23a"), false, true)
-	for leg in [Vector3(-0.12, 0.12, 0.28), Vector3(0.12, 0.12, 0.28), Vector3(-0.12, 0.12, -0.28), Vector3(0.12, 0.12, -0.28)]:
-		brick(g, mats, Vector3(0.1, 0.24, 0.1), leg, dark, false)
-	brick(g, mats, Vector3(0.08, 0.08, 0.36), Vector3(0, 0.48, -0.52), fur, false) # tail
+	brick(g, mats, Vector3(0.36, 0.3, 0.66), Vector3(0, 0.55, 0), fur, false)    # body
+	brick(g, mats, Vector3(0.32, 0.32, 0.34), Vector3(0, 0.88, 0.32), fur)       # head
+	brick(g, mats, Vector3(0.2, 0.12, 0.2), Vector3(0, 0.84, 0.56), dark, false) # snout
+	brick(g, mats, Vector3(0.08, 0.22, 0.06), Vector3(-0.1, 1.14, 0.28), dark, false) # ears, tall and pointed up
+	brick(g, mats, Vector3(0.08, 0.22, 0.06), Vector3(0.1, 1.14, 0.28), dark, false)
+	brick(g, mats, Vector3(0.07, 0.07, 0.03), Vector3(-0.08, 0.94, 0.5), Color("#ffc23a"), false, true) # eyes
+	brick(g, mats, Vector3(0.07, 0.07, 0.03), Vector3(0.08, 0.94, 0.5), Color("#ffc23a"), false, true)
+	brick(g, mats, Vector3(0.38, 0.07, 0.14), Vector3(0, 0.71, 0.27), Color("#2f5fb8"), false) # collar
+	brick(g, mats, Vector3(0.09, 0.09, 0.09), Vector3(0, 0.63, 0.36), Color("#ffd84a"), false) # its bell
+	brick(g, mats, Vector3(0.38, 0.06, 0.2), Vector3(0, 0.6, -0.12), Color("#e0744a"), false) # a lighter saddle patch
+	for leg in [Vector3(-0.12, 0.2, 0.22), Vector3(0.12, 0.2, 0.22), Vector3(-0.12, 0.2, -0.24), Vector3(0.12, 0.2, -0.24)]:
+		brick(g, mats, Vector3(0.1, 0.4, 0.1), leg, dark, false)
+	var tail := Node3D.new() # raised: tilted 40 degrees up from the rump
+	tail.position = Vector3(0, 0.62, -0.33)
+	tail.rotation.x = deg_to_rad(40.0)
+	g.add_child(tail)
+	brick(tail, mats, Vector3(0.08, 0.08, 0.34), Vector3(0, 0, -0.16), fur, false) # tail
 	root.scale = Vector3.ONE * 1.3
 	root.set_meta("mats", mats)
 	root.set_meta("body", g)

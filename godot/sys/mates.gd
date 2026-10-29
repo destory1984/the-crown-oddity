@@ -199,6 +199,8 @@ func hurt_mate(id: String, dmg: int) -> void:
 # companions near a strike or a thrown brick take the hit as well
 func mate_near(at: Vector2, r: float) -> String:
 	for id in ["mulgyeol", "noeul"]:
+		if id == "mulgyeol" and m.mate_job.get("kind", "") in ["corr_post", "corr_cart"]:
+			continue # at work at a sluice: out of the fight (v0.1.91; a blow on him there stopped the work and he never got up)
 		var node := mate_node(id)
 		if node != null and node.visible and m.mate_down[id] <= 0.0 and Vector2(node.position.x, node.position.z).distance_to(at) < r:
 			return id
@@ -338,6 +340,9 @@ func update_mate(dt: float) -> void:
 		mulgyeol_sit(false)
 	if not m.mate_job.is_empty():
 		if m.in_corridor() and m.mate_job.get("kind", "") in ["corr_post", "corr_cart"]:
+			if mate_tick("mulgyeol", dt): # knocked down at his post: his rest runs, the work stops and the post is free
+				m.corridor_zone.clear_job()
+				return
 			m.corridor_zone.update_mate_job(dt)
 			return
 		if m.in_lake_main():

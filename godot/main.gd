@@ -710,6 +710,8 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.91: 물길 회랑 시험 보고 21건 중 19건을 고쳤다. 배수 1초 안에 저장하면 물이 남던 것, 실신 뒤 수레가 도착 상태로 남던 것, 일하는 물결이 맞고 못 일어나던 것, 끝난 방 손잡이가 방을 되감던 것을 바로잡았다. 수문지기는 옆문 도움으로 팔과 충격 고리 예고가 끊기고 축이 5초 더 열리며, 예고 선은 노란 테두리로 그렸다. 운반대는 서쪽 둑에서 출발해 10칸을 건너고, 방 4곳에 배관 8줄, 물때 띠 3단, 침전물, 부품 상자 5개, 작업대 3개를 세웠다",
+	"· v0.1.90: 벽돌 늑대가 악어처럼 보이던 것을 고쳤다(시안 다섯 가운데 4번 장난감 늑대). 주황 벽돌 몸을 다리 0.24 → 0.40 위에 올리고, 머리를 들고, 귀를 세우고, 파란 목줄에 금방울을 달고, 꼬리를 40도 치켜들었다. 등의 돌기 줄은 뺐다.",
 	"· v0.1.89: 왼쪽 위 상태창(체력에서 표식까지), 위쪽 할 일 줄, 지역 이름과 회차 표시 뒤에 남색 반투명 판(흐린 금테)을 깔아 밝은 풀밭 위에서도 글자가 읽힌다(배색 시안 다섯 가운데 1번).",
 	"· v0.1.88: 노을과 물결이 소라 곁에 앉아 쉴 때도 숨을 쉰다. 앉은 그림 네 장으로 머리와 어깨가 0, 1, 2, 1픽셀씩 0.35초마다 오르내리고, 둘의 박자는 엇갈린다.",
 	"· v0.1.87: 설정 About의 '만든 이유' 줄을 지웠다. 만든 사람, 만든 코드, 의견 세 줄만 남는다.",
@@ -2151,7 +2153,7 @@ func _process(dt: float) -> void:
 		player.sp = maxf(1.0, player.sp - 6.0 * dt) # costs a little extra, but never runs dry mid-river
 		if int(t * 8.0) != int((t - dt) * 8.0):
 			burst(Vector3(player.x, -0.2, player.z), Color("#9fe0ff"), 4, 1.2)
-	elif not running and on_water and not skipping:
+	elif not running and on_water and not skipping and corridor_zone.ride.is_empty(): # the cart carries her over the water
 		if rescue_glide.is_empty() and dash.is_empty():
 			rescue("water") # stopped on open water: back to the nearest shore
 	player.sp = maxf(0, player.sp - 22 * dt) if running else minf(100, player.sp + (27.0 if has_pearl else 18.0) * dt)

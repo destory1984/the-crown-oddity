@@ -1,0 +1,27 @@
+Use your image generation tool to create ONE image and save it as 17_land_wakes.png in the current directory.
+
+ATTACHMENTS (these override any other description of the attached images further below):
+1 = ref_sora35.jpg, Sora's character turnaround at the RIGHT proportion (3.5 heads tall): copy her design AND her body proportion from it.
+2 = the festival illustration of the same ending (12_festival): match its art style, colours and characters exactly; this new picture comes just before it.
+3 = Sora's face sheet: keep exactly this face.
+4 = ref_jae35.jpg, Noeul (Jae) turnaround at 3.5 heads: copy his design and proportion.
+6 = ref_kongal35.jpg, Kongal turnaround at 3.5 heads: copy her design and proportion.
+5 = Grandma Bori: keep her exactly like it (she is an adult, not a child).
+PROPORTIONS: every CHILD (Sora, Jae, Kongal) is a cute chibi-anime child exactly 3.5 HEADS TALL, exactly like images 1, 4 and 5: the head from top of hair to chin, times 3.5, equals the standing height. Jae stands about 10% taller than Sora, Kongal about 10% shorter. Adults (Bori, Doran, Simji, Hangyeol) and animal folk (Mulgyeol the otter) keep their own look. Sitting or kneeling children keep the same head-to-body ratio.
+
+The first attached image is the official character turnaround of Sora, the heroine. Keep her design exactly: lavender-silver short wavy hair, small gold crown with a blue diamond gem, blue ribbon with gold diamond charms on one side, gold diamond earrings, deep blue eyes, white dress with royal-blue panels and gold trim, detached white sleeves with blue-and-gold cuffs, blue tassels ending in gold diamonds, white stockings, blue boots.
+The third attached image shows Sora's FACE: keep exactly this face (big round deep-blue eyes, small nose, soft round cheeks, child-like proportions, lavender-silver wavy bob with side ribbon) in every picture.
+If a fourth image is attached it is Grandma Bori: keep her EXACTLY like it (old woman about 75, wrinkles, silver bun, rust shawl, olive dress, cream apron).
+Make Sora as beautiful, lovely and endearing as possible: soft delicate face, big sparkling eyes, gentle blush, natural relaxed pose (not stiff), beautifully rendered hair and fabric.
+WINDING CUFFS: Sora's small gold crown with the blue diamond gem stays ON HER HEAD exactly as in the reference. The blue-and-gold cuffs at the ends of her detached white sleeves are a pair of clockwork bracelets: a royal-blue band with a thin gold rim, a tiny gold key-wind notch and a small blue diamond on the back of each wrist. When she uses their power the cuffs glow a soft pale blue (a clean thin glow line, no sparkles, no halo). There is exactly one crown, on her head; the power comes from the cuffs, not from the crown.
+Mulgyeol: an anthropomorphic river otter boat-keeper, chibi-sized, sleek brown fur, sailor scarf in teal, holds a long wooden punting pole, a grumpy-but-kind expression.
+Scene: the morning after the victory, the garden wakes. Water runs again through the wooden sluices and channels, sparkling; golden reeds and cattails sway in a soft breeze; grass and small flowers push up between the studded toy bricks. The chunky toy-brick goblins (red bodies, blue heads, amber eyes) sit down plump on the ground like toys, one yawning wide, one rubbing its eye, one already dozing, harmless and cute. Sora sits on a low wooden fence by the stream, smiling softly as she watches, her cuffs faintly blue; Mulgyeol the otter dips his pole into the moving water; Noeul leans on a post with a small relieved smile. Calm, warm, gentle, early morning light.
+COMPOSITION: 16:9, eye level, Sora clearly visible and lovely in the left-center, the yawning goblins in the foreground right, the flowing water leading the eye across.
+SORA: make her as beautiful, lovely and heroic as possible, exactly her design and face from attachments 1 and 3: lavender-silver wavy bob, small gold crown with a blue diamond, side ribbon, white dress with royal-blue panels and gold trim; 3.5 heads tall; she must be the first thing the eye goes to.
+World: a hand-made garden land whose ground is slowly hardening into toy-like plastic brick (LEGO-like studded bricks), with golden reed marshes, cattails, wooden bridges, old lantern posts. Brick creatures are cute chunky toy-brick goblins (red body, blue head, glowing amber eyes, studs on top), not scary.
+STYLE (match the second attached image exactly): classic 1990s TV anime cel. Clean uniform dark ink outlines, flat colors with exactly one hard-edged shadow tone, no gradients, no texture, simple flat painted background, slightly faded film colors. 16:9 landscape.
+AVOID the typical AI-illustration look: no golden backlight or rim light, no sparkles, no glitter particles, no bokeh light orbs, no lens flare, no glow halos, no over-saturated colors, no glossy airbrushed shading, no symmetric centered poster composition. Keep the background simpler and quieter than the characters.
+ANATOMY MUST BE CORRECT: every character has exactly two arms and two legs, a natural unbroken spine and waist (no twisted or bent-back torso), each clearly attached, five fingers per hand, no extra or merged limbs.
+MODESTY: wholesome and family-friendly; underwear is never visible, no view under skirts; camera at eye level or slightly above, never a low angle looking up at a skirt; in action poses the skirt and petticoat stay down over the thighs.
+No text, no logo, no watermark, no frame.
+When done, reply with only the file path.

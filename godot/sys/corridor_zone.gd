@@ -20,6 +20,7 @@ const GATE_HP := 2000
 const GATE_REACH := 8.0
 const GATE_SWAT := 30      # the two arms, base damage
 const GATE_WAVE := 22
+const RING_R := 4.0        # the shock ring's reach
 
 var trans := {}            # the level moving: {"room", "to", "t", "done"}
 var ride := {}             # Sora on the cart: {"from", "to", "t", "dur"}
@@ -30,6 +31,8 @@ var group_active := -1     # the last room: which wheel's fight is on
 var boss_made := false
 var lights_t := -1.0       # the answer lamps coming on
 var s_toast_t := 0.0
+var quest_t := 0.0         # the quest line follows the room's state twice a second (a brick falling changes it)
+var lamps_told := false    # the answer lamps are lit and the player was told to confirm (v0.1.91)
 
 func _init(main: Main) -> void:
 	m = main
@@ -97,6 +100,7 @@ func enter_room(r: int, back: bool) -> void:
 	m.ui.zone_sub.text = Main.CORR.NAMES[r]
 	m.ui.boss.visible = false
 	m.snap_mates()
+	settle(r)
 	refresh_quest()
 	if r < 3 and not spawned[r] and m.corridor_q < 2 + r:
 		spawned[r] = true
@@ -104,6 +108,7 @@ func enter_room(r: int, back: bool) -> void:
 			m.brick_foes.spawn_bucket(f)
 			m.enemies[m.enemies.size() - 1].cave_room = r
 			m.burst(Vector3(f.x, 0.5, f.y), Color("#9fd8ff"), 10, 1.6)
+		refresh_quest() # the bricks are up: the line says so
 
 func leave_corridor() -> void:
 	clear_job()
@@ -189,6 +194,12 @@ func repair() -> void:
 		sec(3).water_high = false
 	if q < 2:
 		sec(1).drained = false
+	if sec(1).drained and q < 3:
+		sec(1).water_high = false # the drain was started, so the water is gone (a save in its 1 s used to keep it high, v0.1.91)
+	if q >= 2:
+		sec(0).record_read = true # the work past a plate was done, so it was read (the plates are now required)
+	if q >= 5 or (q >= 4 and (sec(3).water_high or sec(3).latch_fixed or m.corr_bits > 0)):
+		sec(3).record_read = true
 	if q < 3:
 		sec(2).docked = false
 	if q >= 4:
@@ -213,14 +224,20 @@ func apply_state() -> void:
 		l.emission_energy_multiplier = 2.6 if bool(sec(3).sent) else 0.15
 	if c.stand_jar != null:
 		c.stand_jar.emission_energy_multiplier = 2.4 if bool(sec(3).sent) else 0.3
+	c.set_shortcut(m.corridor_q >= 6)
+	sync_carts()
 
 # ---- the quest line and the gold "!"
 func quest_line() -> String:
 	var q: int = m.corridor_q
 	if q >= 6:
+		if in_corridor() and room() == 3:
+			return "입구 계단이 호수 섬으로 이어졌다. 계단으로 돌아가자"
 		return m.moon_tokens.lake_line()
 	if q == 5:
-		return "회랑 끝 응답등을 확인하자 (E)"
+		if not sec(3).sent: return "회랑 끝 응답대에 물을 보내자 (E)"
+		if lights_t >= 0.0 and lights_t < 1.8: return "응답등이 켜지는 중이다"
+		return "응답등이 켜졌다. 응답대에서 E로 응답을 확인하자"
 	var r := work_room()
 	var s: Dictionary = sec(r)
 	match r:
@@ -229,12 +246,18 @@ func quest_line() -> String:
 			if post_room != 0: return "물결에게 수문을 맡기자 (E)"
 			return "물을 높이고 걸쇠를 풀자 (E)"
 		1:
-			if foes_alive(1) or (not s.drained and not s.water_high): return "물 건너 벽돌을 치우자"
-			if not s.drained: return "반대편 물레에서 물을 빼자 (E)"
-			return "입구 손잡이로 물길을 고정하자 (E)"
+			if s.drained: return "입구 손잡이로 물길을 고정하자 (E)"
+			if foes_alive(1):
+				if not m.corridor.high[1]: return "손잡이로 물을 높인 뒤 Shift로 물 위를 건너자 (E)"
+				return "Shift로 물 위를 건너 벽돌을 치우자"
+			if not m.corridor.high[1]: return "손잡이로 물을 높이자 (E)"
+			return "반대편 물레에서 물을 빼자 (E)"
 		2:
-			if not s.docked and (post_room != 2 or not m.corridor.high[2]) and not arrived: return "물결과 운반대를 띄우자 (E)"
-			if not s.docked: return "운반대를 건너편에 묶자 (E)"
+			if not s.docked and not arrived:
+				if post_room != 2: return "물결에게 수문을 맡기자 (E)"
+				if not m.corridor.high[2]: return "손잡이로 물을 높이자 (E)"
+				return "운반대에 올라 물길을 건너자 (E)"
+			if not s.docked: return "건너편 기둥에 줄을 묶자 (E)"
 			return "둘이 물레를 잇자 (E)"
 	if not s.record_read: return "물레 방의 잠금판을 읽자"
 	if not s.water_high or not s.latch_fixed: return "내가 수문을 잡고 물결을 보내자 (E)"
@@ -244,6 +267,33 @@ func quest_line() -> String:
 func refresh_quest() -> void:
 	if in_corridor():
 		m.set_quest(quest_line())
+	refresh_link()
+
+# the line from the entrance lever to Mulgyeol's post, while Sora keeps the last room's sluice and he works at the far side
+func refresh_link() -> void:
+	var c = m.corridor
+	var on: bool = in_corridor() and room() == 3 and m.corridor_q == 4 and bool(sec(3).water_high) and (bool(sec(3).latch_fixed) or post_room == 3)
+	c.set_link(on, c.at(3, "A"), c.at(3, "P") if post_room == 3 else c.at(3, "R"))
+
+# the carts stand where the work left them: the third room's at R once moored, the last room's at R once Mulgyeol crossed
+func sync_carts() -> void:
+	var c = m.corridor
+	if c.carts[2] != null:
+		c.carts[2].position.x = c.at(2, "R" if bool(sec(2).docked) else "T").x
+	if c.carts[3] != null:
+		c.carts[3].position.x = c.at(3, "R" if bool(sec(3).latch_fixed) else "T").x
+
+# a room as a save, a faint or a new visit leaves it (v0.1.91): no ride or crossing is under way, the carts are where their moorings
+# say, and when the last room's role swap was done Mulgyeol stands at the far post again
+func settle(r: int) -> void:
+	arrived = false
+	sync_carts()
+	if r == 3 and m.corridor_q == 4 and bool(sec(3).water_high) and bool(sec(3).latch_fixed) and m.mate != null and gate_alive() == null:
+		var rr: Vector2 = m.corridor.at(3, "R")
+		m.mate.position = Vector3(rr.x, 0.0, rr.y)
+		m.mate_job = {"kind": "corr_post", "to": rr, "t": 0.0}
+		post_room = -1
+	refresh_link()
 
 func bits_count() -> int:
 	var n := 0
@@ -371,7 +421,7 @@ func corridor_key() -> bool:
 func key_h(r: int) -> void:
 	var s: Dictionary = sec(r)
 	if s.record_read:
-		m.toast("잠금판에는 손바닥 자국이 겹쳐 있다" if r == 0 else "잠금판에 손바닥 둘이 올릴 자리가 새겨져 있다")
+		m.toast("잠금판에는 손바닥 자국이 겹쳐 있다" if r == 0 else "잠금판에는 크기가 다른 손자국 둘이 나란히 있다")
 		return
 	s.record_read = true
 	m.corridor.set_plate(r, true)
@@ -380,9 +430,16 @@ func key_h(r: int) -> void:
 	if r == 0:
 		m.show_story("", Main.STORY.CORR_PLATE)
 	else:
-		m.toast("잠금판에 손바닥 둘이 올릴 자리가 새겨져 있다")
+		m.show_story("", Main.STORY.CORR_PLATE2)
 	refresh_quest()
 	m.save_game()
+
+# a plate the first device of the room needs read first (v0.1.91: the records are part of the story, not an option)
+func plate_needed(r: int) -> bool:
+	if (r == 0 or r == 3) and not bool(sec(r).record_read):
+		m.toast("먼저 한결의 잠금판을 읽자 (H)")
+		return true
+	return false
 
 func key_a(r: int) -> void:
 	var c = m.corridor
@@ -392,14 +449,16 @@ func key_a(r: int) -> void:
 		if gk != null:
 			if gk.assist > 0.0:
 				gk.assist = 0.0
-				gk.expo += 5.0
+				help_gate(gk)
 				if m.mate != null:
 					m.say_bubble(m.mate, tr("물이 옆으로 간다!"), 1.8)
-				m.toast("옆문으로 물을 뺐다. 수문지기의 축이 5초 더 드러난다")
+				m.toast("옆문으로 물을 보냈다. 수문지기가 멈춰 서고 축이 5초 더 드러난다")
 				m.sfx(330, 0.3, "sine", 0.22, 160)
 				m.burst(Vector3(c.at(3, "A").x, 0.6, c.at(3, "A").y), Color("#9fd4ff"), 20, 2.5)
 			else:
 				m.toast("지금은 수문을 열 때가 아니다")
+			return
+		if plate_needed(3):
 			return
 		var s3: Dictionary = sec(3)
 		if s3.water_high:
@@ -413,9 +472,17 @@ func key_a(r: int) -> void:
 		m.save_game()
 		return
 	var s: Dictionary = sec(r)
+	if s.latch_fixed: # a finished room's lever stays where it was fixed (v0.1.91: it used to undo the room)
+		m.toast("물길은 이미 고정했다. 이 방의 물은 낮게 잠겨 있다")
+		return
+	if plate_needed(r):
+		return
 	if r == 1 and s.drained and not s.latch_fixed:
 		s.latch_fixed = true
 		m.corridor_q = maxi(m.corridor_q, 3)
+		trans = {} # the channel is fixed low at once, not in the drain's last second
+		s.water_high = false
+		c.set_water(1, false)
 		c.set_gate(1, true)
 		c.set_wheel(1, 0, true)
 		m.sfx(196, 0.5, "triangle", 0.3, -60)
@@ -449,6 +516,8 @@ func start_water(r: int, to_high: bool) -> void:
 func key_p(r: int) -> void:
 	if m.mate == null or m.mate_down.mulgyeol > 0.0:
 		m.toast("물결이 일어날 때까지 기다리자")
+		return
+	if (r == 0 or (r == 3 and gate_alive() == null)) and post_room != r and plate_needed(r):
 		return
 	if r < 3:
 		if post_room == r:
@@ -494,7 +563,7 @@ func key_t(r: int) -> void:
 		return
 	var s: Dictionary = sec(2)
 	if s.docked or arrived:
-		m.toast("운반대는 건너편에 묶여 있다")
+		m.toast("운반대는 건너편에 닿아 있다" if arrived and not s.docked else "운반대는 건너편에 묶여 있다")
 	elif post_room != 2:
 		m.toast("물결에게 수문을 맡기자 (P에서 E)")
 	elif not m.corridor.high[2]:
@@ -532,6 +601,8 @@ func key_f(r: int, i: int) -> void:
 	if r == 0:
 		if s.latch_fixed:
 			m.toast("걸쇠는 이미 풀렸다")
+		elif not s.record_read:
+			plate_needed(0)
 		elif post_room != 0:
 			m.toast("물결에게 수문을 맡기자 (P에서 E)")
 		elif not c.high[0]:
@@ -549,6 +620,7 @@ func key_f(r: int, i: int) -> void:
 			m.toast("물이 낮다. 입구 손잡이로 물을 높이자 (A)")
 		else:
 			s.drained = true
+			s.water_high = false # saved as drained and low together: the drain cannot be cut by a save (v0.1.91)
 			c.set_wheel(1, 0, true)
 			start_water(1, false)
 			m.sfx(160, 0.5, "noise", 0.12, -60)
@@ -589,6 +661,8 @@ func key_wheel(i: int) -> void:
 	var s: Dictionary = sec(3)
 	if m.corridor_q >= 5:
 		m.toast("물레는 모두 이어져 있다")
+	elif not s.record_read:
+		plate_needed(3)
 	elif not s.water_high:
 		m.toast("먼저 입구 손잡이로 수문을 잡자 (A)")
 	elif not s.latch_fixed:
@@ -649,8 +723,10 @@ func key_c(r: int) -> void:
 	elif not s.sent:
 		s.sent = true
 		lights_t = 0.0
+		lamps_told = false
 		m.sfx(392, 0.4, "sine", 0.22, 200)
-		m.toast("물이 정원으로 흘러간다")
+		m.toast("물이 정원으로 흘러간다. 응답등이 켜지면 E로 응답을 확인하자")
+		refresh_quest()
 		m.save_game()
 	elif lights_t >= 0.0 and lights_t < 1.8:
 		m.toast("응답등이 켜지기를 기다리자")
@@ -658,12 +734,16 @@ func key_c(r: int) -> void:
 		m.corridor_q = 6
 		m.corr_bits = 7
 		m.corr_check = 3
+		m.corridor.set_shortcut(true)
 		m.show_story("", Main.STORY.CORR_DONE)
-		m.set_quest(m.moon_tokens.lake_line())
+		refresh_quest() # the line now says the entrance stair leads to the lake
 		m.save_game()
 
 # ---- the cart, Mulgyeol's jobs, the level
 func clear_job() -> void:
+	if not trans.is_empty() and not bool(trans.done) and not bool(trans.to): # a drain under way is finished at once (v0.1.91)
+		m.corridor.set_water(int(trans.room), false)
+		sec(int(trans.room)).water_high = false
 	trans = {}
 	ride = {}
 	release_post()
@@ -730,6 +810,11 @@ func update(dt: float) -> void:
 	var c = m.corridor
 	c.tick(dt)
 	s_toast_t -= dt
+	quest_t -= dt
+	if quest_t <= 0.0:
+		quest_t = 0.5
+		if m.quest_raw != quest_line() and not m.story_open:
+			refresh_quest()
 	var r := room()
 	var me := Vector2(m.player.x, m.player.z)
 	# the level moving
@@ -772,6 +857,10 @@ func update(dt: float) -> void:
 	# the answer lamps
 	if lights_t >= 0.0:
 		lights_t += dt
+		if lights_t >= 1.8 and not lamps_told and m.corridor_q == 5:
+			lamps_told = true
+			m.toast("응답등이 켜졌다. 응답대에서 E로 응답을 확인하자")
+			refresh_quest()
 		for k in c.stand_lamps.size():
 			c.stand_lamps[k].emission_energy_multiplier = 2.6 if lights_t >= 0.5 + k * 0.5 else 0.15
 		if c.stand_jar != null:
@@ -852,6 +941,9 @@ func make_gate() -> Node3D:
 	var axis: MeshInstance3D = m.box(Vector3(0.3, 1.8, 0.3), axis_mat)
 	axis.position = Vector3(0, 1.6, -0.9)
 	body.add_child(axis)
+	var front_mark: MeshInstance3D = m.box(Vector3(0.24, 1.2, 0.05), axis_mat) # the same blue on its front, so the open axis shows from any side (v0.1.91)
+	front_mark.position = Vector3(0, 1.3, 0.73)
+	body.add_child(front_mark)
 	var eye_mat: Material = m.glow_mat(Color("#ffb040"), 2.0)
 	for sx in [-0.3, 0.3]:
 		var eye: MeshInstance3D = m.box(Vector3(0.2, 0.14, 0.06), eye_mat)
@@ -868,7 +960,7 @@ func spawn_gate() -> void:
 	var at: Vector2 = m.corridor.at(3, "B")
 	var node := make_gate()
 	var e: Dictionary = m.brick_foes.base_entry(node, at, GATE_HP, 1.5, {"gatekeeper": true, "st": "idle", "st_t": 1.5, "pats": 0,
-		"expo": 0.0, "assist": 0.0, "dir": Vector2(-1, 0), "ph2": false, "struck": false, "fight": true})
+		"expo": 0.0, "assist": 0.0, "side_t": 0.0, "told_axis": false, "ring_nodes": [], "dir": Vector2(-1, 0), "ph2": false, "struck": false, "fight": true})
 	e.atk_cd = 0.0
 	node.position = Vector3(at.x, 0, at.y)
 	place_post(3) # Mulgyeol keeps the sluice at his post
@@ -876,6 +968,7 @@ func spawn_gate() -> void:
 	m.shake = 0.3
 	m.burst(Vector3(at.x, 0.6, at.y), Color("#9fd8ff"), 30, 3.5)
 	m.corr_check = 3
+	refresh_link()
 
 # the keeper: two arms down a lane, then (below 60%) a shock ring, then the axis lies open (full damage); closed it takes half
 func update_gate(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
@@ -890,7 +983,8 @@ func update_gate(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 		e.expo = maxf(0.0, e.expo - dt)
 		var was: float = e.assist
 		e.assist = maxf(0.0, e.assist - dt)
-		if was > 0.0 and e.assist <= 0.0:
+		e.side_t = maxf(0.0, e.side_t - dt)
+		if was > 0.0 and e.assist <= 0.0 and e.side_t <= 0.0:
 			m.toast("옆문이 닫혔다")
 		e.st_t -= dt
 		match e.st:
@@ -905,7 +999,7 @@ func update_gate(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 					if e.ph2:
 						e.st = "ring"
 						e.st_t = 1.0
-						m.warn_ring(Vector3(e.x, 0.0, e.z), 4.0, 1.0)
+						ring_warn(e, 1.0)
 						m.sfx(140, 0.5, "sawtooth", 0.2, 120)
 					else:
 						expose(e, 3.0)
@@ -935,6 +1029,7 @@ func update_gate(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	for a in arms:
 		a.rotation.x = lerpf(a.rotation.x, -1.3 if raised else (0.3 if slam else 0.0), minf(1.0, dt * 12.0))
 	axis.emission_energy_multiplier = 2.6 if e.expo > 0.0 else 0.4
+	m.corridor.set_side(e.assist > 0.0 or e.side_t > 0.0)
 	node.get_meta("body").scale = Vector3.ONE * (1.04 if e.hurt > 0.0 else 1.0)
 	node.rotation.y = lerp_angle(node.rotation.y, atan2(e.dir.x, e.dir.y), minf(1.0, dt * 4.0))
 	node.position = Vector3(e.x, 0, e.z)
@@ -945,7 +1040,7 @@ func begin_swat(e: Dictionary, to: Vector2, d: float) -> void:
 	e.ph2 = e.hp <= GATE_HP * 0.6
 	e.st = "warn"
 	e.st_t = 1.2
-	e.tele = m.monsters.warn_path(Vector2(e.x, e.z), e.dir, GATE_REACH, 2.0, 1.2)
+	e.tele = lane_warn(e, 1.2)
 	m.pop_num(Vector3(e.x, 3.4, e.z), "!", Color("#ff5a4a"))
 	m.sfx(140, 0.5, "sawtooth", 0.2, 120)
 
@@ -961,7 +1056,75 @@ func swat(e: Dictionary) -> void:
 	if m.brick_foes.in_lane(from, e.dir, GATE_REACH, 1.0, Vector2(m.player.x, m.player.z)):
 		m.player_hit(GATE_SWAT + m.boss_extra(), from, e)
 
+# a warning material drawn as plain colour over the floor (alpha mix, no glow) instead of the additive glow
+func solid(mat: StandardMaterial3D, c: Color) -> void:
+	mat.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+	mat.emission_enabled = false
+	mat.albedo_color = Color(c.r, c.g, c.b, mat.albedo_color.a)
+
+# the arms' lane: the filled red lane of every brick foe with a bright border, so the edge of the blow reads at 800 px
+func lane_warn(e: Dictionary, life: float) -> MeshInstance3D:
+	var mm: MeshInstance3D = m.monsters.warn_path(Vector2(e.x, e.z), e.dir, GATE_REACH, 2.0, life)
+	var lane_mat: StandardMaterial3D = mm.get_meta("mat")
+	solid(lane_mat, Color("#e83a2a")) # the additive glow whitens on these pale floors; a solid red reads
+	var edge: StandardMaterial3D = m.glow_mat(Color("#ffd23a"), 1.0)
+	solid(edge, Color("#ffd23a"))
+	for sx in [-1.0, 1.0]:
+		var b: MeshInstance3D = m.box(Vector3(0.1, 0.07, GATE_REACH), edge)
+		b.position = Vector3(sx * 1.0, 0.02, 0.0)
+		mm.add_child(b)
+	for sz in [-1.0, 1.0]:
+		var b2: MeshInstance3D = m.box(Vector3(2.1, 0.07, 0.1), edge)
+		b2.position = Vector3(0.0, 0.02, sz * GATE_REACH / 2.0)
+		mm.add_child(b2)
+	return mm
+
+# the shock ring: the whole reach filled faintly and its rim in a bright line (the blow lands inside RING_R only)
+func ring_warn(e: Dictionary, life: float) -> void:
+	var fill := MeshInstance3D.new()
+	fill.mesh = m.ring_mesh(0.0, RING_R, 0.0, TAU)
+	var fmat: StandardMaterial3D = m.glow_mat(Color("#ff4a3a"), 0.9)
+	solid(fmat, Color("#e83a2a"))
+	fill.material_override = fmat
+	fill.position = Vector3(e.x, 0.07, e.z)
+	m.add_fx(fill, life, func(_n: Node3D, k: float, _dt: float): fmat.albedo_color.a = 0.22 + 0.2 * absf(sin(k * PI * 4.0)))
+	var rim := MeshInstance3D.new()
+	rim.mesh = m.ring_mesh(RING_R - 0.22, RING_R, 0.0, TAU)
+	var rmat: StandardMaterial3D = m.glow_mat(Color("#ffd23a"), 1.0)
+	solid(rmat, Color("#ffd23a"))
+	rim.material_override = rmat
+	rim.position = Vector3(e.x, 0.1, e.z)
+	m.add_fx(rim, life, func(_n: Node3D, k: float, _dt: float): rmat.albedo_color.a = 0.6 + 0.4 * absf(sin(k * PI * 4.0)))
+	e.ring_nodes = [fill, rim]
+
+# the warning lane and the ring's drawing go
+func cancel_attack(e: Dictionary) -> void:
+	m.monsters.tele_clear(e)
+	for n in e.ring_nodes:
+		if is_instance_valid(n):
+			n.visible = false
+	e.ring_nodes = []
+
+# the side door's water stops the keeper in mid-pattern (v0.1.91): its warning, blow and ring are gone and the axis lies open 5 s longer
+func help_gate(e: Dictionary) -> void:
+	cancel_attack(e)
+	e.expo = maxf(e.expo, 0.0) + 5.0
+	e.st = "expose"
+	e.st_t = e.expo
+	e.side_t = 5.0
+	tell_axis(e)
+
+# the first time the axis shows, the rule: it takes double blows while it glows
+func tell_axis(e: Dictionary) -> void:
+	if not e.told_axis:
+		e.told_axis = true
+		m.toast("축이 빛날 때 피해 2배")
+
 func wave(e: Dictionary) -> void:
+	for n in e.ring_nodes: # the ring's drawing ends with its blow
+		if is_instance_valid(n):
+			n.visible = false
+	e.ring_nodes = []
 	e.st = "wave"
 	e.st_t = 0.5
 	m.monsters.stomp_wave(Vector3(e.x, 0.0, e.z))
@@ -972,7 +1135,8 @@ func expose(e: Dictionary, secs: float) -> void:
 	e.st = "expose"
 	e.st_t = secs
 	e.expo = maxf(e.expo, secs)
-	m.pop_num(Vector3(e.x, 3.2, e.z), "축!", Color("#7fd0ff"))
+	m.pop_num(Vector3(e.x, 3.2, e.z), "축! 피해 2배", Color("#7fd0ff"))
+	tell_axis(e)
 
 # the keeper falls: the knot and two potions, the water for the answer stand, q5, all in one save
 func boss_beaten() -> void:
@@ -986,6 +1150,7 @@ func boss_beaten() -> void:
 	m.player.pots += 2
 	release_post()
 	boss_made = false
+	m.corridor.set_side(false)
 	m.shake = 0.5
 	m.sfx(330, 0.5, "sine", 0.25, 200)
 	m.burst(Vector3(m.corridor.at(3, "B").x, 1.0, m.corridor.at(3, "B").y), Color("#9fd8ff"), 40, 4.0)
@@ -1003,6 +1168,7 @@ func clear_fight() -> void:
 			e.node.queue_free()
 			e.shadow.queue_free()
 	boss_made = false
+	m.corridor.set_side(false)
 
 # Sora faints in the corridor: she wakes at the current room's stair, healed; the keeper and the fight's bricks start over,
 # what was done stays (the design: death returns to S+(1,0) of the room, devices and the 111 bits are kept)
@@ -1020,6 +1186,7 @@ func on_faint() -> void:
 	m.player.inv = 2.0
 	m.ground_y = 0.0
 	m.snap_mates()
+	settle(r)
 	m.ui.banner_title.text = "쓰러졌다"
 	m.ui.banner_sub.text = "회랑 계단 곁에서 다시 눈을 떴다 · 금화와 레벨은 그대로"
 	m.ui.banner.modulate.a = 1.0
@@ -1031,4 +1198,11 @@ func journal() -> String:
 	var q: int = m.corridor_q
 	if q >= 6:
 		return tr("끝")
-	return [tr("호수 섬의 계단으로"), tr("잠금판과 첫 수문"), tr("되돌리는 물"), tr("건네는 줄"), tr("물레 셋과 수문지기"), tr("응답대로")][clampi(q, 0, 5)]
+	if q == 0: # the one missing condition for the stair
+		if not m.tokens[m.moon_tokens.PEARL]:
+			return tr("호수 섬의 계단으로") + " · " + tr("먼저 물빛 동굴의 진주를 얻자")
+		if m.south_q < 4:
+			return tr("호수 섬의 계단으로") + " · " + tr("먼저 아랫못의 물시계를 되살리자")
+		return tr("호수 섬의 계단으로") + " · " + tr("섬 남쪽 계단으로 내려가자")
+	var step: String = [tr("호수 섬의 계단으로"), tr("잠금판과 첫 수문"), tr("되돌리는 물"), tr("건네는 줄"), tr("물레 셋과 수문지기"), tr("응답대로")][clampi(q, 0, 5)]
+	return step + " · " + tr(quest_line()) # the step and what to do now

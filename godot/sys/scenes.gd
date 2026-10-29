@@ -116,11 +116,15 @@ const SCENES := {
 	"under_in": {"play": true, "village": true, "castle": true, "under_in": true, "hour": 16.0},
 	"workshop1": {"play": true, "village": true, "castle": true, "workshop": 1, "hour": 16.0}, # 달지기 작업장 B1: both lamps lit, the planks shown
 	"altar_work": {"play": true, "village": true, "castle": true, "workshop": 1, "hour": 16.0, "altar": true}, # the ember's altar on B1
-	"corridor": {"play": true, "village": true, "corridor": 0, "cq": 1, "hour": 15.0}, # 물길 회랑 (v0.1.84): the first room, low water
+	"corridor": {"play": true, "village": true, "corridor": 0, "cq": 1, "cat": Vector2(6, 13.5), "hour": 15.0}, # 물길 회랑 (v0.1.84): the first room, low water
 	"corridor_high": {"play": true, "village": true, "corridor": 0, "cq": 1, "high": true, "cat": Vector2(5, 10), "hour": 15.0}, # the same, the water raised
-	"corridor2": {"play": true, "village": true, "corridor": 1, "cq": 2, "cat": Vector2(13, 10), "hour": 15.0},
-	"corridor3": {"play": true, "village": true, "corridor": 2, "cq": 3, "high": true, "cat": Vector2(13, 10), "hour": 15.0},
+	"corridor2": {"play": true, "village": true, "corridor": 1, "cq": 2, "cat": Vector2(12, 10), "hour": 15.0},
+	"corridor3": {"play": true, "village": true, "corridor": 2, "cq": 3, "high": true, "cat": Vector2(6, 12.5), "hour": 15.0}, # the west bank: the cart, the parts pile
+	"corridor3e": {"play": true, "village": true, "corridor": 2, "cq": 3, "high": true, "cat": Vector2(16, 9), "hour": 15.0}, # the east bank: the mooring, the snapped valve
 	"corridor_core": {"play": true, "village": true, "corridor": 3, "cq": 4, "cat": Vector2(14, 12), "hour": 15.0},
+	"corridor_plate": {"play": true, "village": true, "corridor": 3, "cq": 4, "cat": Vector2(5, 14), "hour": 15.0}, # the wheel hall's plate between its two benches
+	"corridor_arm": {"play": true, "village": true, "corridor": 3, "cq": 4, "boss": true, "arm": true, "hour": 15.0}, # the keeper's arm warning held
+	"corridor_ring": {"play": true, "village": true, "corridor": 3, "cq": 4, "boss": true, "ring": true, "hour": 15.0}, # the keeper's ring warning held
 	"corridor_boss": {"play": true, "village": true, "corridor": 3, "cq": 4, "boss": true, "hour": 15.0}, # the sluice-keeper with its lane showing
 	"corridor_stairs": {"play": true, "village": true, "corridor": -1, "hour": 15.0}, # the stair on the island
 	"altar_grotto": {"play": true, "village": true, "crab": true, "hour": 21.0, "altar": true}, # the nova's altar in the crab's room
@@ -495,7 +499,17 @@ func apply_test_args(args: PackedStringArray) -> void:
 					var gk = m.corridor_zone.gate_alive()
 					if gk != null:
 						gk.st_t = 2.6 # its lane shows about 4 s after the start
-					m.player.x = m.corridor.at(3, "B").x - 6.0
+						if sc.has("arm"): # hold the arm warning: the lane stays up
+							gk.st = "warn"
+							gk.st_t = 99.0
+							gk.tele = m.corridor_zone.lane_warn(gk, 60.0)
+						if sc.has("ring"): # hold the ring warning (phase two)
+							gk.hp = 1100.0
+							gk.ph2 = true
+							gk.st = "ring"
+							gk.st_t = 99.0
+							m.corridor_zone.ring_warn(gk, 60.0)
+					m.player.x = m.corridor.at(3, "B").x - (7.0 if sc.has("ring") else 6.0)
 					m.player.z = m.corridor.at(3, "B").y
 				if sc.has("cat"): # a spot in the room, local tile
 					m.player.x = m.corridor.origin(r) + sc.cat.x

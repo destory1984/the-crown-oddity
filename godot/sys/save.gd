@@ -199,6 +199,8 @@ func load_game() -> void:
 			m.player.x = m.lake.marks.P.x
 			m.player.z = m.lake.marks.P.y - 1.0
 		m.snap_mate()
+		if m.in_corridor(): # the snap above took Mulgyeol off his far post: the corridor puts the work's roles back (v0.1.91)
+			m.corridor_zone.settle(m.corridor.room_of(m.player.x))
 	m.cloud_q = int(d.get("cloud_q", 0))
 	if m.cloud_q == 2:
 		m.cloud_q = 1 # the scarecrow fight starts over when she walks back onto its island

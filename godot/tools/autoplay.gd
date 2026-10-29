@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_gate", "corridor_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -10044,16 +10044,17 @@ func run() -> void:
 		var C = main.corridor
 		var Z = main.corridor_zone
 		var o: int = C.origin(2)
-		await corr_press("T", 2, 0, Vector2(0.4, 0))
+		await corr_press("T", 2, 0, Vector2(-0.4, 0))
 		var no_ride: bool = Z.ride.is_empty() and not Z.arrived
 		await corr_press("P", 2)
 		await wait(1.5)
-		await corr_press("T", 2, 0, Vector2(0.4, 0))
+		await corr_press("T", 2, 0, Vector2(-0.4, 0))
 		var low_stops: bool = Z.ride.is_empty() # the water is low: the cart waits
 		await corr_press("A", 2)
 		await wait(2.3)
-		await corr_press("T", 2, 0, Vector2(0.4, 0))
+		await corr_press("T", 2, 0, Vector2(-0.4, 0))
 		var riding: bool = not Z.ride.is_empty()
+		var west_start: bool = C.at(2, "T").x < o + 8.0 and C.at(2, "R").x > o + 11.0 # the cart really crosses the channel (v0.1.91)
 		var t0 := Time.get_ticks_msec()
 		await wait(0.5)
 		var no_blows: bool = main.player.atk_cd >= 0.25
@@ -10061,7 +10062,8 @@ func run() -> void:
 		var secs: float = float(Time.get_ticks_msec() - t0) / 1000.0
 		var rr: Vector2 = C.at(2, "R")
 		var on_r: bool = Z.arrived and Vector2(main.player.x, main.player.z).distance_to(rr) < 0.3
-		var pace: bool = secs > 2.4 and secs < 4.2 # 6 tiles at 2 a second
+		var pace: bool = secs > 4.2 and secs < 6.2 # 10 tiles at 2 a second
+		var cart_at_r: bool = absf(C.carts[2].position.x - rr.x) < 0.3
 		await corr_press("F", 2, 0, Vector2(-0.8, -0.5))
 		var moor_first: bool = not main.corr_sec[2].latch_fixed # the wheel waits for the mooring
 		await corr_press("R", 2, 0, Vector2(-0.5, 0))
@@ -10070,7 +10072,7 @@ func run() -> void:
 		await wait(0.3)
 		var done: bool = main.corr_sec[2].latch_fixed and main.corridor_q == 4 and C.gate_open[2] and main.story_open
 		main.close_story()
-		check("corridor_s3", no_ride and low_stops and riding and no_blows and on_r and pace and moor_first and docked and done,
+		check("corridor_s3", no_ride and low_stops and riding and west_start and cart_at_r and no_blows and on_r and pace and moor_first and docked and done,
 			"cart needs post and high water=%s/%s; rides=%s, no blows=%s, reaches R=%s in %.1f s (%s); wheel waits for the mooring=%s; moored, post freed=%s; wheel fixed, q4, gate open, talk=%s" % [no_ride, low_stops, riding, no_blows, on_r, secs, pace, moor_first, docked, done])
 		corr_kill(corr_foes())
 		calm_enemies(false)
@@ -10086,7 +10088,8 @@ func run() -> void:
 		await corr_press("F", 3, 0, Vector2(0.0, 1.0))
 		var none0: bool = Z.group_active < 0 and main.corr_bits == 0 and corr_foes().is_empty()
 		await corr_press("H", 3)
-		var read: bool = main.corr_sec[3].record_read
+		var read: bool = main.corr_sec[3].record_read and main.story_open
+		main.close_story()
 		await corr_press("A", 3)
 		var held: bool = main.corr_sec[3].water_high
 		await corr_press("F", 3, 0, Vector2(0.0, 1.0))
@@ -10318,6 +10321,194 @@ func run() -> void:
 		calm_enemies(false)
 		main.in_lake = false
 		main.forest_q = maxi(main.forest_q, 0)
+		main.corridor_q = 6
+		Z.load_data({"corridor_q": 6})
+
+	if want.call("corridor_fix"):
+		# v0.1.91 (GPT's corridor report 1): a drain cut by a save or a faint stays drained; the cart and the role swap come back
+		# right; a friend at work cannot be hit; a finished room's lever stays; the plates are read first; the keeper's side door
+		# stops its attack; the line, the "!" and the journal tell the next step
+		calm_enemies(true)
+		var Z = main.corridor_zone
+		var C = main.corridor
+		# 1. drain: F, then a save or a room change inside its first second
+		await corr_prep(2, 1)
+		corr_kill(corr_foes())
+		main.corr_sec[1].water_high = true
+		C.set_water(1, true)
+		await corr_press("F", 1, 0, Vector2(-0.8, 0))
+		var f_now: bool = main.corr_sec[1].drained and not main.corr_sec[1].water_high
+		Z.clear_job() # a room change inside the drain's second
+		var cut_low: bool = not C.high[1]
+		C.set_water(1, true) # as a save from that second used to load: drained and still high
+		main.corr_sec[1].water_high = true
+		Z.repair()
+		Z.apply_state()
+		var repaired: bool = not C.high[1] and not main.corr_sec[1].water_high
+		await corr_press("A", 1)
+		var fixed_low: bool = main.corr_sec[1].latch_fixed and main.corridor_q == 3 and not C.high[1] and Z.trans.is_empty()
+		var a_done: bool = fixed_low
+		# 2. a finished room's lever does not undo it
+		await corr_press("A", 1)
+		await wait(1.4)
+		var stays_low: bool = not C.high[1] and Z.trans.is_empty() and main.corr_sec[1].latch_fixed
+		await corr_prep(2, 0)
+		await corr_press("A", 0)
+		await wait(1.4)
+		var r0_low: bool = not C.high[0] and Z.trans.is_empty() and not main.corr_sec[0].water_high
+		# 3. the cart: a faint or a new visit puts it back on the west bank with nothing under way; moored it stays at R
+		await corr_prep(3, 2)
+		var T: Vector2 = C.at(2, "T")
+		var R: Vector2 = C.at(2, "R")
+		Z.arrived = true
+		C.carts[2].position.x = R.x
+		Z.on_faint()
+		var cart_back: bool = not Z.arrived and absf(C.carts[2].position.x - T.x) < 0.1 and Z.ride.is_empty()
+		await corr_press("P", 2)
+		await wait(1.2)
+		await corr_press("A", 2)
+		await wait(2.3)
+		await corr_press("T", 2, 0, Vector2(-0.4, 0))
+		var rides_again: bool = not Z.ride.is_empty()
+		Z.clear_job()
+		main.corr_sec[2].docked = true
+		Z.apply_state()
+		var cart_moored: bool = absf(C.carts[2].position.x - R.x) < 0.1
+		main.corr_sec[2].docked = false
+		Z.apply_state()
+		# 4. Mulgyeol at a post is out of the fight, and a knock-down frees the post
+		await corr_prep(1, 0)
+		main.corr_sec[0].record_read = true
+		var P: Vector2 = C.at(0, "P")
+		Z.place_post(0)
+		main.mate.position = Vector3(P.x, 0.0, P.y)
+		var safe: bool = main.mates.mate_near(P, 1.0) == "" and main.mate_down["mulgyeol"] <= 0.0
+		Z.release_post()
+		main.mate.position = Vector3(P.x, 0.0, P.y)
+		var hit_free: bool = main.mates.mate_near(P, 1.0) == "mulgyeol"
+		Z.place_post(0)
+		await wait(0.3)
+		main.mate_down["mulgyeol"] = 2.0
+		await wait(0.3)
+		var freed: bool = Z.post_room == -1 and main.mate_job.is_empty()
+		main.mate_down["mulgyeol"] = 0.0
+		# 5. the last room's role swap comes back after a faint and a load: Mulgyeol at the far post, the line from the lever
+		await corr_prep(4, 3)
+		main.corr_sec[3] = {"record_read": true, "water_high": true, "latch_fixed": true, "sent": false}
+		Z.apply_state()
+		Z.enter_room(3, false)
+		var R3: Vector2 = C.at(3, "R")
+		var swap_in: bool = main.mate_job.get("kind", "") == "corr_post" and Vector2(main.mate.position.x, main.mate.position.z).distance_to(R3) < 0.3 and C.link.visible and absf(C.carts[3].position.x - R3.x) < 0.1
+		main.mate.position = Vector3(C.at(3, "S").x + 1.0, 0.0, C.at(3, "S").y)
+		Z.on_faint()
+		var swap_faint: bool = main.mate_job.get("kind", "") == "corr_post" and Vector2(main.mate.position.x, main.mate.position.z).distance_to(R3) < 0.3
+		main.corr_check = 3
+		main.save_game()
+		main.mate_job = {}
+		main.mate.position = Vector3(0, 0, 0)
+		main.load_game()
+		await wait(0.4)
+		main.close_story()
+		var swap_load: bool = main.mate_job.get("kind", "") == "corr_post" and Vector2(main.mate.position.x, main.mate.position.z).distance_to(R3) < 0.5 and main.corr_sec[3].latch_fixed
+		# the other rooms' carts: unstarted ones stand at T
+		var carts_t: bool = absf(C.carts[3].position.x - R3.x) < 0.1
+		# 6. the plates come first: no device works before its plate is read
+		await corr_prep(1, 0)
+		await corr_press("P", 0)
+		var no_post: bool = Z.post_room == -1
+		await corr_press("A", 0)
+		await wait(1.5)
+		var no_lever: bool = not C.high[0] and Z.trans.is_empty()
+		await corr_prep(4, 3)
+		await corr_press("A", 3)
+		var no_hold: bool = not main.corr_sec[3].water_high
+		await corr_press("H", 3)
+		var two_hands: bool = main.corr_sec[3].record_read and main.story_open
+		main.close_story()
+		await corr_press("A", 3)
+		var holds_now: bool = main.corr_sec[3].water_high
+		# 7. the keeper: the side door cancels the warning (and the ring) and stretches the open axis
+		await corr_prep(4, 3)
+		main.corr_bits = 7
+		main.corr_told = true
+		main.corr_sec[3] = {"record_read": true, "water_high": true, "latch_fixed": true, "sent": false}
+		Z.apply_state()
+		Z.spawn_gate()
+		var e: Dictionary = Z.gate_alive()
+		var A3: Vector2 = C.at(3, "A")
+		e.x = A3.x + 5.5
+		e.z = A3.y
+		reset_to(A3 + Vector2(0.9, 0))
+		main.player.inv = 0.0
+		main.player.hp = float(main.player.max_hp)
+		e.st = "idle"
+		e.st_t = 0.0
+		await wait_for(func(): return e.st == "warn", 1.5)
+		var warned: bool = e.st == "warn" and e.tele != null
+		e.assist = 6.0
+		tap(KEY_E)
+		await wait(0.15)
+		var arm_cut: bool = e.st == "expose" and e.expo > 4.4 and e.tele == null and C.side_open
+		await wait(1.6) # the blow would have landed by now
+		var arm_safe: bool = main.player.hp == float(main.player.max_hp) and e.st == "expose"
+		e.st = "idle"
+		e.st_t = 99.0
+		e.expo = 0.0
+		e.hp = 1100.0
+		e.x = A3.x + 3.0
+		e.st = "ring"
+		e.st_t = 1.0
+		Z.ring_warn(e, 1.0)
+		var ring_up: bool = e.ring_nodes.size() == 2
+		e.assist = 6.0
+		reset_to(A3 + Vector2(0.9, 0))
+		tap(KEY_E)
+		await wait(0.15)
+		var ring_cut: bool = e.st == "expose" and e.ring_nodes.is_empty() and e.expo > 4.4
+		await wait(1.4)
+		var ring_safe: bool = main.player.hp == float(main.player.max_hp)
+		var told: bool = e.told_axis
+		var front: bool = e.node.get_meta("body").get_child_count() > 10
+		e.expo = 2.0 # an exposure under way is lengthened, not replaced
+		e.st = "expose"
+		e.st_t = 2.0
+		e.assist = 6.0
+		tap(KEY_E)
+		await wait(0.15)
+		var longer: bool = e.expo > 6.5 and e.st_t > 6.5
+		Z.clear_fight()
+		# 8. the line, the answer stand's two presses, the shortcut sign, the journal
+		await corr_prep(2, 1)
+		var l2: bool = main.quest_raw.contains("Shift")
+		await corr_prep(3, 2)
+		var l3: bool = main.quest_raw.contains("맡기자") and C.at(2, "T").x < C.origin(2) + 8.0
+		await corr_prep(5, 3)
+		main.corr_sec[3] = {"record_read": true, "water_high": true, "latch_fixed": true, "sent": false}
+		Z.apply_state()
+		Z.refresh_quest()
+		var l5a: bool = main.quest_raw.contains("물을 보내자")
+		await corr_press("C", 3)
+		var l5b: bool = main.quest_raw.contains("켜지는")
+		await wait(2.2)
+		var l5c: bool = main.quest_raw.contains("응답을 확인")
+		await corr_prep(6, 3)
+		Z.refresh_quest()
+		var l6: bool = main.quest_raw.contains("호수 섬") and C.shortcut.visible
+		await corr_prep(4, 2)
+		var jr: String = Z.journal()
+		var jr_ok: bool = jr.contains(" · ") and jr.contains(main.quest_raw)
+		main.corridor_q = 0
+		main.tokens[2] = false
+		var j0: bool = Z.journal().contains("진주")
+		main.tokens[2] = true
+		main.south_q = 0
+		var j0b: bool = Z.journal().contains("물시계")
+		main.south_q = 4
+		check("corridor_fix", f_now and cut_low and repaired and a_done and stays_low and r0_low and cart_back and rides_again and cart_moored and safe and hit_free and freed and swap_in and swap_faint and swap_load and carts_t and no_post and no_lever and no_hold and two_hands and holds_now and warned and arm_cut and arm_safe and ring_up and ring_cut and ring_safe and told and front and longer and l2 and l3 and l5a and l5b and l5c and l6 and jr_ok and j0 and j0b,
+			"drain: saved low at once=%s, a room change finishes it=%s, a loaded drained+high mends=%s, fixing leaves low=%s; done room's lever stays=%s/%s; cart back at T after a faint=%s, rides again=%s, moored at R=%s; friend at a post cannot be hit=%s, can when free=%s, knocked down frees it=%s; role swap kept on entry=%s, faint=%s, load=%s, cart at R=%s; plates first: post=%s lever=%s sluice=%s, two hands talk=%s then holds=%s; keeper: warn %s, side door cuts the arm=%s safe=%s; ring up=%s cut=%s safe=%s; axis told=%s, front mark=%s, exposure lengthens=%s; lines: room2=%s room3=%s stand=%s/%s/%s shortcut=%s; journal=%s/%s/%s" % [f_now, cut_low, repaired, fixed_low, stays_low, r0_low, cart_back, rides_again, cart_moored, safe, hit_free, freed, swap_in, swap_faint, swap_load, carts_t, no_post, no_lever, no_hold, two_hands, holds_now, warned, arm_cut, arm_safe, ring_up, ring_cut, ring_safe, told, front, longer, l2, l3, l5a, l5b, l5c, l6, jr_ok, j0, j0b])
+		corr_kill(corr_foes())
+		calm_enemies(false)
+		main.in_lake = false
 		main.corridor_q = 6
 		Z.load_data({"corridor_q": 6})
 

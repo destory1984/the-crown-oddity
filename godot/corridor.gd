@@ -67,7 +67,7 @@ const ROWS_3 := """##############################
 #.......===.........#........#
 #.......===.........#........#
 #.......===.........#........#
-#.S.A...===T...F.R..D......N.#
+#.S.A..T===....F.R..D......N.#
 #.......===.........#........#
 #....P..===.........#........#
 #.......===.........#........#
@@ -124,6 +124,16 @@ var plates: Array = []      # [room] the lock plate's glow material
 var stand_lamps: Array = [] # the answer stand's three lamps (materials)
 var stand_jar: StandardMaterial3D
 var room_lights: Array = []
+var sediment: Array = []    # [room] the silt and junk on the channel bed, shown while the channel is dry (v0.1.91)
+var plates2: Array = []     # [room] the second handprint's glow (the wheel hall's plate shows two hands)
+var pipe_mats: Array = []   # the wheel hall's pipes: three from the wheels to the tank, one on to the answer stand
+var side_panel: Node3D      # the side sluice by the entrance lever (the keeper's side door)
+var side_mat: StandardMaterial3D
+var groove_mat: StandardMaterial3D
+var side_open := false
+var side_hint: Label3D
+var link: MeshInstance3D    # the line from the lever to Mulgyeol
+var shortcut: Node3D        # the lake sign by the wheel hall's stair, once the answer is sent
 
 func _init() -> void:
 	for r in ROOMS:
@@ -140,6 +150,8 @@ func _init() -> void:
 		lever_lamps.append(null)
 		post_pads.append(null)
 		plates.append(null)
+		plates2.append(null)
+		sediment.append([])
 		for z in H:
 			for x in W:
 				var c: String = g[z][x]
@@ -253,6 +265,7 @@ func build_room(m: Node, r: int) -> void:
 	m.add_child(l)
 	room_lights.append(l)
 	build_props(m, r)
+	build_dress(m, r)
 
 func build_props(m: Node, r: int) -> void:
 	var iron: Material = m.mat_color(Color("#5a5a64"))
@@ -319,6 +332,11 @@ func build_props(m: Node, r: int) -> void:
 			var wheel: MeshInstance3D = m.box(Vector3(0.16, 0.2, 0.96), iron)
 			wheel.position = Vector3(sx, 0.08, 0)
 			cart.add_child(wheel)
+		if r == 2: # the bricks the old gate is waiting for
+			for k in 3:
+				var rb: MeshInstance3D = m.box(Vector3(0.34, 0.16, 0.22), m.mat_color(Color("#c0522a")))
+				rb.position = Vector3(-0.25 + (k % 2) * 0.5, 0.27 + (0.17 if k == 2 else 0.0), -0.1 + (k % 2) * 0.12)
+				cart.add_child(rb)
 		cart.position = Vector3(t.x, 0, t.y)
 		m.add_child(cart)
 		carts[r] = cart
@@ -368,10 +386,21 @@ func build_props(m: Node, r: int) -> void:
 		slab.position = Vector3(h.x, 0.07, h.y)
 		m.add_child(slab)
 		var pm: StandardMaterial3D = m.glow_mat(Color("#ffd27a"), 0.5)
-		for sx in [-0.2, 0.15]:
-			var hand: MeshInstance3D = m.box(Vector3(0.2, 0.03, 0.28), pm)
-			hand.position = Vector3(h.x + sx, 0.16, h.y)
-			m.add_child(hand)
+		if r == 3: # two different hands, side by side: a large gold one and a smaller teal one
+			var pm2: StandardMaterial3D = m.glow_mat(Color("#58b8b0"), 0.5)
+			var big_hand: MeshInstance3D = m.box(Vector3(0.24, 0.03, 0.32), pm)
+			big_hand.position = Vector3(h.x - 0.3, 0.16, h.y)
+			m.add_child(big_hand)
+			var small_hand: MeshInstance3D = m.box(Vector3(0.17, 0.03, 0.23), pm2)
+			small_hand.position = Vector3(h.x + 0.28, 0.16, h.y + 0.04)
+			small_hand.rotation.y = 0.3
+			m.add_child(small_hand)
+			plates2[r] = pm2
+		else: # one person's hand, printed over itself again and again
+			for sx in [-0.2, 0.15]:
+				var hand: MeshInstance3D = m.box(Vector3(0.2, 0.03, 0.28), pm)
+				hand.position = Vector3(h.x + sx, 0.16, h.y)
+				m.add_child(hand)
 		plates[r] = pm
 	# C: the answer stand with its three lamps
 	var c := at(r, "C")
@@ -420,6 +449,8 @@ func set_water(r: int, on: bool) -> void:
 	if water_nodes[r] != null:
 		water_nodes[r].visible = on
 	set_lever(r, on and r < 3)
+	for n in sediment[r]:
+		n.visible = not on
 
 func set_lever(r: int, up: bool) -> void:
 	if lever_arms[r] != null:
@@ -430,6 +461,10 @@ func set_wheel(r: int, i: int, on: bool) -> void:
 	if i < wheels[r].size():
 		wheels[r][i].on = on
 		wheels[r][i].mat.emission_energy_multiplier = 2.2 if on else 0.2
+	if r == 3 and i < pipe_mats.size(): # its pipe lights with the wheel; the last one lights the run to the answer stand too
+		pipe_mats[i].emission_energy_multiplier = 1.8 if on else 0.15
+		if i == 2 and pipe_mats.size() > 3:
+			pipe_mats[3].emission_energy_multiplier = 1.8 if on else 0.15
 
 func set_post(r: int, on: bool) -> void:
 	if post_pads[r] != null:
@@ -438,12 +473,204 @@ func set_post(r: int, on: bool) -> void:
 func set_plate(r: int, read: bool) -> void:
 	if plates[r] != null:
 		plates[r].emission_energy_multiplier = 2.2 if read else 0.5
+	if plates2[r] != null:
+		plates2[r].emission_energy_multiplier = 2.2 if read else 0.5
 
 func tick(dt: float) -> void:
 	for r in ROOMS:
 		for w in wheels[r]:
 			if w.on:
 				w.node.rotation.z += dt * TAU * 0.35
+
+# ---- set dressing (v0.1.91): each room reads as a water works with a story, built from boxes
+func blk(m: Node, pos: Vector3, size: Vector3, mat: Material, parent: Node = null) -> MeshInstance3D:
+	var mi: MeshInstance3D = m.box(size, mat)
+	mi.position = pos
+	if parent != null:
+		parent.add_child(mi)
+	else:
+		m.add_child(mi)
+	return mi
+
+# a thin box from a to b (one axis long)
+func seg(m: Node, a: Vector3, b: Vector3, th: float, mat: Material) -> MeshInstance3D:
+	return blk(m, (a + b) / 2.0, Vector3(absf(b.x - a.x) + th, absf(b.y - a.y) + th, absf(b.z - a.z) + th), mat)
+
+# a pipe through the points, a brass collar at each corner
+func pipe_run(m: Node, pts: Array, th: float, mat: Material, collar: Material) -> void:
+	for i in pts.size() - 1:
+		seg(m, pts[i], pts[i + 1], th, mat)
+	for i in range(1, pts.size() - 1):
+		blk(m, pts[i], Vector3(th * 1.7, th * 1.7, th * 1.7), collar)
+
+# a bench: top on four legs
+func bench(m: Node, at: Vector3, wood: Material, dark: Material) -> void:
+	blk(m, at + Vector3(0, 0.55, 0), Vector3(1.4, 0.1, 0.7), wood)
+	for sx in [-0.6, 0.6]:
+		for sz in [-0.28, 0.28]:
+			blk(m, at + Vector3(sx, 0.25, sz), Vector3(0.1, 0.5, 0.1), dark)
+
+func crate(m: Node, at: Vector3, s: float, wood: Material, band: Material) -> void:
+	blk(m, at + Vector3(0, s / 2.0, 0), Vector3(s, s, s), wood)
+	blk(m, at + Vector3(0, s + 0.02, 0), Vector3(s + 0.06, 0.06, s + 0.06), band)
+
+# tide lines on a wall face, low to high: green slime, a paler band, a mineral crust
+func tide_lines(m: Node, x0: float, z0: float, x1: float, z1: float, face: Vector2) -> void:
+	var cols := ["#4f7a52", "#7fa07a", "#d8e0d0"]
+	var ys := [0.07, 0.24, 0.41]
+	var hs := [0.12, 0.07, 0.05]
+	for k in 3:
+		var sx: float = absf(x1 - x0) if face.y != 0.0 else 0.05
+		var sz: float = absf(z1 - z0) if face.x != 0.0 else 0.05
+		blk(m, Vector3((x0 + x1) / 2.0 + face.x * 0.02, ys[k], (z0 + z1) / 2.0 + face.y * 0.02), Vector3(sx, hs[k], sz), m.mat_color(Color(cols[k])))
+
+func build_dress(m: Node, r: int) -> void:
+	var o := origin(r)
+	var pipe: Material = m.mat_color(Color("#76828e"))
+	var collar: Material = m.mat_color(Color("#c8962a"))
+	var wood: Material = m.mat_color(Color("#8a6a42"))
+	var dark: Material = m.mat_color(Color("#4a3322"))
+	var stone: Material = m.mat_color(Color("#c8ccd4"))
+	var iron: Material = m.mat_color(Color("#3a4048"))
+	var rope: Material = m.mat_color(Color("#b89868"))
+	match r:
+		0: # one person's work: a single bench, a worn step, a pipe from the lever over the channel to the latch, the channel's head boarded shut
+			pipe_run(m, [Vector3(o + 4, 0.2, 10.0), Vector3(o + 4, 0.2, 9.2), Vector3(o + 7.2, 0.2, 9.2), Vector3(o + 7.2, 1.5, 9.2),
+				Vector3(o + 10.8, 1.5, 9.2), Vector3(o + 10.8, 0.2, 9.2), Vector3(o + 15, 0.2, 9.2), Vector3(o + 15, 0.2, 10.0)], 0.16, pipe, collar)
+			blk(m, Vector3(o + 4, 0.06, 15.6), Vector3(1.5, 0.12, 0.9), stone) # the step before the plate, worn on the left foot's side only
+			blk(m, Vector3(o + 3.65, 0.125, 15.6), Vector3(0.6, 0.03, 0.55), m.mat_color(Color("#6a7480")))
+			bench(m, Vector3(o + 1.9, 0, 17.6), wood, dark)
+			blk(m, Vector3(o + 1.9, 0.62, 17.6), Vector3(0.1, 0.05, 0.5), collar) # a wrench left on it
+			blk(m, Vector3(o + 1.55, 0.2, 18.5), Vector3(0.4, 0.4, 0.4), dark) # one stool
+			blk(m, Vector3(o + 5.6, 0.16, 17.6), Vector3(0.55, 0.32, 0.38), wood) # a repair box
+			blk(m, Vector3(o + 5.6, 0.34, 17.6), Vector3(0.6, 0.06, 0.42), collar)
+			blk(m, Vector3(o + 9, 0.55, 0.75), Vector3(3.3, 1.1, 0.3), dark) # the channel's head, boarded and padlocked
+			blk(m, Vector3(o + 9, 0.35, 0.93), Vector3(3.4, 0.14, 0.08), wood)
+			blk(m, Vector3(o + 9, 0.8, 0.93), Vector3(3.4, 0.14, 0.08), wood)
+			blk(m, Vector3(o + 9, 0.58, 0.98), Vector3(0.22, 0.26, 0.1), collar)
+		1: # the drain: tide lines on the walls, a grate under the latch, silt that shows when the channel runs dry
+			tide_lines(m, o + 7.3, 0.5, o + 10.7, 0.5, Vector2(0, 1))
+			tide_lines(m, o + 0.5, 2.0, o + 0.5, 19.0, Vector2(1, 0))
+			tide_lines(m, o + 19.5, 1.0, o + 19.5, 9.0, Vector2(-1, 0))
+			tide_lines(m, o + 19.5, 11.0, o + 19.5, 19.0, Vector2(-1, 0))
+			blk(m, Vector3(o + 15, 0.02, 10.0), Vector3(1.7, 0.04, 1.7), iron)
+			for k in 5:
+				blk(m, Vector3(o + 14.4 + k * 0.3, 0.05, 10.0), Vector3(0.1, 0.04, 1.6), m.mat_color(Color("#8c98a4")))
+			pipe_run(m, [Vector3(o + 15, 0.2, 9.0), Vector3(o + 15, 0.2, 7.6), Vector3(o + 11.2, 0.2, 7.6)], 0.14, pipe, collar) # the drain pipe's run to the channel
+			var silt: Material = m.mat_color(Color("#8a7752"))
+			var junk: Material = m.mat_color(Color("#4a4a3a"))
+			var lumps := [[8.7, 3.0, 0.9, 0.7], [9.6, 6.2, 1.0, 0.8], [8.9, 9.4, 0.8, 1.1], [9.4, 12.5, 1.1, 0.8], [9.0, 16.0, 0.9, 0.9]]
+			for lp in lumps:
+				sediment[r].append(blk(m, Vector3(o + lp[0], -0.19, lp[1]), Vector3(lp[2], 0.1, lp[3]), silt))
+			for jp in [Vector2(9.3, 4.4), Vector2(8.8, 14.2)]: # a rusted pot and a bent ring among the silt
+				sediment[r].append(blk(m, Vector3(o + jp.x, -0.14, jp.y), Vector3(0.3, 0.2, 0.3), junk))
+			sediment[r].append(blk(m, Vector3(o + 9.0, -0.15, 10.9), Vector3(0.4, 0.08, 0.4), collar))
+			for n in sediment[r]:
+				n.visible = not high[r]
+		2: # the carrying: spare parts piled on the west bank, bricks on the cart, a snapped valve and a cut rope on the east
+			crate(m, Vector3(o + 2.0, 0.0, 14.2), 0.7, wood, dark)
+			crate(m, Vector3(o + 3.0, 0.0, 14.2), 0.7, wood, dark)
+			crate(m, Vector3(o + 2.5, 0.0, 15.2), 0.7, wood, dark)
+			crate(m, Vector3(o + 2.5, 0.78, 14.7), 0.55, wood, dark) # one on top
+			blk(m, Vector3(o + 4.2, 0.08, 15.0), Vector3(0.7, 0.16, 0.7), m.mat_color(Color("#a08050"))) # a rope coil
+			blk(m, Vector3(o + 4.2, 0.2, 15.0), Vector3(0.5, 0.1, 0.5), rope)
+			for k in 3: # spare wheels leaning on the pile
+				blk(m, Vector3(o + 1.4, 0.3 + k * 0.1, 15.6 + k * 0.15), Vector3(0.14, 0.5, 0.5), iron)
+			blk(m, Vector3(o + 18.4, 0.45, 7.2), Vector3(0.2, 0.9, 0.2), pipe) # the broken valve: a stub, half a wheel, a cut rope
+			blk(m, Vector3(o + 18.4, 0.92, 7.2), Vector3(0.5, 0.06, 0.16), iron)
+			var half := blk(m, Vector3(o + 19.0, 0.04, 8.2), Vector3(0.3, 0.05, 0.16), iron)
+			half.rotation.y = 0.6
+			blk(m, Vector3(o + 18.0, 0.04, 8.9), Vector3(0.06, 0.05, 1.2), rope)
+			blk(m, Vector3(o + 18.4, 0.4, 7.45), Vector3(0.05, 0.5, 0.05), rope) # the rope end hanging from the stub
+			pipe_run(m, [Vector3(o + 15, 0.2, 9.0), Vector3(o + 15, 0.2, 7.2), Vector3(o + 17.4, 0.2, 7.2)], 0.14, pipe, collar) # the pipe that stops short of it
+			tide_lines(m, o + 7.3, 0.5, o + 10.7, 0.5, Vector2(0, 1))
+		3: # the wheel hall: three pipes from the wheels through the tank to the answer stand, two benches at the plate, a sign to the garden
+			for i in 4:
+				pipe_mats.append(m.glow_mat(Color("#58b8b0"), 0.15))
+			for i in 3:
+				var fx: float = at(3, "F", i).x
+				seg(m, Vector3(fx, 0.14, 5.9), Vector3(fx, 0.14, 13.4), 0.2, pipe_mats[i])
+				blk(m, Vector3(fx, 0.2, 13.2), Vector3(0.4, 0.4, 0.4), collar) # where it dives into the tank
+			pipe_run(m, [Vector3(o + 21.8, 0.14, 15.0), Vector3(o + 27.0, 0.14, 15.0), Vector3(o + 27.0, 0.14, 10.8)], 0.2, pipe_mats[3], collar)
+			bench(m, Vector3(o + 1.9, 0, 17.6), wood, dark) # two people's work: a bench each side of the plate
+			bench(m, Vector3(o + 6.3, 0, 17.6), wood, dark)
+			blk(m, Vector3(o + 1.9, 0.62, 17.6), Vector3(0.1, 0.05, 0.5), collar)
+			blk(m, Vector3(o + 6.3, 0.62, 17.6), Vector3(0.1, 0.05, 0.5), m.glow_mat(Color("#58b8b0"), 0.8))
+			blk(m, Vector3(o + 1.55, 0.2, 18.5), Vector3(0.4, 0.4, 0.4), dark)
+			blk(m, Vector3(o + 6.65, 0.2, 18.5), Vector3(0.4, 0.4, 0.4), dark)
+			blk(m, Vector3(o + 26.2, 0.7, 8.3), Vector3(0.1, 1.4, 0.1), dark) # a sign by the stand: the way to the garden
+			blk(m, Vector3(o + 26.2, 1.45, 8.3), Vector3(0.7, 0.55, 0.06), wood)
+			var gs: Sprite3D = m.sign_icon("garden", 0.4)
+			gs.position = Vector3(o + 26.2, 1.45, 8.35)
+			m.add_child(gs)
+			# the side sluice by the entrance lever: shut, then raised and running when the keeper's side door opens
+			var sa := at(3, "A")
+			side_mat = m.glow_mat(Color("#5ab4ff"), 0.2)
+			blk(m, Vector3(sa.x - 0.7, 0.65, 8.2), Vector3(0.18, 1.3, 0.2), stone)
+			blk(m, Vector3(sa.x + 0.7, 0.65, 8.2), Vector3(0.18, 1.3, 0.2), stone)
+			blk(m, Vector3(sa.x, 1.35, 8.2), Vector3(1.6, 0.16, 0.24), stone)
+			side_panel = blk(m, Vector3(sa.x, 0.55, 8.2), Vector3(1.2, 0.9, 0.1), side_mat)
+			groove_mat = m.glow_mat(Color("#5ab4ff"), 0.1)
+			var trough: Material = m.mat_color(Color("#2a3440"))
+			blk(m, Vector3(o + 6.6, 0.03, 8.2), Vector3(3.2, 0.04, 0.55), trough)
+			blk(m, Vector3(o + 8.0, 0.03, 10.9), Vector3(0.55, 0.04, 5.6), trough)
+			blk(m, Vector3(o + 6.6, 0.06, 8.2), Vector3(3.2, 0.03, 0.3), groove_mat)
+			blk(m, Vector3(o + 8.0, 0.06, 10.9), Vector3(0.3, 0.03, 5.6), groove_mat)
+			side_hint = Label3D.new() # "the entrance lever, E" over the lever while the side door is open
+			side_hint.text = m.tr("입구 손잡이 E")
+			side_hint.font = m.ui_font
+			side_hint.font_size = 48
+			side_hint.pixel_size = 0.012
+			side_hint.outline_size = 14
+			side_hint.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			side_hint.no_depth_test = true
+			side_hint.modulate = Color("#9fd4ff")
+			side_hint.position = Vector3(sa.x, 2.3, sa.y)
+			side_hint.visible = false
+			m.add_child(side_hint)
+			link = m.box(Vector3(0.07, 0.05, 1.0), m.glow_mat(Color("#7fd0ff"), 1.6)) # the line from the lever to where Mulgyeol stands
+			link.visible = false
+			m.add_child(link)
+			# the entrance stair, once the answer is sent: a lake sign (the stair leads straight back to the island)
+			var s := at(3, "S")
+			shortcut = Node3D.new()
+			shortcut.position = Vector3(s.x + 0.6, 0, s.y - 1.6)
+			var sp: MeshInstance3D = m.box(Vector3(0.1, 1.4, 0.1), dark)
+			sp.position = Vector3(0, 0.7, 0)
+			shortcut.add_child(sp)
+			var sb: MeshInstance3D = m.box(Vector3(0.7, 0.55, 0.06), wood)
+			sb.position = Vector3(0, 1.45, 0)
+			shortcut.add_child(sb)
+			var ls: Sprite3D = m.sign_icon("lake", 0.4)
+			ls.position = Vector3(0, 1.45, 0.05)
+			shortcut.add_child(ls)
+			shortcut.visible = false
+			m.add_child(shortcut)
+
+func set_side(open: bool) -> void:
+	if side_panel == null or open == side_open:
+		return
+	side_open = open
+	side_panel.position.y = 1.2 if open else 0.55
+	side_mat.emission_energy_multiplier = 2.4 if open else 0.2
+	groove_mat.emission_energy_multiplier = 2.2 if open else 0.1
+	if side_hint != null:
+		side_hint.visible = open
+
+# the line from the entrance lever to the spot where Mulgyeol stands (shown while Sora keeps the sluice)
+func set_link(show: bool, a: Vector2, b: Vector2) -> void:
+	if link == null:
+		return
+	link.visible = show
+	if show:
+		var d := b - a
+		link.position = Vector3((a.x + b.x) / 2.0, 0.12, (a.y + b.y) / 2.0)
+		link.rotation.y = atan2(d.x, d.y)
+		link.scale = Vector3(1.0, 1.0, maxf(d.length(), 0.1))
+
+func set_shortcut(on: bool) -> void:
+	if shortcut != null:
+		shortcut.visible = on
 
 func map_tex(width: int) -> ImageTexture:
 	var img := Image.create(width, H, false, Image.FORMAT_RGBA8)
