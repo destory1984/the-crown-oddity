@@ -337,6 +337,7 @@ func build(m: Node) -> void:
 	tw.tween_callback(func(): spr.frame = 0)
 	m.rocks.append({"x": marks.M.x, "z": marks.M.y, "r": 0.5})
 	build_small_things(m)
+	m.football.build()
 
 # props by the six working villagers: a woodpile, an ore cart, the hardened field, a fish basket, reed baskets,
 # crates by the kid's handcart. The field is only low furrows (walkable); the rest block like small rocks.
@@ -967,7 +968,10 @@ func bricks_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool)
 const PINWHEEL_TILES := [Vector2(7.5, 2.6), Vector2(17.5, 2.6), Vector2(29.5, 2.6), Vector2(11.5, 13.6)]
 var doodle_crown: MeshInstance3D
 var doodle_otter: MeshInstance3D
-var pinwheels: Array = [] # [{"hub": Node3D}]
+var pinwheels: Array = [] # [{"hub": Node3D, "turning": bool, "spin": seconds of a blow's spin left}]
+const PINWHEEL_SPIN := 20.0 # rad/s just after a blow, easing down to its usual turn over PINWHEEL_EASE seconds
+const PINWHEEL_EASE := 2.5
+var pinwheel_hits := 0 # blows that reached one (autoplay pinwheel_hit)
 
 func chalk_line(img: Image, a: Vector2, b: Vector2) -> void:
 	var n := int(maxf(absf(b.x - a.x), absf(b.y - a.y))) + 1
@@ -1061,7 +1065,7 @@ func build_small_things(m: Node) -> void:
 		hub.add_child(cap)
 		g.add_child(hub)
 		m.add_child(g)
-		pinwheels.append({"hub": hub, "turning": false})
+		pinwheels.append({"hub": hub, "turning": false, "spin": 0.0})
 
 # which pinwheels turn: the first three with the hill's three small windmills, the fourth with the big one (mill_q 3)
 func pinwheel_turning(m: Node, i: int) -> bool:
@@ -1104,8 +1108,29 @@ func life_update(m: Node, dt: float) -> void:
 	for i in pinwheels.size():
 		var on: bool = pinwheel_turning(m, i)
 		pinwheels[i].turning = on
-		if on:
-			(pinwheels[i].hub as Node3D).rotation.z -= dt * (4.0 + i * 0.6)
+		var speed := (4.0 + i * 0.6) if on else 0.0
+		var spin: float = pinwheels[i].spin
+		if spin > 0.0: # a blow: fast, easing down to its usual turn (still if its windmill is not mended)
+			pinwheels[i].spin = maxf(0.0, spin - dt)
+			speed = lerpf(speed, PINWHEEL_SPIN, spin / PINWHEEL_EASE)
+		if speed > 0.0:
+			(pinwheels[i].hub as Node3D).rotation.z -= dt * speed
+
+# a blow that reaches a pinwheel sets it whirring (same reach test as the toy bricks)
+func pinwheels_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool) -> void:
+	var me := Vector2(m.player.x, m.player.z)
+	var sent := 0
+	for pw in pinwheels:
+		var hub: Node3D = pw.hub
+		var d := Vector2(hub.global_position.x, hub.global_position.z) - me
+		if d.length() > reach + 0.6 or not (all_round or d.normalized().dot(f) > cone - 0.2):
+			continue
+		pw.spin = PINWHEEL_EASE
+		pinwheel_hits += 1
+		sent += 1
+	if sent > 0: # a light whirr
+		m.sfx(520.0, 0.3, "noise", 0.1, 600.0)
+		m.sfx(600.0, 0.25, "triangle", 0.06, 500.0)
 
 func toy_tap(m: Node, n: int) -> void:
 	toy_taps += 1

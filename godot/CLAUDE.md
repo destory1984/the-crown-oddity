@@ -6,7 +6,7 @@
 
 - 게임 전부를 코드로 짓는다. `main.tscn` 은 거의 비어 있다.
 - `main.gd` (약 2,200줄)에는 모든 상태 변수, 둘 이상의 파일이 쓰는 상수, `_ready` `_process` `_input`, E 키(`crown_key`, `interact`), 타일과 높이 도우미, `toast`, `set_quest` 만 남는다.
-- 나머지는 `sys/*.gd` 31개에 있다. 각 파일은 `RefCounted` 이고 `main.gd` 맨 위에서 `var 이름 := preload("res://sys/이름.gd").new(self)` 로 한 번 만든다.
+- 나머지는 `sys/*.gd` 33개에 있다. 각 파일은 `RefCounted` 이고 `main.gd` 맨 위에서 `var 이름 := preload("res://sys/이름.gd").new(self)` 로 한 번 만든다.
   - 그 안의 코드는 main 노드를 `m` 으로 받아 상태를 `m.x`, main 상수를 `Main.X`, 다른 시스템을 `m.이름.f()` 로 부른다.
   - 다른 스크립트(`tools/autoplay.gd`, `hud.gd`, 지역 스크립트)가 부르는 함수와 세 파일 이상이 쓰는 함수는 `main.gd` 끝의 "forwarders" 칸에 한 줄 전달 함수가 있다. 그래서 `main.f()` 는 그대로 된다.
   - 새 함수를 sys 파일에 넣고 시험이나 다른 스크립트가 `main.f()` 로 부르게 하려면 전달 함수도 한 줄 더한다.
@@ -48,6 +48,7 @@
 | `sys/tokens.gd` | 136 | 달지기 표식 여섯(회차마다 새로): 얻기, 지역 관문(숲 진주, 언덕 다람쥐, 성 언덕 인장, 계단 넷), 할 일 줄, 일지 줄. 저장은 `tokens` |
 | `sys/workshop_zone.gd` | 686 | 달지기 작업장: 큰 방의 문, 지하 3층, 수리 요람, 심지의 수리대 (지도는 `workshop.gd`, 층마다 하나) |
 | `sys/marsh_toys.gd` | 509 | 갈대늪 장난감(v0.1.106): 태엽 오리, 개구리 셋, 부들 솜, 갈대피리 걸이, 보리의 갈대 깔개 |
+| `sys/football.gd` | 461 | 마을 광장의 축구공과 골대(v0.1.109): 치기, 튕김, 골 때 번쩍임과 점수 글, 골 수 저장(`goals`) |
 | `sys/corridor_zone.gd` | 750 | 물길 회랑(v0.1.84): 방 넷, 수위 손잡이, 운반대, 물결의 자리, 물레 셋의 싸움, 보스 벽돌 수문지기, 응답대 (지도와 소품은 `corridor.gd`). 숲 문의 셋째 조건 |
 
 - `minimap.gd` 둥근 미니맵, `sky.gd` 왼쪽 위 해와 달 창, `shaders/` 지형, 풀, 물, 틸트시프트.

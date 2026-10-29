@@ -315,6 +315,8 @@ func attack() -> void:
 	if m.in_village and m.in_house < 0:
 		m.village.fountain_hit(m, reach, f, cone, spin or slam)
 		m.village.bricks_hit(m, reach, f, cone, spin or slam)
+		m.village.pinwheels_hit(m, reach, f, cone, spin or slam)
+		m.football.hit(reach, f, cone, spin or slam)
 	var me := Vector2(m.player.x, m.player.z)
 	plants_hit(me if spin or slam else me + f * reach * 0.6, reach + 0.4 if spin or slam else reach * 0.9)
 	if slam:
@@ -388,6 +390,8 @@ func update_dash(dt: float) -> void:
 			damage_enemy(e, m.player.atk * 1.5, d.from, 5.0, false, 0.07)
 			m.player.mp = minf(m.player.max_mp, m.player.mp + 5.0)
 			m.last_hit_t = m.t
+	if not d.hit.has("ball") and m.football.dash(np, f): # and the village football, once
+		d.hit["ball"] = true
 	while d.ghosts < 4 and k >= 0.2 * (d.ghosts + 1): # afterimages along the line
 		d.ghosts += 1
 		dash_ghost(d.from.lerp(d.to, 0.2 * d.ghosts))
@@ -436,6 +440,9 @@ func charged_slash() -> void:
 		if d.length() < 2.8 and d.normalized().dot(f) > 0.2:
 			damage_enemy(e, m.player.atk * 3.0, Vector2(m.player.x, m.player.z), 10.0, true, 0.14)
 			m.last_hit_t = m.t
+	if m.in_village and m.in_house < 0:
+		m.village.pinwheels_hit(m, 2.8, f, 0.2, false)
+		m.football.hit(2.8, f, 0.2, false, m.football.KICK_FAR)
 	m.shake = maxf(m.shake, 0.35)
 	m.burst(here + Vector3(f.x, 0.8, f.y), Color("#fff1a0"), 30, 3.5)
 	m.sfx(330, 0.3, "sawtooth", 0.25, -200)
@@ -449,6 +456,12 @@ func light_blade(f: Vector2) -> void:
 	b.rotation.y = atan2(f.x, f.y) + PI / 2
 	m.add_child(b)
 	m.projectiles.append({"node": b, "v": f * 12.0, "life": 0.7})
+
+# a ring skill reaches the village's pinwheels and its football all round (the ball goes straight away from her)
+func strike_village(reach: float) -> void:
+	if m.in_village and m.in_house < 0:
+		m.village.pinwheels_hit(m, reach, m.player.face, 0.0, true)
+		m.football.hit(reach, m.player.face, 0.0, true, m.football.KICK_FAR)
 
 func skill_cost(i: int) -> int:
 	return 45 if i == 2 and m.woke[2] else SKILL_MP[i]
@@ -473,6 +486,7 @@ func use_skill(i: int) -> void:
 			for e in m.enemies:
 				if not e.dead and Vector2(e.x, e.z).distance_to(me) < (3.4 if woke else 2.6):
 					damage_enemy(e, m.player.atk * (1.9 if woke else 1.4), me, 6.0)
+			strike_village(3.4 if woke else 2.6)
 		1: # ember bolt
 			m.sfx(400, 0.2, "triangle", 0.2, -250)
 			var tg = nearest_enemy(12.0)
@@ -506,6 +520,7 @@ func use_skill(i: int) -> void:
 			for e in m.enemies:
 				if not e.dead and Vector2(e.x, e.z).distance_to(me) < 5:
 					damage_enemy(e, m.player.atk * 2.2, me, 9.0)
+			strike_village(5.0)
 			m.shake = 0.3
 			m.sfx(220, 0.6, "sine", 0.4, 600)
 			if m.woke[2]: # woken: the light mends her too

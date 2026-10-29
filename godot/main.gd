@@ -38,6 +38,7 @@
 #   sys/workshop_zone.gd  Deep workshop: the great hall's door, three floors under the castle, the cradle, Simji's bench.
 #   sys/corridor_zone.gd  Water corridor (v0.1.84): four rooms under the lake island, levers, carts, Mulgyeol's posts, the sluice-keeper.
 #   sys/marsh_toys.gd     Reed-marsh toys (v0.1.106): the wind-up duck, three frogs, cattail fluff, the reed pipe rack, Bori's mat.
+#   sys/football.gd       The village square's football and goal (v0.1.109): kicks, bounces, the goal flash and score banner, the goals count.
 extends Node3D
 
 # The systems: one object per sys/*.gd file (see the file map above), each holding this node as `m`.
@@ -77,6 +78,7 @@ var corridor_zone := preload("res://sys/corridor_zone.gd").new(self)
 var quest_marks := preload("res://sys/quest_marks.gd").new(self)
 var moon_tokens := preload("res://sys/tokens.gd").new(self)
 var marsh_toys := preload("res://sys/marsh_toys.gd").new(self)
+var football := preload("res://sys/football.gd").new(self)
 
 const N := 48
 const WATER := 0
@@ -713,6 +715,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.109: 마을 광장 북서쪽 구석에 골대(입구 2.2칸, 높이 1.1칸)와 축구공(반지름 0.22칸)을 놓았다. 소라가 칼로 치면 공이 보는 쪽으로 초속 7칸(대시 베기와 기술은 10칸)으로 굴러 1.5초쯤에 멈추고, 분수 둘레와 가로등과 골대와 광장 가장자리에 부딪히면 속도 40%를 잃고 튕긴다. 걸어 들어가면 초속 2.5칸으로 밀린다. 공이 골대 선을 넘으면 화면이 0.9초에 세 번 번쩍이고 골! 3처럼 점수가 1.6초 뜨며, 골 수는 저장에 남고 새 바퀴에도 이어진다. 마을 바람개비 넷은 칼에 맞으면 초속 20라디안으로 돌다가 2.5초에 걸쳐 원래 상태로 돌아온다.",
 	"· v0.1.108: v0.1.108: 울타리 곁에서 장난감 벽돌을 거듭 치면 마을 밖 빈 땅으로 굴러 나가던 것을 고쳤다. 벽돌은 굴러가기 전에 앞길을 0.1칸씩 살펴 울타리, 집, 물, 지도 끝 0.3칸 앞에서 멈추고, 울타리에 붙어 있으면 반대로 튕겨 나온다. 모두 함께 등불을 되살린 장면의 끝 줄을 '무겁던 다리에 힘이 돌아왔다. 노을은 마을 동쪽 들판에서 기다리고 있다. 이번엔 다 함께다.'로 바꿨다.",
 	"· v0.1.107: 작은 정성 열 가지를 더했다. 분수 가장자리를 돌면 물 위 잎 3장이 한 박자 늦게 같은 쪽으로 돈다, 동쪽 표지판을 마주 서면 흔들림이 5분의 1로 잦아든다, 방앗간 큰 풍차가 돈 지 1.2초 뒤에 옆 깃발이 펄럭인다, 팔찌로 등불을 켜면 유리에 손바닥 자국이 2초 남는다, 나무다리 끝에 서면 밧줄이 살짝 처졌다 돌아온다, 연 상자를 다시 살피면 먼지만 날린다, 달빛이 다 차고 3초 뒤 물결이 조금 더 쉬자고 한다, 언덕 전망 두 곳에서 처음 멈추면 동료 둘이 풍경을 바라본다, 노을은 예전 결투 자리를 천천히 지날 때 고개를 숙인다, 말풍선이 끝날 때까지 가만히 있으면 물결이 들어 줬네 하고 덧붙인다.",
 	"· v0.1.106: 갈대늪에 작은 볼거리 다섯 가지를 더했다. 연못가 손잡이를 돌리면 태엽 오리가 6초 동안 한 바퀴 돌고 3초 쉰다. 개구리 셋은 2칸 안에서 차례로 물에 뛰고, 3초 가만히 서 있으면 한 마리가 돌아온다. 익은 부들 셋은 지나가면 솜 4개를 2.5초 날리고 20초 뒤 다시 익는다. 보리 오두막 곁 갈대피리는 세 음을 불고 0.8초 뒤 먼 곳에서 대답하며 8초 쉰다. 갈대 깔개는 보리를 만난 뒤 살피면 달지기들의 젖은 신 이야기를 두 줄 들려준다",
@@ -2439,6 +2442,7 @@ func _process(dt: float) -> void:
 	minigames.update_fishing(dt)
 	if in_village:
 		village.life_update(self, dt)
+		football.update(dt)
 		market.update_market(dt)
 		update_magpie(dt)
 	chatter.update_chat(dt)

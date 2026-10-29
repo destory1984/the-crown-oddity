@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -72,6 +72,43 @@ func hold_world(dir: Vector2) -> void:
 
 func release() -> void:
 	main.fake_keys.clear()
+
+# ---- the village football tests (v0.1.109): Sora on the square, foes parked, the ball put down at rest
+func fb_start() -> Array:
+	var was: Array = [main.in_village, main.in_house, main.player.x, main.player.z]
+	main.close_story()
+	main.in_village = true
+	main.in_house = -1
+	calm_enemies(true)
+	return was
+
+func fb_end(was: Array) -> void:
+	main.in_village = was[0]
+	main.in_house = was[1]
+	main.football.state = "play"
+	main.football.vel = Vector2.ZERO
+	main.football.p = main.football.spot
+	main.football.ball.position = Vector3(main.football.p.x, 0, main.football.p.y)
+	calm_enemies(false)
+	reset_to(Vector2(was[2], was[3]))
+
+# the ball at a village tile at rest, Sora at another facing a way, nothing in her hands
+func fb_put(ball: Vector2, sora: Vector2, face: Vector2) -> void:
+	var vx: float = main.village.VILLAGE_X
+	var fb: Object = main.football
+	fb.p = Vector2(vx + ball.x, ball.y)
+	fb.vel = Vector2.ZERO
+	fb.state = "play"
+	fb.away_t = 0.0
+	fb.ball.position = Vector3(fb.p.x, 0, fb.p.y)
+	reset_to(Vector2(vx + sora.x, sora.y))
+	main.player.vx = 0.0
+	main.player.vz = 0.0
+	main.player.face = face
+	main.player.atk_cd = 0.0
+	main.player.combo_t = 0.0
+	main.player.dodge = 0.0
+	main.dash = {}
 
 func reset_to(p: Vector2) -> void:
 	main.player.x = p.x
@@ -1275,6 +1312,214 @@ func run() -> void:
 		b1.position = keep_b
 		main.player.x = px1
 		main.player.z = pz1
+	if want.call("football_kick"):
+		# a swing sends the ball along her facing at 7 tiles/s, it slows to a stop in about 1.5 s and turns as it goes; walking into it nudges it at 2.5
+		var was_k: Array = fb_start()
+		var fk: Object = main.football
+		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		var k0: int = fk.kicks
+		var r0k: float = fk.rolled
+		var x0k: float = fk.p.x
+		main.attack()
+		var sp0: float = fk.vel.length()
+		var along: bool = fk.vel.normalized().dot(Vector2(1, 0)) > 0.99
+		var thump: bool = main.sfx_log.any(func(sn): return String(sn) == "sine:150")
+		var t_stop := 0.0
+		while fk.vel.length() > 0.01 and t_stop < 3.0:
+			await wait(0.05)
+			t_stop += 0.05
+		var went: float = fk.p.x - x0k
+		var turned: float = fk.rolled - r0k
+		var spun: bool = absf(turned - went) < 0.3 and fk.ball_mesh.basis.get_euler().length() > 0.01
+		fb_put(Vector2(14.0, 7.2), Vector2(13.5, 7.2), Vector2(1, 0))
+		main.player.vx = 3.6
+		main.player.vz = 0.0
+		fk.update(0.016)
+		var nudge: float = fk.vel.length()
+		var one_kick: bool = fk.kicks == k0 + 1
+		var timing: bool = t_stop > 1.0 and t_stop < 2.0
+		check("football_kick", one_kick and absf(sp0 - 7.0) < 0.01 and along and thump and timing and went > 2.5 and went < 4.0 and spun and nudge > 2.3 and nudge < 2.55,
+			"one kick %s, speed %.2f along her facing %s, thump %s, stopped after %.2f s (1 to 2) after %.2f tiles, rolled %.2f (turned like the way %s), walked into it %.2f tiles/s" % [one_kick, sp0, along, thump, t_stop, went, turned, spun, nudge])
+		fb_end(was_k)
+	if want.call("football_bounce"):
+		# it bounces off the square's edge, a post and the basin losing 40%, stays on the square, and a stuck or strayed ball rolls back
+		var was_b: Array = fb_start()
+		var fbn: Object = main.football
+		var vxb: float = main.village.VILLAGE_X
+		fb_put(Vector2(19.8, 7.2), Vector2(30.0, 20.0), Vector2(1, 0))
+		fbn.vel = Vector2(7.0, 0)
+		var b0: int = fbn.bounces
+		var inside := true
+		var vmax := 0.0
+		for i in 24:
+			await wait(0.05)
+			inside = inside and fbn.bounds.has_point(fbn.p)
+			if i < 12 and fbn.bounces > b0:
+				vmax = maxf(vmax, absf(fbn.vel.x))
+		var edge_ok: bool = fbn.bounces > b0 and inside and vmax < 7.0 * 0.62 and vmax > 7.0 * 0.3
+		var b1: int = fbn.bounces
+		var g_b: int = fbn.goals
+		fb_put(Vector2(13.7, 8.6), Vector2(30.0, 20.0), Vector2(0, -1))
+		fbn.vel = Vector2(0, -6.0)
+		await wait(0.9)
+		var post_ok: bool = fbn.bounces > b1 and fbn.vel.y >= 0.0 and fbn.p.y > fbn.goal_z and fbn.goals == g_b and fbn.state == "play"
+		var b2: int = fbn.bounces
+		fb_put(Vector2(15.5, 6.8), Vector2(30.0, 20.0), Vector2(0, 1))
+		fbn.vel = Vector2(0, 6.0)
+		await wait(0.9)
+		var basin_ok: bool = fbn.bounces > b2 and fbn.p.distance_to(main.village.fountain_at()) >= 1.2 and fbn.vel.y <= 0.0
+		fb_put(Vector2(19.5, 12.8), Vector2(40.0, 20.0), Vector2(1, 0))
+		fbn.away_t = fbn.HOME_AFTER - 0.5
+		await wait(0.9)
+		var rolling_home: bool = fbn.state == "home"
+		await wait(1.5)
+		var back_stuck: bool = fbn.state == "play" and fbn.p.distance_to(fbn.spot) < 0.05
+		fb_put(Vector2(25.0, 7.0), Vector2(40.0, 20.0), Vector2(1, 0))
+		await wait(2.2)
+		var back_out: bool = fbn.state == "play" and fbn.p.distance_to(fbn.spot) < 0.05
+		var near_sora: bool = true # a ball near Sora is left where it lies
+		fb_put(Vector2(19.5, 12.8), Vector2(18.5, 12.0), Vector2(1, 0))
+		fbn.away_t = fbn.HOME_AFTER - 0.5
+		await wait(1.0)
+		near_sora = fbn.state == "play" and fbn.p.distance_to(Vector2(vxb + 19.5, 12.8)) < 0.05
+		check("football_bounce", edge_ok and post_ok and basin_ok and rolling_home and back_stuck and back_out and near_sora,
+			"edge bounce keeps 40-60%% and stays inside %s (kept %.1f of 7), post %s, basin %s, stuck ball rolls home after 10 s away %s then rests on its spot %s, one off the square comes home %s, one beside her stays %s" % [edge_ok, vmax, post_ok, basin_ok, rolling_home, back_stuck, back_out, near_sora])
+		fb_end(was_b)
+	if want.call("football_goal"):
+		# swings drive it in from in front of the goal: the screen flashes three times, the banner shows the count, goals +1 once only,
+		# the ball pops back to its spot about 1.4 s later
+		var was_g: Array = fb_start()
+		var fg: Object = main.football
+		var keep_save: String = FileAccess.get_file_as_string(main.SAVE_PATH)
+		fb_put(Vector2(12.6, 8.0), Vector2(12.6, 9.2), Vector2(0, -1))
+		var g0: int = fg.goals
+		var fl0: int = fg.flashes
+		main.attack()
+		var got: bool = await wait_for(func(): return fg.goals > g0, 1.5)
+		var t_goal := Time.get_ticks_msec()
+		await wait(0.12)
+		var flash_on: bool = fg.flash != null and fg.flash.color.a > 0.05
+		var banner_on: bool = fg.banner != null and fg.banner.visible and "골" in fg.banner.text and fg.banner.text.ends_with(" %d" % (g0 + 1))
+		var in_net: bool = fg.state == "net" and fg.p.y < fg.goal_z and fg.p.x > fg.goal_x0 and fg.p.x < fg.goal_x1
+		main.player.atk_cd = 0.0
+		main.attack() # a swing at the ball in the net counts for nothing
+		await wait(0.9)
+		var three: bool = fg.flashes == 3
+		var once: bool = fg.goals == g0 + 1
+		await wait_for(func(): return fg.state == "play", 2.0)
+		var t_back: float = (Time.get_ticks_msec() - t_goal) / 1000.0
+		var at_spot: bool = fg.p.distance_to(fg.spot) < 0.05 and fg.vel.length() < 0.01
+		await wait(1.3)
+		var faded: bool = fg.banner != null and not fg.banner.visible
+		var saved = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var in_save: bool = typeof(saved) == TYPE_DICTIONARY and int(saved.get("goals", -1)) == g0 + 1
+		var f2 := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f2.store_string(keep_save)
+		f2.close()
+		check("football_goal", got and flash_on and banner_on and in_net and three and once and t_back > 1.0 and t_back < 1.8 and at_spot and faded and in_save,
+			"scored %s, flash on %s x%d (%d before), banner '%s' %s, ball in the net %s, goals %d -> %d once only %s, back on its spot after %.2f s %s, banner gone %s, goals in the save %s" % [got, flash_on, fg.flashes, fl0, fg.banner.text if fg.banner != null else "", banner_on, in_net, g0, fg.goals, once, t_back, at_spot, faded, in_save])
+		fg.goals = g0
+		fb_end(was_g)
+	if want.call("football_save"):
+		# the goal count is kept in the save and over a new round, and an old save without it starts at 0
+		var was_s: Array = fb_start()
+		var fs: Object = main.football
+		var keep_s: String = FileAccess.get_file_as_string(main.SAVE_PATH)
+		var g_s: int = fs.goals
+		fs.goals = 7
+		main.save_game()
+		var d1 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var saved1: bool = typeof(d1) == TYPE_DICTIONARY and int(d1.get("goals", -1)) == 7
+		fs.goals = 0
+		main.load_game()
+		var loaded: bool = fs.goals == 7
+		fs.load_data({})
+		var old_ok: bool = fs.goals == 0
+		fs.goals = 7
+		main.write_new_round()
+		var d2 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var round_ok: bool = typeof(d2) == TYPE_DICTIONARY and int(d2.get("goals", -1)) == 7 and int(d2.get("story", -1)) == 0
+		var f3 := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
+		f3.store_string(keep_s)
+		f3.close()
+		fs.goals = g_s
+		check("football_save", saved1 and loaded and old_ok and round_ok, "saved %s, loaded back %s, an old save reads 0 %s, a new round keeps it %s" % [saved1, loaded, old_ok, round_ok])
+		fb_end(was_s)
+	if want.call("football_quiet"):
+		# no kick, nudge or push during a story, with the bag open or with a foe within 8 tiles; the same swing kicks it otherwise
+		var was_q: Array = fb_start()
+		var fq: Object = main.football
+		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		var kq: int = fq.kicks
+		main.story_open = true
+		main.attack()
+		var story_still: bool = fq.kicks == kq and fq.vel.length() < 0.01
+		main.story_open = false
+		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		main.ui.bag.visible = true
+		main.attack()
+		var bag_still: bool = fq.kicks == kq and fq.vel.length() < 0.01
+		main.ui.bag.visible = false
+		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		var vq: float = main.village.VILLAGE_X
+		var foe := marsh_foe(Vector2(vq + 11.7, 14.5)) # 7.3 tiles south of her
+		main.attack()
+		var foe_still: bool = foe and fq.kicks == kq and fq.vel.length() < 0.01
+		main.player.vx = 3.6
+		fq.p = Vector2(vq + 12.2, 7.2) # touching her, but a foe is near
+		fq.update(0.016)
+		foe_still = foe_still and fq.vel.length() < 0.01
+		calm_enemies(true)
+		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		main.attack()
+		var control: bool = fq.kicks == kq + 1 and fq.vel.length() > 6.0
+		check("football_quiet", story_still and bag_still and foe_still and control, "still in a story %s, with the bag open %s, with a foe 7.3 tiles off %s (foe placed %s); the same swing kicks it when all is calm %s" % [story_still, bag_still, foe_still, foe, control])
+		fb_end(was_q)
+	if want.call("pinwheel_hit"):
+		# a swing that reaches a pinwheel spins it at about 20 rad/s and it eases down over 2.5 s: to still when its windmill is not mended, to its usual turn when it is
+		var was_p: Array = fb_start()
+		var vp: Object = main.village
+		var mills_p: Array = main.hill.mills.map(func(mm): return mm.turning)
+		var mq_p: int = main.mill_q
+		for mm in main.hill.mills:
+			mm.turning = false
+		main.mill_q = 0
+		var h0p: int = vp.pinwheel_hits
+		fb_put(Vector2(15.0, 12.0), Vector2(7.5, 3.8), Vector2(0, -1))
+		main.attack()
+		var hit_one: bool = vp.pinwheel_hits == h0p + 1 and absf(vp.pinwheels[0].spin - 2.5) < 0.01 and vp.pinwheels[1].spin == 0.0
+		var rot_a: float = vp.pinwheels[0].hub.rotation.z
+		vp.life_update(main, 0.1)
+		var fast: float = (rot_a - vp.pinwheels[0].hub.rotation.z) / 0.1
+		for i in 12:
+			vp.life_update(main, 0.1)
+		var rot_m: float = vp.pinwheels[0].hub.rotation.z
+		vp.life_update(main, 0.1)
+		var mid: float = (rot_m - vp.pinwheels[0].hub.rotation.z) / 0.1
+		for i in 14:
+			vp.life_update(main, 0.1)
+		var rot_z: float = vp.pinwheels[0].hub.rotation.z
+		vp.life_update(main, 0.5)
+		var still_now: bool = absf(vp.pinwheels[0].hub.rotation.z - rot_z) < 0.0001
+		var whirr: bool = main.sfx_log.any(func(sn): return String(sn) == "noise:520")
+		main.hill.mills[1].turning = true # a mended windmill: its pinwheel turns at 4.6 already
+		fb_put(Vector2(15.0, 12.0), Vector2(17.5, 3.8), Vector2(0, -1))
+		vp.life_update(main, 0.1)
+		main.attack()
+		var rot_b: float = vp.pinwheels[1].hub.rotation.z
+		vp.life_update(main, 0.1)
+		var fast_b: float = (rot_b - vp.pinwheels[1].hub.rotation.z) / 0.1
+		for i in 26:
+			vp.life_update(main, 0.1)
+		var rot_c: float = vp.pinwheels[1].hub.rotation.z
+		vp.life_update(main, 0.1)
+		var usual: float = (rot_c - vp.pinwheels[1].hub.rotation.z) / 0.1
+		for i in main.hill.mills.size():
+			main.hill.mills[i].turning = mills_p[i]
+		main.mill_q = mq_p
+		check("pinwheel_hit", hit_one and fast > 17.0 and fast < 20.5 and mid > 6.0 and mid < 14.0 and still_now and whirr and fast_b > 17.0 and absf(usual - 4.6) < 0.1,
+			"one pinwheel hit %s, spin right after %.1f rad/s (20), at 1.3 s %.1f, still after 2.5 s %s, whirr %s; a turning one %.1f then back to %.2f (4.6)" % [hit_one, fast, mid, still_now, whirr, fast_b, usual])
+		fb_end(was_p)
 	if want.call("toy_bricks"):
 		# a blow at a village brick pile sends its bricks rolling apart, each its own way, and they settle (v0.1.87)
 		var bs: Array = main.village.toy_bricks

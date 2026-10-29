@@ -37,6 +37,7 @@ func save_game() -> void:
 		"under_drained": m.under.drained, "under_door": m.under.door_open, "under_guards": m.under_guards_done, "under_chest": m.under_chest_open,
 		"under_side": m.under_side_open, "under_diary": m.under_diary_read, "has_lamp": m.has_lamp, "cave_quest": m.quest_before_cave,
 		"pip_max": m.pip_max, "pip_awards": m.pip_awards.keys(), "tokens": m.tokens, "trial_won": m.trial_won, "stairs_seen": m.stairs_seen, "moon_door": m.castle.door_open}
+	d.merge(m.football.save_data())
 	d.merge(m.workshop_zone.save_data())
 	d.merge(m.corridor_zone.save_data())
 	var f := FileAccess.open(m.SAVE_PATH, FileAccess.WRITE)
@@ -236,6 +237,7 @@ func load_game() -> void:
 	for i in mini(sb.size(), m.shop_bought.size()):
 		m.shop_bought[i] = int(sb[i])
 	m.play_secs = float(d.get("play_secs", 0.0))
+	m.football.load_data(d)
 	m.ng = int(d.get("ng", 0))
 	m.fest_gift = bool(d.get("fest_gift", false))
 	m.mail_q = int(d.get("mail_q", 0))
