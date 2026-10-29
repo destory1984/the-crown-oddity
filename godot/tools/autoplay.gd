@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -12988,6 +12988,454 @@ func run() -> void:
 		calm_enemies(false)
 		check("d57_air_whiff", first and second and third and landed and far57,
 			"first miss silent=%s second shows the hint=%s third silent=%s a cut that lands resets=%s out of reach: none=%s" % [first, second, third, landed, far57])
+
+	# ---- delight100 batch S4 (items 58 59 60 63 64 66 67 68 69 70)
+	if want.call("d58_screw"):
+		# a flash guard against a foe lets one screw hop out of its seam and come back (gone by 0.9 s); a plain block, a second flash guard inside 1 s, and a source that is no foe: none; nothing else changes (idea 58)
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		var fx58: Object = main.effects
+		var gold58: int = main.player.gold
+		var pots58: int = main.player.pots
+		reset_to(Vector2(30, 30))
+		main.player.face = Vector2(1, 0)
+		main.player.sp = 100.0
+		main.flash_cd = 0.0
+		var foe58 := {"x": 31.0, "z": 30.0, "dead": false}
+		main.guarding = true
+		main.guard_since = main.t - 1.0
+		var s0: int = fx58.screws
+		var plain58: String = main.player_hit(10, Vector2(31, 30), foe58)
+		var no_plain: bool = plain58 == "guard" and fx58.screws == s0
+		reset_to(Vector2(30, 30))
+		main.guarding = true
+		main.guard_since = main.t
+		fx58.screw_t = -10.0
+		var r58: String = main.player_hit(10, Vector2(31, 30), foe58)
+		var made58: bool = r58 == "flash_guard" and fx58.screws == s0 + 1
+		var screw: Node3D = fx58.last_screw
+		var base_y: float = main.height_at(31.0, 30.0) + 0.7
+		await wait(0.35)
+		var out_d: float = Vector2(screw.position.x - 31.0, screw.position.z - 30.0).length()
+		var jumped: bool = out_d > 0.25 and screw.position.y > base_y
+		await wait(0.6)
+		var returned: bool = not is_instance_valid(screw) or screw.is_queued_for_deletion() or Vector3(screw.position.x - 31.0, screw.position.y - base_y, screw.position.z - 30.0).length() < 0.4
+		reset_to(Vector2(30, 30)) # a second flash guard 0.1 s after: still one screw
+		main.guarding = true
+		main.guard_since = main.t
+		fx58.screw_t = main.t - 0.1
+		var second58: String = main.player_hit(10, Vector2(31, 30), foe58)
+		var once58: bool = second58 == "flash_guard" and fx58.screws == s0 + 1
+		reset_to(Vector2(30, 30)) # the source is no foe
+		main.guarding = true
+		main.guard_since = main.t
+		fx58.screw_t = -10.0
+		var third58: String = main.player_hit(10, Vector2(31, 30), dummy)
+		var nofoe: bool = third58 == "flash_guard" and fx58.screws == s0 + 1
+		var untouched58: bool = main.player.gold == gold58 and main.player.pots == pots58 and not foe58.has("hp")
+		main.guarding = false
+		calm_enemies(false)
+		check("d58_screw", no_plain and made58 and jumped and returned and once58 and nofoe and untouched58,
+			"a plain block: none=%s flash guard: one screw=%s it leaves the seam (%.2f out, above the belt)=%s it is back or gone by 0.9 s=%s a second one inside 1 s: none=%s no foe: none=%s no loot or damage change=%s" % [no_plain, made58, out_d, jumped, returned, once58, nofoe, untouched58])
+	if want.call("d59_revive_bow"):
+		# a companion who gets up within 6 tiles of Sora bows once (0.45 s); far away, or with a story open: no bow; her stepping off ends it at once (idea 59)
+		var mt59: Object = main.mates
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.join_mate()
+		main.join_noeul()
+		reset_to(Vector2(30, 30))
+		main.snap_mates()
+		main.mate2.position = Vector3(32, 0, 30)
+		main.mate2.visible = true
+		var b0: int = mt59.revive_dips
+		main.folk.nod_t["noeul"] = 0.0
+		main.mate_down["noeul"] = 0.05
+		mt59.mate_tick("noeul", 0.1)
+		var bowed: bool = mt59.revive_dips == b0 + 1 and is_equal_approx(main.folk.nod_t["noeul"], main.folk.NOD_T)
+		main.player.vx = 3.0
+		mt59.mate_tick("noeul", 0.1)
+		var cancelled: bool = main.folk.nod_t["noeul"] <= 0.0
+		main.player.vx = 0.0
+		main.mate2.position = Vector3(45, 0, 30) # far away
+		main.mate_down["noeul"] = 0.05
+		mt59.mate_tick("noeul", 0.1)
+		var far59: bool = mt59.revive_dips == b0 + 1 and main.folk.nod_t["noeul"] <= 0.0
+		main.mate2.position = Vector3(32, 0, 30)
+		main.show_story("", ["x"])
+		main.mate_down["noeul"] = 0.05
+		mt59.mate_tick("noeul", 0.1)
+		var story59: bool = mt59.revive_dips == b0 + 1 and main.folk.nod_t["noeul"] <= 0.0
+		main.close_story()
+		main.mate_down["noeul"] = 0.0
+		calm_enemies(false)
+		check("d59_revive_bow", bowed and cancelled and far59 and story59,
+			"gets up near her: one bow of %.2f s=%s she steps off: it ends=%s far away: none=%s story open: none=%s" % [main.folk.NOD_T, bowed, cancelled, far59, story59])
+	if want.call("d60_breath_word"):
+		# the last foe falling opens one 'breathe first' line; the first villager she speaks to says it before the normal answer (the answer still comes); a second talk, or one after 45 s: nothing (idea 60)
+		var ch60: Object = main.chatter
+		var mo60: Object = main.monsters
+		main.close_story()
+		main.intro = false
+		main.in_village = true
+		main.in_house = -1
+		calm_enemies(true)
+		var saved60: Array = main.enemies
+		reset_to(Vector2(30, 30))
+		var foe60 := {"x": 33.0, "z": 30.0, "dead": false}
+		var k60: int = main.stats.kills
+		mo60.kills_prev = k60
+		mo60.kill_seen_t = -10.0
+		mo60.foes_near_prev = false
+		ch60.breath_open = false
+		main.enemies = [foe60]
+		mo60.update_calm()
+		foe60.dead = true
+		main.stats.kills += 1
+		mo60.update_calm()
+		var opened: bool = ch60.breath_open
+		main.enemies = saved60
+		main.stats.kills = k60
+		mo60.kills_prev = k60
+		mo60.foes_near_prev = false
+		var id60 := "tori"
+		var keep60 := {"hour": main.hour, "state": main.folk_state.get(id60, "out")}
+		main.hour = 12.0
+		main.folk_state[id60] = "out"
+		var met60: bool = main.met.has(id60)
+		var n60: int = ch60.breath_says
+		reset_to(main.folk_talk_at(id60))
+		main.crown_key()
+		var said: bool = ch60.breath_says == n60 + 1 and not ch60.breath_open and main.folk_said.back()[0] == id60 and plain(str(main.folk_said.back()[1])).contains("숨부터")
+		var answered: bool = main.story_open
+		main.close_story()
+		main.crown_key()
+		var once60: bool = ch60.breath_says == n60 + 1
+		main.close_story()
+		ch60.fight_ended() # 50 s later: too old
+		ch60.fight_end_t = main.t - 50.0
+		main.crown_key()
+		var stale: bool = ch60.breath_says == n60 + 1 and not ch60.breath_open
+		main.close_story()
+		main.hour = keep60.hour
+		main.folk_state[id60] = keep60.state
+		if not met60:
+			main.met.erase(id60)
+		main.in_village = false
+		calm_enemies(false)
+		check("d60_breath_word", opened and said and answered and once60 and stale,
+			"a fight ends: the line is open=%s the first villager says it=%s his normal answer still comes=%s only once=%s too late (50 s): not said=%s" % [opened, said, answered, once60, stale])
+	if want.call("d63_umbrella"):
+		# resting under a stall's awning in rain, she starts the umbrella act, shows only its first frame for 1 s and goes back to breathing; dry, away, in a story, or the second rest of the same visit: none (idea 63)
+		var s63: Object = main.sora
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.in_village = true
+		main.in_house = -1
+		main.raining = true
+		s63.spot_visit.clear()
+		s63.idle_cause = ""
+		var at63: Vector2 = main.village.marks["1"]
+		reset_to(at63)
+		main.last_input_t = main.t - 20.0
+		var n63: int = s63.spot_acts
+		main.idle_name = "breath"
+		main.idle_left = 0.0
+		s63.update_idle(0.01)
+		var started: bool = main.idle_name == "rest-umbrella" and s63.idle_cause == "shelter" and s63.spot_acts == n63 + 1 and is_equal_approx(main.idle_left, 1.0)
+		s63.update_idle(0.6)
+		var frame0: bool = main.hero.region_rect.position.x == 0.0 and main.idle_name == "rest-umbrella"
+		s63.update_idle(0.5)
+		var back63: bool = main.idle_name == "breath" and s63.idle_cause == ""
+		var again: bool = s63.spot_pick() == "" and s63.spot_acts == n63 + 1
+		reset_to(at63 + Vector2(6.0, 6.0))
+		s63.spot_pick()
+		main.raining = false
+		reset_to(at63)
+		var dry63: bool = s63.spot_pick() == "" and s63.spot_acts == n63 + 1
+		main.raining = true
+		reset_to(at63 + Vector2(6.0, 6.0))
+		s63.spot_pick()
+		main.show_story("", ["x"])
+		reset_to(at63)
+		var story63: bool = s63.spot_pick() == "" and s63.spot_acts == n63 + 1
+		main.close_story()
+		reset_to(at63 + Vector2(6.0, 6.0))
+		var away63: bool = s63.spot_pick() == "" and s63.spot_acts == n63 + 1
+		main.raining = false
+		main.in_village = false
+		main.idle_name = ""
+		s63.idle_cause = ""
+		calm_enemies(false)
+		check("d63_umbrella", started and frame0 and back63 and again and dry63 and story63 and away63,
+			"under the awning in rain: umbrella act, 1 s=%s only its first frame=%s then breathing=%s not twice in a visit=%s dry: none=%s story: none=%s away: none=%s" % [started, frame0, back63, again, dry63, story63, away63])
+	if want.call("d64_photo"):
+		# at a hill view (and on the cloud mound) she picks the photo act once a visit with one shutter cue (two clicks); away, or on the plain hill: none (idea 64)
+		var s64: Object = main.sora
+		var sd64: Object = main.sound
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.in_hill = true
+		main.in_village = false
+		s64.spot_visit.clear()
+		var view64: Vector2 = main.hill_zone.SCENIC[0].at
+		reset_to(view64 + Vector2(0.5, 0.0))
+		main.last_input_t = main.t - 20.0
+		var n64: int = s64.spot_acts
+		var c64: int = sd64.shutters
+		main.sfx_log.clear()
+		main.idle_name = "breath"
+		main.idle_left = 0.0
+		s64.update_idle(0.01)
+		var picked: bool = main.idle_name == "rest-photo" and s64.idle_cause == "photo" and s64.spot_acts == n64 + 1
+		var cue: bool = sd64.shutters == c64 + 1 and main.sfx_log.has("square:2600")
+		main.idle_left = 0.0
+		s64.update_idle(0.01) # the act ends, breathing again
+		main.idle_left = 0.0
+		s64.update_idle(0.01)
+		var once64: bool = s64.spot_acts == n64 + 1 and sd64.shutters == c64 + 1
+		reset_to(view64 + Vector2(8.0, 0.0))
+		s64.spot_pick()
+		reset_to(view64)
+		var again64: bool = s64.spot_pick() == "rest-photo"
+		var view2: Vector2 = main.hill_zone.SCENIC[1].at
+		reset_to(view2)
+		var second64: bool = s64.spot_pick() == "rest-photo"
+		reset_to(Vector2(view64.x - 12.0, view64.y + 6.0))
+		var plain64: bool = s64.spot_pick() == ""
+		reset_to(main.cloud.marks.c)
+		var cloud64: bool = main.in_cloud() and s64.spot_pick() == "rest-photo"
+		main.in_hill = false
+		reset_to(view64)
+		var nohill: bool = s64.spot_pick() == ""
+		main.idle_name = ""
+		s64.idle_cause = ""
+		calm_enemies(false)
+		check("d64_photo", picked and cue and once64 and again64 and second64 and plain64 and cloud64 and nohill,
+			"at the view: photo act=%s one shutter cue=%s once a visit=%s again on a new visit=%s the second view=%s the plain hill: none=%s the cloud mound=%s off the hill: none=%s" % [picked, cue, once64, again64, second64, plain64, cloud64, nohill])
+	if want.call("d66_hush"):
+		# beside a sleeping villager's bed in his house she picks the hush act once a visit; he awake, outside the house, 3.5 tiles off, or a story open: none (idea 66)
+		var s66: Object = main.sora
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		var keep66 := {"village": main.in_village, "house": main.in_house, "state": main.folk_state.get("doran", "out")}
+		main.in_village = true
+		var home66: int = main.folk.folk_home("doran")
+		main.in_house = home66
+		main.folk_state["doran"] = "in"
+		s66.spot_visit.clear()
+		var bed66: Vector2 = main.folk.bed_spot("doran")
+		reset_to(bed66 + Vector2(0.8, 0.0))
+		main.last_input_t = main.t - 20.0
+		var n66: int = s66.spot_acts
+		main.idle_name = "breath"
+		main.idle_left = 0.0
+		s66.update_idle(0.01)
+		var hushed: bool = main.idle_name == "see-hush" and s66.idle_cause == "hush" and s66.spot_acts == n66 + 1
+		var once66: bool = s66.spot_pick() == "" and s66.spot_acts == n66 + 1
+		reset_to(bed66 + Vector2(3.5, 0.0))
+		var far66: bool = s66.spot_pick() == "" and not main.folk.sleeper_near(Vector2(main.player.x, main.player.z))
+		reset_to(bed66 + Vector2(0.8, 0.0))
+		main.folk_state["doran"] = "out"
+		var awake: bool = s66.spot_pick() == ""
+		main.folk_state["doran"] = "in"
+		main.in_house = -1
+		var outside: bool = s66.spot_pick() == ""
+		main.in_house = home66
+		s66.spot_visit.clear()
+		main.show_story("", ["x"])
+		var story66: bool = s66.spot_pick() == ""
+		main.close_story()
+		var back66: bool = s66.spot_pick() == "see-hush"
+		main.folk_state["doran"] = keep66.state
+		main.in_village = keep66.village
+		main.in_house = keep66.house
+		main.idle_name = ""
+		s66.idle_cause = ""
+		calm_enemies(false)
+		check("d66_hush", hushed and once66 and far66 and awake and outside and story66 and back66,
+			"beside the sleeper: hush act=%s once a visit=%s 3.5 tiles off: none=%s he awake: none=%s outside the house: none=%s story: none=%s and back again=%s" % [hushed, once66, far66, awake, outside, story66, back66])
+	if want.call("d67_pond_drop"):
+		# at the village pier she drinks (rest-water); when the act runs to its end one drop falls at her feet; a move before the end leaves none; away from the pond: none (idea 67)
+		var s67: Object = main.sora
+		var fx67: Object = main.effects
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.in_village = true
+		main.in_house = -1
+		s67.spot_visit.clear()
+		var pier: Vector2 = main.village.marks.f
+		reset_to(pier)
+		main.last_input_t = main.t - 20.0
+		var n67: int = s67.spot_acts
+		var d0: int = fx67.pond_drops
+		main.idle_name = "breath"
+		main.idle_left = 0.0
+		s67.update_idle(0.01)
+		var drinking: bool = main.idle_name == "rest-water" and s67.idle_cause == "pond" and s67.spot_acts == n67 + 1
+		s67.update_idle(5.0)
+		var not_yet: bool = fx67.pond_drops == d0 and main.idle_name == "rest-water"
+		s67.update_idle(5.0)
+		var dropped: bool = fx67.pond_drops == d0 + 1 and main.idle_name == "breath"
+		var drop: Node3D = fx67.last_drop
+		var at_feet: bool = absf(drop.position.x - main.player.x) < 0.5 and absf(drop.position.z - main.player.z) < 0.5 and drop.position.y > main.ground_y + 0.3
+		await wait(0.4)
+		var landed: bool = not is_instance_valid(drop) or drop.is_queued_for_deletion() or not drop.visible or drop.position.y < main.ground_y + 0.15
+		reset_to(pier + Vector2(8.0, 0.0)) # a new visit, cut short by a step
+		s67.spot_pick()
+		reset_to(pier)
+		main.idle_name = "breath"
+		main.idle_left = 0.0
+		s67.update_idle(0.01)
+		var again67: bool = main.idle_name == "rest-water"
+		s67.update_idle(3.0)
+		main.idle_name = "" # she moved: update_idle is not called any more
+		var cut: bool = fx67.pond_drops == d0 + 1
+		reset_to(pier + Vector2(8.0, 0.0))
+		var away67: bool = s67.spot_pick() == ""
+		main.in_village = false
+		main.idle_name = ""
+		s67.idle_cause = ""
+		calm_enemies(false)
+		check("d67_pond_drop", drinking and not_yet and dropped and at_feet and landed and again67 and cut and away67,
+			"at the pier: drinking=%s no drop mid-act=%s one drop at the end=%s at her feet, falling=%s it lands=%s again on a new visit=%s cut short: no drop=%s away: none=%s" % [drinking, not_yet, dropped, at_feet, landed, again67, cut, away67])
+	if want.call("d68_moon_ring"):
+		# at a moon-stairs landing she looks up (see-up) and a thin ring floats over her crown for 3.6 s, with no light; elsewhere on the stairs or outside them: none (idea 68)
+		var s68: Object = main.sora
+		var fx68: Object = main.effects
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.in_hill = true
+		main.in_village = false
+		s68.spot_visit.clear()
+		var sx: float = main.STAIRS.STAIRS_X
+		reset_to(Vector2(sx + 4.0, 13.0))
+		main.last_input_t = main.t - 20.0
+		var n68: int = s68.spot_acts
+		var r0: int = fx68.moon_rings
+		main.idle_name = "breath"
+		main.idle_left = 0.0
+		s68.update_idle(0.01)
+		var up: bool = main.idle_name == "see-up" and s68.idle_cause == "moon" and s68.spot_acts == n68 + 1
+		var ring: Node3D = fx68.last_moon_ring
+		await wait(0.3)
+		var floats: bool = fx68.moon_rings == r0 + 1 and absf(ring.position.y - (main.ground_y + 2.1)) < 0.1 and absf(ring.position.x - main.player.x) < 0.05
+		var dark: bool = ring is MeshInstance3D and ring.get_child_count() == 0
+		await wait(3.7)
+		var gone: bool = not is_instance_valid(ring) or ring.is_queued_for_deletion()
+		reset_to(Vector2(sx + 11.0, 9.0))
+		var mid68: bool = s68.spot_pick() == ""
+		reset_to(Vector2(sx + 19.0, 21.0)) # the other side of another landing
+		var other: bool = s68.spot_pick() == "see-up"
+		main.in_hill = false
+		reset_to(Vector2(30, 30))
+		var out68: bool = s68.spot_pick() == ""
+		main.idle_name = ""
+		s68.idle_cause = ""
+		calm_enemies(false)
+		check("d68_moon_ring", up and floats and dark and gone and mid68 and other and out68,
+			"at a landing: look up=%s ring 2.1 above her=%s no light=%s gone after 3.6 s=%s mid-landing: none=%s another landing=%s outside the stairs: none=%s" % [up, floats, dark, gone, mid68, other, out68])
+	if want.call("d69_inn_stretch"):
+		# coming out of the inn marks one stretch: her first safe rest after it is rest-stretch (only once); the marker is set by a night at the inn (idea 69)
+		var s69: Object = main.sora
+		var mk69: Object = main.market
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.in_village = true
+		main.in_house = -1
+		mk69.inn_fresh = false
+		var keep69 := {"gold": main.player.gold, "hour": main.hour, "day": main.day, "nights": main.inn_nights}
+		main.player.gold = 30
+		main.inn_nights = 2 # not the first night: no talk
+		reset_to(main.village.marks.N + Vector2(0.0, 1.5))
+		mk69.stay_inn()
+		await wait(0.8)
+		var marked: bool = mk69.inn_fresh
+		s69.spot_visit.clear()
+		var spot_n: int = s69.spot_acts
+		reset_to(Vector2(30, 30))
+		var pick: String = s69.idle_pick()
+		var stretch: bool = pick == "rest-stretch" and s69.idle_cause == "inn" and not mk69.inn_fresh and s69.spot_acts == spot_n
+		s69.idle_cause = "" # update_idle clears it before each pick
+		var later: String = s69.idle_pick() # back to the random pool
+		var pool: bool = s69.idle_cause == "" and not mk69.inn_fresh and later != ""
+		mk69.inn_fresh = true # a story is open: the marker is kept
+		main.show_story("", ["x"])
+		s69.idle_pick()
+		var story69: bool = mk69.inn_fresh
+		main.close_story()
+		mk69.inn_fresh = false
+		main.player.gold = keep69.gold
+		main.hour = keep69.hour
+		main.day = keep69.day
+		main.inn_nights = keep69.nights
+		main.in_village = false
+		s69.idle_cause = ""
+		calm_enemies(false)
+		check("d69_inn_stretch", marked and stretch and pool and story69,
+			"a night at the inn marks it=%s the first rest after: stretch=%s then the random pool=%s a story keeps the marker=%s" % [marked, stretch, pool, story69])
+	if want.call("d70_run_water"):
+		# a run of 3 s or more that ends at full health makes her next rest (within 40 s) a drink with one bottle-cap cue; a short run, a hurt Sora, or a stale thirst: none; no stat changes (idea 70)
+		var s70: Object = main.sora
+		var sd70: Object = main.sound
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.in_village = false
+		main.in_hill = false
+		s70.spot_visit.clear()
+		reset_to(Vector2(30, 30))
+		s70.run_t = 0.0
+		s70.run_thirst = false
+		for i in 20: # 2 s: too short
+			s70.track_run(true, 0.1)
+		s70.track_run(false, 0.1)
+		var short70: bool = not s70.run_thirst
+		for i in 35: # 3.5 s
+			s70.track_run(true, 0.1)
+		s70.track_run(false, 0.1)
+		var thirsty: bool = s70.run_thirst
+		var hp70: float = main.player.hp
+		var sp70: float = main.player.sp
+		var mp70: float = main.player.mp
+		var caps: int = sd70.bottle_caps
+		main.last_input_t = main.t - 20.0
+		main.sfx_log.clear()
+		main.idle_name = "breath"
+		main.idle_left = 0.0
+		s70.update_idle(0.01)
+		var drink: bool = main.idle_name == "rest-water" and s70.idle_cause == "run" and not s70.run_thirst
+		var cue: bool = sd70.bottle_caps == caps + 1 and main.sfx_log.has("triangle:1320")
+		var same: bool = main.player.hp == hp70 and main.player.sp == sp70 and main.player.mp == mp70
+		s70.update_idle(10.0)
+		s70.idle_cause = ""
+		s70.idle_pick()
+		var once70: bool = s70.idle_cause == ""
+		for i in 35: # hurt at the end of the run
+			s70.track_run(true, 0.1)
+		main.player.hp = float(main.player.max_hp) - 5.0
+		s70.track_run(false, 0.1)
+		var hurt: bool = not s70.run_thirst
+		main.player.hp = float(main.player.max_hp)
+		for i in 35: # stale: the next rest comes 60 s later
+			s70.track_run(true, 0.1)
+		s70.track_run(false, 0.1)
+		s70.run_thirst_t = main.t - 60.0
+		s70.idle_pick()
+		var stale70: bool = s70.idle_cause == ""
+		main.idle_name = ""
+		s70.run_thirst = false
+		calm_enemies(false)
+		check("d70_run_water", short70 and thirsty and drink and cue and same and once70 and hurt and stale70,
+			"a 2 s run: none=%s a 3.5 s run: thirst=%s the next rest: drink=%s one cap cue=%s hp/sp/mp unchanged=%s used up=%s hurt at the end: none=%s stale: none=%s" % [short70, thirsty, drink, cue, same, once70, hurt, stale70])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

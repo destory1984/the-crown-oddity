@@ -721,6 +721,7 @@ func update_calm() -> void:
 		kill_seen_t = m.t
 	if foes_near_prev and not near and m.t - kill_seen_t < 1.0 and m.player.hp > 0 and not m.intro:
 		m.effects.settle_motes()
+		m.chatter.fight_ended()
 	foes_near_prev = near
 
 func update_enemies(dt: float, gy: float) -> void:

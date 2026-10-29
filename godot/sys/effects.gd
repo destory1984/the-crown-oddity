@@ -437,3 +437,89 @@ func armour_shimmer(pos: Vector3) -> void:
 	var tier := gear_tier(3)
 	if tier > 0:
 		m.burst(pos + Vector3(0, 0.9, 0), ARMOUR_TINT[tier], 4 + 4 * tier, 2.0)
+
+# a screw jumps from the seam of a brick foe whose blow she flash-guarded and is drawn back into its body (delight idea 58).
+# One at a time; no loot, no weakness, no damage.
+var screws := 0
+var screw_t := -10.0
+var last_screw: Node3D
+
+func screw_pull(e: Dictionary) -> void:
+	if m.t - screw_t < 1.0:
+		return
+	screw_t = m.t
+	screws += 1
+	var g := Node3D.new()
+	last_screw = g
+	var steel := m.mat_color(Color("#a8aeb8"))
+	var shaft: MeshInstance3D = m.box(Vector3(0.04, 0.16, 0.04), steel)
+	shaft.position.y = -0.05
+	g.add_child(shaft)
+	var head: MeshInstance3D = m.box(Vector3(0.11, 0.03, 0.11), steel)
+	head.position.y = 0.05
+	g.add_child(head)
+	var body := Vector3(e.x, m.height_at(e.x, e.z) + 0.7, e.z)
+	var away := Vector3(m.player.x - e.x, 0, m.player.z - e.z)
+	away = away.normalized() if away.length() > 0.01 else Vector3(0, 0, 1)
+	var out := body + away * 0.55 + Vector3(0, 0.1, 0)
+	g.position = body
+	add_fx(g, 0.9, func(n: Node3D, k: float, _dt: float):
+		var now := Vector3(e.x, m.height_at(e.x, e.z) + 0.7, e.z) # it follows the body if the foe is shoved
+		if k < 0.5:
+			var u := k / 0.5
+			n.position = now + (out - body) * u + Vector3(0, 0.5 * sin(u * PI), 0)
+			n.rotation.y = u * 9.0
+		else:
+			var u := (k - 0.5) / 0.5
+			n.position = (out - body + now).lerp(now, u * u)
+			n.rotation.y = 9.0 + u * 9.0
+			n.scale = Vector3.ONE * (1.0 - 0.6 * u))
+
+# the last drop of the pond water falls at her feet when she has finished drinking (delight idea 67)
+var pond_drops := 0
+var last_drop: Node3D
+
+func pond_drop(at: Vector3) -> void:
+	pond_drops += 1
+	var mat := m.glow_mat(Color("#bfe6ff"), 1.4)
+	var d: MeshInstance3D = m.box(Vector3(0.05, 0.12, 0.05), mat)
+	d.position = at + Vector3(0.18, 0.7, 0.1)
+	last_drop = d
+	var from := d.position
+	var ring := MeshInstance3D.new()
+	ring.mesh = ring_mesh(0.05, 0.09, 0.0, TAU, 16)
+	var rmat := m.glow_mat(Color("#bfe6ff"), 1.2)
+	ring.material_override = rmat
+	ring.position = at + Vector3(0.18, 0.03, 0.1)
+	ring.visible = false
+	m.add_child(ring)
+	add_fx(d, 0.55, func(n: Node3D, k: float, _dt: float):
+		var t := k * 0.55
+		if t < 0.25:
+			n.position.y = from.y - (from.y - at.y - 0.05) * pow(t / 0.25, 2.0)
+		else:
+			n.visible = false
+			ring.visible = true
+			var u := (t - 0.25) / 0.3
+			ring.scale = Vector3.ONE * (1.0 + 3.0 * u)
+			rmat.albedo_color.a = 1.0 - u
+		if k >= 0.98:
+			ring.queue_free())
+
+# a thin pale ring floats over her crown while she looks up at the moon stairs (delight idea 68); it only shines, it lights nothing
+var moon_rings := 0
+var last_moon_ring: Node3D
+
+func moon_ring() -> void:
+	moon_rings += 1
+	var mat := m.glow_mat(Color("#e8f0ff"), 1.6)
+	var mm := MeshInstance3D.new()
+	mm.mesh = ring_mesh(0.26, 0.32, 0.0, TAU, 20)
+	mm.material_override = mat
+	mm.rotation.x = 0.3
+	last_moon_ring = mm
+	mm.position = Vector3(m.player.x, m.ground_y + 2.1, m.player.z)
+	add_fx(mm, 3.6, func(n: Node3D, k: float, _dt: float):
+		n.position = Vector3(m.player.x, m.ground_y + 2.1 + 0.03 * sin(k * 9.0), m.player.z)
+		mat.albedo_color.a = clampf(k * 6.0, 0.0, 1.0) * (1.0 - maxf(0.0, k - 0.8) / 0.2) * 0.85
+		n.rotation.y = k * 2.0)

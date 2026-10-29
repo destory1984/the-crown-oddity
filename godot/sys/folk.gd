@@ -175,6 +175,15 @@ func asleep_hint(me: Vector2) -> bool:
 			return true
 	return false
 
+# a villager asleep on his bedroll in the room she stands in, within 2 tiles of her (delight idea 66)
+func sleeper_near(me: Vector2) -> bool:
+	if m.in_house < 0:
+		return false
+	for id in Main.SLEEP_IDS:
+		if m.folk_state.get(id, "out") == "in" and folk_awake_here(id) and m.in_house == folk_home(id) and me.distance_to(bed_spot(id)) < 2.0:
+			return true
+	return false
+
 func folk_home(id: String) -> int: # the house nearest to where he stands by day that has a spot left
 	return folk_bed(id)[0]
 

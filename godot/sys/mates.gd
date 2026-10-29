@@ -18,6 +18,8 @@ const SIT_BREATH_STEP := 0.35 # sitting breathes slower than standing
 var breath_keep := {} # id -> [texture, hframes] put back when he moves
 
 var scenic_dir := Vector2.ZERO # world direction of a view Sora has stopped to take in: resting companions face it (hill_zone.update_scenic, delight idea 16)
+const REVIVE_DIP_R := 6.0 # a companion who gets up within this many tiles of Sora bows to her
+var revive_dips := 0 # bows made (autoplay d59_revive_bow)
 var trailing := {} # id -> following on her footsteps because she walks along his side spot's line
 
 func _init(main: Main) -> void:
@@ -251,7 +253,12 @@ func mate_tick(id: String, dt: float) -> bool:
 			spr.modulate = Color.WHITE
 			spr.position.y = 0.0
 			m.burst(node.position + Vector3(0, 0.8, 0), Color("#9fe0ff"), 10, 1.2)
+			if Vector2(m.player.x - node.position.x, m.player.z - node.position.z).length() < REVIVE_DIP_R and not m.story_open:
+				m.folk.nod_t[id] = m.folk.NOD_T # a small bow towards Sora before the first step (delight idea 59)
+				revive_dips += 1
 		return m.mate_down[id] > 0.0
+	if m.folk.nod_t.get(id, 0.0) > 0.0 and Vector2(m.player.vx, m.player.vz).length() > 0.4:
+		m.folk.nod_t[id] = 0.0 # her stepping off ends it at once
 	var calm := not m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - node.position.x, e.z - node.position.z).length() < 8.0)
 	if calm:
 		m.mate_hp[id] = minf(mate_max(), mate_health(id) + 4.0 * dt)

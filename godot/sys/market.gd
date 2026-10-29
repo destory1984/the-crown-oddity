@@ -223,6 +223,8 @@ func end_targets() -> void:
 func crit_mult() -> float:
 	return 2.0 if m.has_medal else 1.8
 
+var inn_fresh := false # she has just come out of the inn and has not rested yet (sora.idle_pick)
+
 # the inn: 10 gold for a night. Everyone is healed, and she wakes at 7 the next morning (the first night, a short talk)
 func stay_inn() -> void:
 	if m.player.gold < 10:
@@ -239,6 +241,7 @@ func stay_inn() -> void:
 		if m.hour >= 7.0:
 			m.day += 1
 		m.hour = 7.0
+		inn_fresh = true # her first rest after this ends in a stretch (delight idea 69)
 		m.player.x = m.village.marks.N.x
 		m.player.z = m.village.marks.N.y + 0.8
 		m.snap_mates()

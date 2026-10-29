@@ -165,7 +165,123 @@ func idle_pick() -> String:
 			return "rest-pinwheel"
 	else:
 		wheel_visit = false
+	var spot := spot_pick()
+	if spot != "":
+		return spot
+	if m.market.inn_fresh and not m.story_open: # the first rest after the inn is a stretch (idea 69)
+		m.market.inn_fresh = false
+		idle_cause = "inn"
+		return "rest-stretch"
+	if run_thirst and m.t - run_thirst_t < RUN_THIRST_KEEP and m.player.hp >= m.player.max_hp and not m.story_open:
+		run_thirst = false
+		idle_cause = "run"
+		return "rest-water" # a long run at full health ends in a drink and a bottle cap (idea 70)
 	return IDLE_ACTS.pick_random()
+
+# Acts chosen by where she rests (delight ideas 63 64 66 67 68): each place offers its act once a visit and the visit
+# ends when she is away from it. They run only through the normal safe idle delay (10 s still, no foe within 7).
+const SPOT_R := 1.7
+const SPOT_ACTS := {"hush": "see-hush", "pond": "rest-water", "moon": "see-up", "photo": "rest-photo", "shelter": "rest-umbrella"}
+const SPOT_ORDER := ["hush", "pond", "moon", "photo", "shelter"]
+const SHELTER_PEEK := 1.0 # the umbrella act lasts one look at the eave
+var idle_cause := "" # why the act now playing was chosen: "" random, hush pond moon photo shelter inn run
+var spot_visit := {} # spot key -> the index of the spot she is resting at, kept while she stays
+var spot_acts := 0 # acts chosen by a spot, the inn or a run (autoplay d63..d70)
+var run_t := 0.0 # seconds of unbroken running
+var run_thirst := false # a run of RUN_LONG seconds has just ended at full health
+var run_thirst_t := -100.0
+const RUN_LONG := 3.0
+const RUN_THIRST_KEEP := 40.0
+
+func track_run(running: bool, dt: float) -> void:
+	if running:
+		run_t += dt
+		return
+	if run_t >= RUN_LONG and m.player.hp >= m.player.max_hp:
+		run_thirst = true
+		run_thirst_t = m.t
+	run_t = 0.0
+
+func near_spot(me: Vector2, spots: Array) -> int: # the index of the spot she stands at, -1 for none
+	for i in spots.size():
+		if me.distance_to(spots[i]) < SPOT_R:
+			return i
+	return -1
+
+func pond_spots() -> Array:
+	var out: Array = []
+	if m.in_village and m.in_house < 0:
+		out.append(m.village.marks.f)
+	if m.in_lake and m.lake.marks.has("f"):
+		out.append(m.lake.marks.f)
+	return out
+
+func scenic_spots() -> Array:
+	var out: Array = []
+	if m.in_hill and not m.in_stairs() and not m.in_castle():
+		if m.in_cloud():
+			out.append(m.cloud.marks.c)
+		else:
+			for s in m.hill_zone.SCENIC:
+				out.append(s.at)
+	return out
+
+func landing_spots() -> Array:
+	var out: Array = []
+	if m.in_stairs():
+		for z in [5.0, 13.0, 21.0, 27.0]: # beside the four landing lanterns
+			out.append(Vector2(Main.STAIRS.STAIRS_X + 4.0, z))
+			out.append(Vector2(Main.STAIRS.STAIRS_X + 19.0, z))
+	return out
+
+func shelter_spots() -> Array:
+	var out: Array = []
+	if not m.raining:
+		return out
+	if m.in_village and m.in_house < 0:
+		for key in m.market.STALLS:
+			out.append(m.village.marks[key])
+	elif m.in_marsh():
+		out.append(Vector2(m.shop_pos.x, m.shop_pos.z))
+	return out
+
+func spot_pick() -> String:
+	if m.story_open or m.intro:
+		return ""
+	var me := Vector2(m.player.x, m.player.z)
+	var here := {
+		"hush": 0 if m.folk.sleeper_near(me) else -1,
+		"pond": near_spot(me, pond_spots()),
+		"moon": near_spot(me, landing_spots()),
+		"photo": near_spot(me, scenic_spots()),
+		"shelter": near_spot(me, shelter_spots())}
+	for k in SPOT_ORDER:
+		if here[k] < 0:
+			spot_visit.erase(k)
+	for k in SPOT_ORDER:
+		if here[k] >= 0 and spot_visit.get(k, -1) != here[k]:
+			spot_visit[k] = here[k] # a different view or stall is a new visit
+			spot_acts += 1
+			idle_cause = k
+			return SPOT_ACTS[k]
+	return ""
+
+# what the chosen act adds when it starts (idea 64 the shutter, 68 the moon ring, 70 the cap, 63 one look only)
+func idle_begin() -> void:
+	match idle_cause:
+		"photo":
+			m.sound.shutter()
+		"moon":
+			m.effects.moon_ring()
+		"run":
+			m.sound.bottle_cap()
+		"shelter":
+			m.idle_left = SHELTER_PEEK
+
+# and when it runs to its end (idea 67: the last drop of the pond water)
+func idle_end() -> void:
+	if idle_cause == "pond" and m.idle_name == "rest-water":
+		m.effects.pond_drop(Vector3(m.player.x, m.ground_y, m.player.z))
 
 func update_idle(dt: float) -> void:
 	# just stopped: breathe, facing the viewer, the head and shoulders easing 1-2 px down and up a frame every 0.25 s
@@ -180,13 +296,22 @@ func update_idle(dt: float) -> void:
 	if m.idle_left <= 0.0:
 		var calm: bool = m.combat.nearest_enemy(7.0) == null
 		if m.idle_name == "breath" and calm and m.t - m.last_input_t >= 10.0:
+			idle_cause = ""
 			m.idle_name = idle_pick()
 			m.idle_left = 8.9 if m.idle_name in IDLE_LONG else 4.45 # two or four loops of four frames
+			idle_begin()
 		else:
+			idle_end()
+			idle_cause = ""
 			m.idle_name = "breath"
 			m.idle_left = m.rnd(2.0, 4.0)
 		m.idle_k = 0.0
-	set_hero_idle(m.idle_name, mini(int(m.idle_k * 1.2), 3) if m.idle_name == "see-hush" else int(m.idle_k) % 4) # the hush plays once and holds
+	var frame := int(m.idle_k) % 4
+	if m.idle_name == "see-hush":
+		frame = mini(int(m.idle_k * 1.2), 3) # the hush plays once and holds
+	elif idle_cause == "shelter" and m.idle_name == "rest-umbrella":
+		frame = 0 # only the first frame: she sees the eave and does not open it
+	set_hero_idle(m.idle_name, frame)
 
 # Every attack on Sora comes through here: flash dodge, flash guard, guard, or a plain hit.
 # Returns what happened; a flash guard staggers the attacker.
@@ -228,6 +353,8 @@ func player_hit(dmg: int, src: Vector2, attacker: Dictionary) -> String:
 			m.shake = maxf(m.shake, 0.15)
 			m.toast("섬광 막기! 반격하라")
 			m.stats.guards += 1
+			if attacker.has("x") and attacker.has("z") and not attacker.get("dead", false):
+				m.effects.screw_pull(attacker) # a screw hops out of the foe's seam and goes back (idea 58)
 			return "flash_guard"
 		m.player.sp = maxf(0.0, m.player.sp - 15.0)
 		m.sfx(520, 0.05, "triangle", 0.1, -80) # blocked: a light tick

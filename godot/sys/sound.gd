@@ -165,3 +165,17 @@ func brick_clack(e: Dictionary) -> void:
 	var n: int = int(e.get("clack_n", 0))
 	e.clack_n = n + 1
 	sfx(CLACK[n % 3], 0.06, "square", 0.15, -300.0)
+
+# a camera's two quick clicks when she frames the view (delight idea 64), and a bottle cap twisted and set back (idea 70); both quiet
+var shutters := 0
+var bottle_caps := 0
+
+func shutter() -> void:
+	shutters += 1
+	sfx(2600, 0.02, "square", 0.07)
+	m.get_tree().create_timer(0.06).timeout.connect(func(): sfx(1700, 0.03, "square", 0.06))
+
+func bottle_cap() -> void:
+	bottle_caps += 1
+	sfx(1320, 0.04, "triangle", 0.07, -300.0)
+	m.get_tree().create_timer(0.1).timeout.connect(func(): sfx(880, 0.05, "triangle", 0.05))

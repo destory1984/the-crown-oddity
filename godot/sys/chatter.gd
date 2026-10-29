@@ -64,6 +64,26 @@ func sign_look() -> void:
 		sign_teases += 1
 		say_bubble(m.mate2, tr("이번엔 내가 외울게."), 3.0)
 
+# the first villager she speaks to after a fight sees the dust on her blade and says so once (delight idea 60). It comes
+# before the normal answer and never replaces it.
+const BREATH_WINDOW := 45.0
+var fight_end_t := -1000.0
+var breath_open := false # a fight ended and nobody has said it yet
+var breath_says := 0
+
+func fight_ended() -> void:
+	fight_end_t = m.t
+	breath_open = true
+
+func breath_word(id: String) -> void:
+	if not breath_open:
+		return
+	breath_open = false
+	if m.t - fight_end_t > BREATH_WINDOW or not m.village.folk_node.has(id):
+		return
+	breath_says += 1
+	folk_say(id, "먼저 숨부터 돌려.")
+
 func say_bubble(who: Node3D, text: String, dur := 3.5) -> void:
 	m.bubbles_said += 1
 	var b := Node3D.new()
