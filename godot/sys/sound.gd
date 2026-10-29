@@ -57,7 +57,7 @@ func sfx_stream(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide :=
 					lp = lerpf(lp, randf_range(-1.0, 1.0), 0.18) # one-pole low-pass takes the hiss off
 					v = lp * 2.2 * (0.6 + 0.4 * sin(phase * TAU))
 				_: v = sin(phase * TAU)
-			v *= vol * pow(0.0001 if wave != "step" else 0.01, k) # exponential fade like the web version
+			v *= vol * pow(0.0001 if not wave in ["step", "babble"] else (0.01 if wave == "step" else 0.08), k) # exponential fade like the web version; a syllable keeps its body
 			data.encode_s16(i * 2, int(clampf(v, -1.0, 1.0) * 32767.0))
 		stream = AudioStreamWAV.new()
 		stream.format = AudioStreamWAV.FORMAT_16_BITS
@@ -88,7 +88,7 @@ func babble(from: int, to: int) -> void:
 		if babble_n % 2 == 0:
 			continue
 		var step: int = VOWEL_STEP[((c - 0xAC00) / 28) % 21] + randi_range(-1, 1)
-		sfx(snappedf(base * pow(2.0, step / 12.0), 1.0), 0.055, "babble", 0.09)
+		sfx(snappedf(base * pow(2.0, step / 12.0), 1.0), 0.08, "babble", 0.32) # 0.09 for 0.055 s was lost under the music (the owner, 2026-10-29: "소리가 너무 작아")
 
 func footstep() -> void:
 	if m.t - m.last_step < STEP_GAP:

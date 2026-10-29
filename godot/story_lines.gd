@@ -350,17 +350,20 @@ const FINAL_WIND := [
 	"||소라가 두 팔을 높이 들자, 여덟 개의 불빛이 한 줄기로 모여 팔찌에 닿았다.",
 	"소라|determined|다 같이…… 감는 거야!",
 	"||땅 밑 깊은 곳에서 커다란 태엽이 '딸깍' 하고 돌았다. 백 년 만이었다.",
+	"@res://art/story/16_mold_breaks.jpg", # the mold shatters (the owner, 2026-10-29)
 	"||굳은달 거푸집에 금이 가더니, 회색 벽돌이 모래처럼 부서져 바람에 흩어졌다.",
 ]
 
 const ENDING := [
 	"||물이 흐르고, 갈대가 흔들리고, 벽돌 고블린들은 장난감처럼 주저앉아 하품을 했다.",
+	"@res://art/story/12_festival.jpg", # the garden woke first (17_land_wakes), then the festival
 	"||여덟 번째 밤. 커다란 보름달 아래 마을에서 축제가 열렸다.",
 	"소라|calm|할머니, 이 팔찌 돌려드릴게요.",
 	"보리 할머니|bori|아니란다. 그건 이제 이 정원 사람 모두의 것이야. 여덟 밤마다 다 같이 감으면 되지.",
 	"소라|sad|저는…… 집을 찾고 있었는데.",
 	"보리 할머니|bori|그래서, 찾았니?",
 	"소라|laugh|……네. 여기요.",
+	"@res://art/story/18_the_end.jpg", # the last picture: the bridge under the moon (the owner, 2026-10-29: "여기도 삽화 하나 추가")
 	"||The Crown Oddity — 끝. 함께해 주셔서 고맙습니다.",
 ]
 
@@ -723,11 +726,10 @@ const FEST_AGAIN := [
 	"심지|simji|등불 구경 실컷 하시오. 오늘 밤은 괴물도 쉬는 밤이라오.",
 ]
 
-const RESET_ASK := [ # F9 (save.gd reset_lines)
-	"||처음부터 새로 할까? 저장이 모두 지워진다. 레벨, 금화, 회복약, 지닌 것, 도전 과제도 처음으로 돌아간다.",
-	"||지금은 %d회차라 괴물이 %s배 단단하고 아프다. 처음부터 하면 1배로 돌아간다.",
-	"||난이도는 1배 그대로다. 더 센 2회차(괴물 1.5배)는 이야기를 끝낸 뒤 정원 한가운데 태엽에서 E 두 번으로 시작한다.",
-	"||10초 안에 F9를 한 번 더 누르면 지우고 처음부터 시작한다.",
+const RESET_ASK := [ # F9 (save.gd reset_lines): three plain lines (2026-10-29)
+	"||처음부터 다시 할까? 저장이 모두 지워진다.",
+	"||레벨, 금화, 지닌 것, 회차가 모두 처음으로 돌아간다. (지금: %d회차, 레벨 %d)",
+	"||지우려면 10초 안에 F9를 한 번 더 누른다.",
 ]
 
 const NEW_ROUND_ASK := [

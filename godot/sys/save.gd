@@ -530,16 +530,9 @@ func ask_reset() -> void:
 	m.close_story()
 	m.show_story("", reset_lines())
 
-# the ask, with the difficulty filled in: this round's multiplier, and 1x after the wipe
+# the ask: what goes, with this round and level filled in, and how to confirm
 func reset_lines() -> Array:
-	var now := ("%.1f" % m.errands.ng_mult()).trim_suffix(".0")
-	var lines: Array = [Main.STORY.RESET_ASK[0]]
-	if m.ng > 0:
-		lines.append("||" + tr(Main.STORY.RESET_ASK[1].substr(2)) % [m.ng + 1, now])
-	else:
-		lines.append(Main.STORY.RESET_ASK[2])
-	lines.append(Main.STORY.RESET_ASK[3])
-	return lines
+	return [Main.STORY.RESET_ASK[0], "||" + tr(Main.STORY.RESET_ASK[1].substr(2)) % [m.ng + 1, m.player.lv], Main.STORY.RESET_ASK[2]]
 
 func reset_game() -> void:
 	if FileAccess.file_exists(m.SAVE_PATH):

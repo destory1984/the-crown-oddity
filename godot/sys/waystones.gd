@@ -19,6 +19,8 @@ func way_spot(i: int) -> Vector2:
 		5: return m.castle.marks.S + Vector2(2.5, 1.5)
 		6: return m.garden.road_marks.Y
 		7: return m.workshop_zone.way_spot() # the deepest awake floor stone under the castle
+		8: return m.stairs.marks.S + Vector2(2.0, -2.0) # the foot of the moon stairs, beside the way up
+		9: return m.garden.marks.C + Vector2(0, 3.5) # the arena, south of the heart's hole, clear of the seals and posts
 	return Vector2.ZERO
 
 func way_known(i: int) -> bool:
@@ -31,6 +33,8 @@ func way_known(i: int) -> bool:
 		5: return m.castle_q >= 1
 		6: return m.road_q >= 1
 		7: return m.workshop_zone.deepest_way() >= 0
+		8: return m.stairs_seen
+		9: return m.garden_q >= 1 # the arena reached
 	return false
 
 func build_ways() -> void:
@@ -75,7 +79,7 @@ func toggle_ways(show: bool) -> void:
 	if show:
 		var lines: Array = [tr("달빛 길돌: 숫자 키로 건너가기 (Esc 닫기)"), ""]
 		for i in Main.WAY_NAMES.size():
-			lines.append("%d   %s" % [i + 1, tr(Main.WAY_NAMES[i]) if way_known(i) else tr("(아직 찾지 못한 길돌)")])
+			lines.append("%d   %s" % [(i + 1) % 10, tr(Main.WAY_NAMES[i]) if way_known(i) else tr("(아직 찾지 못한 길돌)")]) # the tenth on key 0
 		m.ui.ways_text.text = "\n".join(lines)
 		if not m.touch_ui: # the sheet grows with the text size, its bottom kept 8 px over the keys
 			var wt: Label = m.ui.ways_text
@@ -117,6 +121,8 @@ func travel(i: int) -> void:
 			5: m.enter_castle()
 			6: m.enter_garden()
 			7: m.workshop_zone.travel_in()
+			8: m.enter_stairs()
+			9: m.enter_garden()
 		var to := way_spot(i) + Vector2(0, 1.2)
 		m.player.x = to.x
 		m.player.z = to.y

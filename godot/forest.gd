@@ -12,6 +12,8 @@ extends RefCounted
 const FOREST_X := 180
 const W := 36
 const H := 40
+# the south-east L at (33,34) went: it stood 1.4 tiles from the memory lamp o at (32,33) (the owner, 2026-10-29:
+# "굳은 숲. 남동쪽에 등불 2개가 거의 겹쳐있는데, 하나 삭제")
 const ROWS := """####################################
 #TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT#
 #TT..c..TTT.......g..T........TTTTT#
@@ -46,7 +48,7 @@ S=======W....g..TT..OOO..TT...TTTTT#
 #..o...TTTTTT.....a.....TTTT...w...#
 #..j...TTTTTT.....C.....TTTT.......#
 #......======...s.......====w...o..#
-#L.....TTTTTT...........TTTT.....L.#
+#L.....TTTTTT...........TTTT.......#
 #TTTTTTTTTTTTTTBTTBTTBTTTTTTTTTTTTT#
 #TTTTTTTTTTTT...TT.TT...TTTTTTTTTTT#
 #TTTTTTTTTTTT.m.T.h.T.k.TTTTTTTTTTT#

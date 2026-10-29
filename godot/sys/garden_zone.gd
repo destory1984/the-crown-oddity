@@ -513,10 +513,26 @@ func mold_breaks() -> void:
 	m.garden.open_hatch()
 	if m.in_garden:
 		m.ui.mini.map_tex = garden_map()
-	m.after_story = clock_hint
+	m.after_story = roll_credits.bind(clock_hint) # the credits roll after the last line, then the hint (v0.1.9x)
 	m.save_game()
 
-const ENDING_PICTURE := "res://art/story/12_festival.jpg"
+# the ending credits (sys/credits_view.gd): the world waits, the names roll up, then `after`
+var credits: Control
+var credits_in_tests := false # the credits test turns this on; any other test that reaches the ending skips the roll
+func roll_credits(after: Callable) -> void:
+	if credits != null and is_instance_valid(credits):
+		return
+	if not credits_in_tests and Array(OS.get_cmdline_user_args()).any(func(x): return x.begins_with("--test")):
+		after.call()
+		return
+	m.story_open = true
+	credits = preload("res://sys/credits_view.gd").new(m.ui_font, func():
+		m.story_open = false
+		credits = null
+		after.call())
+	m.ui.root.add_child(credits)
+
+const ENDING_PICTURE := "res://art/story/17_land_wakes.jpg" # the water and reeds wake first; ENDING turns to the festival
 
 # the ending's lines with the record of this run at the end
 func ending_lines() -> Array:
@@ -537,6 +553,7 @@ func replay_ending() -> void:
 		return
 	m.toggle_journal(false)
 	m.show_story(ENDING_PICTURE, ending_lines())
+	m.after_story = roll_credits.bind(func(): pass) # the replay ends with the credits too
 
 func in_clock() -> bool:
 	return m.in_garden and m.player.z > Main.GARDEN.CLOCK_Z - 0.5

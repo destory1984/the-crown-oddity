@@ -179,10 +179,20 @@ func dress(m: Node, yard: Array) -> void:
 	var rosemary: Array = grass_tiles.filter(func(t): return int(t.x + t.y * 3.0) % 4 == 0)
 	d.plant({"stems": 4, "lo": 16, "hi": 28, "stem": "#465a51", "leaf": "#84998a", "leaves": "needle", "head": "spike", "r": 2,
 		"petals": ["#a99bc7", "#dbd0eb", "#84998a"]}, 0.7, 0.6, rosemary, 1, 0.06)
+	# tall evening primroses (달맞이꽃) in a ring round the arena's rim, clear of the posts and seals, standing through the
+	# hardening and after it; tall enough that a blow shakes them (the owner, 2026-10-29: "정원 한가운데에도 키 큰 식물
+	# 넣어줘")
+	var rim: Array = bloom_tiles.filter(func(t):
+		var r: float = Vector2(t.x - GARDEN_X, t.y).distance_to(CENTER)
+		return r > RADIUS - 3.2 and r < RADIUS - 0.6 and int(t.x * 5.0 + t.y * 3.0) % 3 == 0)
+	tall_spots = rim.size()
+	d.plant({"h": 96, "stems": 3, "lo": 50, "hi": 84, "stem": "#6f8f4a", "leaf": "#4f6e3a", "leaves": "blade", "head": "star",
+		"n": 4, "r": 4, "petals": ["#f6e27a", "#fff1a8"], "centre": "#e0b83a"}, 0.8, 1.15, rim, 1, 0.14)
 	show_bloom(false)
 	d.end()
 
 var bloom_on := true
+var tall_spots := 0 # tiles with the rim's tall primroses (autoplay)
 
 func show_bloom(on: bool) -> void:
 	if on == bloom_on:

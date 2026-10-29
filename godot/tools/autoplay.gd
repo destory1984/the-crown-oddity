@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
@@ -446,8 +446,8 @@ func run() -> void:
 		await wait(0.4) # held too long for a flash guard: a plain block
 		var r: String = main.player_hit(10, Vector2(main.player.x + 1, main.player.z), dummy)
 		release()
-		check("guard_block", r == "guard" and main.player.hp == main.player.max_hp - 3 and main.player.sp <= 85.5,
-			"result=%s hp lost %d (want 3) stamina %d" % [r, int(main.player.max_hp - main.player.hp), int(main.player.sp)])
+		check("guard_block", r == "guard" and main.player.hp == main.player.max_hp - 5 and main.player.sp <= 85.5,
+			"result=%s hp lost %d (want 5) stamina %d" % [r, int(main.player.max_hp - main.player.hp), int(main.player.sp)])
 		await wait(1.0)
 	if want.call("guard_back"):
 		reset_to(Vector2(30, 30))
@@ -749,7 +749,7 @@ func run() -> void:
 		main.save.ask_reset()
 		var asked: bool = main.story_open and FileAccess.file_exists(main.SAVE_PATH)
 		var said := str(main.save.reset_lines())
-		var lines_ok: bool = "1배" in said and "F9" in said
+		var lines_ok: bool = "레벨" in said and "회차" in said and "F9" in said and not "배" in said # plain lines (2026-10-29)
 		main.close_story()
 		main.save.reset_asked_at = -100.0
 		check("reset_ask", asked and lines_ok, "ask shown and save kept %s, difficulty and key lines %s" % [asked, lines_ok])
@@ -1253,6 +1253,23 @@ func run() -> void:
 		var status_ok: bool = h.status_plate_rect.size.x > h.bar_w() + 52.0
 		var quest_ok: bool = h.quest_plate_rect.size.x >= main.hud_build.quest_deco.size.x
 		check("hud_plates", zone_ok and status_ok and quest_ok, "zone %s status %s quest %s" % [h.zone_plate_rect, h.status_plate_rect, h.quest_plate_rect])
+	if want.call("credits"):
+		# the ending's last line opens the credits; they roll up, a key after 1.5 s skips them, and the hint follows
+		main.close_story()
+		await wait(0.6)
+		var hinted := [false]
+		main.garden_zone.credits_in_tests = true
+		main.garden_zone.roll_credits(func(): hinted[0] = true)
+		await wait(2.0)
+		var cr = main.garden_zone.credits
+		var up: bool = cr != null and is_instance_valid(cr) and main.story_open
+		var y0: float = cr.col.position.y if up else 0.0
+		await wait(1.0)
+		var rolls: bool = up and cr.col.position.y < y0 - 20.0
+		tap(KEY_SPACE)
+		await wait(1.0)
+		main.garden_zone.credits_in_tests = false
+		check("credits", up and rolls and hinted[0] and not main.story_open and main.garden_zone.credits == null, "up %s rolls %s ended and handed on %s" % [up, rolls, hinted[0]])
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -1344,14 +1361,14 @@ func run() -> void:
 		var shown_after: bool = main.ui.ending_btn.visible
 		var gold0: int = main.player.gold
 		main.ui.ending_btn.pressed.emit()
-		var pic: bool = main.story_open and main.ui.story_img.texture != null and main.ui.story_img.texture.resource_path.ends_with("12_festival.jpg")
+		var pic: bool = main.story_open and main.ui.story_img.texture != null and main.ui.story_img.texture.resource_path == main.garden_zone.ENDING_PICTURE
 		var closed: bool = not main.ui.journal.visible
 		main.close_story()
 		var unpaid: bool = main.player.gold == gold0 and main.story_step == 12
 		main.story_step = keep_step
 		main.ng = keep_ng
 		check("ending_replay", hidden_before and none_before and shown_after and pic and closed and unpaid,
-			"hidden before=%s nothing before=%s shown after=%s festival picture=%s journal closed=%s unpaid=%s" % [hidden_before, none_before, shown_after, pic, closed, unpaid])
+			"hidden before=%s nothing before=%s shown after=%s ending picture=%s journal closed=%s unpaid=%s" % [hidden_before, none_before, shown_after, pic, closed, unpaid])
 	if want.call("mural_split"):
 		# the cave painting: the mural alone first, Noeul's picture from his first line on
 		main.close_story()
@@ -3070,9 +3087,11 @@ func run() -> void:
 					var top: float = tx.position.y
 					var bot: float = box_h - (tx.position.y + tx.size.y)
 					var r: Rect2 = cap.get_global_rect()
-					worst = maxf(worst, absf(top - bot))
+					# fit_story lifts the block by 0.8 x the font descent (Hangul has no descenders; owner 2026-10-29)
+					var lift2: float = 2.0 * 0.8 * main.ui_font.get_descent(tx.get_theme_font_size("font_size"))
+					worst = maxf(worst, absf(top - bot + lift2))
 					cases += 1
-					if absf(top - bot) > 2.0 or r.position.x < 0.0 or r.end.x > vs.x + 0.5 or r.position.y < 0.0 or r.end.y > vs.y + 0.5:
+					if absf(top - bot + lift2) > 2.0 or r.position.x < 0.0 or r.end.x > vs.x + 0.5 or r.position.y < 0.0 or r.end.y > vs.y + 0.5:
 						bad.append("%s %d %s top %.1f bottom %.1f box %s" % [touch, w, l.substr(0, 6), top, bot, r])
 		main.close_story()
 		main.disable_touch()
@@ -3764,10 +3783,11 @@ func run() -> void:
 		var hp0: float = main.player.hp
 		main.player.inv = 0.0
 		main.hurt_player(20, 0.0)
-		var less: bool = main.has_armour and absf((hp0 - main.player.hp) - 17.0) < 0.01
+		var want_hit: float = float(maxi(1, int(round(round(20 * main.sora.FOE_DMG_K) * 0.85))))
+		var less: bool = main.has_armour and absf((hp0 - main.player.hp) - want_hit) < 0.01
 		main.player.hp = float(main.player.max_hp)
 		main.in_hill = false
-		check("vault", shut and wrong and solved and less, "gates shut=%s all three levers wrong=%s levers 1+3 open=%s armour takes 20 as 17=%s" % [shut, wrong, solved, less])
+		check("vault", shut and wrong and solved and less, "gates shut=%s all three levers wrong=%s levers 1+3 open=%s armour takes 20 as %d=%s" % [shut, wrong, solved, int(want_hit), less])
 	if want.call("save_tonight"):
 		main.in_village = false
 		main.in_forest = false
@@ -4180,7 +4200,7 @@ func run() -> void:
 		var armour: bool = main.has_armour
 		main.has_armour = false
 		main.hurt_player(10, 0.0)
-		var harder: bool = absf(main.player.hp - 85.0) < 0.01
+		var harder: bool = absf(main.player.hp - (100.0 - round(10 * main.sora.FOE_DMG_K * m))) < 0.01
 		main.has_armour = armour
 		main.player.hp = float(main.player.max_hp)
 		main.ng = 0
@@ -4274,7 +4294,7 @@ func run() -> void:
 		reset_to(w0 + Vector2(0, 1.0))
 		tap(KEY_E)
 		await wait(0.1)
-		var opened: bool = main.way_open and main.ui.ways.visible
+		var opened: bool = main.way_open and main.ui.ways.visible and main.WAY_NAMES.size() == 10 and "0   " in main.ui.ways_text.text
 		tap(KEY_3)
 		await wait(1.2)
 		var at_lake: bool = main.in_lake and Vector2(main.player.x, main.player.z).distance_to(main.way_spot(2)) < 2.0
@@ -5251,7 +5271,14 @@ func run() -> void:
 		main.last_input_t = main.t - 20.0 # no key for 20 s
 		await wait(1.0)
 		var sat: bool = main.noeul_sitting and spr.hframes == 4 and spr.texture.resource_path.ends_with("noeul_rest_breath.png")
-		var msat: bool = main.mulgyeol_sitting and mspr.hframes == 4 and mspr.texture.resource_path.ends_with("mulgyeol_rest_breath.png") and absf(mspr.offset.y - 90.0) < 0.1 			and Vector2(main.mate.position.x - main.mate2.position.x, main.mate.position.z - main.mate2.position.z).length() >= 0.9
+		var mframes := {}
+		var nframes := {}
+		for i in 12: # sitting, both breathe: their frames turn (v0.1.92)
+			mframes[mspr.frame] = true
+			nframes[spr.frame] = true
+			await wait(0.12)
+		sat = sat and nframes.size() >= 3
+		var msat: bool = mframes.size() >= 3 and main.mulgyeol_sitting and mspr.hframes == 4 and mspr.texture.resource_path.ends_with("mulgyeol_rest_breath.png") and absf(mspr.offset.y - 90.0) < 0.1 			and Vector2(main.mate.position.x - main.mate2.position.x, main.mate.position.z - main.mate2.position.z).length() >= 0.9
 		hold_world(Vector2(1, 0))
 		main.last_input_t = main.t
 		await wait(0.4)
@@ -5402,7 +5429,7 @@ func run() -> void:
 		main.close_story()
 		reset_to(Vector2(gx + 10, 30)) # off his steps: down the gap and back up at the camp's edge
 		await wait(0.2)
-		var fell: bool = absf(main.player.x - (gx + 19)) < 0.6 and absf(main.player.z - 32.0) < 0.6 and main.player.hp == main.player.max_hp - 8
+		var fell: bool = absf(main.player.x - (gx + 19)) < 0.6 and absf(main.player.z - 32.0) < 0.6 and main.player.hp == main.player.max_hp - (maxi(1, int(round(round(8 * main.sora.FOE_DMG_K * main.ng_mult()) * 0.85))) if main.has_armour else int(round(8 * main.sora.FOE_DMG_K * main.ng_mult())))
 		reset_to(Vector2(gx + 17, 29)) # on a footprint: she stays
 		await wait(0.2)
 		var stood: bool = absf(main.player.x - (gx + 17)) < 0.3 and absf(main.player.z - 29.0) < 0.3

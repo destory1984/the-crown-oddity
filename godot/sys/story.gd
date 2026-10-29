@@ -208,9 +208,12 @@ func show_line(line: String) -> void:
 		if f != "" and ResourceLoader.exists(por):
 			m.ui["por_" + side].texture = load(por)
 			m.ui["por_" + side].set_meta("scale", POR_SCALE.get(f.get_slice("_", 0), 1.0))
+		# narration keeps both portraits bright and the listener is only a little dimmer (the owner, 2026-10-29: "자막
+		# 나올 떄에 얼굴 밝게 해 줘"): narration used to darken both to 45%, the listener too
 		for sd in ["left", "right"]:
 			var lit: bool = f != "" and sd == side
-			m.ui["por_" + sd].modulate = Color(1, 1, 1) if lit else Color(0.45, 0.45, 0.55)
+			var bright: bool = f == "" or sd == side
+			m.ui["por_" + sd].modulate = Color(1, 1, 1) if bright else Color(0.78, 0.78, 0.84)
 			set_por_top(sd, lit)
 		m.ui.story_face.texture = null # the portrait already shows who is talking
 	m.ui.story_text.position.x = 140.0 if m.ui.story_face.texture else 40.0
@@ -316,7 +319,10 @@ func fit_story() -> void:
 	var ch := maxf(Main.STORY_BOX_H, th + 2.0 * STORY_PAD)
 	m.ui.story_cap.offset_top = m.ui.story_cap.offset_bottom - ch
 	m.ui.story_text.size.y = th
-	m.ui.story_text.position.y = (ch - th) / 2.0
+	# Hangul has no descenders, so a block centred by its line boxes looks low by the font's descent: lift it by that
+	# much (the owner, 2026-10-29: "자막... 위아래 가운정렬 안 되어있네")
+	var lift: float = m.ui_font.get_descent(m.ui.story_text.get_theme_font_size("font_size")) * 0.8
+	m.ui.story_text.position.y = (ch - th) / 2.0 - lift
 	m.ui.story_face.position.y = (ch - m.ui.story_face.size.y) / 2.0
 	m.ui.story_hint.position.y = ch - 18.0 # on the bottom edge, half outside, like the name tab on the top one
 	if small_pic: # a square at the top right, between the minimap and the HUD bars, its right edge in line with the box

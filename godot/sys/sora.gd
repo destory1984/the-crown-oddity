@@ -211,8 +211,12 @@ func player_hit(dmg: int, src: Vector2, attacker: Dictionary) -> String:
 	hurt_player(dmg, gy)
 	return "hit"
 
+# every blow on Sora lands 1.6 times as hard (the owner, 2026-10-29: "게임이 쉽게 느껴지는건, 소라의 체력 대비 몹들의
+# 공격력이 약해서야"): a field goblin took about 10 of her hits' worth of HP at every level; now about 6
+const FOE_DMG_K := 1.6
+
 func hurt_player(dmg: int, gy: float) -> void:
-	dmg = int(round(dmg * m.ng_mult()))
+	dmg = int(round(dmg * FOE_DMG_K * m.ng_mult()))
 	if m.has_armour:
 		dmg = maxi(1, int(round(dmg * 0.85)))
 	m.player.hp -= dmg

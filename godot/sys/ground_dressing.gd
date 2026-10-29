@@ -121,11 +121,13 @@ func anemone_tex(petals: Array) -> ImageTexture:
 				x += bend
 			var c := Color(petals[rng.randi() % petals.size()])
 			var cy := 79.0 - h
+			# heads about 1.6 times as wide: petals out to 5.5 px (were 3.5), the outer ring a shade lighter, a 2 px eye
+			# (the owner, 2026-10-29: "바람 언덕의 꽃은.. 꽃송이를 조금 더 키워봐")
 			for a in 5:
 				var ang := a * TAU / 5.0 - PI / 2.0
-				for r in [1.5, 2.5, 3.5]:
-					m.px(img, x + cos(ang) * r, cy + sin(ang) * r * 0.8, 2, 2, c)
-			m.px(img, x, cy, 1, 1, Color("#ffd23a")))
+				for r in [1.5, 2.5, 3.5, 4.5, 5.5]:
+					m.px(img, x + cos(ang) * r, cy + sin(ang) * r * 0.8, 2, 2, c.lightened(0.15) if r >= 4.5 else c)
+			m.px(img, x - 1, cy - 1, 2, 2, Color("#ffd23a")))
 
 # silver grass (억새, along the wind hill's slopes): a fountain of long blades bending one way, each with a pale
 # feathery plume at its tip; drawn tall so it waves like a field

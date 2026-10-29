@@ -150,7 +150,7 @@ def test(name):
     kill()
     import_once()
     try:
-        r = run([str(GODOT_CLI), "--headless", "--path", ".", "--", f"--test={name or 'all'}"], timeout=900 if os.name == "nt" else 1200)  # the cloud box is slower; 182 tests take a bit over 600 s on the PC
+        r = run([str(GODOT_CLI), "--headless", "--path", ".", "--", f"--test={name or 'all'}"], timeout=1500 if os.name == "nt" else 1800)  # the cloud box is slower; 182 tests take a bit over 600 s on the PC
     except subprocess.TimeoutExpired:
         kill()
         print("TESTS TIMED OUT (a script error usually stops the runner; run check, or read the Godot log)")
