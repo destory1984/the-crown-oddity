@@ -702,6 +702,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.82: 이야기 글자가 찍히는 동안 동숲처럼 말소리가 난다. 한글 두 글자마다 짧은 소리가 나고, 높이는 말하는 사람마다 다르며(소라 640Hz, 콩알 720Hz, 물결 430Hz, 노을 330Hz, 차돌 260Hz 등), 모음에 따라 오르내린다('ㅏ ㅗ'는 낮게, 'ㅣ ㅔ'는 높게). 이름 없는 해설은 조용하다. 설정의 '말소리' 단추로 끌 수 있다.",
 	"· v0.1.81: 분수를 치면 물낯이 네 번 출렁일 때마다 물이 찰싹이는 소리가 난다(밝은 쉬익 소리에 떨어지는 '퐁' 소리를 섞어 코드로 만들었고, 출렁임마다 작아진다). 전에는 '삐' 소리 하나였다.",
 	"· v0.1.80: 마을에는 밤에도 괴물이 나오지 않는다. v0.1.33부터 밤마다 마을 바깥 골목 다섯 곳에 나오던 벽돌 등나방을 뺐다.",
 	"· v0.1.79: 제목 화면의 부제를 '갈대 늪 너머, 이상한 것들이 깨어난다'에서 '백 년의 정원이 당신을 기다린다'로 바꿨다(GPT가 지은 8줄 가운데 주인이 고르고 다듬었다).",
@@ -1237,7 +1238,7 @@ const CHANGES := [
 # Head: sound on/off and text size 가- / 가+. Tabs: Settings (comfort and display), Help (controls), Changes, About.
 # Saved apart from the game in user://settings.json, so F9 (start over) keeps them.
 const TEXT_SIZES := [0.85, 1.0, 1.15, 1.3]
-var cfg := {"text": 1, "shake": true, "tilt": true, "nums": true, "sora_px": true}
+var cfg := {"text": 1, "shake": true, "tilt": true, "nums": true, "sora_px": true, "voice": true} # voice: the babble under the story lines (v0.1.82)
 var settings_open := false
 var set_tab := 0
 var tilt_rect: ColorRect
@@ -2072,7 +2073,9 @@ func _process(dt: float) -> void:
 	if story_open:
 		if ui.story_text.visible_characters != -1:
 			typing += dt * 40.0 * typing_k
+			var shown_before: int = ui.story_text.visible_characters
 			ui.story_text.visible_characters = int(typing)
+			sound.babble(shown_before, ui.story_text.visible_characters)
 			if ui.story_text.visible_characters >= ui.story_text.text.length():
 				ui.story_text.visible_characters = -1
 		ui.story_more.visible = ui.story_text.visible_characters == -1 # the 다음 button comes once the line is all there

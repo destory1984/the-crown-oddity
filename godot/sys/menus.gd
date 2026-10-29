@@ -136,7 +136,7 @@ func load_settings() -> void:
 	var d = JSON.parse_string(FileAccess.get_file_as_string(SETTINGS_PATH))
 	if typeof(d) != TYPE_DICTIONARY:
 		return
-	for k in ["text", "sora_px"]: # shake, tilt and nums are no longer options: an old "off" in the file is ignored
+	for k in ["text", "sora_px", "voice"]: # shake, tilt and nums are no longer options: an old "off" in the file is ignored
 		if d.has(k):
 			m.cfg[k] = d[k]
 	m.cfg.text = clampi(int(m.cfg.text), 0, Main.TEXT_SIZES.size() - 1)
@@ -376,7 +376,8 @@ func build_settings(root: Control) -> void:
 	# only the sound effects and the language are left here (the owner, 2026-10-27: the other options went; screen
 	# shake, the miniature blur and the damage numbers stay on), and the tune that plays, in a box the mouse can copy
 	# no sound row: the speaker key sits at the popup's top right (the owner, 2026-10-28)
-	var rows := [["sora_px", "도트 소라", "시험: 소라를 96px 도트 그림으로 그린다(Aseprite로 줄임). 끄면 예전 매끈한 그림이다."]]
+	var rows := [["sora_px", "도트 소라", "시험: 소라를 96px 도트 그림으로 그린다(Aseprite로 줄임). 끄면 예전 매끈한 그림이다."],
+		["voice", "말소리", "이야기 글자가 찍히는 동안 말하는 사람마다 다른 높이의 짧은 말소리를 낸다."]]
 	for i in rows.size():
 		var r: Array = rows[i]
 		var y := i * 92

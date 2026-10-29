@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
@@ -1074,6 +1074,34 @@ func run() -> void:
 		main.player.x -= 6.0
 		await wait(0.3)
 		check("story_moves_sora", at_once, "her picture moved with her while the box was open: %s" % at_once)
+	if want.call("babble"):
+		# a speaker's line babbles while it types, higher for Sora than for Noeul; narration is quiet (v0.1.82)
+		main.close_story()
+		await wait(0.6)
+		main.sfx_log.clear()
+		main.show_story("", ["소라||가나다라마바사아자차카타파하", "노을||가나다라마바사아자차카타파하", "||가나다라마바사아자차카타파하"])
+		await wait(0.7)
+		var sora_b: Array = main.sfx_log.filter(func(s): return String(s).begins_with("babble:"))
+		main.ui.story_text.visible_characters = -1
+		await wait(0.4)
+		main.story.next_button()
+		main.sfx_log.clear()
+		await wait(0.7)
+		var noeul_b: Array = main.sfx_log.filter(func(s): return String(s).begins_with("babble:"))
+		main.ui.story_text.visible_characters = -1
+		await wait(0.4)
+		main.story.next_button()
+		main.sfx_log.clear()
+		await wait(0.7)
+		var quiet: bool = not main.sfx_log.any(func(s): return String(s).begins_with("babble:"))
+		main.close_story()
+		var avg := func(a: Array) -> float:
+			var t := 0.0
+			for s in a:
+				t += float(String(s).get_slice(":", 1))
+			return t / maxf(1.0, a.size())
+		check("babble", sora_b.size() >= 4 and noeul_b.size() >= 4 and avg.call(sora_b) > avg.call(noeul_b) and quiet,
+			"Sora %d blips avg %.0f Hz, Noeul %d avg %.0f Hz, narration quiet %s" % [sora_b.size(), avg.call(sora_b), noeul_b.size(), avg.call(noeul_b), quiet])
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -4753,7 +4781,7 @@ func run() -> void:
 		var h0: float = main.hour
 		await wait(0.5)
 		var paused: bool = main.hour == h0
-		var tilt_off: bool = main.ui.set_rows.keys() == ["sora_px"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
+		var tilt_off: bool = main.ui.set_rows.keys() == ["sora_px", "voice"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
 			and main.ui.now_tune.text.begins_with("♪") and not main.ui.now_tune.editable
 		main.ui.set_plus.emit_signal("pressed")
 		var bigger: bool = main.ui.story_text.get_theme_font_size("font_size") > 20
