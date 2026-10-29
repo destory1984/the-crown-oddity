@@ -62,6 +62,36 @@ func snap_mates() -> void:
 	if m.mate2 != null:
 		m.mate2.position = mate_goal("noeul")
 
+# companions that fell in behind her in a narrow way and are still some way off; when Sora waits and the last of them
+# comes up beside her, he makes a quiet two-tone, once per arrival (delight idea 20)
+var lagging := {} # id -> true while he is trailing 2.6+ tiles behind
+var arrive_acks := 0 # acknowledgements made (autoplay d20_arrive)
+const ARRIVE_NEAR := 1.8
+
+func update_arrival() -> void:
+	var me := Vector3(m.player.x, 0, m.player.z)
+	var ds := {}
+	for id in ["mulgyeol", "noeul"]:
+		var node := mate_node(id)
+		if node == null or not node.visible:
+			lagging[id] = false
+			continue
+		ds[id] = node.position.distance_to(me)
+		if ds[id] > 2.6 and trailing.get(id, false):
+			lagging[id] = true
+	for id in ds:
+		if not lagging.get(id, false) or ds[id] > ARRIVE_NEAR:
+			continue
+		lagging[id] = false
+		var other_back := false
+		for o in ds:
+			other_back = other_back or (o != id and (lagging.get(o, false) or ds[o] > 3.0))
+		var calm: bool = not m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - me.x, e.z - me.z).length() < 7.0)
+		if m.mate_idle >= 0.8 and not other_back and calm and not m.story_open and not m.intro:
+			arrive_acks += 1
+			m.sfx(660, 0.08, "sine", 0.08)
+			m.get_tree().create_timer(0.1).timeout.connect(func(): m.sfx(880, 0.12, "sine", 0.08))
+
 func note_trail(dt: float) -> void:
 	var me := Vector3(m.player.x, 0, m.player.z)
 	if not m.mate_trail.is_empty() and (m.mate_trail[0] as Vector3).distance_to(me) > 3.0:

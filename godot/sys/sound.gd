@@ -25,6 +25,14 @@ func sfx(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide := 0.0) -
 	pl.play()
 	pl.finished.connect(pl.queue_free)
 
+# a raindrop landing: a soft low plip on bare ground, a bright two-note tink in the tin pail (delight idea 34)
+func rain_drip(tin: bool) -> void:
+	if tin:
+		sfx(1568, 0.07, "triangle", 0.06)
+		m.get_tree().create_timer(0.04).timeout.connect(func(): sfx(2093, 0.09, "triangle", 0.04))
+	else:
+		sfx(170, 0.08, "sine", 0.08, -50.0)
+
 func sfx_stream(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide := 0.0) -> AudioStreamWAV:
 	var key := "%s|%s|%s|%s|%s" % [freq, dur, wave, vol, slide]
 	var stream: AudioStreamWAV = m.sfx_cache.get(key)

@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -73,7 +73,7 @@ func hold_world(dir: Vector2) -> void:
 func release() -> void:
 	main.fake_keys.clear()
 
-# ---- the village football tests (v0.1.109): Sora on the square, foes parked, the ball put down at rest
+# ---- the village football tests (v0.1.109): Sora on the south lawn, foes parked, the ball put down at rest
 func fb_start() -> Array:
 	var was: Array = [main.in_village, main.in_house, main.player.x, main.player.z]
 	main.close_story()
@@ -1316,7 +1316,7 @@ func run() -> void:
 		# a swing sends the ball along her facing at 7 tiles/s, it slows to a stop in about 1.5 s and turns as it goes; walking into it nudges it at 2.5
 		var was_k: Array = fb_start()
 		var fk: Object = main.football
-		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
 		var k0: int = fk.kicks
 		var r0k: float = fk.rolled
 		var x0k: float = fk.p.x
@@ -1331,7 +1331,7 @@ func run() -> void:
 		var went: float = fk.p.x - x0k
 		var turned: float = fk.rolled - r0k
 		var spun: bool = absf(turned - went) < 0.3 and fk.ball_mesh.basis.get_euler().length() > 0.01
-		fb_put(Vector2(14.0, 7.2), Vector2(13.5, 7.2), Vector2(1, 0))
+		fb_put(Vector2(20.0, 22.0), Vector2(19.5, 22.0), Vector2(1, 0))
 		main.player.vx = 3.6
 		main.player.vz = 0.0
 		fk.update(0.016)
@@ -1342,11 +1342,11 @@ func run() -> void:
 			"one kick %s, speed %.2f along her facing %s, thump %s, stopped after %.2f s (1 to 2) after %.2f tiles, rolled %.2f (turned like the way %s), walked into it %.2f tiles/s" % [one_kick, sp0, along, thump, t_stop, went, turned, spun, nudge])
 		fb_end(was_k)
 	if want.call("football_bounce"):
-		# it bounces off the square's edge, a post and the basin losing 40%, stays on the square, and a stuck or strayed ball rolls back
+		# it bounces off the pitch's edge, a post and the lamp losing 40%, stays on the pitch, and a stuck or strayed ball rolls back
 		var was_b: Array = fb_start()
 		var fbn: Object = main.football
 		var vxb: float = main.village.VILLAGE_X
-		fb_put(Vector2(19.8, 7.2), Vector2(30.0, 20.0), Vector2(1, 0))
+		fb_put(Vector2(24.6, 22.0), Vector2(40.0, 20.0), Vector2(1, 0))
 		fbn.vel = Vector2(7.0, 0)
 		var b0: int = fbn.bounces
 		var inside := true
@@ -1359,31 +1359,31 @@ func run() -> void:
 		var edge_ok: bool = fbn.bounces > b0 and inside and vmax < 7.0 * 0.62 and vmax > 7.0 * 0.3
 		var b1: int = fbn.bounces
 		var g_b: int = fbn.goals
-		fb_put(Vector2(13.7, 8.6), Vector2(30.0, 20.0), Vector2(0, -1))
-		fbn.vel = Vector2(0, -6.0)
-		await wait(0.9)
-		var post_ok: bool = fbn.bounces > b1 and fbn.vel.y >= 0.0 and fbn.p.y > fbn.goal_z and fbn.goals == g_b and fbn.state == "play"
-		var b2: int = fbn.bounces
-		fb_put(Vector2(15.5, 6.8), Vector2(30.0, 20.0), Vector2(0, 1))
+		fb_put(Vector2(22.1, 25.4), Vector2(40.0, 20.0), Vector2(0, 1))
 		fbn.vel = Vector2(0, 6.0)
 		await wait(0.9)
-		var basin_ok: bool = fbn.bounces > b2 and fbn.p.distance_to(main.village.fountain_at()) >= 1.2 and fbn.vel.y <= 0.0
-		fb_put(Vector2(19.5, 12.8), Vector2(40.0, 20.0), Vector2(1, 0))
+		var post_ok: bool = fbn.bounces > b1 and fbn.vel.y <= 0.0 and fbn.p.y < fbn.goal_z and fbn.goals == g_b and fbn.state == "play"
+		var b2: int = fbn.bounces
+		fb_put(Vector2(23.7, 22.4), Vector2(40.0, 20.0), Vector2(0, 1))
+		fbn.vel = Vector2(0, 6.0)
+		await wait(0.9)
+		var basin_ok: bool = fbn.bounces > b2 and fbn.p.distance_to(Vector2(vxb + 23.7, 24.0)) >= 0.3 and fbn.vel.y <= 0.0
+		fb_put(Vector2(17.2, 28.0), Vector2(40.0, 20.0), Vector2(1, 0))
 		fbn.away_t = fbn.HOME_AFTER - 0.5
 		await wait(0.9)
 		var rolling_home: bool = fbn.state == "home"
 		await wait(1.5)
 		var back_stuck: bool = fbn.state == "play" and fbn.p.distance_to(fbn.spot) < 0.05
-		fb_put(Vector2(25.0, 7.0), Vector2(40.0, 20.0), Vector2(1, 0))
+		fb_put(Vector2(28.0, 22.0), Vector2(40.0, 20.0), Vector2(1, 0))
 		await wait(2.2)
 		var back_out: bool = fbn.state == "play" and fbn.p.distance_to(fbn.spot) < 0.05
 		var near_sora: bool = true # a ball near Sora is left where it lies
-		fb_put(Vector2(19.5, 12.8), Vector2(18.5, 12.0), Vector2(1, 0))
+		fb_put(Vector2(17.2, 28.0), Vector2(18.2, 27.2), Vector2(1, 0))
 		fbn.away_t = fbn.HOME_AFTER - 0.5
 		await wait(1.0)
-		near_sora = fbn.state == "play" and fbn.p.distance_to(Vector2(vxb + 19.5, 12.8)) < 0.05
+		near_sora = fbn.state == "play" and fbn.p.distance_to(Vector2(vxb + 17.2, 28.0)) < 0.05
 		check("football_bounce", edge_ok and post_ok and basin_ok and rolling_home and back_stuck and back_out and near_sora,
-			"edge bounce keeps 40-60%% and stays inside %s (kept %.1f of 7), post %s, basin %s, stuck ball rolls home after 10 s away %s then rests on its spot %s, one off the square comes home %s, one beside her stays %s" % [edge_ok, vmax, post_ok, basin_ok, rolling_home, back_stuck, back_out, near_sora])
+			"edge bounce keeps 40-60%% and stays inside %s (kept %.1f of 7), post %s, lamp %s, stuck ball rolls home after 10 s away %s then rests on its spot %s, one off the pitch comes home %s, one beside her stays %s" % [edge_ok, vmax, post_ok, basin_ok, rolling_home, back_stuck, back_out, near_sora])
 		fb_end(was_b)
 	if want.call("football_goal"):
 		# swings drive it in from in front of the goal: the screen flashes three times, the banner shows the count, goals +1 once only,
@@ -1391,7 +1391,7 @@ func run() -> void:
 		var was_g: Array = fb_start()
 		var fg: Object = main.football
 		var keep_save: String = FileAccess.get_file_as_string(main.SAVE_PATH)
-		fb_put(Vector2(12.6, 8.0), Vector2(12.6, 9.2), Vector2(0, -1))
+		fb_put(Vector2(21.0, 26.0), Vector2(21.0, 24.8), Vector2(0, 1))
 		var g0: int = fg.goals
 		var fl0: int = fg.flashes
 		main.attack()
@@ -1400,7 +1400,7 @@ func run() -> void:
 		await wait(0.12)
 		var flash_on: bool = fg.flash != null and fg.flash.color.a > 0.05
 		var banner_on: bool = fg.banner != null and fg.banner.visible and "골" in fg.banner.text and fg.banner.text.ends_with(" %d" % (g0 + 1))
-		var in_net: bool = fg.state == "net" and fg.p.y < fg.goal_z and fg.p.x > fg.goal_x0 and fg.p.x < fg.goal_x1
+		var in_net: bool = fg.state == "net" and fg.p.y > fg.goal_z and fg.p.x > fg.goal_x0 and fg.p.x < fg.goal_x1
 		main.player.atk_cd = 0.0
 		main.attack() # a swing at the ball in the net counts for nothing
 		await wait(0.9)
@@ -1449,28 +1449,28 @@ func run() -> void:
 		# no kick, nudge or push during a story, with the bag open or with a foe within 8 tiles; the same swing kicks it otherwise
 		var was_q: Array = fb_start()
 		var fq: Object = main.football
-		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
 		var kq: int = fq.kicks
 		main.story_open = true
 		main.attack()
 		var story_still: bool = fq.kicks == kq and fq.vel.length() < 0.01
 		main.story_open = false
-		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
 		main.ui.bag.visible = true
 		main.attack()
 		var bag_still: bool = fq.kicks == kq and fq.vel.length() < 0.01
 		main.ui.bag.visible = false
-		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
 		var vq: float = main.village.VILLAGE_X
-		var foe := marsh_foe(Vector2(vq + 11.7, 14.5)) # 7.3 tiles south of her
+		var foe := marsh_foe(Vector2(vq + 17.7, 14.7)) # 7.3 tiles north of her
 		main.attack()
 		var foe_still: bool = foe and fq.kicks == kq and fq.vel.length() < 0.01
 		main.player.vx = 3.6
-		fq.p = Vector2(vq + 12.2, 7.2) # touching her, but a foe is near
+		fq.p = Vector2(vq + 18.2, 22.0) # touching her, but a foe is near
 		fq.update(0.016)
 		foe_still = foe_still and fq.vel.length() < 0.01
 		calm_enemies(true)
-		fb_put(Vector2(13.0, 7.2), Vector2(11.7, 7.2), Vector2(1, 0))
+		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
 		main.attack()
 		var control: bool = fq.kicks == kq + 1 and fq.vel.length() > 6.0
 		check("football_quiet", story_still and bag_still and foe_still and control, "still in a story %s, with the bag open %s, with a foe 7.3 tiles off %s (foe placed %s); the same swing kicks it when all is calm %s" % [story_still, bag_still, foe_still, foe, control])
@@ -12243,6 +12243,393 @@ func run() -> void:
 		calm_enemies(false)
 		check("d19_listened", thanked and gap_ok and moved19 and story19 and hush19,
 			"thanks after a still light talk=%s not again within 120 s=%s none if she stirred=%s none after a story talk=%s none if hushed=%s" % [thanked, gap_ok, moved19, story19, hush19])
+
+	if want.call("d20_arrive"):
+		# a companion who trailed her through a narrow way and comes up beside her while she waits makes one quiet two-tone, only if he is the last one still coming; moving on, a monster near or a story: none (idea 20)
+		var ma: Object = main.mates
+		main.join_mate()
+		main.join_noeul()
+		main.close_story()
+		main.intro = false
+		main.in_house = -1
+		calm_enemies(true)
+		var me20 := Vector3(main.player.x, 0, main.player.z)
+		main.mate2.visible = true
+		main.mate2.position = me20 + Vector3(0.8, 0, 0)
+		ma.lagging.clear()
+		ma.trailing["mulgyeol"] = true
+		ma.trailing["noeul"] = true
+		main.mate_idle = 1.5
+		var a0: int = ma.arrive_acks
+		main.mate.position = me20 + Vector3(3.4, 0, 0)
+		ma.update_arrival()
+		var far_quiet: bool = ma.arrive_acks == a0 and ma.lagging.get("mulgyeol", false)
+		main.mate_idle = 0.3 # she is still walking when he catches up
+		main.mate.position = me20 + Vector3(1.2, 0, 0)
+		ma.update_arrival()
+		var walk_quiet: bool = ma.arrive_acks == a0 and not ma.lagging.get("mulgyeol", false)
+		main.mate_idle = 1.5
+		ma.lagging["mulgyeol"] = true
+		main.enemies = [{"x": me20.x + 3.0, "z": me20.z, "dead": false}]
+		ma.update_arrival()
+		var foe_quiet: bool = ma.arrive_acks == a0
+		main.enemies = []
+		ma.lagging["mulgyeol"] = true
+		main.show_story("", ["x"])
+		ma.update_arrival()
+		var story_quiet: bool = ma.arrive_acks == a0
+		main.close_story()
+		ma.lagging["mulgyeol"] = true # the other is still behind: he is not the last
+		main.mate2.position = me20 + Vector3(3.8, 0, 0)
+		ma.update_arrival()
+		var not_last: bool = ma.arrive_acks == a0
+		main.mate2.position = me20 + Vector3(0.8, 0, 0)
+		ma.lagging["mulgyeol"] = true
+		main.sfx_log.clear()
+		ma.update_arrival()
+		var acked: bool = ma.arrive_acks == a0 + 1 and main.sfx_log.has("sine:660")
+		ma.update_arrival() # the arrival is spent
+		var once20: bool = ma.arrive_acks == a0 + 1
+		await wait(0.3)
+		var two_tone: bool = main.sfx_log.has("sine:880")
+		ma.lagging.clear()
+		ma.trailing.clear()
+		check("d20_arrive", far_quiet and walk_quiet and foe_quiet and story_quiet and not_last and acked and once20 and two_tone,
+			"nothing while he is still far=%s nor while she walks=%s nor with a monster near=%s nor in a story=%s nor while the other is behind=%s; one two-tone when the last one comes up (660 then 880)=%s/%s, once=%s" % [far_quiet, walk_quiet, foe_quiet, story_quiet, not_last, acked, two_tone, once20])
+		calm_enemies(false)
+	if want.call("d21_cup"):
+		# the cup beside Bori's door gives off two puffs of steam that rise and fade in turn; it goes on whether the shop is open or shut (idea 21)
+		marsh_world()
+		main.intro = false
+		var wb: Object = main.world_build
+		var built21: bool = wb.cup_steam.size() == 2 and wb.cup_top > 0.3 and wb.cup_steam[0][1] != wb.cup_steam[1][1]
+		reset_to(main.cottage_at + Vector2(4.0, 4.0))
+		await wait(0.2)
+		var y_a: float = wb.cup_steam[0][0].position.y
+		await wait(0.5)
+		var y_b: float = wb.cup_steam[0][0].position.y
+		var rises: bool = absf(y_b - y_a) > 0.03
+		var in_range: bool = wb.cup_steam.all(func(s): return s[0].position.y >= wb.cup_top - 0.001 and s[0].position.y <= wb.cup_top + 0.5001 and s[0].material_override.albedo_color.a <= 0.46)
+		main.story_step = 3
+		reset_to(Vector2(main.shop_pos.x, main.shop_pos.z))
+		main.toggle_shop(true)
+		await wait(0.3)
+		var open_goes: bool = main.shop_open and wb.cup_steam.all(func(q): return q[0].is_visible_in_tree()) # the whole world waits while she shops, steam included
+		main.toggle_shop(false) # out with nothing bought
+		reset_to(main.cottage_at + Vector2(6.0, 6.0))
+		var yc_a: float = wb.cup_steam[1][0].position.y
+		await wait(0.5)
+		var yc_b: float = wb.cup_steam[1][0].position.y
+		var out_goes: bool = absf(yc_b - yc_a) > 0.03
+		check("d21_cup", built21 and rises and in_range and open_goes and out_goes,
+			"cup and two steam planes in different phases=%s steam moves=%s stays within 0.5 above the rim=%s still there with the shop open=%s and goes on after leaving it=%s" % [built21, rises, in_range, open_goes, out_goes])
+	if want.call("d26_shelter"):
+		# in rain, standing under a stall's awning makes the seller pull the spare crate in by 0.35; dry, in a story, or away from it: no move; it goes back out when she leaves or the rain stops (idea 26)
+		var mk: Object = main.market
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		calm_enemies(true)
+		var at26: Vector2 = main.village.marks["1"]
+		var c26: Dictionary = mk.crates[0]
+		var z_out: float = at26.y - 1.0 + mk.CRATE_OUT
+		var z_in: float = at26.y - 1.0 + mk.CRATE_IN
+		var built26: bool = mk.crates.size() == 3 and is_equal_approx(c26.node.position.z, z_out)
+		var p0: int = mk.crate_pulls
+		main.raining = false
+		reset_to(at26)
+		await wait(0.9)
+		var dry: bool = mk.crate_pulls == p0 and is_equal_approx(c26.node.position.z, z_out)
+		main.raining = true
+		main.show_story("", ["x"])
+		await wait(0.9)
+		var story26: bool = mk.crate_pulls == p0 and is_equal_approx(c26.node.position.z, z_out)
+		main.close_story()
+		reset_to(at26 + Vector2(0.0, 5.0))
+		await wait(0.9)
+		var away: bool = mk.crate_pulls == p0 and is_equal_approx(c26.node.position.z, z_out)
+		reset_to(at26)
+		await wait(1.0)
+		var pulled: bool = mk.crate_pulls == p0 + 1 and is_equal_approx(c26.node.position.z, z_in)
+		reset_to(at26 + Vector2(0.0, 5.0))
+		await wait(1.0)
+		var back_out: bool = is_equal_approx(c26.node.position.z, z_out)
+		reset_to(at26)
+		await wait(1.0)
+		main.raining = false
+		await wait(1.0)
+		var rain_stop: bool = is_equal_approx(c26.node.position.z, z_out)
+		check("d26_shelter", built26 and dry and story26 and away and pulled and back_out and rain_stop,
+			"3 crates=%s dry: none=%s story: none=%s away: none=%s under the awning in rain: 0.8 to 0.45=%s goes back when she leaves=%s and when the rain stops=%s" % [built26, dry, story26, away, pulled, back_out, rain_stop])
+		main.in_village = false
+		calm_enemies(false)
+	if want.call("d27_sleep_z"):
+		# stopping after a run within 6 tiles of a house with a sleeper makes the z's bob slow to 0.4 for 2.5 s; walking, standing far off, or no sleeper shown: no change (idea 27)
+		var fk: Object = main.folk
+		var h27: float = main.hour
+		main.hour = 23.0
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		calm_enemies(true)
+		await wait(0.5)
+		var zs: Array = main.door_z.values()
+		var made27: bool = not zs.is_empty()
+		var dz27: Label3D = zs[0]
+		var near27 := Vector2(dz27.position.x, dz27.position.z + 2.0)
+		main.player.x = near27.x
+		main.player.z = near27.y
+		dz27.visible = true
+		fk.z_slow_left = 0.0
+		fk.z_rate = 1.0
+		var s0: int = fk.z_slows
+		main.player.vx = 3.0 # walking: no slow
+		fk.update_z_slow(0.016)
+		main.player.vx = 0.0
+		fk.update_z_slow(0.016)
+		var walk27: bool = fk.z_slows == s0
+		main.player.vx = 6.0 # a run ...
+		fk.update_z_slow(0.016)
+		main.player.vx = 0.0 # ... and a stop
+		fk.update_z_slow(0.016)
+		var slowed: bool = fk.z_slows == s0 + 1 and fk.z_slow_left > 2.4
+		for k in 15:
+			fk.update_z_slow(0.1)
+		var rate_low: bool = fk.z_rate < 0.45
+		for k in 30:
+			fk.update_z_slow(0.1)
+		var rate_back: bool = fk.z_rate > 0.95 and fk.z_slow_left == 0.0
+		var s1: int = fk.z_slows
+		main.player.x = near27.x + 20.0 # far off
+		main.player.vx = 6.0
+		fk.update_z_slow(0.016)
+		main.player.vx = 0.0
+		fk.update_z_slow(0.016)
+		var far27: bool = fk.z_slows == s1
+		main.player.x = near27.x
+		dz27.visible = false # nobody asleep there
+		main.player.vx = 6.0
+		fk.update_z_slow(0.016)
+		main.player.vx = 0.0
+		fk.update_z_slow(0.016)
+		var none27: bool = fk.z_slows == s1
+		main.hour = h27
+		main.in_village = false
+		calm_enemies(false)
+		check("d27_sleep_z", made27 and walk27 and slowed and rate_low and rate_back and far27 and none27,
+			"z labels exist=%s walking: none=%s run then stop: slow for 2.5 s=%s rate falls to 0.4 (%.2f)=%s and recovers=%s far off: none=%s no sleeper shown: none=%s" % [made27, walk27, slowed, fk.z_rate, rate_low, rate_back, far27, none27])
+	if want.call("d30_kid_shoes"):
+		# two toy-brick shoes (a box with a stud each) lie at the side of the kid goblin's bed with their toes towards it; they show only with her bed, which shows only after Kongal's errand (idea 30)
+		var fk30: Object = main.folk
+		var shoes: Node3D = fk30.kid_shoes
+		var bed30: Node3D = main.sleeper_nodes.get("kid")
+		var built30: bool = shoes != null and bed30 != null and shoes.get_parent() == bed30 and shoes.get_child_count() == 2
+		var toes: bool = built30 and shoes.get_children().all(func(s): return s.get_child_count() == 1 and s.get_child(0).position.x > 0.0) and shoes.position.x < -0.45
+		var kq: int = main.kid_q
+		main.kid_q = 0 # not rescued yet
+		await wait(0.2)
+		var hidden30: bool = built30 and not shoes.is_visible_in_tree()
+		fk30.place_sleeper("kid", true)
+		var shown30: bool = shoes.is_visible_in_tree() # her bed is shown: so are the shoes
+		fk30.place_sleeper("kid", false)
+		var gone30: bool = not shoes.is_visible_in_tree()
+		var lane30: bool = absf(shoes.position.x) > 0.5 # beside the frame, not on the walk past its foot
+		main.kid_q = kq
+		check("d30_kid_shoes", built30 and toes and hidden30 and shown30 and gone30 and lane30,
+			"two shoes with studs on her bed node=%s toes towards the bed=%s hidden before the rescue=%s shown with her bed=%s hidden with it=%s beside the frame=%s" % [built30, toes, hidden30, shown30, gone30, lane30])
+	if want.call("d34_drip_timbre"):
+		# in rain, near an eave, a drop lands every 1.2 to 2 s with the nearest anchor's own timbre: bare ground sine 170, tin pail triangle 1568 then 2093; dry, indoors, far, in a story or with a monster near: none (idea 34)
+		var ef: Object = main.effects
+		marsh_world()
+		main.intro = false
+		main.in_house = -1
+		var tins: Array = ef.drip_anchors.filter(func(a): return a.tin)
+		var dirts: Array = ef.drip_anchors.filter(func(a): return not a.tin)
+		var built34: bool = tins.size() >= 2 and dirts.size() >= 2
+		var tin_at := Vector2(ef.drip_anchors[1].at.x, ef.drip_anchors[1].at.z)
+		var dirt_at := Vector2(ef.drip_anchors[0].at.x, ef.drip_anchors[0].at.z)
+		main.raining = false
+		reset_to(tin_at + Vector2(0.0, 1.5))
+		ef.drip_t = 0.0
+		var d0: int = ef.rain_drips
+		ef.update_rain_drips(0.01)
+		var dry34: bool = ef.rain_drips == d0
+		main.raining = true
+		reset_to(tin_at + Vector2(30.0, 1.5))
+		ef.drip_t = 0.0
+		ef.update_rain_drips(0.01)
+		var far34: bool = ef.rain_drips == d0
+		reset_to(tin_at + Vector2(0.0, 1.5))
+		main.in_house = 0
+		ef.drip_t = 0.0
+		ef.update_rain_drips(0.01)
+		var in34: bool = ef.rain_drips == d0
+		main.in_house = -1
+		main.show_story("", ["x"])
+		ef.drip_t = 0.0
+		ef.update_rain_drips(0.01)
+		var story34: bool = ef.rain_drips == d0
+		main.close_story()
+		main.enemies = [{"x": tin_at.x + 3.0, "z": tin_at.y, "dead": false}]
+		ef.drip_t = 0.0
+		ef.update_rain_drips(0.01)
+		var foe34: bool = ef.rain_drips == d0
+		main.enemies = []
+		main.sfx_log.clear()
+		ef.drip_t = 0.0
+		ef.update_rain_drips(0.01)
+		var one34: bool = ef.rain_drips == d0 + 1
+		ef.update_rain_drips(0.01) # the gap has not passed
+		var capped: bool = ef.rain_drips == d0 + 1 and ef.drip_t >= ef.DRIP_GAP_MIN - 0.02
+		await wait(0.7)
+		var tin_sound: bool = main.sfx_log.has("triangle:1568") and not main.sfx_log.has("sine:170")
+		main.raining = false # let the drops in the air land
+		await wait(0.6)
+		main.raining = true
+		reset_to(dirt_at + Vector2(0.0, 1.5))
+		main.sfx_log.clear()
+		ef.drip_t = 0.0
+		ef.update_rain_drips(0.01)
+		await wait(0.7)
+		var dirt_sound: bool = main.sfx_log.has("sine:170") and not main.sfx_log.has("triangle:1568")
+		main.raining = false
+		check("d34_drip_timbre", built34 and dry34 and far34 and in34 and story34 and foe34 and one34 and capped and tin_sound and dirt_sound,
+			"2 bare and 2 tin anchors=%s none dry=%s far=%s indoors=%s in a story=%s monster near=%s; one drop at a time=%s capped=%s near the pail: tin tone=%s near the bare eave: ground tone=%s" % [built34, dry34, far34, in34, story34, foe34, one34, capped, tin_sound, dirt_sound])
+	if want.call("d36_cave_dust"):
+		# an ordinary way out of the cave puts two cube grains on her clothes: they brighten for 0.5 s, then fall and are gone by 1.5 s; the first way out (with its story) has none (idea 36)
+		var cv: Object = main.cave
+		var seen0: bool = main.cave_exit_seen
+		var step0: int = main.story_step
+		main.close_story()
+		main.cave_exit_seen = false
+		var g0: int = cv.exit_motes_made
+		main.leave_cave()
+		var first_quiet: bool = cv.exit_motes_made == g0
+		main.close_story()
+		main.cave_exit_seen = true
+		main.leave_cave()
+		var made36: bool = cv.exit_motes_made == g0 + 2
+		var grains: Array = main.fx.filter(func(e): return e.node is MeshInstance3D and (e.node.mesh as BoxMesh).size.is_equal_approx(Vector3(0.05, 0.05, 0.05)))
+		var count36: bool = grains.size() == 2
+		await wait(0.4)
+		var near36: bool = grains.size() == 2 and grains.all(func(e): return is_instance_valid(e.node) and Vector2(e.node.position.x - main.player.x, e.node.position.z - main.player.z).length() < 0.6 and e.node.material_override.albedo_color.a > 0.7)
+		var y36: float = grains[0].node.position.y if is_instance_valid(grains[0].node) else 0.0
+		await wait(0.5)
+		var fall36: bool = is_instance_valid(grains[0].node) and grains[0].node.position.y < y36 - 0.05
+		await wait(0.8)
+		var gone36: bool = not is_instance_valid(grains[0].node) or grains[0].node.is_queued_for_deletion()
+		main.cave_exit_seen = seen0
+		main.story_step = step0
+		check("d36_cave_dust", first_quiet and made36 and count36 and near36 and fall36 and gone36,
+			"none on the first way out=%s two grains on a later one=%s/%s bright and on her at 0.4 s=%s falling at 0.9 s=%s gone by 1.7 s=%s" % [first_quiet, made36, count36, near36, fall36, gone36])
+	if want.call("d37_tag"):
+		# the blank paper tag on the moon-dust stall curls to 0.7 rad and 0.6 height when rain starts and opens again when it stops; each change once; the stalls' buying is not touched (idea 37)
+		var mk37: Object = main.market
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		reset_to(main.village.marks["1"] + Vector2(0.0, 6.0))
+		main.raining = false
+		await wait(1.2)
+		var c0: int = mk37.tag_curls
+		var flat: bool = mk37.tag != null and is_equal_approx(mk37.tag.rotation.x, 0.0) and is_equal_approx(mk37.tag.scale.y, 1.0)
+		main.raining = true
+		await wait(1.3)
+		var curled: bool = mk37.tag_curls == c0 + 1 and absf(mk37.tag.rotation.x - 0.7) < 0.02 and absf(mk37.tag.scale.y - 0.6) < 0.02
+		await wait(1.2)
+		var steady: bool = mk37.tag_curls == c0 + 1
+		main.raining = false
+		await wait(1.3)
+		var opened: bool = mk37.tag_curls == c0 + 2 and absf(mk37.tag.rotation.x) < 0.02 and absf(mk37.tag.scale.y - 1.0) < 0.02
+		var price_ok: bool = mk37.STALLS["2"].price == 40 and mk37.STALLS["1"].price == 5
+		check("d37_tag", flat and curled and steady and opened and price_ok,
+			"tag flat when dry=%s curls with rain=%s once=%s opens when it stops=%s prices untouched=%s" % [flat, curled, steady, opened, price_ok])
+		main.in_village = false
+	if want.call("d38_moon_plaque"):
+		# the moon plaque's picture follows the moon: the whole disc when it is full, a smaller lit part otherwise, the waning side flipped; nothing by day (idea 38)
+		var lz: Object = main.lake_zone
+		var n38: int = lz.PLAQUE_PX
+		var full_px := 0
+		for py in n38:
+			for px in n38:
+				var x38 := (px + 0.5) / n38 * 2.0 - 1.0
+				var y38 := (py + 0.5) / n38 * 2.0 - 1.0
+				if x38 * x38 + y38 * y38 <= 1.0:
+					full_px += 1
+		var lit := func(img: Image, left: bool) -> int:
+			var c := 0
+			var x0 := 0 if left else n38 / 2
+			var x1 := n38 / 2 if left else n38
+			for py in n38:
+				for px in range(x0, x1):
+					if img.get_pixel(px, py).a > 0.0:
+						c += 1
+			return c
+		var full_img: Image = lz.moon_mask(Vector2(1.0, 1.0), n38)
+		var full_ok: bool = lit.call(full_img, true) + lit.call(full_img, false) == full_px
+		var half_img: Image = lz.moon_mask(Vector2(0.5, 1.0), n38)
+		var half_n: int = lit.call(half_img, true) + lit.call(half_img, false)
+		var half_ok: bool = absi(half_n - full_px / 2) < full_px / 8 and lit.call(half_img, false) > lit.call(half_img, true) * 4
+		var thin_img: Image = lz.moon_mask(Vector2(0.15, -1.0), n38)
+		var thin_n: int = lit.call(thin_img, true) + lit.call(thin_img, false)
+		var thin_ok: bool = thin_n > 0 and thin_n < full_px / 4 and lit.call(thin_img, true) > lit.call(thin_img, false) * 4 # waning: the left side
+		var h38: float = main.hour
+		var d38: int = main.day
+		main.hour = 23.0
+		main.day = 4 # the full moon (day 4 of 8)
+		lz.update_moon_plaque()
+		var night_full: bool = lz.plaque.visible and lz.plaque_lit == full_px and main.moon_phase().x == 1.0
+		main.day = 2 # waxing
+		lz.update_moon_plaque()
+		var wax_img: Image = lz.moon_mask(main.moon_phase(), n38)
+		var waxing: bool = lz.plaque_lit > 0 and lz.plaque_lit < full_px and lz.plaque_lit == lit.call(wax_img, true) + lit.call(wax_img, false)
+		main.hour = 12.0
+		lz.update_moon_plaque()
+		var day_none: bool = not lz.plaque.visible
+		main.hour = h38
+		main.day = d38
+		check("d38_moon_plaque", full_ok and half_ok and thin_ok and night_full and waxing and day_none,
+			"full moon draws all %d pixels=%s half moon about half, on the right=%s thin waning crescent on the left=%s plaque at night on day 4 shows the disc (%d)=%s waxing shows part=%s hidden by day=%s" % [full_px, full_ok, half_ok, thin_ok, lz.plaque_lit, night_full, waxing, day_none])
+	if want.call("d39_ribbons"):
+		# the ten cloth strips on the wind bridge lift in turn, 0.5 s apart along it, up to 1.1 rad, not together; they stay still while the bridge is not raised; the bridge itself is untouched (idea 39)
+		var hz: Object = main.hill_zone
+		var built39: bool = hz.ribbons.size() == 10
+		var peaks: Array = []
+		for i in 5:
+			var best_t := 0.0
+			var best_a := -1.0
+			for k in 320:
+				var a: float = hz.ribbon_angle(i, k * 0.01)
+				if a > best_a:
+					best_a = a
+					best_t = k * 0.01
+			peaks.append([best_t, best_a])
+		var order: bool = true
+		for i in range(1, 5):
+			order = order and absf(peaks[i][0] - peaks[i - 1][0] - hz.RIBBON_LAG) < 0.03
+		var height: bool = peaks.all(func(p): return absf(p[1] - 1.1) < 0.02)
+		var apart: bool = hz.ribbon_angle(0, peaks[0][0]) > 1.0 and hz.ribbon_angle(4, peaks[0][0]) == 0.0
+		var rails: bool = hz.ribbon_angle(0, 1.7) == hz.ribbon_angle(5, 1.7)
+		var vis0: bool = main.hill.bridge.visible
+		var bridged0: bool = main.hill.bridged
+		var planks0: int = main.hill.bridge.get_child_count()
+		main.hill.bridge.visible = false
+		for r in hz.ribbons:
+			r.rotation.z = 0.0
+		hz.update_bridge_ribbons()
+		var still: bool = hz.ribbons.all(func(r): return r.rotation.z == 0.0)
+		main.hill.bridge.visible = true
+		hz.update_bridge_ribbons()
+		var moving: bool = hz.ribbons.size() == 10 and absf(hz.ribbons[3].rotation.z - hz.ribbon_angle(3, main.t)) < 0.0001
+		main.hill.bridge.visible = vis0
+		for r in hz.ribbons:
+			r.rotation.z = 0.0
+		var untouched: bool = main.hill.bridged == bridged0 and main.hill.bridge.get_child_count() == planks0
+		check("d39_ribbons", built39 and order and height and apart and rails and still and moving and untouched,
+			"10 strips=%s peaks 0.5 s apart along the bridge=%s each lifts 1.1 rad=%s not together=%s both rails alike=%s still while the bridge is down=%s move once it is up=%s bridge unchanged=%s" % [built39, order, height, apart, rails, still, moving, untouched])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

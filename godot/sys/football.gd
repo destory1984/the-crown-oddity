@@ -1,7 +1,8 @@
 # A football on the village square (the owner, 2026-10-30: "마을 광장에 축구공 하나 놔주고, 구석에 축구 골대 하나 놔줘..
 # 골대에 넣으면 화면에 번쩍번쩍하면서 점수를 표시해줘"). Sora strikes it with her normal attack and it rolls like the toy
-# bricks do (village.gd bricks_hit), but along her facing and bouncing off the basin, the lamp, the goal posts and the square's
-# edge; walking into it nudges it. The goal sits in the square's north-west corner, its mouth to the south. A ball whose centre
+# bricks do (village.gd bricks_hit), but along her facing and bouncing off the lamp, the goal posts and the pitch's edge;
+# walking into it nudges it. It lies on the south lawn (moved there from the square, 05:31: "골대와 축구공은 마을 남쪽으로
+# 옮기자"); the goal stands at the lawn's south end, its mouth to the north. A ball whose centre
 # crosses the goal line between the posts flashes the screen, shows "골! N" and cheers; the count (goals) is kept in the save.
 # Moved by update(dt), so a story, the bag and the settings stop it too. Boxes, a sphere, generated textures and code-made sounds.
 extends RefCounted
@@ -11,10 +12,11 @@ const Main := preload("res://main.gd")
 var m: Main
 
 # village tiles; the world position adds village.VILLAGE_X
-const SQUARE := Rect2(10.5, 5.5, 10.0, 8.0) # the paved square (11 to 20, rows 6 to 13): the ball never leaves it
-const SPOT := Vector2(13.0, 8.6)            # where the ball lies, west of the basin
-const GOAL_X := 12.6                        # the middle of the mouth
-const GOAL_LINE := 6.4                      # the goal line (z); the net runs back to GOAL_LINE - GOAL_DEPTH
+const PITCH := Rect2(16.6, 20.6, 8.8, 8.0) # the south lawn (17 to 25, rows 21 to 28) between the inn street and the pond: the ball never leaves it
+const SPOT := Vector2(21.0, 23.0)           # where the ball lies, the pitch's north half
+const GOAL_X := 21.0                        # the middle of the mouth
+const GOAL_LINE := 27.4                     # the goal line (z); the mouth faces north, the net runs back to GOAL_LINE + GOAL_DEPTH
+const LAMP := Vector2(24.0, 24.0)           # the lawn's lantern tile (its post stands 0.3 west)
 const GOAL_W := 2.2
 const GOAL_DEPTH := 0.8
 const GOAL_H := 1.1
@@ -45,7 +47,7 @@ var bounds := Rect2()
 var goal_x0 := 0.0          # the posts' x
 var goal_x1 := 0.0
 var goal_z := 0.0
-var circles: Array = []     # [Vector3(x, z, r)] the basin, the lamp, the posts
+var circles: Array = []     # [Vector3(x, z, r)] the lamp, the posts
 var segs: Array = []        # [Vector4(ax, az, bx, bz)] the net's sides and back
 
 var goals := 0              # this save's goals (kept over a new round)
@@ -78,21 +80,20 @@ func tile(v: Vector2) -> Vector2:
 func build() -> void:
 	spot = tile(SPOT)
 	p = spot
-	bounds = Rect2(vx() + SQUARE.position.x, SQUARE.position.y, SQUARE.size.x, SQUARE.size.y)
+	bounds = Rect2(vx() + PITCH.position.x, PITCH.position.y, PITCH.size.x, PITCH.size.y)
 	var gx := vx() + GOAL_X
 	goal_x0 = gx - GOAL_W / 2.0
 	goal_x1 = gx + GOAL_W / 2.0
 	goal_z = GOAL_LINE
-	var back := GOAL_LINE - GOAL_DEPTH
-	circles.append(Vector3(m.village.fountain_at().x, m.village.fountain_at().y, 1.0)) # the basin
-	var lamp: Vector2 = m.village.fountain_at() + m.village.FOUNTAIN_LAMP
-	circles.append(Vector3(lamp.x - 0.3, lamp.y, 0.1)) # the square's lantern post
+	var back := GOAL_LINE + GOAL_DEPTH
+	var lamp := tile(LAMP)
+	circles.append(Vector3(lamp.x - 0.3, lamp.y, 0.1)) # the lawn's lantern post
 	circles.append(Vector3(goal_x0, goal_z, POST_R))
 	circles.append(Vector3(goal_x1, goal_z, POST_R))
 	segs.append(Vector4(goal_x0, goal_z, goal_x0, back))
 	segs.append(Vector4(goal_x1, goal_z, goal_x1, back))
 	segs.append(Vector4(goal_x0, back, goal_x1, back))
-	for r in [Vector3(goal_x0, goal_z, 0.12), Vector3(goal_x1, goal_z, 0.12), Vector3(gx, back + 0.1, 0.5)]: # Sora walks round it
+	for r in [Vector3(goal_x0, goal_z, 0.12), Vector3(goal_x1, goal_z, 0.12), Vector3(gx, back - 0.1, 0.5)]: # Sora walks round it
 		m.rocks.append({"x": r.x, "z": r.y, "r": r.z})
 	build_goal(gx)
 	build_ball()
@@ -100,6 +101,7 @@ func build() -> void:
 func build_goal(gx: float) -> void:
 	var g := Node3D.new()
 	g.position = Vector3(gx, 0, goal_z)
+	g.rotation.y = PI # built with the net behind (-z), turned so the mouth faces north
 	m.add_child(g)
 	var white: Material = m.mat_color(Color("#f6f3ea"), 0.6)
 	var add := func(size: Vector3, pos: Vector3, mat: Material, rot_x := 0.0) -> MeshInstance3D:
@@ -248,7 +250,7 @@ func update(dt: float) -> void:
 	if state == "home":
 		update_home(dt)
 	else:
-		if state == "play" and not bounds.grow(0.4).has_point(p): # off the square (it should never be): back at once
+		if state == "play" and not bounds.grow(0.4).has_point(p): # off the pitch (it should never be): back at once
 			start_home()
 			return
 		if state == "play":
@@ -292,7 +294,7 @@ func step(h: float) -> void:
 	var before := p
 	p += vel * h
 	collide()
-	if state == "play" and before.y > goal_z and p.y <= goal_z and p.x > goal_x0 and p.x < goal_x1:
+	if state == "play" and before.y < goal_z and p.y >= goal_z and p.x > goal_x0 and p.x < goal_x1:
 		score()
 	var moved := p - before
 	if moved.length() > 0.0001:

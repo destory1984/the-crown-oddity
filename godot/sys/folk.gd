@@ -136,12 +136,33 @@ func build_house_room() -> void:
 		sb.frame(fr)
 		bed.add_child(fr)
 		sb.sleeper(bed, SLEEP_ART[id], phase)
+		if id == "kid":
+			kid_shoes = build_kid_shoes(bed)
 		phase += 0.7
 		bed.visible = false
 		m.add_child(bed)
 		m.sleeper_nodes[id] = bed
 	for k in range(1, Main.HOUSE_SPOTS.size()): # a bedroll blocks the way only while someone sleeps on it
 		m.rocks.append({"x": Main.HOUSE_X + Main.HOUSE_SPOTS[k].x, "z": Main.HOUSE_SPOTS[k].y, "r": 0.0, "spot": k})
+
+# the kid goblin's little toy-brick shoes, taken off and left at the side of her bed with the toes towards it (delight idea 30).
+# They are children of her bed, so they show only while she sleeps there (after Kongal's errand, kid_q 3), and they stand
+# beside the frame, off the lane the bedroll blocks.
+var kid_shoes: Node3D
+
+func build_kid_shoes(bed: Node3D) -> Node3D:
+	var g := Node3D.new()
+	g.position = Vector3(-0.62, 0, 0.3)
+	bed.add_child(g)
+	for k in 2:
+		var shoe: MeshInstance3D = m.box(Vector3(0.2, 0.09, 0.1), m.mat_color(Color("#c8523a") if k == 0 else Color("#e0b040")))
+		shoe.position = Vector3(0, 0.045, k * 0.2)
+		shoe.rotation.y = 0.12 * (1.0 if k == 0 else -1.0)
+		g.add_child(shoe)
+		var stud: MeshInstance3D = m.box(Vector3(0.05, 0.03, 0.05), m.mat_color(Color("#c8523a") if k == 0 else Color("#e0b040")))
+		stud.position = Vector3(0.05, 0.06, 0)
+		shoe.add_child(stud)
+	return g
 
 func folk_should_sleep() -> bool:
 	return m.is_night() and not (m.mail_got[1] and m.moon_phase().x >= 0.95) and not m.sleep_off
@@ -294,9 +315,39 @@ func route_update(id: String, dt: float, home_only: bool, speed: float) -> bool:
 			r.wait = randf_range(6.0, 14.0)
 	return true
 
+# stopping after a run in front of a sleeper's house, the little z over its door bobs more slowly for a moment (delight idea 27);
+# nobody wakes and nothing about the sleepers changes
+const Z_SLOW_TIME := 2.5
+const Z_SLOW_RATE := 0.4
+const Z_NEAR := 6.0
+var z_clock := 0.0 # the z's bob phase, advancing at z_rate per second
+var z_rate := 1.0
+var z_slow_left := 0.0
+var z_run_t := -100.0 # when she last ran
+var z_slows := 0 # slow-downs started (autoplay d27_sleep_z)
+
+func update_z_slow(dt: float) -> void:
+	var spd := Vector2(m.player.vx, m.player.vz).length()
+	var near := false
+	if m.in_village and m.in_house < 0 and not m.story_open:
+		for id in m.door_z:
+			var dz: Label3D = m.door_z[id]
+			near = near or (dz.visible and Vector2(dz.position.x - m.player.x, dz.position.z - m.player.z).length() < Z_NEAR)
+	if spd > 4.2:
+		z_run_t = m.t
+	elif spd < 0.3 and m.t - z_run_t < 0.8:
+		z_run_t = -100.0
+		if near:
+			z_slow_left = Z_SLOW_TIME
+			z_slows += 1
+	z_slow_left = maxf(0.0, z_slow_left - dt)
+	z_rate = move_toward(z_rate, Z_SLOW_RATE if z_slow_left > 0.0 and near else 1.0, dt * 3.0)
+	z_clock += dt * z_rate
+
 func update_folk_sleep(dt: float) -> void:
 	if m.village == null or m.village.doors.is_empty():
 		return
+	update_z_slow(dt)
 	var night := folk_should_sleep()
 	var watching := m.in_village and m.in_house < 0 # walking home is only worth showing when she is on the street
 	var rolls := {} # bedroll spots taken in the room she is in
@@ -372,7 +423,7 @@ func update_folk_sleep(dt: float) -> void:
 			m.door_z[id] = z
 		var dz: Label3D = m.door_z[id]
 		dz.visible = st == "in" and m.in_village and m.in_house < 0
-		dz.position = Vector3(door.x + 0.35 * float(folk_bed(id)[1] - 1), 2.6 + 0.15 * sin(m.t * 2.0 + Main.SLEEP_IDS.find(id)), door.y - 0.4)
+		dz.position = Vector3(door.x + 0.35 * float(folk_bed(id)[1] - 1), 2.6 + 0.15 * sin(z_clock * 2.0 + Main.SLEEP_IDS.find(id)), door.y - 0.4)
 	# Kongal's kid goblin stays at her side, and sleeps in her house
 	if m.kid_node != null and m.kid_q == 3:
 		var kst: String = m.folk_state.get("kongal", "out")

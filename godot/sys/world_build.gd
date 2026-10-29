@@ -874,6 +874,7 @@ func build_cottage() -> void:
 	smoke.position = Vector3(0.9, 3.7, -0.5)
 	g.add_child(smoke)
 	m.shop_pos = g.transform * Vector3(-0.6, 0, 1.9)
+	build_cup(g, add)
 	# hanging sign over the door
 	add.call(Vector3(0.7, 0.32, 0.06), Vector3(-0.6, 1.55, 1.32), m.mat_color(Color("#8a5a32")))
 	var sign := sign_icon("shop", 0.4)
@@ -884,6 +885,41 @@ func build_cottage() -> void:
 		for dz in [-0.6, 0.6]:
 			var w := g.transform * Vector3(dx, 0, dz)
 			m.rocks.append({"x": w.x, "z": w.z, "r": 0.9})
+
+# a teacup on a stool beside Bori's door with two puffs of steam rising and fading, round and round. It is all decoration
+# and does not look at the shop at all: buying nothing, or leaving, changes nothing about it (delight idea 21)
+var cup_steam: Array = [] # [MeshInstance3D, phase]
+var cup_top := 0.0 # height of the cup's rim above the cottage floor
+
+func build_cup(g: Node3D, add: Callable) -> void:
+	add.call(Vector3(0.3, 0.3, 0.3), Vector3(-1.15, 0.15, 1.55), m.mat_color(Color("#6b4a30")))   # stool
+	add.call(Vector3(0.14, 0.11, 0.14), Vector3(-1.15, 0.355, 1.55), m.mat_color(Color("#f0e8d8"))) # cup
+	add.call(Vector3(0.05, 0.05, 0.03), Vector3(-1.07, 0.36, 1.55), m.mat_color(Color("#f0e8d8")))  # handle
+	cup_top = 0.42
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.albedo_color = Color(1, 1, 1, 0.4)
+	for k in 2:
+		var q := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(0.14, 0.14)
+		q.mesh = qm
+		q.material_override = mat.duplicate()
+		q.position = Vector3(-1.15, cup_top, 1.55)
+		g.add_child(q)
+		cup_steam.append([q, k * 0.5])
+	update_cup()
+
+func update_cup() -> void:
+	for s in cup_steam:
+		var k: float = fmod(m.t * 0.45 + s[1], 1.0) # 0 at the rim, 1 gone
+		var q: MeshInstance3D = s[0]
+		q.position.y = cup_top + k * 0.5
+		q.position.x = -1.15 + sin(k * 6.0 + s[1] * 4.0) * 0.04
+		q.scale = Vector3.ONE * (0.7 + k * 0.9)
+		(q.material_override as StandardMaterial3D).albedo_color.a = sin(k * PI) * 0.45
 
 func ui_font_for_sign() -> Font:
 	return m.ui_font

@@ -13,6 +13,65 @@ const SOUTH_HOLD_MAX := 20.0 # he lets go if Sora does not go in
 func _init(main: Main) -> void:
 	m = main
 
+# a small moon plaque on a post by the shore path, south of the entry: at night the water-grey board shows tonight's moon
+# as a little pixel picture, the whole disc when the moon is full and only the lit part otherwise. A decoration; nothing
+# asks for it (delight idea 38)
+const PLAQUE_AT := Vector2(279.0, 3.0) # LAKE_X + 9
+const PLAQUE_PX := 24
+var plaque: Sprite3D
+var plaque_key := -1 # moon day * 2 + night, the picture last drawn
+var plaque_lit := 0 # lit pixels in the picture on the board (autoplay d38_moon_plaque)
+
+# the lit pixels of the moon seen with `phase` (x: how much is lit 0.15 to 1, y: 1 waxing, -1 waning) in an n by n picture
+func moon_mask(phase: Vector2, n: int) -> Image:
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var k := 1.0 - 2.0 * phase.x # -1 full .. 0.7 thin: where the shadow's edge cuts each row
+	for py in n:
+		for px in n:
+			var x := (px + 0.5) / n * 2.0 - 1.0
+			var y := (py + 0.5) / n * 2.0 - 1.0
+			if x * x + y * y > 1.0:
+				continue
+			if x * phase.y >= k * sqrt(1.0 - y * y):
+				img.set_pixel(px, py, Color("#d6e6ff"))
+	return img
+
+func build_moon_plaque() -> void:
+	var g := Node3D.new()
+	g.position = Vector3(PLAQUE_AT.x, 0, PLAQUE_AT.y)
+	m.add_child(g)
+	var pole: MeshInstance3D = m.box(Vector3(0.12, 0.9, 0.12), m.mat_color(Color("#4a3a2a")))
+	pole.position = Vector3(0, 0.45, 0)
+	g.add_child(pole)
+	var board: MeshInstance3D = m.box(Vector3(0.62, 0.62, 0.07), m.mat_color(Color("#3c4a5c")))
+	board.position = Vector3(0, 1.1, 0)
+	g.add_child(board)
+	plaque = Sprite3D.new()
+	plaque.pixel_size = 0.5 / PLAQUE_PX
+	plaque.shaded = false
+	plaque.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	plaque.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	plaque.position = Vector3(0, 1.1, 0.045)
+	plaque.visible = false
+	g.add_child(plaque)
+	m.rocks.append({"x": PLAQUE_AT.x, "z": PLAQUE_AT.y, "r": 0.25})
+
+func update_moon_plaque() -> void:
+	if plaque == null:
+		return
+	var night: bool = m.is_night()
+	plaque.visible = night
+	var key: int = (m.day % m.daynight.MOON_DAYS) * 2 + (1 if night else 0)
+	if night and key != plaque_key:
+		plaque_key = key
+		var img := moon_mask(m.moon_phase(), PLAQUE_PX)
+		plaque.texture = ImageTexture.create_from_image(img)
+		plaque_lit = 0
+		for py in PLAQUE_PX:
+			for px in PLAQUE_PX:
+				if img.get_pixel(px, py).a > 0.0:
+					plaque_lit += 1
+
 func enter_lake() -> void:
 	m.in_village = false
 	m.in_lake = true
@@ -440,6 +499,7 @@ func south_latch() -> void:
 
 func update_lake_south(dt: float) -> void:
 	var me := Vector2(m.player.x, m.player.z)
+	update_moon_plaque()
 	m.lake.tick(dt, m.t)
 	if me.y > Main.LAKE.SOUTH_Z + 0.5:
 		m.ui.zone_sub.text = "아랫못"

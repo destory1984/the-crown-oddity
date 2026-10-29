@@ -394,6 +394,39 @@ func update_scenic() -> void:
 		scenic_at = -1
 	m.mates.scenic_dir = SCENIC[scenic_at].look if scenic_at >= 0 else Vector2.ZERO
 
+# cloth strips tied along both rope rails of the wind bridge. They do not sway together: one gust runs along the bridge and
+# lifts them in turn, each RIBBON_LAG seconds after the one before, once every RIBBON_PERIOD (delight idea 39). Pure show: the planks stay put.
+const RIBBONS := 5
+const RIBBON_LAG := 0.5
+const RIBBON_PERIOD := 3.2
+const RIBBON_UP := 0.35 # the share of a period one strip spends lifted
+var ribbons: Array = [] # [Node3D] pivots, 0..4 along the bridge on the first rail then on the second
+
+func ribbon_angle(i: int, t: float) -> float: # radians the i-th strip is lifted at time t
+	var ph := fposmod(t - (i % RIBBONS) * RIBBON_LAG, RIBBON_PERIOD) / RIBBON_PERIOD
+	return sin(ph / RIBBON_UP * PI) * 1.1 if ph < RIBBON_UP else 0.0
+
+func build_bridge_ribbons() -> void:
+	if m.hill == null or m.hill.bridge == null:
+		return
+	var hx: float = m.hill.HILL_X
+	var cols := [Color("#e84a4a"), Color("#e8c84a"), Color("#4a8ae8")]
+	for side in [10.5, 13.5]:
+		for k in RIBBONS:
+			var pivot := Node3D.new()
+			pivot.position = Vector3(hx + 19.7 + k * 0.45, 0.5, side)
+			var strip: MeshInstance3D = m.box(Vector3(0.06, 0.3, 0.02), m.mat_color(cols[k % 3]))
+			strip.position = Vector3(0, -0.15, 0)
+			pivot.add_child(strip)
+			m.hill.bridge.add_child(pivot)
+			ribbons.append(pivot)
+
+func update_bridge_ribbons() -> void:
+	if ribbons.is_empty() or not m.hill.bridge.visible:
+		return
+	for i in ribbons.size():
+		ribbons[i].rotation.z = ribbon_angle(i, m.t)
+
 func build_shop_flag() -> void:
 	var q: Vector2 = m.hill.south_marks.Q + Vector2(2.0, 1.2)
 	var g := Node3D.new()
@@ -682,6 +715,7 @@ func end_windrun(msg: String) -> void:
 
 func update_hill(dt: float) -> void:
 	update_scenic()
+	update_bridge_ribbons()
 	if m.player.x < Main.GROTTO.GROTTO_X - 0.5:
 		update_mill(dt)
 	for mill in m.hill.mills:

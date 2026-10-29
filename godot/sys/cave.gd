@@ -834,6 +834,31 @@ func leave_cave() -> void:
 	build_exit_mouth()
 	if first:
 		m.show_story("", Main.STORY.CAVE_EXIT)
+	else:
+		exit_motes()
+
+# stepping out of the cave on an ordinary visit, two grains of cave dust cling to her clothes, brighten in the daylight for
+# a third of a second, then drop and fade (delight idea 36). Not on the first way out, which has its story.
+var exit_motes_made := 0 # grains made (autoplay d36_cave_dust)
+
+func exit_motes() -> void:
+	for k in 2:
+		exit_motes_made += 1
+		var grain: MeshInstance3D = m.box(Vector3(0.05, 0.05, 0.05), m.glow_mat(Color("#d8c8a8"), 1.5))
+		var cling := Vector3(-0.2 + 0.4 * k, 0.75 + 0.2 * k, 0.08)
+		var at := Vector3(m.player.x, m.ground_y, m.player.z) + cling
+		grain.position = at
+		grain.set_meta("at", at)
+		m.effects.add_fx(grain, 1.5, func(node: Node3D, f: float, _dt: float):
+			var mat := (node as MeshInstance3D).material_override as StandardMaterial3D
+			if f < 0.35: # clinging to her: moves with her, glowing up
+				node.position = Vector3(m.player.x, m.ground_y, m.player.z) + cling
+				node.set_meta("at", node.position)
+				mat.albedo_color.a = 0.25 + f / 0.35 * 0.75
+			else: # shaken loose: falls, fades
+				var g := (f - 0.35) / 0.65
+				node.position = (node.get_meta("at") as Vector3) + Vector3(0, -g * g * 0.7, 0)
+				mat.albedo_color.a = 1.0 - g)
 
 # ---------------------------------------------------------------- 굴파기 수레두더지 (cave mid-boss)
 # Charge: 1.0 s wind-up, then a straight dash at 9 tiles/s until it hits a wall (stuck 1.5 s, takes x1.5).

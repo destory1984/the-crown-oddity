@@ -291,6 +291,55 @@ func eave_drop(p: Vector3) -> void:
 		burst(Vector3(p.x, 0.1, p.z), Color("#bfe6ff"), 3, 0.8)
 		drop.queue_free())
 
+# in the rain, under the eaves she is near, a drop now and then lands with its own small sound: the left eave of Bori's cottage
+# and of the first village house drips on bare ground, the right one into a tin pail (delight idea 34). Only the nearest of
+# the four sounds, and no faster than every DRIP_GAP_MIN to DRIP_GAP_MAX seconds. Nothing indoors, in a story or with a monster near.
+const DRIP_NEAR := 8.0
+const DRIP_GAP_MIN := 1.2
+const DRIP_GAP_MAX := 2.0
+var drip_anchors: Array = [] # [{"at": Vector3, "tin": bool}]
+var drip_t := 0.0
+var rain_drips := 0 # drops started in the rain (autoplay d34_drip_timbre)
+
+func build_drip_anchors() -> void:
+	var sites: Array = [[Vector3(m.shop_pos.x - 1.2, 1.9, m.shop_pos.z - 0.1), Vector3(m.shop_pos.x + 1.2, 1.9, m.shop_pos.z - 0.1)]]
+	if m.village != null and not m.village.doors.is_empty():
+		var d: Vector2 = m.village.doors[0]
+		sites.append([Vector3(d.x - 0.9, 1.75, d.y - 0.7), Vector3(d.x + 1.0, 1.75, d.y - 0.7)])
+	for site in sites:
+		drip_anchors.append({"at": site[0], "tin": false})
+		drip_anchors.append({"at": site[1], "tin": true})
+		var pail: MeshInstance3D = m.box(Vector3(0.24, 0.22, 0.24), m.mat_color(Color("#8d949c")))
+		pail.position = Vector3(site[1].x, 0.11, site[1].z)
+		m.add_child(pail)
+		var inside: MeshInstance3D = m.box(Vector3(0.17, 0.02, 0.17), m.mat_color(Color("#2c3036")))
+		inside.position = Vector3(site[1].x, 0.225, site[1].z)
+		m.add_child(inside)
+
+func update_rain_drips(dt: float) -> void:
+	drip_t -= dt
+	if drip_t > 0.0 or not m.raining or m.in_house >= 0 or m.story_open or m.intro or drip_anchors.is_empty():
+		return
+	var me := Vector2(m.player.x, m.player.z)
+	var best = null
+	for a in drip_anchors:
+		var d: float = Vector2(a.at.x, a.at.z).distance_to(me)
+		if d < DRIP_NEAR and (best == null or d < Vector2(best.at.x, best.at.z).distance_to(me)):
+			best = a
+	if best == null or m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x, e.z).distance_to(me) < 7.0):
+		return
+	drip_t = m.rnd(DRIP_GAP_MIN, DRIP_GAP_MAX)
+	rain_drips += 1
+	var tin: bool = best.tin
+	var drop: MeshInstance3D = m.box(Vector3(0.04, 0.1, 0.04), m.glow_mat(Color("#bfe6ff"), 1.4))
+	drop.position = best.at
+	m.add_child(drop)
+	var tw := drop.create_tween()
+	tw.tween_property(drop, "position:y", 0.24 if tin else 0.05, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		m.sound.rain_drip(tin)
+		drop.queue_free())
+
 func fade_then(fn: Callable) -> void:
 	var tw := m.create_tween()
 	tw.tween_property(m.fade_rect, "color:a", 1.0, 0.4)

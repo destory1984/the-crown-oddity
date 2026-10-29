@@ -96,8 +96,59 @@ func market_hint() -> void:
 		var price: int = 25 if near == "2" and m.magpie_q >= 3 else int(STALLS[near].price)
 		m.toast(tr("%s(%s): 금화 %d을(를) 정직 상자에 넣고 가져간다 (E)") % [tr(STALLS[near].what), tr(STALL_DOES[near]), price])
 
+# rain at the market (delight ideas 26, 37). All of it is decoration: no collision, and the stalls' buying does not look at it.
+# 26: each stall keeps a spare crate just outside its awning; in rain, while Sora stands under the awning, the seller
+#     pulls it in a hand's width, and it goes back out when she leaves or the rain stops.
+# 37: a blank paper tag hangs from the moon-dust stall's post; in rain it curls in towards the post, and unfurls when the rain stops.
+const CRATE_OUT := 0.8 # the crate's local z at rest and pulled in, on its stall's frame (the stall sits at its mark + (0.5, -1.0))
+const CRATE_IN := 0.45
+var crates: Array = [] # [{"node": MeshInstance3D, "key": "1", "in": false, "tween": Tween}]
+var crate_pulls := 0 # pulls started (autoplay d26_shelter)
+var tag: Node3D # the paper tag's pivot, hinged at its top edge
+var tag_curled := false
+var tag_curls := 0 # curls and unfurls started (autoplay d37_tag)
+
+func build_rain_decor() -> void:
+	var wood := m.mat_color(Color("#8a6a42"))
+	for key in STALLS:
+		var at: Vector2 = m.village.marks[key]
+		var crate: MeshInstance3D = m.box(Vector3(0.34, 0.26, 0.28), wood)
+		crate.position = Vector3(at.x + 0.5 + 1.15, 0.13, at.y - 1.0 + CRATE_OUT)
+		m.add_child(crate)
+		crates.append({"node": crate, "key": key, "in": false, "tween": null})
+	var p: Vector2 = m.village.marks["2"]
+	tag = Node3D.new()
+	tag.position = Vector3(p.x + 0.5 - 0.85, 1.35, p.y - 1.0 + 0.38)
+	m.add_child(tag)
+	var paper: MeshInstance3D = m.box(Vector3(0.22, 0.3, 0.012), m.mat_color(Color("#f4ecd6")))
+	paper.position = Vector3(0, -0.15, 0)
+	tag.add_child(paper)
+
+func update_rain_decor() -> void:
+	var me := Vector2(m.player.x, m.player.z)
+	for c in crates:
+		var under: bool = m.raining and not m.story_open and me.distance_to(m.village.marks[c.key]) < 1.6
+		if under == c["in"]:
+			continue
+		c["in"] = under
+		if c.tween != null:
+			c.tween.kill()
+		if under:
+			crate_pulls += 1
+		var at: Vector2 = m.village.marks[c.key]
+		var tw := m.create_tween()
+		c.tween = tw
+		tw.tween_property(c.node, "position:z", at.y - 1.0 + (CRATE_IN if under else CRATE_OUT), 0.6).set_trans(Tween.TRANS_SINE)
+	if tag != null and m.raining != tag_curled:
+		tag_curled = m.raining
+		tag_curls += 1
+		var tw2 := m.create_tween().set_parallel(true)
+		tw2.tween_property(tag, "rotation:x", 0.7 if tag_curled else 0.0, 0.9).set_trans(Tween.TRANS_SINE)
+		tw2.tween_property(tag, "scale:y", 0.6 if tag_curled else 1.0, 0.9).set_trans(Tween.TRANS_SINE)
+
 func update_market(dt: float) -> void:
 	market_hint()
+	update_rain_decor()
 	for b in m.village.bottles: # the bottles bob on the pond; she picks one up running over it on the water skip
 		if b.got:
 			continue
