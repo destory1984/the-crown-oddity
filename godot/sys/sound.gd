@@ -6,6 +6,7 @@ const Main := preload("res://main.gd")
 
 var m: Main
 
+const SFX_LOG_MAX := 200
 const STEP_GAP := 0.42  # at most ~2.4 steps a second, even when running
 
 func _init(main: Main) -> void:
@@ -13,6 +14,8 @@ func _init(main: Main) -> void:
 
 func sfx(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide := 0.0) -> void:
 	m.sfx_log.append("%s:%d" % [wave, int(freq)])
+	if m.sfx_log.size() > SFX_LOG_MAX: # only the recent ones are read, and the babble adds ~20 a second
+		m.sfx_log.pop_front()
 	if m.muted:
 		return
 	var pl := AudioStreamPlayer.new()

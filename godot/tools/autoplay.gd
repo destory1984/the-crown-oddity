@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -875,6 +875,51 @@ func run() -> void:
 		if is_instance_valid(nb.node):
 			nb.node.queue_free()
 		check("boss_hp7", all_ok, " | ".join(rows))
+	if want.call("review_fixes"):
+		# GPT review 2026-10-29 (v0.1.83): a story opened right after a close stays open; a story closes the sheets under
+		# it; sfx_log and the splash sounds stay bounded; the fountain stops when Sora is away
+		main.close_story()
+		await wait(0.7)
+		main.show_story("", ["||첫째 줄"])
+		await wait(0.8) # past the old close fade
+		var kept: bool = main.story_open and main.ui.story.visible and main.ui.story.modulate.a > 0.9
+		main.close_story()
+		main.show_story("", ["||F9 뒤의 확인"]) # as save.ask_reset does: the close fade must not hide the new box
+		await wait(0.8)
+		kept = kept and main.story_open and main.ui.story.visible and main.ui.story.modulate.a > 0.9
+		main.close_story()
+		await wait(0.7)
+		main.toggle_settings(true)
+		main.show_story("", ["||여관 첫 밤"])
+		var no_settings: bool = not main.settings_open and not main.ui.settings.visible
+		main.close_story()
+		main.toggle_journal(true)
+		main.show_story("", ["||여관 첫 밤"])
+		var no_journal: bool = not main.ui.journal.visible
+		main.close_story()
+		main.toggle_help(true)
+		main.show_story("", ["||여관 첫 밤"])
+		var no_help: bool = not main.ui.help.visible and main.ui.hint.visible
+		main.close_story()
+		await wait(0.7)
+		for i in 500:
+			main.sfx(300.0 + i, 0.01, "square", 0.0)
+		var log_ok: bool = main.sfx_log.size() <= 200 and main.sfx_log.back() == "square:799"
+		var fa2: Vector2 = main.village.fountain_at()
+		var v1: bool = main.in_village
+		main.in_village = true
+		reset_to(fa2 + Vector2(0, 3.0))
+		main.village.fountain_set(main.village.fountain_wet)
+		var live_on: bool = main.village.fountain_emitters.any(func(p): return p.emitting) and main.village.fountain_rings.all(func(tw): return tw.is_running())
+		main.player.x = fa2.x + 40.0
+		main.village.fountain_set(main.village.fountain_wet)
+		var live_off: bool = not main.village.fountain_emitters.any(func(p): return p.emitting) and not main.village.fountain_rings.any(func(tw): return tw.is_running())
+		main.player.x = fa2.x
+		main.village.fountain_set(main.village.fountain_wet)
+		main.in_village = v1
+		var pitches: bool = main.village.SLAP_PITCHES.size() == 4
+		check("review_fixes", kept and no_settings and no_journal and no_help and log_ok and live_on and live_off and pitches,
+			"story kept after a close %s, settings closed %s, journal %s, help %s, log capped %s, fountain live near %s, still when away %s, 4 slap pitches %s" % [kept, no_settings, no_journal, no_help, log_ok, live_on, live_off, pitches])
 	if want.call("pip_rest_far"):
 		# resting by a lit lantern fills the moon light in every area, not just the village (v0.1.53): a monster 4.5 tiles
 		# off does not notice her while she rests there, and the pips still come in

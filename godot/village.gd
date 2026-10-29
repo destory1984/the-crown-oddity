@@ -668,6 +668,11 @@ var fountain_said: Array = [] # the lines E by the basin showed last (autoplay f
 var fountain_water: MeshInstance3D # the basin's water face, sloshed by a blow
 var fountain_splash: CPUParticles3D # the spray a blow throws up
 var fountain_slosh: Tween
+var fountain_emitters: Array = [] # the continuous drops: they stop when Sora is away from the village
+var fountain_rings: Array = []    # the ring tweens, paused with them
+var fountain_near := true
+var fountain_main: Node
+var fountain_half := false        # phones get half the drops
 var fountain_hits := 0 # blows that reached it (autoplay fountain_splash)
 
 func fountain_at() -> Vector2:
@@ -696,6 +701,8 @@ func fountain_box(size: Vector3) -> BoxMesh:
 	return bm
 
 func build_fountain(m: Node) -> void:
+	fountain_half = m.touch_ui
+	fountain_main = m
 	var g := Node3D.new()
 	g.position = Vector3(fountain_at().x, 0, fountain_at().y)
 	m.add_child(g)
@@ -753,6 +760,7 @@ func build_fountain(m: Node) -> void:
 		fountain_part(fountain_low, fountain_box(Vector3(0.12, 0.015, 0.07)), leaf, Vector3(cos(a) * d, top + 0.05, sin(a) * d), m.rnd(0, PI))
 	fountain_water = fountain_part(g, fountain_cyl(0.79, 0.03), water, Vector3(0, top + 0.03, 0), PI / 8.0) # the basin's water
 	fountain_splash = fountain_drops(g, Vector3(0, top + 0.08, 0), Vector3.UP, 36, 2.2, 0.6, 0.03, 50.0)
+	fountain_emitters.erase(fountain_splash) # a one-shot burst: nothing to stop
 	fountain_splash.emitting = false
 	fountain_splash.one_shot = true
 	fountain_splash.explosiveness = 0.9
@@ -814,7 +822,7 @@ func fountain_drops(parent: Node3D, at: Vector3, dir: Vector3, amount: int, spee
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	s.material = mat
 	p.mesh = s
-	p.amount = amount
+	p.amount = maxi(1, amount / 2) if fountain_half else amount
 	p.lifetime = life
 	p.direction = dir.normalized()
 	p.spread = spread
@@ -825,6 +833,7 @@ func fountain_drops(parent: Node3D, at: Vector3, dir: Vector3, amount: int, spee
 	p.scale_amount_max = 1.2
 	p.position = at
 	parent.add_child(p)
+	fountain_emitters.append(p)
 	return p
 
 # a ring of water spreading from the middle of the basin and fading, every 2.4 s, `delay` seconds in
@@ -845,6 +854,7 @@ func fountain_ring(g: Node3D, y: float, delay: float, water: Material) -> void:
 	ring.scale = Vector3(0.2, 0.02, 0.2)
 	g.add_child(ring)
 	var tw := ring.create_tween().set_loops()
+	fountain_rings.append(tw)
 	tw.tween_interval(delay)
 	tw.tween_callback(func():
 		ring.scale = Vector3(0.2, 0.02, 0.2)
@@ -854,6 +864,7 @@ func fountain_ring(g: Node3D, y: float, delay: float, water: Material) -> void:
 	tw.tween_interval(maxf(0.0, 2.4 - delay))
 
 # Sora's blow reaching the basin (combat.gd swing): spray from the side she struck, the water face rocks and settles
+const SLAP_PITCHES := [560.0, 620.0, 690.0, 760.0] # four fixed pitches, so the sound cache stays four streams per volume
 func fountain_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool) -> void:
 	var d := fountain_at() - Vector2(m.player.x, m.player.z)
 	if d.length() > reach + 1.0 or not (all_round or d.normalized().dot(f) > cone - 0.2):
@@ -870,7 +881,7 @@ func fountain_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: boo
 	for k in 4: # four swells, each smaller, each with its slap of water (the owner, 2026-10-29: "물 찰싹찰싹 소리 나게")
 		var amp := 0.05 * (1.0 - k / 4.0)
 		var slap_vol := 0.3 * (1.0 - k / 4.0)
-		fountain_slosh.tween_callback(func(): m.sfx(m.rnd(560.0, 760.0), 0.16, "splash", slap_vol, -420.0))
+		fountain_slosh.tween_callback(func(): m.sfx(SLAP_PITCHES[m.rng.randi() % SLAP_PITCHES.size()], 0.16, "splash", slap_vol, -420.0))
 		fountain_slosh.tween_property(fountain_water, "position:y", y0 + amp, 0.12).set_trans(Tween.TRANS_SINE)
 		fountain_slosh.parallel().tween_property(fountain_water, "rotation:x", amp * 1.4 * (1 if k % 2 == 0 else -1), 0.12)
 		fountain_slosh.tween_property(fountain_water, "position:y", y0 - amp * 0.6, 0.12).set_trans(Tween.TRANS_SINE)
@@ -881,6 +892,23 @@ func fountain_set(wet: bool) -> void:
 	fountain_wet = wet
 	fountain_full.visible = wet
 	fountain_low.visible = not wet
+	fountain_look()
+
+# drops and ring tweens run only while Sora is in the village and within FOUNTAIN_LIVE_RANGE tiles, and the drops only
+# in the shown set (GPT review 2026-10-29: 15 emitters and 3 tweens ran everywhere, on phones too)
+const FOUNTAIN_LIVE_RANGE := 25.0
+func fountain_look() -> void:
+	var near: bool = fountain_main.in_village and Vector2(fountain_main.player.x, fountain_main.player.z).distance_to(fountain_at()) < FOUNTAIN_LIVE_RANGE
+	fountain_near = near
+	for p in fountain_emitters:
+		if is_instance_valid(p):
+			p.emitting = near and p.get_parent().visible
+	for tw in fountain_rings:
+		if tw.is_valid():
+			if near:
+				tw.play()
+			else:
+				tw.pause()
 
 # E beside the basin: Sora's look at it, seven streams or all eight
 func fountain_key(m: Node, me: Vector2) -> bool:

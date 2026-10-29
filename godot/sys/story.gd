@@ -146,7 +146,26 @@ func click_too_soon() -> bool:
 	var now := Time.get_ticks_msec() / 1000.0
 	return now - opened_at < CLICK_OPEN_WAIT or now - line_at < CLICK_LINE_WAIT
 
+# the box's fade tweens: a new story kills the old close fade, whose callback would hide the box it just opened
+# (F9 once during play: save.ask_reset closes and opens in the same frame); a close kills a fade-in still running
+var fade_tw: Tween
+
+# a story over an open sheet would stack: typing stops while a sheet is open and Esc / Q are swallowed by the story,
+# so the sheets (settings, journal, controls, shop) close first (GPT review 2026-10-29: the inn's 0.9 s line)
+func close_sheets() -> void:
+	if m.settings_open:
+		m.toggle_settings(false)
+	if m.ui.journal.visible:
+		m.toggle_journal(false)
+	if m.ui.help.visible:
+		m.toggle_help(false)
+	if m.shop_open:
+		m.toggle_shop(false)
+
 func show_story(path: String, lines: Array, small := false) -> void:
+	close_sheets()
+	if fade_tw != null and fade_tw.is_valid():
+		fade_tw.kill()
 	opened_at = Time.get_ticks_msec() / 1000.0
 	small_pic = small
 	fit_story()
@@ -162,7 +181,8 @@ func show_story(path: String, lines: Array, small := false) -> void:
 	m.ui.story.visible = true
 	m.story_open = true
 	show_line(m.story_lines.pop_front())
-	m.create_tween().tween_property(m.ui.story, "modulate:a", 1.0, 0.6)
+	fade_tw = m.create_tween()
+	fade_tw.tween_property(m.ui.story, "modulate:a", 1.0, 0.6)
 
 func show_line(line: String) -> void:
 	line_at = Time.get_ticks_msec() / 1000.0
@@ -229,9 +249,13 @@ func close_story() -> void:
 		f.call_deferred()
 	if m.story_step == 0 and not m.intro:
 		begin_opening()
-	var tw := m.create_tween()
-	tw.tween_property(m.ui.story, "modulate:a", 0.0, 0.5)
-	tw.tween_callback(func(): m.ui.story.visible = false)
+	if fade_tw != null and fade_tw.is_valid():
+		fade_tw.kill()
+	fade_tw = m.create_tween()
+	fade_tw.tween_property(m.ui.story, "modulate:a", 0.0, 0.5)
+	fade_tw.tween_callback(func():
+		if not m.story_open: # a story opened meanwhile keeps the box
+			m.ui.story.visible = false)
 
 func start_game(with_story := true) -> void:
 	if not m.intro:
