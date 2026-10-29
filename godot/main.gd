@@ -37,6 +37,7 @@
 #   sys/garden_zone.gd    Garden: the heart, Hangyeol's road, the mold boss, the clock room, workers, winding.
 #   sys/workshop_zone.gd  Deep workshop: the great hall's door, three floors under the castle, the cradle, Simji's bench.
 #   sys/corridor_zone.gd  Water corridor (v0.1.84): four rooms under the lake island, levers, carts, Mulgyeol's posts, the sluice-keeper.
+#   sys/marsh_toys.gd     Reed-marsh toys (v0.1.106): the wind-up duck, three frogs, cattail fluff, the reed pipe rack, Bori's mat.
 extends Node3D
 
 # The systems: one object per sys/*.gd file (see the file map above), each holding this node as `m`.
@@ -75,6 +76,7 @@ var workshop_zone := preload("res://sys/workshop_zone.gd").new(self)
 var corridor_zone := preload("res://sys/corridor_zone.gd").new(self)
 var quest_marks := preload("res://sys/quest_marks.gd").new(self)
 var moon_tokens := preload("res://sys/tokens.gd").new(self)
+var marsh_toys := preload("res://sys/marsh_toys.gd").new(self)
 
 const N := 48
 const WATER := 0
@@ -469,6 +471,7 @@ func _ready() -> void:
 	enemies[1].z = 22.0
 	world_build.build_chests()
 	marsh.build(self)
+	marsh_toys.build()
 	hud_build.village_sign()
 	monsters.spawn_boss()
 	brick_foes.spawn_bird_random() # two brick clapper birds on open dry marsh
@@ -710,6 +713,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.106: 갈대늪에 작은 볼거리 다섯 가지를 더했다. 연못가 손잡이를 돌리면 태엽 오리가 6초 동안 한 바퀴 돌고 3초 쉰다. 개구리 셋은 2칸 안에서 차례로 물에 뛰고, 3초 가만히 서 있으면 한 마리가 돌아온다. 익은 부들 셋은 지나가면 솜 4개를 2.5초 날리고 20초 뒤 다시 익는다. 보리 오두막 곁 갈대피리는 세 음을 불고 0.8초 뒤 먼 곳에서 대답하며 8초 쉰다. 갈대 깔개는 보리를 만난 뒤 살피면 달지기들의 젖은 신 이야기를 두 줄 들려준다",
 	"· v0.1.105: v0.1.105: 사람마다 말소리가 다르다. 높이, 한 음절 길이, 소리결, 몇 글자에 한 번 나는지를 사람마다 따로 정했다. 심지 할아버지는 520 → 150Hz로 낮아지고 초당 5.5번 떨리며 숨소리가 섞이고 세 글자에 한 번 느리게 말한다. 보리 할머니 400 → 330Hz, 다래 할머니 420 → 350Hz도 떨리는 노인 목소리이고, 두솔은 280 → 190Hz의 굵은 가슴소리, 차돌도 가슴소리다. 아이들은 높고 짧은 그대로다.",
 	"· v0.1.104: 작은 정성 열한 가지를 더했다. 장난감 벽돌이 굴러 세 번 닿는 소리, 보리 할머니 앞에서 차 마시기와 풍차 앞에서 바람개비 꺼내기, 기다려 준 주민의 끄덕임, 체력이 가득하면 회복약을 아끼기, 비 그친 뒤 처마 물방울 18개, 달빛이 다 찰 때 낮은 소리, 엄지가 흔들려도 0.92에서 달리고 0.84까지 유지, 표지판을 세 번 읽으면 노을의 한마디, 콩알의 왕관 낙서와 수달 낙서, 풍차를 고치면 도는 마을 바람개비 넷, 늦게 울리는 문종이다.",
 	"· v0.1.103: 큰 이야기 그림이 떠 있는 동안 물결과 노을의 이름, 상태, 막대 두 줄이 그림 위에 겹쳐 그려지던 것을 숨겼다. 두 줄은 이야기 판 아래 층으로 옮겼고, 작은 구석 그림과 그림 없는 대화에서는 그대로 보인다.",
@@ -1587,6 +1591,8 @@ func crown_key() -> void:
 		return
 	if in_marsh() and story_step >= 3 and shore.shore_key():
 		return
+	if in_marsh() and marsh_toys.key(): # the duck's crank, the reed pipes, Bori's mat
+		return
 	if in_cave and cave.post_key():
 		return
 	if cave.shrine_key():
@@ -2243,8 +2249,9 @@ func _process(dt: float) -> void:
 	flash_cd -= dt
 	slowmo -= dt
 	ui.slowmo_tint.visible = slowmo > 0
-	ui.shop_hint.visible = not intro and not shop_open and shop.near_shop()
-	ui.shop_hint.text = touch_words(tr("E  편지 전하기") if doran_q == 2 else tr("E  보리 할머니의 상점"))
+	var toy_hint: String = marsh_toys.hint() if in_marsh() else ""
+	ui.shop_hint.visible = not intro and not shop_open and (shop.near_shop() or toy_hint != "")
+	ui.shop_hint.text = touch_words(toy_hint if toy_hint != "" and not shop.near_shop() else (tr("E  편지 전하기") if doran_q == 2 else tr("E  보리 할머니의 상점")))
 	if shop_open and not shop.near_shop():
 		toggle_shop(false)
 	if key_down(KEY_J) and player.atk_cd <= 0 and not intro and not shop_open:
@@ -2412,6 +2419,7 @@ func _process(dt: float) -> void:
 	errands.update_oar()
 	if in_marsh() and not intro:
 		marsh.update(self)
+		marsh_toys.update(dt)
 	shore.update_shore(dt)
 	marsh.update_flies(self, in_marsh() and is_night())
 	marsh.update_flowers(self, in_marsh() and not intro and is_night() and moon_phase().x >= 0.6)

@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -156,6 +156,37 @@ func wait_for(cond: Callable, sec: float) -> bool:
 		await wait(0.1)
 		t += 0.1
 	return cond.call()
+
+# ---- 갈대늪 장난감 tests (v0.1.106): the world as the marsh has it once Sora has met Bori
+func marsh_world() -> void:
+	main.story_step = maxi(main.story_step, 3)
+	main.close_story()
+	main.in_village = false
+	main.in_hill = false
+	main.in_lake = false
+	main.in_forest = false
+	main.in_garden = false
+	main.in_cave = false
+	main.shop_open = false
+	calm_enemies(true)
+
+# ground a toy may stand on: dry, off the opening walk, clear of Bori's door, not in a tree, a lamp or the cottage
+func marsh_ground_ok(p: Vector2) -> bool:
+	var free := true
+	for r in main.rocks:
+		if not r.has("bush") and Vector2(r.x, r.z).distance_to(p) < r.r:
+			free = false
+	var door := Vector2(main.shop_pos.x, main.shop_pos.z)
+	return main.tile_at(p.x, p.y) != main.WATER and free and main.marsh_toys.lane_dist(p) >= 2.5 and p.distance_to(door) >= 2.8 and p.distance_to(main.START) >= 5.0
+
+# one living foe to a spot, for the "nothing during a fight" checks (calm_enemies parks it again)
+func marsh_foe(at: Vector2) -> bool:
+	for e in main.enemies:
+		if not e.dead and not e.get("boss", false) and not e.get("mole", false) and not e.get("prop", false) and is_instance_valid(e.node):
+			e.x = at.x
+			e.z = at.y
+			return true
+	return false
 
 # ---- 물길 회랑 tests (v0.1.84): the world around the corridor, a room with the state of quest step q, a press of E at a device
 func corr_world() -> void:
@@ -11295,6 +11326,275 @@ func run() -> void:
 		main.in_village = false
 		check("door_bell", early and rang and tone and swings and skipped,
 			"no ring at the moment she steps in=%s rings later (%.2f s) and swings=%s the small sound at the end=%s hangs over the doorway=%s no ring if she left first=%s" % [early, first_at, rang, tone, swings, skipped])
+
+	if want.call("marsh_duck"):
+		# the wind-up duck (v0.1.106): E at the crank on the NW pond's south bank winds it, it swims one circle in 6 s, then
+		# nothing answers for 3 s; never during a story, a fight, or before the crown has been touched
+		marsh_world()
+		var mt: Object = main.marsh_toys
+		var h: Vector2 = mt.duck_handle
+		var rest_at: Vector2 = mt.POND + Vector2.from_angle(mt.duck_a0) * mt.DUCK_R
+		var on_ground: bool = mt.duck != null and h.x >= 0.0 and marsh_ground_ok(h) and h.distance_to(mt.POND) > 3.3 and main.tile_at(rest_at.x, rest_at.y) == main.WATER
+		var runs0: int = mt.duck_runs
+		reset_to(h)
+		main.show_story("", ["||test"])
+		tap(KEY_E)
+		await wait(0.2)
+		var quiet_story: bool = mt.duck_runs == runs0 and mt.hint() == ""
+		main.close_story()
+		var foe_set: bool = marsh_foe(h + Vector2(2.0, 0.0))
+		tap(KEY_E)
+		await wait(0.2)
+		var quiet_fight: bool = foe_set and mt.duck_runs == runs0 and not mt.usable()
+		calm_enemies(true)
+		main.story_step = 1
+		tap(KEY_E)
+		await wait(0.2)
+		var quiet_early: bool = mt.duck_runs == runs0
+		main.close_story() # E at step 1 touches the crown
+		main.story_step = 3
+		reset_to(h)
+		await wait(0.2)
+		var hint_shown: bool = mt.hint() != "" and main.ui.shop_hint.visible and plain(main.ui.shop_hint.text) == mt.hint()
+		main.sfx_log.clear()
+		var t0: float = main.t
+		tap(KEY_E)
+		await wait(0.4)
+		var clicks: int = main.sfx_log.filter(func(s): return s in ["square:1100", "square:1190", "square:1280"]).size()
+		var started: bool = mt.duck_state == "run" and mt.duck_runs == runs0 + 1
+		await wait_for(func(): return mt.duck_t >= 3.0, 5.0)
+		var mid: Vector3 = mt.duck.position
+		var across: float = Vector2(mid.x, mid.z).distance_to(rest_at)
+		tap(KEY_E)
+		await wait(0.1)
+		var busy_ignored: bool = mt.duck_runs == runs0 + 1
+		await wait_for(func(): return mt.duck_state == "cool", 6.0)
+		var loop_s: float = main.t - t0
+		var t_cool: float = main.t
+		var home: float = Vector2(mt.duck.position.x, mt.duck.position.z).distance_to(rest_at)
+		tap(KEY_E)
+		await wait(0.1)
+		var cool_ignored: bool = mt.duck_runs == runs0 + 1 and mt.duck_state == "cool"
+		await wait_for(func(): return mt.duck_state == "rest", 5.0)
+		var cool_s: float = main.t - t_cool
+		calm_enemies(true) # the parked foes walk back toward her in ten seconds
+		tap(KEY_E)
+		await wait(0.2)
+		var again: bool = mt.duck_runs == runs0 + 2
+		check("marsh_duck", on_ground and quiet_story and quiet_fight and quiet_early and hint_shown and clicks == 3 and started and across > 2.5 and busy_ignored \
+			and loop_s > 5.9 and loop_s < 6.4 and home < 0.1 and cool_ignored and cool_s > 2.8 and cool_s < 3.3 and again,
+			"crank at (%.1f, %.1f) on dry free ground off the lane=%s, no run in a story=%s / a fight=%s / before the crown=%s, E hint=%s, crank clicks %d, duck %.1f tiles across at half time, E while running ignored=%s, loop %.2f s, back home %.2f tiles, E in the cooldown ignored=%s, cooldown %.2f s, wound again=%s" \
+			% [h.x, h.y, on_ground, quiet_story, quiet_fight, quiet_early, hint_shown, clicks, across, busy_ignored, loop_s, home, cool_ignored, cool_s, again])
+	if want.call("marsh_frogs"):
+		# three frogs on the pond's bank (v0.1.106): each flees alone when Sora is 2 tiles off (a 0.35 s hop, one after another),
+		# and after 3 s of standing still one peeks back
+		marsh_world()
+		var mt: Object = main.marsh_toys
+		var fr: Array = mt.frogs
+		var grounded: bool = fr.size() == 3
+		var tiny := true
+		for f in fr:
+			grounded = grounded and marsh_ground_ok(f.perch) and main.tile_at(f.land.x, f.land.y) == main.WATER and f.perch.distance_to(mt.POND) < 4.6 and f.perch.distance_to(mt.duck_handle) > 3.0
+			var bx: BoxMesh = f.node.get_child(0).mesh
+			tiny = tiny and f.node.get_child_count() == 3 and is_equal_approx(bx.size.z, 0.25)
+		var f0: Dictionary = fr[0]
+		var out0: Vector2 = (f0.perch - mt.POND).normalized()
+		var flees0: int = mt.frog_flees
+		reset_to(f0.perch + out0 * 3.0)
+		await wait(0.4)
+		var calm: bool = f0.state == "sit" and mt.frog_flees == flees0
+		reset_to(f0.perch + out0 * 1.9)
+		var t_out := -1.0
+		var t_gone := -1.0
+		for k in 120:
+			await get_tree().process_frame
+			if t_out < 0.0 and f0.state == "out":
+				t_out = main.t
+			if f0.state == "gone":
+				t_gone = main.t
+				break
+		var hop_s: float = t_gone - t_out
+		var alone: bool = fr[1].state == "sit" and fr[2].state == "sit" and not f0.node.visible and mt.frog_flees == flees0 + 1
+		var ret0: int = mt.frog_returns
+		reset_to(f0.perch + out0 * 3.0)
+		var t_s: float = main.t
+		await wait(2.3)
+		var none_early: bool = mt.frog_returns == ret0 and f0.state == "gone"
+		await wait_for(func(): return mt.frog_returns == ret0 + 1, 1.5)
+		var still_s: float = main.t - t_s
+		await wait(0.6)
+		var back: bool = f0.state == "sit" and f0.node.visible and Vector2(f0.node.position.x, f0.node.position.z).distance_to(f0.perch) < 0.05
+		# two at once: Sora between the first two, who go one after another; then one comes back per three still seconds
+		var mid: Vector2 = (fr[0].perch + fr[1].perch) / 2.0
+		var both: bool = mid.distance_to(fr[0].perch) < 2.0 and mid.distance_to(fr[1].perch) < 2.0
+		reset_to(mid)
+		var g1 := -1.0
+		var g2 := -1.0
+		for k in 120:
+			await get_tree().process_frame
+			if g1 < 0.0 and fr[0].state == "gone":
+				g1 = main.t
+			if g2 < 0.0 and fr[1].state == "gone":
+				g2 = main.t
+				break
+		var in_turn: bool = g1 > 0.0 and g2 - g1 > 0.08
+		var ret1: int = mt.frog_returns
+		reset_to(mid + (mid - mt.POND).normalized() * 3.2)
+		await wait(2.5)
+		var held: bool = mt.frog_returns == ret1
+		await wait_for(func(): return mt.frog_returns == ret1 + 1, 1.5)
+		var one_gone: bool = fr.filter(func(f): return f.state == "gone").size() == 1
+		await wait(2.0)
+		var one_only: bool = mt.frog_returns == ret1 + 1
+		await wait_for(func(): return mt.frog_returns == ret1 + 2, 2.0)
+		reset_to(main.START)
+		check("marsh_frogs", grounded and tiny and calm and hop_s > 0.3 and hop_s < 0.45 and alone and none_early and still_s > 2.9 and still_s < 3.4 and back \
+			and both and in_turn and held and one_gone and one_only and mt.frog_returns == ret1 + 2,
+			"3 frogs 0.25 long on free bank ground=%s/%s, no flight at 3 tiles=%s, hop %.2f s, the others stay=%s, nothing back before 3 s=%s, a frog back after %.2f s onto its perch=%s, two flee in turn (%.2f s apart)=%s, held=%s, one back per still spell=%s/%s, the second later=%s" \
+			% [grounded, tiny, calm, hop_s, alone, none_early, still_s, back, g2 - g1, in_turn, held, one_gone, one_only, mt.frog_returns == ret1 + 2])
+	if want.call("marsh_fluff"):
+		# three ripe cattail heads off the opening walk (v0.1.106): passing one sheds four of twelve pooled white quads that drift
+		# 2.5 s; the head is ripe again after 20 s
+		marsh_world()
+		var mt: Object = main.marsh_toys
+		var cs: Array = mt.cattails
+		var spot_ok: bool = cs.size() == 3 and mt.fluff.size() == 12
+		var centre := Vector2.ZERO
+		for c in cs:
+			spot_ok = spot_ok and marsh_ground_ok(c.pos)
+			centre += c.pos / 3.0
+		var white := true
+		for q in mt.fluff:
+			var fm: StandardMaterial3D = q.node.material_override
+			white = white and fm.albedo_color.r > 0.95 and fm.albedo_color.g > 0.95 and q.node.mesh is QuadMesh and not q.node.visible
+		var puffs0: int = mt.fluff_puffs
+		reset_to(Vector2(11.5, 20.0)) # on the opening walk
+		await wait(0.3)
+		var lane_quiet: bool = mt.fluff_puffs == puffs0
+		var c0: Dictionary = cs[0]
+		var out0: Vector2 = (c0.pos - centre).normalized()
+		reset_to(c0.pos + out0 * 1.6)
+		await wait(0.3)
+		var far_quiet: bool = mt.fluff_puffs == puffs0
+		reset_to(c0.pos + out0 * 0.8)
+		var t_trig: float = main.t
+		var t_on := -1.0
+		var t_off := -1.0
+		var peak := 0
+		for k in 400:
+			await get_tree().process_frame
+			var live: int = mt.fluff.filter(func(q): return q.t >= 0.0).size()
+			peak = maxi(peak, live)
+			if t_on < 0.0 and live > 0:
+				t_on = main.t
+			if t_on >= 0.0 and live == 0:
+				t_off = main.t
+				break
+		var drift_s: float = t_off - t_on
+		var one_head: bool = mt.fluff_puffs == puffs0 + 1 and not c0.ready and cs[1].ready and cs[2].ready and peak == 4
+		reset_to(main.START)
+		await wait_for(func(): return c0.ready, 22.0)
+		var reset_s: float = main.t - t_trig
+		check("marsh_fluff", spot_ok and white and lane_quiet and far_quiet and one_head and drift_s > 2.4 and drift_s < 2.65 and reset_s > 19.8 and reset_s < 20.5,
+			"3 heads on free ground off the lane=%s, 12 white quads=%s, nothing on the lane=%s / 1.6 tiles off=%s, one pass sheds one head's 4 quads (peak %d)=%s, drift %.2f s, ripe again after %.2f s" \
+			% [spot_ok, white, lane_quiet, far_quiet, peak, one_head, drift_s, reset_s])
+	if want.call("marsh_pipe"):
+		# the reed pipe rack by Bori's cottage (v0.1.106): E plays three breathy notes (the tones cached), a far answer comes
+		# 0.8 s after the first, then 8 s of cooldown; never during a story, a fight, or before the crown has been touched
+		marsh_world()
+		var mt: Object = main.marsh_toys
+		var rk: Vector2 = mt.rack_at
+		var bar: BoxMesh = mt.rack.get_child(2).mesh if mt.rack != null else null
+		var built: bool = mt.rack != null and marsh_ground_ok(rk) and rk.distance_to(main.cottage_at) < 4.5 and is_equal_approx(bar.size.x, 0.7) and mt.pipes.size() == 5
+		var plays0: int = mt.pipe_plays
+		reset_to(rk)
+		main.show_story("", ["||test"])
+		tap(KEY_E)
+		await wait(0.2)
+		var quiet_story: bool = mt.pipe_plays == plays0
+		main.close_story()
+		var foe_set: bool = marsh_foe(rk + Vector2(2.0, 0.0))
+		tap(KEY_E)
+		await wait(0.2)
+		var quiet_fight: bool = foe_set and mt.pipe_plays == plays0 and not mt.usable()
+		calm_enemies(true)
+		main.story_step = 1
+		tap(KEY_E)
+		await wait(0.2)
+		var quiet_early: bool = mt.pipe_plays == plays0
+		main.close_story() # E at step 1 touches the crown
+		main.story_step = 3
+		reset_to(rk)
+		await wait(0.2)
+		var hint_shown: bool = mt.hint() != "" and main.ui.shop_hint.visible and plain(main.ui.shop_hint.text) == mt.hint()
+		main.sfx_log.clear()
+		var t0: float = main.t
+		tap(KEY_E)
+		await wait(1.8)
+		var tm: Array = mt.pipe_times
+		var order: bool = tm.size() == 5
+		var gap: float = tm[3] - tm[0] if order else -1.0
+		var notes: bool = main.sfx_log.has("sine:523") and main.sfx_log.has("sine:659") and main.sfx_log.has("sine:587") and main.sfx_log.has("sine:988") and main.sfx_log.any(func(s): return s.begins_with("step:"))
+		var played: bool = mt.pipe_plays == plays0 + 1
+		var cached: int = main.sfx_cache.size()
+		var cool_s: float = mt.pipe_ready_t - t0
+		tap(KEY_E)
+		await wait(0.2)
+		var cool_ignored: bool = mt.pipe_plays == plays0 + 1 and mt.hint() == ""
+		await wait_for(func(): return main.t >= t0 + 7.6, 8.0)
+		calm_enemies(true)
+		tap(KEY_E)
+		await wait(0.2)
+		var early_ignored: bool = mt.pipe_plays == plays0 + 1
+		await wait_for(func(): return main.t >= t0 + 8.1, 2.0)
+		calm_enemies(true)
+		tap(KEY_E)
+		await wait(1.8)
+		var again: bool = mt.pipe_plays == plays0 + 2 and main.sfx_cache.size() >= cached and main.sound.sfx_stream(523.0, 0.3, "sine", 0.14) == main.sound.sfx_stream(523.0, 0.3, "sine", 0.14)
+		check("marsh_pipe", built and quiet_story and quiet_fight and quiet_early and hint_shown and order and gap > 0.7 and gap < 0.95 and notes and played and cool_s > 7.95 and cool_s < 8.1 \
+			and cool_ignored and early_ignored and again,
+			"rack at (%.1f, %.1f) 0.7 wide, 5 pipes, on free ground by the cottage=%s, no play in a story=%s / a fight=%s / before the crown=%s, E hint=%s, 5 sounds=%s, answer %.2f s after the first note, tones as asked=%s, cooldown %.2f s, E at 3 s ignored=%s, at 7.6 s ignored=%s, played again with the tones cached=%s" \
+			% [rk.x, rk.y, built, quiet_story, quiet_fight, quiet_early, hint_shown, order, gap, notes, cool_s, cool_ignored, early_ignored, again])
+	if want.call("marsh_mat"):
+		# Bori's mat beside the cottage (v0.1.106): E gives her two short lines about the moonkeepers' wet shoes, only once Sora has
+		# met her (story step 3); nothing during another story
+		marsh_world()
+		var mt: Object = main.marsh_toys
+		var at: Vector2 = mt.mat_at
+		var strips := 0
+		var needles := 0
+		if mt.mat_node != null:
+			for b in mt.mat_node.get_children():
+				var bs: Vector3 = (b.mesh as BoxMesh).size
+				if is_equal_approx(bs.x, 0.7) and is_equal_approx(bs.z, 0.12):
+					strips += 1
+				if is_equal_approx(bs.z, 0.26):
+					needles += 1
+		var built: bool = strips == 8 and needles == 1 and marsh_ground_ok(at) and at.distance_to(main.cottage_at) < 4.5
+		var lines: Array = main.STORY.MARSH_MAT
+		var bori_lines: bool = lines.size() == 2 and lines.all(func(l): return String(l).begins_with("보리 할머니|bori|") and String(l).length() < 60) and String(lines[0]).contains("젖은 신")
+		main.story_step = 2
+		reset_to(at)
+		var hint_early: String = mt.hint()
+		tap(KEY_E)
+		await wait(0.3)
+		var quiet_early: bool = not main.story_open and hint_early == ""
+		main.story_step = 3
+		reset_to(at + Vector2(-2.5, 0.0))
+		tap(KEY_E)
+		await wait(0.3)
+		var quiet_far: bool = not main.story_open
+		reset_to(at)
+		await wait(0.2)
+		var hint_shown: bool = mt.hint() != "" and main.ui.shop_hint.visible
+		tap(KEY_E)
+		await wait(0.3)
+		var told: bool = main.story_open and main.ui.story_who.text == "보리 할머니" and main.story_lines.size() == 1 and plain(main.ui.story_text.text).begins_with("그 깔개")
+		var quiet_story: bool = not mt.key() and mt.hint() == ""
+		main.close_story()
+		check("marsh_mat", built and bori_lines and quiet_early and quiet_far and hint_shown and told and quiet_story,
+			"mat at (%.1f, %.1f): 8 strips and 1 needle on free ground beside the cottage=%s, two Bori lines under 60 characters=%s, nothing at step 2=%s / 3 tiles off=%s, E hint=%s, E gives the lines=%s, nothing during a story=%s" \
+			% [at.x, at.y, built, bori_lines, quiet_early, quiet_far, hint_shown, told, quiet_story])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

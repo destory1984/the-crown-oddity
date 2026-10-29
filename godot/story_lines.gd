@@ -676,6 +676,12 @@ const MOONFLOWER_FIRST := [
 	"소라|calm|보리 할머니가 달꽃 세 송이면 차를 끓여 주신다고 하셨지. 늪 어딘가에 두 송이가 더 있을 거야.",
 ]
 
+# the reed mat by the cottage (v0.1.106): two short lines, only after Sora has met Bori
+const MARSH_MAT := [
+	"보리 할머니|bori|그 깔개 말이냐? 달지기들이 늪에서 돌아오면 젖은 신을 올려 두던 자리란다.",
+	"보리 할머니|bori|올이 닳을 때마다 내가 새 갈대로 기워 놓았지. 마른 신으로 갈아 신고 가렴.",
+]
+
 const MOON_TEA := [
 	"보리 할머니|bori|어머나, 달꽃이구나! 이걸 세 송이나 찾았어?",
 	"||할머니는 달꽃을 주전자에 띄우고 오래 우렸다. 은은한 단내가 오두막에 퍼졌다.",
