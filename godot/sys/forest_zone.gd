@@ -162,7 +162,31 @@ func cage_hit(e: Dictionary) -> void:
 		m.moon_tokens.refresh_quest() # the gate line counts them
 	m.save_game()
 
+# once Noeul has joined, walking slowly across the clearing where she fought him makes him bow his head a little, without
+# a word and without a swing (delight idea 18); the first such crossing only, per run of the game
+var noeul_nods := 0 # bows made (autoplay d18_noeul_bow)
+var noeul_bowed := false
+
+func noeul_bow() -> void:
+	if noeul_bowed or m.mate2 == null or not m.mate2.visible or m.forest_q < 3 or m.story_open or m.intro:
+		return
+	var me := Vector2(m.player.x, m.player.z)
+	var slow: bool = Vector2(m.player.vx, m.player.vz).length() > 0.3 and Vector2(m.player.vx, m.player.vz).length() < 4.2
+	if not slow or me.distance_to(m.forest.marks.N) > 2.5 or m.mate2.position.distance_to(Vector3(me.x, 0, me.y)) > 4.0:
+		return
+	if m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x, e.z).distance_to(me) < 7.0):
+		return
+	noeul_bowed = true
+	noeul_nods += 1
+	var spr: Sprite3D = m.mate2.get_child(0)
+	var y0 := spr.offset.y
+	var tw := spr.create_tween()
+	tw.tween_property(spr, "offset:y", y0 - 14.0, 0.25).set_trans(Tween.TRANS_SINE)
+	tw.tween_interval(0.25)
+	tw.tween_property(spr, "offset:y", y0, 0.3).set_trans(Tween.TRANS_SINE)
+
 func update_forest() -> void:
+	noeul_bow()
 	m.forest.update_looks(Vector2(m.player.x, m.player.z), m.is_night())
 	update_hollow()
 	update_oak()

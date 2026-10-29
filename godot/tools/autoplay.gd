@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -11595,6 +11595,385 @@ func run() -> void:
 		check("marsh_mat", built and bori_lines and quiet_early and quiet_far and hint_shown and told and quiet_story,
 			"mat at (%.1f, %.1f): 8 strips and 1 needle on free ground beside the cottage=%s, two Bori lines under 60 characters=%s, nothing at step 2=%s / 3 tiles off=%s, E hint=%s, E gives the lines=%s, nothing during a story=%s" \
 			% [at.x, at.y, built, bori_lines, quiet_early, quiet_far, hint_shown, told, quiet_story])
+
+	# ---- v0.1.107: small delights from shots/plans/delight100.md (ideas 1, 4, 7, 8, 9, 10, 14, 16, 18, 19)
+	if want.call("d1_leaves"):
+		# the leaves in the low basin follow Sora round it a beat late, the same way; far away or in the full basin they stay (idea 1)
+		var v1: Object = main.village
+		var was_in: bool = main.in_village
+		var was_wet: bool = v1.fountain_wet
+		main.in_village = true
+		main.close_story()
+		v1.fountain_set(false)
+		var fa1: Vector2 = v1.fountain_at()
+		var goal0: float = v1.leaf_goal
+		reset_to(fa1 + Vector2(8.0, 0.0))
+		v1.life_update(main, 0.05)
+		v1.life_update(main, 0.05)
+		var far_quiet: bool = is_equal_approx(v1.leaf_goal, goal0)
+		reset_to(fa1 + Vector2(2.0, 0.0))
+		v1.life_update(main, 0.05) # her angle is noted
+		var spin0: float = v1.leaf_spin
+		var l0: Dictionary = v1.leaves[0]
+		var ang_before: float = Vector2(l0.node.position.x, l0.node.position.z).angle()
+		for k in range(1, 21): # a turn of one radian round the basin
+			reset_to(fa1 + Vector2(cos(k * 0.05), sin(k * 0.05)) * 2.0)
+			v1.life_update(main, 0.05)
+		var gone: float = v1.leaf_goal - goal0
+		var late: bool = v1.leaf_spin > spin0 and v1.leaf_spin < v1.leaf_goal - 0.1 # moving, but behind her
+		for k in 40:
+			v1.life_update(main, 0.1)
+		var caught: bool = absf(v1.leaf_spin - v1.leaf_goal) < 0.02
+		var ang_after: float = Vector2(l0.node.position.x, l0.node.position.z).angle()
+		var same_way: bool = absf(angle_difference(ang_before, ang_after) - gone) < 0.05 and gone > 0.8
+		var g1: float = v1.leaf_goal
+		v1.fountain_set(true) # the full basin has no leaves to move
+		reset_to(fa1 + Vector2(2.0, 0.0))
+		v1.life_update(main, 0.05)
+		reset_to(fa1 + Vector2(cos(0.5), sin(0.5)) * 2.0)
+		v1.life_update(main, 0.05)
+		var full_quiet: bool = is_equal_approx(v1.leaf_goal, g1)
+		v1.fountain_set(was_wet)
+		main.in_village = was_in
+		check("d1_leaves", far_quiet and late and caught and same_way and full_quiet and v1.leaves.size() == 3,
+			"far from the basin no change=%s she goes round %.2f rad, the leaves follow behind=%s catch up=%s they turn the same way=%s full basin no change=%s 3 leaves=%s" % [far_quiet, gone, late, caught, same_way, full_quiet, v1.leaves.size() == 3])
+	if want.call("d4_sign_sway"):
+		# the east signpost's board sways in the wind and calms to a fifth while Sora stands still before it facing it (idea 4)
+		var hb4: Object = main.hud_build
+		main.close_story()
+		var at4: Vector2 = hb4.SIGN_AT
+		reset_to(at4 + Vector2(6.0, 0.0))
+		main.idle_t = 5.0
+		main.player.face = Vector2(0, 1)
+		for k in 30:
+			hb4.update_sign(0.1)
+		var far_full: bool = is_equal_approx(hb4.sign_sway, 1.0)
+		var peak_far := 0.0
+		for k in 60:
+			main.t += 0.1
+			hb4.update_sign(0.1)
+			peak_far = maxf(peak_far, absf(hb4.sign_pivot.rotation.z))
+		reset_to(at4 + Vector2(0.0, 1.4))
+		main.player.face = Vector2(0, -1) # towards the board
+		for k in 30:
+			hb4.update_sign(0.1)
+		var calmed: bool = hb4.sign_sway < 0.25
+		var peak_near := 0.0
+		for k in 60:
+			main.t += 0.1
+			hb4.update_sign(0.1)
+			peak_near = maxf(peak_near, absf(hb4.sign_pivot.rotation.z))
+		main.player.face = Vector2(0, 1) # turned away: the sway comes back
+		for k in 30:
+			hb4.update_sign(0.1)
+		var back_away: bool = hb4.sign_sway > 0.95
+		main.player.face = Vector2(0, -1)
+		main.idle_t = 0.0 # walking: no calming
+		for k in 30:
+			hb4.update_sign(0.1)
+		var walking: bool = hb4.sign_sway > 0.95
+		check("d4_sign_sway", far_full and calmed and back_away and walking and peak_far > 0.08 and peak_near < peak_far * 0.3,
+			"full sway far away=%s calmed facing it still=%s sways again when turned away=%s and when walking=%s peak far %.3f near %.3f rad" % [far_full, calmed, back_away, walking, peak_far, peak_near])
+	if want.call("d7_shop_flag"):
+		# the miller's flag by the big windmill is still until the windmill has turned for 1.2 s, then ripples (idea 7)
+		var hz7: Object = main.hill_zone
+		var mq7: int = main.mill_q
+		var segs7: Array = hz7.shop_flag.get_children()
+		var wave := func() -> float:
+			var w := 0.0
+			for sg in segs7:
+				w = maxf(w, absf(sg.position.z))
+			return w
+		main.mill_q = 0
+		hz7.shop_flag_t = 0.0
+		hz7.update_shop_flag(1.0)
+		var idle7: bool = wave.call() == 0.0
+		main.mill_q = 3
+		hz7.update_shop_flag(0.5)
+		var early7: bool = wave.call() == 0.0 and hz7.shop_flag_t < hz7.SHOP_FLAG_LAG
+		main.t = 0.5
+		hz7.update_shop_flag(1.0)
+		var w7: float = wave.call()
+		var waves: bool = w7 > 0.01 and segs7.size() == 4 and absf(segs7[3].position.z) != absf(segs7[0].position.z)
+		main.mill_q = 2 # the windmill stands again: still at once, and the timer starts over
+		hz7.update_shop_flag(0.1)
+		var stops: bool = wave.call() == 0.0 and hz7.shop_flag_t == 0.0
+		var fp: Vector3 = hz7.shop_flag.get_parent().position
+		var beside: bool = Vector2(fp.x, fp.z).distance_to(main.hill.south_marks.Q) < 3.0 and main.walkable(fp.x, fp.z)
+		main.mill_q = mq7
+		check("d7_shop_flag", idle7 and early7 and waves and stops and beside,
+			"still while the windmill is stopped=%s still for the first 0.5 s of turning=%s ripples after 1.5 s (%.3f)=%s stops with it=%s beside the windmill on free ground=%s" % [idle7, early7, w7, waves, stops, beside])
+	if want.call("d8_palm"):
+		# a lantern lit by the bracelet leaves a palm print on the glass face towards Sora for two seconds; putting a lamp out leaves none (idea 8)
+		var wb8: Object = main.world_build
+		var lamp8: OmniLight3D = main.lanterns.filter(func(l): return l.has_meta("glass") and not l.get_meta("dark", false) and l != main.dark_lamp and l.position.x < 50.0)[0]
+		var glass8: MeshInstance3D = lamp8.get_meta("glass")
+		main.close_story()
+		reset_to(Vector2(lamp8.position.x - 0.3, lamp8.position.z + 1.0))
+		var pm0: int = wb8.palm_marks
+		main.toggle_lantern() # out
+		var none_off: bool = wb8.palm_marks == pm0
+		main.toggle_lantern() # lit again
+		var one_on: bool = wb8.palm_marks == pm0 + 1
+		var pr: Node3D = wb8.palm_last
+		var on_glass: bool = pr.get_parent() == glass8 and absf(pr.position.z - 0.113) < 0.001 and absf(pr.position.x) < 0.001 # the south face, towards her
+		var boxes: Array = pr.get_children()
+		var faint: bool = boxes.size() == 6 and (boxes[0].material_override as StandardMaterial3D).albedo_color.a < 0.6
+		await wait(1.0)
+		var still_there: bool = is_instance_valid(pr)
+		await wait(1.4)
+		var gone: bool = not is_instance_valid(pr)
+		var vl: OmniLight3D = main.village_lamps()[0]
+		wb8.palm_mark(vl.get_meta("glass"))
+		var village_ok: bool = wb8.palm_marks == pm0 + 2 and wb8.palm_last.get_parent() == vl.get_meta("glass")
+		wb8.palm_last.queue_free()
+		check("d8_palm", none_off and one_on and on_glass and faint and still_there and gone and village_ok,
+			"no print when a lamp goes out=%s one when lit=%s on the glass face towards her=%s 6 faint boxes=%s there at 1 s=%s gone by 2.4 s=%s a village lamp too=%s" % [none_off, one_on, on_glass, faint, still_there, gone, village_ok])
+	if want.call("d9_rope"):
+		# the rope strips along each bridge dip a little when Sora steps onto a deck end and swing back; nothing in the middle, nothing near a monster (idea 9)
+		var wb9: Object = main.world_build
+		var b9: Dictionary = main.bridges[0]
+		var rp: Dictionary = wb9.ropes[0]
+		var mid: Node3D = rp.segs[3]
+		var base_y: float = mid.position.y
+		var keep9: Array = main.enemies
+		main.enemies = []
+		main.close_story()
+		var d0: int = wb9.rope_dips
+		reset_to(Vector2((b9.a + b9.b) / 2.0, b9.z + 0.5))
+		wb9.update_ropes()
+		var mid_quiet: bool = wb9.rope_dips == d0
+		reset_to(Vector2(b9.a, b9.z + 0.5))
+		wb9.update_ropes()
+		wb9.update_ropes() # standing on it: one dip, not two
+		var one: bool = wb9.rope_dips == d0 + 1
+		await wait(0.3)
+		var dipped: bool = mid.position.y < base_y - 0.03
+		await wait(1.2)
+		var back: bool = absf(mid.position.y - base_y) < 0.005
+		var deck_fixed: bool = main.walkable(b9.a + 0.5, b9.z + 0.5)
+		reset_to(Vector2(b9.a - 3.0, b9.z + 0.5))
+		wb9.update_ropes()
+		main.enemies = [{"x": float(b9.b), "z": b9.z + 0.5, "dead": false}]
+		reset_to(Vector2(b9.b, b9.z + 0.5))
+		wb9.update_ropes()
+		var foe_quiet: bool = wb9.rope_dips == d0 + 1
+		main.enemies = []
+		reset_to(Vector2(b9.b - 3.0, b9.z + 0.5))
+		wb9.update_ropes()
+		reset_to(Vector2(b9.b, b9.z + 0.5))
+		wb9.update_ropes()
+		var other_end: bool = wb9.rope_dips == d0 + 2
+		main.enemies = keep9
+		await wait(1.2)
+		check("d9_rope", mid_quiet and one and dipped and back and deck_fixed and foe_quiet and other_end and wb9.ropes.size() >= 3,
+			"nothing mid-deck=%s one dip at the end=%s rope sags=%s back=%s deck still walkable=%s nothing with a monster near=%s the other end dips=%s ropes on %d bridges" % [mid_quiet, one, dipped, back, deck_fixed, foe_quiet, other_end, wb9.ropes.size()])
+	if want.call("d10_empty_chest"):
+		# E at a chest already opened only stirs dust and shows the empty floor: no gold, no potion, the chest stays open, a 1.5 s pause between (idea 10)
+		var wb10: Object = main.world_build
+		var c10: Dictionary = main.chests[0]
+		var open0: bool = c10.open
+		main.close_story()
+		c10.open = true
+		var gold0: int = main.player.gold
+		var pots0: int = main.player.pots
+		reset_to(Vector2(c10.x, c10.z))
+		wb10.chest_peek_t = -10.0
+		var p0: int = wb10.chest_peeks
+		main.interact() # the end of the E key
+		var peeked: bool = wb10.chest_peeks == p0 + 1
+		var nothing: bool = main.player.gold == gold0 and main.player.pots == pots0 and c10.open
+		main.interact()
+		var paused: bool = wb10.chest_peeks == p0 + 1
+		wb10.chest_peek_t = -10.0
+		reset_to(Vector2(c10.x + 4.0, c10.z))
+		var far10: bool = not wb10.chest_peek() and wb10.chest_peeks == p0 + 1
+		c10.open = false # a shut chest is not a peek
+		reset_to(Vector2(c10.x, c10.z + 3.0))
+		var shut: bool = not wb10.chest_peek()
+		c10.open = open0
+		check("d10_empty_chest", peeked and nothing and paused and far10 and shut,
+			"E at an opened chest peeks once=%s no gold or potion, still open=%s a second E within 1.5 s is quiet=%s far away=%s a shut chest is no peek=%s" % [peeked, nothing, paused, far10, shut])
+	if want.call("d14_rest_more"):
+		# 3 s after the moon light fills, still by the lantern with Mulgyeol, he says it is full but to rest a little longer; moving, a monster, no Mulgyeol or leaving the lantern stops it (idea 14)
+		var hb14: Object = main.hud_build
+		main.join_mate()
+		main.close_story()
+		var lamp14 = main.lanterns.filter(func(l): return l.position.x > 130.0 and not l.get_meta("dark", false))[0]
+		var keep14: Array = main.enemies
+		main.enemies = []
+		reset_to(Vector2(lamp14.position.x + 0.4, lamp14.position.z + 1.0))
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		var s0: int = hb14.full_says
+		var b14: int = main.bubbles_said
+		hb14.full_say_t = hb14.FULL_SAY_DELAY
+		hb14.update_full_say(1.0)
+		hb14.update_full_say(1.0)
+		var early14: bool = hb14.full_says == s0
+		hb14.update_full_say(1.5)
+		var said: bool = hb14.full_says == s0 + 1 and main.bubbles_said == b14 + 1
+		hb14.update_full_say(5.0)
+		var once14: bool = hb14.full_says == s0 + 1
+		hb14.full_say_t = 3.0 # she walks off
+		main.player.vx = 2.0
+		hb14.update_full_say(5.0)
+		main.player.vx = 0.0
+		var moved14: bool = hb14.full_says == s0 + 1 and hb14.full_say_t < 0.0
+		hb14.full_say_t = 3.0 # a monster comes
+		main.enemies = [{"x": main.player.x + 2.0, "z": main.player.z, "dead": false}]
+		hb14.update_full_say(5.0)
+		var foe14: bool = hb14.full_says == s0 + 1
+		main.enemies = []
+		var mate14 = main.mate
+		main.mate = null
+		hb14.full_say_t = 3.0
+		hb14.update_full_say(5.0)
+		main.mate = mate14
+		var alone14: bool = hb14.full_says == s0 + 1
+		reset_to(Vector2(lamp14.position.x + 6.0, lamp14.position.z + 1.0)) # away from the lantern
+		hb14.full_say_t = 3.0
+		hb14.update_full_say(5.0)
+		var away14: bool = hb14.full_says == s0 + 1
+		main.enemies = keep14
+		check("d14_rest_more", early14 and said and once14 and moved14 and foe14 and alone14 and away14,
+			"quiet for the first 2 s=%s says it once at 3 s=%s not again=%s moving cancels=%s a monster cancels=%s without Mulgyeol=%s away from the lantern=%s" % [early14, said, once14, moved14, foe14, alone14, away14])
+	if want.call("d16_scenic"):
+		# stopping at a hill view for the first time turns both companions to face it; it ends when she moves and does not return at the same view (idea 16)
+		var hz16: Object = main.hill_zone
+		var was_hill: bool = main.in_hill
+		main.in_hill = true
+		main.join_mate()
+		main.join_noeul()
+		main.close_story()
+		calm_enemies(true)
+		hz16.scenic_seen.clear()
+		hz16.scenic_at = -1
+		var view: Dictionary = hz16.SCENIC[0]
+		reset_to(view.at + Vector2(0.0, 0.5))
+		main.snap_mates()
+		await wait(2.0)
+		var took: bool = hz16.scenic_at == 0 and main.mates.scenic_dir == view.look
+		var left16: bool = main.screen_left(view.look)
+		var n_face: bool = main.mate2.get_child(0).flip_h == left16
+		var m_face: bool = main.mate.get_child(0).flip_h == (not left16)
+		reset_to(view.at + Vector2(4.0, 0.0))
+		await wait(0.3)
+		var ended: bool = hz16.scenic_at == -1 and main.mates.scenic_dir == Vector2.ZERO
+		reset_to(view.at)
+		await wait(2.0)
+		var not_again: bool = hz16.scenic_at == -1 and main.mates.scenic_dir == Vector2.ZERO
+		var view2: Dictionary = hz16.SCENIC[1]
+		reset_to(view2.at)
+		await wait(2.0)
+		var second: bool = hz16.scenic_at == 1 and main.mates.scenic_dir == view2.look
+		reset_to(Vector2(view2.at.x + 4.0, view2.at.y - 4.0))
+		await wait(0.3)
+		hz16.scenic_seen.clear() # a monster close by: no view is taken in
+		main.spawn_enemy(view.at + Vector2(2.0, 0.0))
+		var foe_e: Dictionary = main.enemies[main.enemies.size() - 1]
+		reset_to(view.at)
+		await wait(1.5)
+		var foe16: bool = hz16.scenic_at == -1
+		foe_e.node.queue_free()
+		main.enemies.erase(foe_e)
+		calm_enemies(false)
+		reset_to(view.at + Vector2(5.0, 5.0))
+		await wait(0.3)
+		main.in_hill = was_hill
+		check("d16_scenic", took and n_face and m_face and ended and not_again and second and foe16,
+			"the first stop takes the view in=%s Noeul faces it=%s Mulgyeol faces it=%s ends when she moves=%s not again at the same view=%s the second view works=%s no monster near=%s" % [took, n_face, m_face, ended, not_again, second, foe16])
+	if want.call("d18_noeul_bow"):
+		# once Noeul has joined, the first slow walk over the old clearing makes him bow his head (a 14 px dip and back); running, standing, far off, a monster near, or before he joins for good: nothing (idea 18)
+		var fz: Object = main.forest_zone
+		var fq: int = main.forest_q
+		main.join_noeul()
+		main.forest_q = 3
+		main.close_story()
+		main.intro = false
+		var keep18: Array = main.enemies
+		main.enemies = []
+		var N: Vector2 = main.forest.marks.N
+		reset_to(N)
+		main.mate2.visible = true
+		main.mate2.position = Vector3(N.x + 0.8, 0.0, N.y)
+		var spr18: Sprite3D = main.mate2.get_child(0)
+		var y18: float = spr18.offset.y
+		var n0: int = fz.noeul_nods
+		fz.noeul_bowed = false
+		main.player.vx = 6.0 # running
+		fz.noeul_bow()
+		var run_quiet: bool = fz.noeul_nods == n0
+		main.player.vx = 0.0 # standing
+		fz.noeul_bow()
+		var stand_quiet: bool = fz.noeul_nods == n0
+		main.player.vx = 3.6
+		reset_to(N + Vector2(5.0, 0.0))
+		main.mate2.position = Vector3(N.x + 5.8, 0.0, N.y)
+		fz.noeul_bow()
+		var far_quiet18: bool = fz.noeul_nods == n0
+		reset_to(N)
+		main.mate2.position = Vector3(N.x + 0.8, 0.0, N.y)
+		main.enemies = [{"x": N.x + 3.0, "z": N.y, "dead": false}]
+		fz.noeul_bow()
+		var foe18: bool = fz.noeul_nods == n0
+		main.enemies = []
+		main.forest_q = 2 # before he has joined for good
+		fz.noeul_bow()
+		var early18: bool = fz.noeul_nods == n0
+		main.forest_q = 3
+		fz.noeul_bow()
+		var bowed: bool = fz.noeul_nods == n0 + 1
+		fz.noeul_bow() # only once
+		var once18: bool = fz.noeul_nods == n0 + 1
+		await wait(0.3)
+		var dip: bool = spr18.offset.y < y18 - 10.0
+		await wait(1.0)
+		var up: bool = is_equal_approx(spr18.offset.y, y18)
+		main.enemies = keep18
+		main.forest_q = fq
+		main.player.vx = 0.0
+		check("d18_noeul_bow", run_quiet and stand_quiet and far_quiet18 and foe18 and early18 and bowed and once18 and dip and up,
+			"running=%s standing=%s far off=%s monster near=%s before he joined for good=%s bows on a slow walk=%s once=%s dips 14 px=%s and comes up=%s" % [run_quiet, stand_quiet, far_quiet18, foe18, early18, bowed, once18, dip, up])
+	if want.call("d19_listened"):
+		# standing quite still through a light rest talk earns Mulgyeol a small thanks after the last line, once in 120 s; moving, a story talk or a hush earn none (idea 19)
+		var ch19: Object = main.chatter
+		main.join_mate()
+		main.close_story()
+		main.in_house = -1
+		calm_enemies(true)
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		var talk19: Array = [["mulgyeol", "잠깐 쉬자."]]
+		await wait(0.5)
+		ch19.listen_last = -1000.0
+		var th0: int = ch19.listen_thanks
+		var bb0: int = main.bubbles_said
+		ch19.rest_talk(talk19, true)
+		await wait(3.4)
+		var thanked: bool = ch19.listen_thanks == th0 + 1 and main.bubbles_said == bb0 + 2
+		ch19.rest_talk(talk19, true) # within the 120 s
+		await wait(3.4)
+		var gap_ok: bool = ch19.listen_thanks == th0 + 1
+		ch19.listen_last = -1000.0
+		ch19.rest_talk(talk19, true)
+		await wait(1.0)
+		main.chat_t = 0.0 # she stirred meanwhile
+		await wait(2.6)
+		var moved19: bool = ch19.listen_thanks == th0 + 1
+		await wait(0.2)
+		ch19.listen_last = -1000.0
+		ch19.rest_talk(talk19) # a story talk is not light
+		await wait(3.4)
+		var story19: bool = ch19.listen_thanks == th0 + 1
+		ch19.rest_talk(talk19, true)
+		await wait(1.0)
+		ch19.hush_talk() # a monster hushed it
+		await wait(2.6)
+		var hush19: bool = ch19.listen_thanks == th0 + 1
+		calm_enemies(false)
+		check("d19_listened", thanked and gap_ok and moved19 and story19 and hush19,
+			"thanks after a still light talk=%s not again within 120 s=%s none if she stirred=%s none after a story talk=%s none if hushed=%s" % [thanked, gap_ok, moved19, story19, hush19])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

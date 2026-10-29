@@ -356,6 +356,7 @@ func light_village_lamp(d: Dictionary) -> void:
 	d.glass.material_override = d.glass.get_meta("lit_mat")
 	m.burst(d.light.position, Color("#ffc46a"), 24, 2.5)
 	m.burst(Vector3(m.player.x, 1.6, m.player.z), Color("#9fd4ff"), 14, 1.5)
+	m.world_build.palm_mark(d.glass)
 	m.sfx(523, 0.4, "sine", 0.3, 300)
 	var n: int = m.village.lit_count()
 	if n >= 3:

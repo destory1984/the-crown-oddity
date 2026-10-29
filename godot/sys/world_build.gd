@@ -202,6 +202,50 @@ func build_terrain() -> void:
 	var post_mat := m.mat_color(Color("#3b2a1e"))
 	for b in m.bridges:
 		lego_deck(b.a, b.b, b.z)
+		bridge_ropes(b)
+
+# cosmetic rope strips hung along each deck's outer sides; they dip a little when Sora steps on an end of the deck and
+# swing back (delight idea 9). The deck, its walls and the tiles stay as they were.
+const ROPE_SEGS := 8
+var ropes: Array = [] # [{"b": bridge, "segs": [MeshInstance3D], "inside": bool, "tween": Tween}]
+var rope_dips := 0 # dips started (autoplay d9_rope)
+
+func bridge_ropes(b: Dictionary) -> void:
+	var length := float(b.b - b.a + 3)
+	var mat := m.mat_color(Color("#b89a62"))
+	var segs: Array = []
+	for side in [-1.12, 1.12]:
+		for i in ROPE_SEGS:
+			var w := length / ROPE_SEGS
+			var seg := box(Vector3(w, 0.04, 0.04), mat)
+			seg.position = Vector3((b.a + b.b) / 2.0 - length / 2.0 + w * (i + 0.5), 0.0, b.z + 0.5 + side)
+			seg.set_meta("frac", (i + 0.5) / ROPE_SEGS)
+			m.add_child(seg)
+			segs.append(seg)
+	var r := {"b": b, "segs": segs, "inside": false, "tween": null, "sag": 0.0}
+	ropes.append(r)
+	rope_set(r, 0.0)
+
+func rope_set(r: Dictionary, k: float) -> void: # k 0 = hanging as built, 1 = dipped
+	r.sag = k
+	for seg in r.segs:
+		var f: float = seg.get_meta("frac")
+		seg.position.y = 0.66 - sin(f * PI) * (0.05 + 0.09 * k)
+
+func update_ropes() -> void:
+	var safe: bool = not m.story_open and not m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 6.0)
+	for r in ropes:
+		var b: Dictionary = r.b
+		var on_end: bool = m.player.z > b.z - 0.5 and m.player.z < b.z + 1.5 and (absf(m.player.x - b.a) < 0.9 or absf(m.player.x - b.b) < 0.9)
+		if on_end and not r.inside and safe:
+			rope_dips += 1
+			if r.tween != null:
+				r.tween.kill()
+			var tw := m.create_tween()
+			r.tween = tw
+			tw.tween_method(func(k: float): rope_set(r, k), r.sag, 1.0, 0.3)
+			tw.tween_method(func(k: float): rope_set(r, k), 1.0, 0.0, 0.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		r.inside = on_end
 
 func lego_brick(g: Node3D, size: Vector3, pos: Vector3, ci: int) -> void:
 	if m.lego_mats.is_empty():
@@ -717,6 +761,37 @@ func lantern(x: float, z: float, post_mat: Material, glass: Material) -> void:
 	l.set_meta("glass", lamp)
 	m.lanterns.append(l)
 
+# a lantern lit with the bracelet leaves a faint palm print on the glass side facing Sora, for two seconds (delight idea 8)
+var palm_marks := 0 # prints made (autoplay d8_palm)
+var palm_last: Node3D # the latest print
+
+func palm_mark(glass: MeshInstance3D) -> void:
+	var to := Vector2(m.player.x - glass.position.x, m.player.z - glass.position.z)
+	var out := Vector3(signf(to.x), 0, 0) if absf(to.x) >= absf(to.y) else Vector3(0, 0, signf(to.y)) # the glass face turned to her
+	if out == Vector3.ZERO:
+		out = Vector3(0, 0, 1)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 0.92, 0.7, 0.55)
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var g := Node3D.new()
+	g.position = out * 0.113 + Vector3(0, -0.02, 0)
+	g.rotation.y = atan2(out.x, out.z)
+	var parts := [[Vector3(0.09, 0.1, 0.006), Vector3(0, -0.02, 0)], [Vector3(0.02, 0.06, 0.006), Vector3(-0.036, 0.06, 0)],
+		[Vector3(0.02, 0.07, 0.006), Vector3(-0.012, 0.065, 0)], [Vector3(0.02, 0.07, 0.006), Vector3(0.012, 0.065, 0)],
+		[Vector3(0.02, 0.06, 0.006), Vector3(0.036, 0.06, 0)], [Vector3(0.05, 0.02, 0.006), Vector3(0.06, -0.01, 0)]] # palm, four fingers, thumb
+	for pt in parts:
+		var b := box(pt[0], mat)
+		b.position = pt[1]
+		g.add_child(b)
+	glass.add_child(g)
+	palm_marks += 1
+	palm_last = g
+	var tw := g.create_tween()
+	tw.tween_interval(1.5)
+	tw.tween_property(mat, "albedo_color:a", 0.0, 0.5)
+	tw.tween_callback(g.queue_free)
+
 # a small cottage west of the start: plaster walls, shingled gable roof,
 # stone chimney, wooden door, a warm window and a lantern by the door
 func build_cottage() -> void:
@@ -909,6 +984,23 @@ func chest_textures() -> void:
 		m.px(img, 7, 10, 2, 1, Color("#d9b04a")))
 	m.chest_open_tex = open_tex
 	m.chest_shut_tex = tex
+
+# E at a chest she has already opened: only the dust in the lid stirs and the empty floor shows; no loot is rolled (delight idea 10)
+var chest_peeks := 0 # peeks shown (autoplay d10_empty_chest)
+var chest_peek_t := -10.0
+
+func chest_peek() -> bool:
+	if m.t - chest_peek_t < 1.5:
+		return false
+	for c in m.chests:
+		if c.open and Vector2(c.x - m.player.x, c.z - m.player.z).length() < 1.5:
+			chest_peek_t = m.t
+			chest_peeks += 1
+			m.burst(Vector3(c.x, m.height_at(c.x, c.z) + 0.5, c.z), Color("#c8b898"), 6, 0.6)
+			m.sfx(196, 0.08, "triangle", 0.05, -40.0)
+			m.toast(tr("뚜껑 안은 비었고 먼지만 날린다"))
+			return true
+	return false
 
 func build_chests() -> void:
 	var tex: Texture2D = m.chest_shut_tex

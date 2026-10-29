@@ -761,7 +761,8 @@ func build_fountain(m: Node) -> void:
 	for k in 3: # leaves floating while the water is low
 		var a: float = m.rnd(0, TAU)
 		var d: float = m.rnd(0.3, 0.6)
-		fountain_part(fountain_low, fountain_box(Vector3(0.12, 0.015, 0.07)), leaf, Vector3(cos(a) * d, top + 0.05, sin(a) * d), m.rnd(0, PI))
+		var lf: MeshInstance3D = fountain_part(fountain_low, fountain_box(Vector3(0.12, 0.015, 0.07)), leaf, Vector3(cos(a) * d, top + 0.05, sin(a) * d), m.rnd(0, PI))
+		leaves.append({"node": lf, "a": a, "d": d, "rot": lf.rotation.y})
 	fountain_water = fountain_part(g, fountain_cyl(0.79, 0.03), water, Vector3(0, top + 0.03, 0), PI / 8.0) # the basin's water
 	fountain_splash = fountain_drops(g, Vector3(0, top + 0.08, 0), Vector3.UP, 36, 2.2, 0.6, 0.03, 50.0)
 	fountain_emitters.erase(fountain_splash) # a one-shot burst: nothing to stop
@@ -1054,7 +1055,35 @@ func pinwheel_turning(m: Node, i: int) -> bool:
 		return m.hill.mills.size() > i and bool(m.hill.mills[i].turning)
 	return m.mill_q >= 3
 
+# the floating leaves in the low basin drift round after Sora a beat late when she circles it (delight idea 1)
+const LEAF_RING := Vector2(0.9, 3.2) # she must be this far from the middle to count as walking its edge
+var leaves: Array = [] # [{"node", "a", "d", "rot"}]
+var leaf_spin := 0.0 # how far the leaves have turned
+var leaf_goal := 0.0 # how far Sora has gone round
+var leaf_prev := INF # her angle round the fountain last frame
+
+func leaves_update(m: Node, dt: float) -> void:
+	var rel := Vector2(m.player.x, m.player.z) - fountain_at()
+	var on_edge: bool = fountain_low.visible and rel.length() > LEAF_RING.x and rel.length() < LEAF_RING.y and not m.story_open
+	if on_edge:
+		var ang := rel.angle()
+		if leaf_prev != INF:
+			var dl := angle_difference(leaf_prev, ang)
+			if absf(dl) < 0.6: # a real step round, not a jump
+				leaf_goal += dl
+		leaf_prev = ang
+	else:
+		leaf_prev = INF
+	leaf_spin = lerpf(leaf_spin, leaf_goal, minf(1.0, dt * 2.2)) # the beat behind her
+	for lf in leaves:
+		var a: float = lf.a + leaf_spin
+		var nd: MeshInstance3D = lf.node
+		nd.position.x = cos(a) * lf.d
+		nd.position.z = sin(a) * lf.d
+		nd.rotation.y = lf.rot - leaf_spin
+
 func life_update(m: Node, dt: float) -> void:
+	leaves_update(m, dt)
 	if doodle_crown != null:
 		doodle_crown.visible = m.kid_q >= 3
 		doodle_otter.visible = m.mul_q >= 1 or m.mate != null

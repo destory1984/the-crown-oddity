@@ -11,6 +11,14 @@ const WINDRUN_STEP := 2.0 # each missed run adds this many seconds to the next, 
 const WINDRUN_MAX := 18.0
 const GLIDE_TIME := 0.6 # the gust that carries Sora back to the wind post (the user, 2026-10-25: he did not know how to try again)
 var post_flag: Node3D
+# views worth stopping for: where Sora stands and the way the view lies. Stopping at one for the first time turns both
+# companions to it while she takes it in (delight idea 16); it ends as soon as she moves, and does not come again
+const SCENIC := [{"at": Vector2(328.5, 8.5), "look": Vector2(1, 0)}, {"at": Vector2(318.5, 32.5), "look": Vector2(0, 1)}] # the gorge towards the hawk's ledge, the mill channel
+var scenic_seen: Array = []
+var scenic_at := -1 # the view being taken in, -1 for none
+var shop_flag: Node3D # the miller's little flag beside the big windmill: it flutters a moment after the windmill turns again (delight idea 7)
+var shop_flag_t := 0.0 # how long the big windmill has been turning
+const SHOP_FLAG_LAG := 1.2
 var post_mark: Label3D
 
 func _init(main: Main) -> void:
@@ -369,6 +377,49 @@ func build_windrun() -> void:
 		g.position = Vector3(p.x, 0, p.y)
 		m.add_child(g)
 		m.windrun_nodes.append(g)
+	build_shop_flag()
+
+func update_scenic() -> void:
+	var me := Vector2(m.player.x, m.player.z)
+	var here := -1
+	var quiet: bool = m.idle_t > 1.0 and not m.story_open and not m.in_cloud() and not m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x, e.z).distance_to(me) < 7.0)
+	if quiet:
+		for i in SCENIC.size():
+			if me.distance_to(SCENIC[i].at) < 1.6:
+				here = i
+	if scenic_at < 0 and here >= 0 and not scenic_seen.has(here):
+		scenic_seen.append(here)
+		scenic_at = here
+	elif scenic_at >= 0 and here != scenic_at:
+		scenic_at = -1
+	m.mates.scenic_dir = SCENIC[scenic_at].look if scenic_at >= 0 else Vector2.ZERO
+
+func build_shop_flag() -> void:
+	var q: Vector2 = m.hill.south_marks.Q + Vector2(2.0, 1.2)
+	var g := Node3D.new()
+	g.position = Vector3(q.x, 0, q.y)
+	var pole: MeshInstance3D = m.box(Vector3(0.08, 1.3, 0.08), m.mat_color(Color("#7a5a3a")))
+	pole.position = Vector3(0, 0.65, 0)
+	g.add_child(pole)
+	shop_flag = Node3D.new() # a strip of four short boxes hinged at the pole, each swinging a little after the one before
+	shop_flag.position = Vector3(0.04, 1.2, 0)
+	g.add_child(shop_flag)
+	for k in 4:
+		var seg: MeshInstance3D = m.box(Vector3(0.16, 0.22, 0.03), m.mat_color(Color("#f2d27a") if k % 2 == 0 else Color("#c8523a")))
+		seg.position = Vector3(0.08 + k * 0.16, 0, 0)
+		seg.name = "seg%d" % k
+		shop_flag.add_child(seg)
+	m.add_child(g)
+
+# still while the windmill is stopped; once it has turned for SHOP_FLAG_LAG seconds the strip ripples (each box swings sideways, more towards the tip)
+func update_shop_flag(dt: float) -> void:
+	if shop_flag == null:
+		return
+	shop_flag_t = shop_flag_t + dt if m.mill_q >= 3 else 0.0
+	var on: bool = shop_flag_t >= SHOP_FLAG_LAG
+	for k in 4:
+		var seg: Node3D = shop_flag.get_node("seg%d" % k)
+		seg.position.z = sin(m.t * 7.0 - k * 0.9) * 0.03 * (k + 1) if on else 0.0
 
 func mill_key() -> bool:
 	var me := Vector2(m.player.x, m.player.z)
@@ -494,6 +545,7 @@ func update_mill(dt: float) -> void:
 	m.hill.sparrows.visible = m.hill_q >= 3 and not m.hill.gate_open
 	if m.mill_q >= 3:
 		m.hill.mill4.blades.rotation.z += dt * 1.2
+	update_shop_flag(dt)
 	for i in m.windrun_nodes.size():
 		if (m.windrun_on and i in m.windrun_got) or m.mill_q >= 3:
 			m.windrun_nodes[i].get_node("hub").rotation.z += dt * 6.0
@@ -629,6 +681,7 @@ func end_windrun(msg: String) -> void:
 	m.toast(msg)
 
 func update_hill(dt: float) -> void:
+	update_scenic()
 	if m.player.x < Main.GROTTO.GROTTO_X - 0.5:
 		update_mill(dt)
 	for mill in m.hill.mills:

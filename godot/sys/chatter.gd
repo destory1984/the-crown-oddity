@@ -157,7 +157,7 @@ func update_chat(dt: float) -> void:
 			pool.append(w[1]) # a talk for the place is twice as likely
 	var talks: Array = pool.filter(func(tk): return tk.all(func(ln): return ln[0] in here))
 	if not talks.is_empty() and m.rng.randf() < 0.65:
-		rest_talk(talks[m.rng.randi() % talks.size()])
+		rest_talk(talks[m.rng.randi() % talks.size()], true)
 		return
 	if who.size() == 2 and m.rng.randf() < 0.3: # the two of them trade a line
 		var pair: Array = Main.STORY.MATE_BANTER[m.rng.randi() % Main.STORY.MATE_BANTER.size()]
@@ -206,10 +206,28 @@ func story_talk_ok(key: String) -> bool:
 		"round": return m.ng > 0
 	return false
 
-func rest_talk(talk: Array) -> void:
+# light: an ordinary rest talk (not one that follows the story). If Sora then stands quite still through all of it, Mulgyeol
+# adds a small thanks after the last line, at most once in LISTEN_GAP seconds (delight idea 19)
+const LISTEN_GAP := 120.0
+var listen_last := -1000.0
+var listen_thanks := 0 # thanks said (autoplay d19_listened)
+
+func rest_talk(talk: Array, light := false) -> void:
 	m.chat_cd = maxf(m.chat_cd, talk.size() * 2.4 + 10.0)
 	m.talk_id += 1
 	var my_id := m.talk_id
+	if light and m.mate != null:
+		var still_since: float = m.t - m.chat_t # when this stillness began; moving and stopping again changes it
+		m.get_tree().create_timer(talk.size() * 2.4 + 0.4).timeout.connect(func():
+			if my_id != m.talk_id or m.story_open or m.intro or m.mate == null or not is_instance_valid(m.mate) or not m.mate.visible:
+				return
+			if absf((m.t - m.chat_t) - still_since) > 0.05 or m.t - listen_last < LISTEN_GAP:
+				return
+			if m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 8.0):
+				return
+			listen_last = m.t
+			listen_thanks += 1
+			say_bubble(m.mate, tr("들어 줬네."), 2.2))
 	for i in talk.size():
 		var ln: Array = talk[i]
 		m.get_tree().create_timer(i * 2.4 + 0.01).timeout.connect(func():

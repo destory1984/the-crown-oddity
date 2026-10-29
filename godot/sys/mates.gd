@@ -17,6 +17,7 @@ var breath_tex := {}  # id -> its breathing sheet
 const SIT_BREATH_STEP := 0.35 # sitting breathes slower than standing
 var breath_keep := {} # id -> [texture, hframes] put back when he moves
 
+var scenic_dir := Vector2.ZERO # world direction of a view Sora has stopped to take in: resting companions face it (hill_zone.update_scenic, delight idea 16)
 var trailing := {} # id -> following on her footsteps because she walks along his side spot's line
 
 func _init(main: Main) -> void:
@@ -248,6 +249,12 @@ func breathe(id: String, spr: Sprite3D, on: bool) -> void:
 		spr.frame = 0
 		breath_keep.erase(id)
 
+# at rest only: turn the picture to the view instead of the way last walked (Noeul's running frame faces right, Mulgyeol's picture left)
+func scenic_face(spr: Sprite3D, noeul: bool) -> void:
+	if scenic_dir != Vector2.ZERO and m.in_hill:
+		var left: bool = m.screen_left(scenic_dir)
+		spr.flip_h = left if noeul else not left
+
 func noeul_sit(on: bool) -> void:
 	if on == m.noeul_sitting or m.mate2 == null:
 		return
@@ -305,6 +312,7 @@ func update_mate2(dt: float) -> void:
 	noeul_sit(sit)
 	if sit: # sitting by her: no monster is near, so nothing to throw dust at
 		spr.frame = int(m.t / SIT_BREATH_STEP) % 4 # breathing as he sits
+		scenic_face(spr, true)
 		return
 	if to.length() > 0.3:
 		m.mate2.position = mate_step(m.mate2.position, to.normalized() * minf(to.length() - 0.3, dt * 5.5))
@@ -313,6 +321,7 @@ func update_mate2(dt: float) -> void:
 		spr.flip_h = m.screen_left(Vector2(to.x, to.z))
 	else:
 		breathe("noeul", spr, true)
+		scenic_face(spr, true)
 	m.folk.hop("noeul", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP)
 	if m.mate != null and m.mate.visible: # never on top of Mulgyeol
 		var apart := Vector3(m.mate2.position.x - m.mate.position.x, 0, m.mate2.position.z - m.mate.position.z)
@@ -382,12 +391,15 @@ func update_mate(dt: float) -> void:
 		spr.frame = int(m.t / SIT_BREATH_STEP + 2.0) % 4 # breathing as he sits, out of step with Noeul
 		m.mate.position.y = 0.0
 		m.folk.hop("mulgyeol", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP) # settles a hop that was still in the air
+		scenic_face(spr, false)
 		return
 	if to.length() > stop:
 		m.mate.position = mate_step(m.mate.position, to.normalized() * minf(to.length() - stop, dt * 5.5))
 		spr.flip_h = not m.screen_left(Vector2(to.x, to.z)) # his picture faces left (Noeul's running frame faces right)
 	else:
 		m.mate.position.y = 0.0
+		if target == null:
+			scenic_face(spr, false)
 	m.mate.position.y = 0.0
 	m.folk.hop("mulgyeol", spr, dt, 0.0, m.folk.HOP_H, false, m.folk.MATE_HOP_STEP)
 	if to.length() > stop or target != null:

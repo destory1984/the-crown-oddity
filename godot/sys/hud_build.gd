@@ -11,6 +11,10 @@ func _init(main: Main) -> void:
 
 # the signpost by the east bridge: the only way from the marsh to the village
 # Built after the map, props, plants and monsters so the random draws that place them are the same as before.
+var sign_pivot: Node3D # the east signpost's board
+var sign_sway := 1.0 # 1 = the wind's full sway, falls while Sora stands reading it
+const SIGN_AT := Vector2(43.6, 18.6)
+
 func village_sign() -> void:
 	# a short deck over the east edge water to the village road
 	for bx in [46, 47]:
@@ -23,12 +27,15 @@ func village_sign() -> void:
 	var pole: MeshInstance3D = m.box(Vector3(0.14, 1.5, 0.14), wood)
 	pole.position = Vector3(0, 0.75, 0)
 	g.add_child(pole)
+	sign_pivot = Node3D.new() # the board hangs from a pivot at its top edge and sways in the wind (delight idea 4)
+	sign_pivot.position = Vector3(0, 1.51, 0)
+	g.add_child(sign_pivot)
 	var board: MeshInstance3D = m.box(Vector3(1.9, 0.42, 0.08), m.mat_color(Color("#c8a46a")))
-	board.position = Vector3(0, 1.3, 0.08)
-	g.add_child(board)
+	board.position = Vector3(0, -0.21, 0.08)
+	sign_pivot.add_child(board)
 	var t := m.sign_icon("village", 0.5)
-	t.position = Vector3(0, 1.3, 0.14)
-	g.add_child(t)
+	t.position = Vector3(0, -0.21, 0.14)
+	sign_pivot.add_child(t)
 	var glow := m.box(Vector3(0.2, 0.26, 0.2), m.glow_mat(Color("#ffc46a"), 1.6))
 	glow.position = Vector3(0, 1.62, 0)
 	g.add_child(glow)
@@ -36,6 +43,17 @@ func village_sign() -> void:
 	m.add_child(g)
 	m.rocks.append({"x": 43.6, "z": 18.6, "r": 0.25})
 	m.sign_spots.append(Vector2(43.6, 18.6))
+
+# the board's sway: wind, eased down to a fifth while Sora stands still before it facing it, so it can be read
+func sign_reading() -> bool:
+	var to: Vector2 = SIGN_AT - Vector2(m.player.x, m.player.z)
+	return to.length() < 2.4 and m.idle_t > 0.6 and not m.story_open and to.normalized().dot(m.player.face.normalized()) > 0.5
+
+func update_sign(dt: float) -> void:
+	if sign_pivot == null:
+		return
+	sign_sway = move_toward(sign_sway, 0.2 if sign_reading() else 1.0, dt * 1.5)
+	sign_pivot.rotation.z = (sin(m.t * 1.7) * 0.1 + sin(m.t * 3.1) * 0.04) * sign_sway
 
 const MATES_TOP := 162.0 # lap 6: the first companion row sits below the gem row (its gems end at y 152); the name label starts 2 px above
 const STATUS_H := 158.0 # the bars, the moon gauge and the gem row end here (gems y 146 + 6, 6 px air)
@@ -1031,8 +1049,29 @@ func rest_why(night_now: bool) -> String:
 
 var full_chimes := 0 # times the moon light filled with its soft low chime (autoplay full_chime)
 
+var full_say_t := -1.0 # >= 0: seconds until Mulgyeol says it is full but to rest a little longer (delight idea 14)
+var full_says := 0 # times he said it (autoplay d14_rest_more)
+const FULL_SAY_DELAY := 3.0
+
+# 3 s after the moon light fills, if Sora is still at the lantern and nothing has stirred, he asks for a bit more rest
+func update_full_say(dt: float) -> void:
+	if full_say_t < 0.0:
+		return
+	var me := Vector2(m.player.x, m.player.z)
+	var by_lamp: bool = m.forest_zone.oak_warm() or m.lanterns.any(func(l): return not l.get_meta("dark", false) and l != m.dark_lamp and Vector2(l.position.x, l.position.z).distance_to(me) < 2.0)
+	var calm: bool = not m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x, e.z).distance_to(me) < 6.0)
+	if Vector2(m.player.vx, m.player.vz).length() >= 0.3 or m.story_open or not by_lamp or not calm or m.mate == null:
+		full_say_t = -1.0
+		return
+	full_say_t -= dt
+	if full_say_t < 0.0:
+		full_says += 1
+		m.chatter.say_bubble(m.mate, tr("다 찼는데, 조금 더 쉬자."), 3.0)
+		m.chat_cd = maxf(m.chat_cd, 12.0)
+
 func update_pips(dt: float) -> void:
 	m.pip_flash -= dt
+	update_full_say(dt)
 	m.lamp_safe = false
 	var by_oak := m.forest_zone.oak_warm()
 	var night_now := m.is_night() or m.in_clock() or m.in_workshop() or by_oak # underground the clock room and the deep workshop rest as at night, and by the old oak's warm roots
@@ -1096,6 +1135,7 @@ func update_pips(dt: float) -> void:
 			m.sfx(880, 0.15, "sine", 0.15)
 			if m.crown_pips >= m.pip_max: # the last blip leaves a low, soft tone behind it (delight idea 45)
 				full_chimes += 1
+				full_say_t = FULL_SAY_DELAY
 				m.get_tree().create_timer(0.16).timeout.connect(func(): m.sfx(330, 0.7, "sine", 0.1, 20.0))
 	else:
 		m.rest_t = 0.0
