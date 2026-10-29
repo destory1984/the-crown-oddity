@@ -11,7 +11,7 @@ var only := "all"
 var results: Array = []
 
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
-	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
+	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
@@ -200,10 +200,11 @@ func run() -> void:
 		await wait(0.3)
 		check("start_click", not main.intro and absf(main.cam_yaw - main.CAM_YAW) < 0.001, "title closes on a mouse click, camera back to the fixed angle (yaw %.3f)" % main.cam_yaw)
 		check("story_opens", main.story_open, "opening illustration shows after the title")
-		for k in 60: # clicks wait 0.6 s after the box opens and 0.25 s after each line (v0.1.60)
+		for k in 120: # the 다음 button shows once a line has typed out; E presses it (v0.1.74)
 			if not main.story_open:
 				break
-			click()
+			if main.ui.story_more.visible:
+				tap(KEY_E)
 			await wait(0.1)
 		await wait(0.7)
 		check("story_closes", not main.story_open and not main.ui.story.visible, "two clicks page through and close it")
@@ -342,11 +343,12 @@ func run() -> void:
 		tap(KEY_SPACE)
 		await wait(0.2)
 		var talking: bool = main.story_open and not main.shop_open
-		for k in 40:
+		for k in 600: # each line types out before its 다음 button shows; Space presses it (v0.1.74)
 			if not main.story_open:
 				break
-			tap(KEY_SPACE)
-			await wait(0.05)
+			if main.ui.story_more.visible:
+				tap(KEY_SPACE)
+			await wait(0.1)
 		await wait(0.6)
 		tap(KEY_SPACE)
 		await wait(0.2)
@@ -607,7 +609,10 @@ func run() -> void:
 		main.village.fountain_set(false)
 		main.village.fountain_said = []
 		main.crown_key()
-		var dry_ok: bool = main.story_open and "일곱 손" in str(main.village.fountain_said) and main.village.fountain_low.visible and not main.village.fountain_full.visible
+		# v0.1.76: the water moves: drops from the hands, trickles over the upper lip and the welling are particles that emit
+		var drops: Array = main.village.fountain_low.find_children("*", "CPUParticles3D", true, false)
+		var flowing: bool = drops.size() >= 5 and drops.all(func(p): return p.emitting)
+		var dry_ok: bool = flowing and main.story_open and "일곱 손" in str(main.village.fountain_said) and main.village.fountain_low.visible and not main.village.fountain_full.visible
 		main.close_story()
 		main.story_step = 12
 		await get_tree().create_timer(1.2).timeout
@@ -615,6 +620,19 @@ func run() -> void:
 		main.crown_key()
 		var wet_line: bool = main.story_open and "시원해" in str(main.village.fountain_said)
 		main.close_story()
+		# a blow facing the basin splashes it and rocks the water (v0.1.76)
+		var h0: int = main.village.fountain_hits
+		main.player.x = fa.x
+		main.player.z = fa.y + 1.6
+		main.village.fountain_hit(main, 1.4, Vector2(0, -1), 0.3, false)
+		await get_tree().create_timer(0.1).timeout
+		var splashed: bool = main.village.fountain_hits == h0 + 1 and main.village.fountain_splash.emitting and absf(main.village.fountain_water.position.y - 0.35) > 0.001
+		main.village.fountain_hit(main, 1.4, Vector2(0, 1), 0.3, false) # facing away: nothing
+		var away_dry: bool = main.village.fountain_hits == h0 + 1
+		# the square's lantern stands within resting reach of the basin's south-east side (v0.1.76)
+		var lamp_by: bool = main.lanterns.any(func(l): return Vector2(l.position.x, l.position.z).distance_to(fa + main.village.FOUNTAIN_LAMP) < 0.5)
+		away_dry = away_dry and lamp_by
+		wet_line = wet_line and splashed and away_dry
 		main.story_step = s0
 		main.village.fountain_set(s0 >= 12)
 		main.in_village = v0
@@ -973,17 +991,24 @@ func run() -> void:
 		# a click right as a story box opens does not skip its first line; one a moment later does (v0.1.60)
 		main.close_story()
 		await wait(0.6)
-		main.show_story("", ["||첫째 줄", "||둘째 줄"])
-		main.ui.story_text.visible_characters = -1
-		click()
+		# v0.1.74: a click anywhere never pages it on; the 다음 button waits for the line to type out, then E or the button does
+		main.show_story("", ["||첫째 줄은 조금 길게 써서 글자가 찍히는 동안을 잰다", "||둘째 줄"])
+		await wait(0.1)
+		var hidden_typing: bool = not main.ui.story_more.visible
+		tap(KEY_E)
 		await wait(0.05)
-		var kept: bool = main.story_open and main.story_lines.size() == 1
+		var key_kept: bool = main.story_lines.size() == 1
+		main.ui.story_text.visible_characters = -1
 		await wait(0.7)
 		click()
 		await wait(0.05)
+		var click_kept: bool = main.story_open and main.story_lines.size() == 1
+		var shown: bool = main.ui.story_more.visible
+		main.ui.story_more.pressed.emit()
+		await wait(0.05)
 		var moved: bool = main.story_lines.is_empty()
 		main.close_story()
-		check("click_guard", kept and moved, "early click kept the first line %s, a later click moved on %s" % [kept, moved])
+		check("click_guard", hidden_typing and key_kept and click_kept and shown and moved, "button hidden while typing %s, E kept the line %s, a click elsewhere kept it %s, button shown after %s, button moved on %s" % [hidden_typing, key_kept, click_kept, shown, moved])
 	if want.call("round_badge"):
 		# from the second round the HUD says the round and its difficulty, and a banner opens it (v0.1.61)
 		var ng0: int = main.ng
@@ -1037,6 +1062,18 @@ func run() -> void:
 		main.ui.boss.visible = boss0
 		main.player.hp = hp0
 		check("rest_heal", early and absf(healed - mx * 0.02) < 0.01, "nothing at 1 s=%s, healed %.2f at 4 s (want %.2f)" % [early, healed, mx * 0.02])
+	if want.call("story_moves_sora"):
+		# a story that puts Sora elsewhere shows her there at once, not after the box closes (v0.1.77)
+		main.close_story()
+		await wait(0.6)
+		main.show_story("", ["||첫째 줄", "||둘째 줄"])
+		main.player.x += 6.0
+		await wait(0.2)
+		var at_once: bool = Vector2(main.hero.position.x - main.player.x, main.hero.position.z - main.player.z).length() < 0.1
+		main.close_story()
+		main.player.x -= 6.0
+		await wait(0.3)
+		check("story_moves_sora", at_once, "her picture moved with her while the box was open: %s" % at_once)
 	if want.call("folk_mark"):
 		# the gold "!" over the villager the quest names (in the village) and over Bori's cottage (in the marsh)
 		var q0: String = main.quest_raw
@@ -1584,6 +1621,7 @@ func run() -> void:
 		var want_lamps := 0
 		for row: String in main.village.grid:
 			want_lamps += row.count("L") + row.count("d")
+		want_lamps += 1 # the square's lantern beside the fountain (v0.1.76)
 		check("village_layout", lamps == want_lamps and main.village.dark.size() == 3 and main.walkable(main.village.marks.M.x - 1.5, main.village.marks.M.y),
 			"%d lanterns (%d), 3 dark (%d), square walkable" % [want_lamps, lamps, main.village.dark.size()])
 	if want.call("simji_talk"):

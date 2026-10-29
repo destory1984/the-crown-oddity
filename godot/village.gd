@@ -281,6 +281,8 @@ func build(m: Node) -> void:
 	glass.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
 	for w in lamp_spots:
 		m.lantern(w.x - 0.3, w.y, post_mat, glass)
+	var fl: Vector2 = fountain_at() + FOUNTAIN_LAMP
+	m.lantern(fl.x - 0.3, fl.y, post_mat, glass)
 	for w in dark_spots:
 		m.lantern(w.x - 0.3, w.y, post_mat, glass)
 		var l: OmniLight3D = m.lanterns[m.lanterns.size() - 1]
@@ -658,10 +660,15 @@ func house_draft(m: Node, at: Vector3, k: int, labelled := true) -> void:
 # barely lifts; once the land is wound again (story_step 12) the eighth hand pours, the jet stands tall and a sheet
 # of water falls from the upper bowl.
 const FOUNTAIN := Vector2(15.5, 9.5) # village tiles, the middle of the four U tiles
+const FOUNTAIN_LAMP := Vector2(2.0, 1.7) # the square's lantern, south-east of the basin (from its middle)
 var fountain_full: Node3D # the eighth stream, the tall jet and the falling sheet, shown once the land is wound
 var fountain_low: Node3D  # the low jet and a few floating leaves, hidden then
 var fountain_wet := false
 var fountain_said: Array = [] # the lines E by the basin showed last (autoplay fountain)
+var fountain_water: MeshInstance3D # the basin's water face, sloshed by a blow
+var fountain_splash: CPUParticles3D # the spray a blow throws up
+var fountain_slosh: Tween
+var fountain_hits := 0 # blows that reached it (autoplay fountain_splash)
 
 func fountain_at() -> Vector2:
 	return Vector2(VILLAGE_X + FOUNTAIN.x, FOUNTAIN.y)
@@ -744,7 +751,11 @@ func build_fountain(m: Node) -> void:
 		var a: float = m.rnd(0, TAU)
 		var d: float = m.rnd(0.3, 0.6)
 		fountain_part(fountain_low, fountain_box(Vector3(0.12, 0.015, 0.07)), leaf, Vector3(cos(a) * d, top + 0.05, sin(a) * d), m.rnd(0, PI))
-	fountain_part(g, fountain_cyl(0.79, 0.03), water, Vector3(0, top + 0.03, 0), PI / 8.0) # the basin's water
+	fountain_water = fountain_part(g, fountain_cyl(0.79, 0.03), water, Vector3(0, top + 0.03, 0), PI / 8.0) # the basin's water
+	fountain_splash = fountain_drops(g, Vector3(0, top + 0.08, 0), Vector3.UP, 36, 2.2, 0.6, 0.03, 50.0)
+	fountain_splash.emitting = false
+	fountain_splash.one_shot = true
+	fountain_splash.explosiveness = 0.9
 	fountain_part(g, fountain_cyl(0.33, 0.02), water, Vector3(0, top + 0.86, 0), PI / 8.0) # the upper bowl's
 	var low := fountain_part(fountain_low, fountain_cyl(0.035, 0.08, 6), spout, Vector3(0, top + 1.0, 0)) # a weak welling
 	var lw := low.create_tween().set_loops()
@@ -766,6 +777,21 @@ func build_fountain(m: Node) -> void:
 	var tw := jet.create_tween().set_loops() # the water wells up and settles
 	tw.tween_property(jet, "scale", Vector3(1.2, 1.3, 1.2), 0.6).set_trans(Tween.TRANS_SINE)
 	tw.tween_property(jet, "scale", Vector3(1, 0.85, 1), 0.6).set_trans(Tween.TRANS_SINE)
+	# moving water (the owner, 2026-10-29: "마을 분수에 물이 안 흐르네"): the streams and the welling above were still
+	# shapes, so from the camera nothing moved. Now drops arc from the seven joined hands into the basin, four thin
+	# trickles spill over the upper bowl's lip, the middle bubbles, and rings spread on the basin; once the land is wound
+	# the eighth hand pours too and the jet sprays high.
+	for k in 8:
+		var mid := TAU * k / 8.0 + TAU / 16.0
+		var hand := Vector3(cos(mid), 0, sin(mid)) * 0.86 * cos(TAU / 16.0) * 0.9 + Vector3(0, top + 0.14, 0)
+		fountain_drops(fountain_full if k == 0 else g, hand, -Vector3(cos(mid), 0, sin(mid)) + Vector3(0, -0.4, 0), 14, 0.55, 0.45, 0.034)
+	for k in 4:
+		var a := TAU * k / 4.0 + PI / 4.0
+		fountain_drops(fountain_low, Vector3(cos(a) * 0.35, top + 0.84, sin(a) * 0.35), Vector3(cos(a) * 0.3, -1, sin(a) * 0.3), 20, 0.3, 0.7, 0.032)
+	fountain_drops(fountain_low, Vector3(0, top + 0.95, 0), Vector3.UP, 20, 1.2, 0.3, 0.04, 25.0) # the middle bubbles
+	fountain_drops(fountain_full, Vector3(0, top + 1.0, 0), Vector3.UP, 40, 2.6, 0.75, 0.03, 12.0) # the jet sprays
+	for k in 3: # rings spreading on the basin, one after another
+		fountain_ring(g, top + 0.05, k * 0.8, water)
 	m.rocks.append({"x": fountain_at().x, "z": fountain_at().y, "r": 1.0})
 	var t := Timer.new() # the ending winds the land while Sora is elsewhere: look now and then
 	t.wait_time = 1.0
@@ -773,6 +799,82 @@ func build_fountain(m: Node) -> void:
 	g.add_child(t)
 	t.timeout.connect(func(): fountain_set(m.story_step >= 12))
 	fountain_set(m.story_step >= 12)
+
+# falling water drops: `amount` small pale spheres a `life` seconds long from `at`, thrown along `dir` at `speed`
+func fountain_drops(parent: Node3D, at: Vector3, dir: Vector3, amount: int, speed: float, life: float, size: float, spread := 8.0) -> CPUParticles3D:
+	var p := CPUParticles3D.new()
+	var s := SphereMesh.new()
+	s.radius = size
+	s.height = size * 2.0
+	s.radial_segments = 6
+	s.rings = 3
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color("#9fdcec", 0.95) # a little blue, so the drops show over the pale stone
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	s.material = mat
+	p.mesh = s
+	p.amount = amount
+	p.lifetime = life
+	p.direction = dir.normalized()
+	p.spread = spread
+	p.initial_velocity_min = speed * 0.8
+	p.initial_velocity_max = speed
+	p.gravity = Vector3(0, -6.0, 0)
+	p.scale_amount_min = 0.7
+	p.scale_amount_max = 1.2
+	p.position = at
+	parent.add_child(p)
+	return p
+
+# a ring of water spreading from the middle of the basin and fading, every 2.4 s, `delay` seconds in
+func fountain_ring(g: Node3D, y: float, delay: float, water: Material) -> void:
+	var tor := TorusMesh.new()
+	tor.inner_radius = 0.9
+	tor.outer_radius = 1.0
+	tor.rings = 24
+	tor.ring_segments = 4
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color("#e6f8fb", 0.0)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var ring := MeshInstance3D.new()
+	ring.mesh = tor
+	ring.material_override = mat
+	ring.position = Vector3(0, y, 0)
+	ring.scale = Vector3(0.2, 0.02, 0.2)
+	g.add_child(ring)
+	var tw := ring.create_tween().set_loops()
+	tw.tween_interval(delay)
+	tw.tween_callback(func():
+		ring.scale = Vector3(0.2, 0.02, 0.2)
+		mat.albedo_color.a = 0.6)
+	tw.tween_property(ring, "scale", Vector3(0.74, 0.02, 0.74), 2.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(mat, "albedo_color:a", 0.0, 2.4)
+	tw.tween_interval(maxf(0.0, 2.4 - delay))
+
+# Sora's blow reaching the basin (combat.gd swing): spray from the side she struck, the water face rocks and settles
+func fountain_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool) -> void:
+	var d := fountain_at() - Vector2(m.player.x, m.player.z)
+	if d.length() > reach + 1.0 or not (all_round or d.normalized().dot(f) > cone - 0.2):
+		return
+	fountain_hits += 1
+	var side := -d.normalized() * 0.55 # the near edge of the basin
+	fountain_splash.position = Vector3(side.x, fountain_splash.position.y, side.y)
+	fountain_splash.restart()
+	if fountain_slosh != null and fountain_slosh.is_valid():
+		fountain_slosh.kill()
+	var y0 := 0.35
+	fountain_water.position.y = y0
+	fountain_slosh = fountain_water.create_tween()
+	for k in 4: # four swells, each smaller
+		var amp := 0.05 * (1.0 - k / 4.0)
+		fountain_slosh.tween_property(fountain_water, "position:y", y0 + amp, 0.12).set_trans(Tween.TRANS_SINE)
+		fountain_slosh.parallel().tween_property(fountain_water, "rotation:x", amp * 1.4 * (1 if k % 2 == 0 else -1), 0.12)
+		fountain_slosh.tween_property(fountain_water, "position:y", y0 - amp * 0.6, 0.12).set_trans(Tween.TRANS_SINE)
+	fountain_slosh.tween_property(fountain_water, "position:y", y0, 0.15)
+	fountain_slosh.parallel().tween_property(fountain_water, "rotation:x", 0.0, 0.15)
+	m.sfx(520, 0.12, "sine", 0.15, -300)
 
 func fountain_set(wet: bool) -> void:
 	fountain_wet = wet

@@ -204,6 +204,13 @@ func show_line(line: String) -> void:
 	m.typing_k = float(m.ui.story_text.text.length()) / maxf(1.0, float(said.length()))
 	m.typing = 0.0
 
+# the 다음 button (and E / Space / Enter): not in the first moments of a box or a line, so a click or key meant for the
+# fight cannot page it on
+func next_button() -> void:
+	if not m.story_open or click_too_soon():
+		return
+	next_story()
+
 func next_story() -> void:
 	if m.ui.story_text.visible_characters != -1 and m.ui.story_text.visible_characters < m.ui.story_text.text.length():
 		m.ui.story_text.visible_characters = -1 # first press finishes the line
@@ -277,7 +284,7 @@ func fit_story() -> void:
 	m.ui.story_cap.offset_left = -cw / 2.0
 	m.ui.story_cap.offset_right = cw / 2.0
 	m.ui.story_text.size.x = cw - m.ui.story_text.position.x - 40.0
-	m.ui.story_hint.position.x = cw - 35.0
+	m.ui.story_hint.position.x = cw - Main.STORY_NEXT_W - 30.0
 	# the box grows upward when the text needs more lines than its 144 px hold (big text on a small screen); the text
 	# block (and the face beside it) sits in the middle, so the space above the first line equals the space below the last
 	# (the user, 2026-10-25: the narration sat low in the box). The name tab hangs on the top edge and ends 14 px inside.
@@ -287,7 +294,7 @@ func fit_story() -> void:
 	m.ui.story_text.size.y = th
 	m.ui.story_text.position.y = (ch - th) / 2.0
 	m.ui.story_face.position.y = (ch - m.ui.story_face.size.y) / 2.0
-	m.ui.story_hint.position.y = ch - 28.0
+	m.ui.story_hint.position.y = ch - 18.0 # on the bottom edge, half outside, like the name tab on the top one
 	if small_pic: # a square at the top right, between the minimap and the HUD bars, its right edge in line with the box
 		var vh := m.get_viewport().get_visible_rect().size.y
 		var top := 30.0

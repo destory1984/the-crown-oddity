@@ -914,8 +914,23 @@ func build_hud() -> void:
 	cap_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cap_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER # the owner, 2026-10-27: centre the lines in the box
 	cap_text.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING # wrapped as the whole line, so fit_story sees every line while it types
-	var cap_hint := label(cap, "▼", Vector2(905, 116), 13, Color("#e8b018"))
-	cap_hint.size = Vector2(20, 18)
+	# the 다음 button, the box's only way on with the mouse or a finger: it shows once the line has finished typing and
+	# sits on the box's bottom edge, clear of the text (the owner, 2026-10-29: "아무데나 클릭하게 하지말고, 버튼을 눌러서
+	# 넘기게 하자 (전투하다가 클릭해서 넘어가는 일이 잦음)", "글자가 화면에 드르르륵 나타나고 -> 키가 생기고 -> 누르면 다음
+	# 화면으로"); E, Space and Enter press it too (main.gd _input)
+	var cap_hint := Button.new()
+	cap_hint.text = "다음 ▶"
+	cap_hint.add_theme_font_override("font", m.ui_font)
+	cap_hint.add_theme_font_size_override("font_size", 16)
+	for look in ["normal", "hover", "pressed"]:
+		cap_hint.add_theme_stylebox_override(look, m.menus.flat(Color("#16304f") if look == "hover" else Color("#091627"), Color("#e8b018"), 2, 10, 4.0))
+		cap_hint.add_theme_color_override("font_" + look + "_color" if look != "normal" else "font_color", Color("#f6d27a"))
+	cap_hint.focus_mode = Control.FOCUS_NONE
+	cap_hint.size = Vector2(Main.STORY_NEXT_W, 34)
+	cap_hint.position = Vector2(940 - Main.STORY_NEXT_W - 30, 144 - 18)
+	cap_hint.visible = false
+	cap_hint.pressed.connect(func(): m.story.next_button())
+	cap.add_child(cap_hint)
 	m.ui.story_tab = tab
 	m.ui.story_frame = pic_frame
 	m.ui.story_cap = cap
@@ -953,7 +968,7 @@ func build_hud() -> void:
 	col.add_child(logo)
 	var serif: FontFile = (load("res://fonts/jua/Jua-Regular.title.woff2") as FontFile).duplicate()
 	serif.fallbacks = [m.ui_font] # the subtitle and hint in round Jua (title font draft 3, 2026-10-27), edged in the logo's navy; other letters (translations) fall back
-	var tsub := label(col, "갈대 늪 너머, 이상한 것들이 깨어난다", Vector2.ZERO, 29, Color("#fff5dc"))
+	var tsub := label(col, "백 년의 정원이 당신을 기다린다", Vector2.ZERO, 29, Color("#fff5dc")) # the owner, 2026-10-29 (was "갈대 늪 너머, 이상한 것들이 깨어난다")
 	tsub.add_theme_font_override("font", serif)
 	tsub.add_theme_constant_override("outline_size", 9)
 	tsub.add_theme_color_override("font_outline_color", Color("#1d2a6b"))

@@ -702,6 +702,12 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.79: 제목 화면의 부제를 '갈대 늪 너머, 이상한 것들이 깨어난다'에서 '백 년의 정원이 당신을 기다린다'로 바꿨다(GPT가 지은 8줄 가운데 주인이 고르고 다듬었다).",
+	"· v0.1.78: 심부름을 다 마친 뒤의 할 일 줄을 '밤이 되면 마을에서 쉬자'에서 '밤이 될 때까지 마을에서 쉬자'로 고쳤다. 노을은 그날 밤 마을에 있기만 하면 나타난다.",
+	"· v0.1.77: 노을과의 밤이 끝나 소라가 마을 입구로 옮겨질 때, 이야기 상자를 다 넘길 때까지 소라가 보이지 않던 것을 고쳤다. 이야기 도중에 소라가 옮겨지면 그림과 그림자가 곧바로 따라간다.",
+	"· v0.1.76: 마을 분수에 물이 흐른다. 일곱 손에서 물방울이 바구니로 떨어지고, 위 그릇 가장자리 네 곳에서 물이 넘쳐 흐르고, 한가운데가 보글보글 솟고, 바구니에 물결 고리 셋이 퍼진다. 소라가 분수를 치면 친 쪽에서 물보라가 튀고 물낯이 네 번 출렁인다. 분수 동남쪽에 등불 하나를 세워 광장에서도 달빛을 채울 수 있다.",
+	"· v0.1.75: 할 일을 가리키는 금색 '!'를 다섯 시안 가운데 1번으로 바꿨다. 기술 단추와 미니맵 표시처럼 금빛 마름모 안에 남색 바탕과 금색 '!'가 있다(그림 200x224, 높이 약 0.94m).",
+	"· v0.1.74: 이야기 상자는 아무 데나 클릭해서는 넘어가지 않는다. 글자가 다 찍히면 상자 오른쪽 아래 테두리에 '다음 ▶' 단추(마지막 줄은 '닫기 ▶')가 나타나고, 그 단추나 E, Space, Enter를 눌러야 넘어간다. 글자가 찍히는 동안과 상자가 열린 뒤 0.6초 동안은 단추도 키도 듣지 않는다. 싸우다 누른 클릭이 이야기를 넘기던 일을 막았다.",
 	"· v0.1.73: 2시와 10시 방향으로 걸을 때 발이 번갈아 나간다. 지난번(v0.1.52)에는 다리를 다리 자체의 가운데를 축으로 무릎 아래만 뒤집어 내딛는 발이 4픽셀만 움직였다. 이번에는 치마 바로 밑에서부터 엉덩이(치마 가운데)를 축으로 뒤집어, 3·4번째 그림에서 내딛는 발이 몸 반대편으로 8픽셀 옮겨 간다. 도트 그림과 매끈한 그림 둘 다 고쳤다.",
 	"· v0.1.72: 보스가 더 단단해지고, 보스와 싸우는 중에는 멀리 물러나도 쉬며 체력을 채울 수 없다. 노을 715 → 1100과 1328 → 2000(망토 1600 → 2200), 거북 1170 → 1600, 게 760 → 1500, 매 1248 → 1500, 기사 1760 → 2200, 한결의 메아리 1520 → 2200, 방앗간 지킴이 체력 계수 30 → 45.",
 	"· v0.1.71: 늦은 일지의 두 칸을 마우스 휠과 손가락 끌기로 넘겨 읽고(왼쪽 칸 글 1010px → 칸 487px), 960x540 창에서도 맨 위가 보인다(일지 위쪽 -128px → 8px). 동료 줄이 표식 보석 아래로 12px 내려가고(150 → 162), 할 일 줄은 보석 줄과 터치 단추 10개를 피한다(피할 칸 2개 → 10개)",
@@ -1675,7 +1681,7 @@ var has_bait := false       # 미끼 주머니 from Yeoul: fish bite 30% sooner,
 
 var letter_back := false # Hangyeol's letter given back to Doran after Bori read it (saved)
 
-const NIGHT_REST_QUEST := "마을 심부름을 모두 마쳤다. 밤이 되면 마을에서 쉬자"
+const NIGHT_REST_QUEST := "마을 심부름을 모두 마쳤다. 밤이 될 때까지 마을에서 쉬자" # Noeul comes on the first night in the village (the owner, 2026-10-29: "밤이 될 때까지 마을에서 쉬자 <- 이거 아님?")
 
 # ---- five squirrels shut in brick cages around the forest: three sword hits break a cage.
 # Freeing all five gets the acorn: potions heal 65 instead of 45. Companions leave the cages to Sora.
@@ -1753,7 +1759,7 @@ var doll_shed := false        # the heaps' bits came for this walk
 var doll_keep_shed := false   # a loaded walk whose bits were already beaten: E does not raise them again
 var doll_t := 0.0
 var tally_seen := false       # the tally board read this session (not saved)
-var quarters_mark: Label3D    # the gold "!" over the next thing to do in the quarters
+var quarters_mark: Sprite3D   # the gold "!" over the next thing to do in the quarters
 
 # companions in narrow places (GPT playtest 2026-10-24: both stood on Sora in the oak's one-tile gap). The side step
 # when it and the way to it are open; else single file on Sora's footsteps (Mulgyeol 1.3 tiles back, Noeul 2.5);
@@ -1965,11 +1971,15 @@ func _input(event: InputEvent) -> void:
 		save.ask_reset()
 		get_viewport().set_input_as_handled()
 		return
-	if story_open and event is InputEventMouseButton and event.pressed and story.click_too_soon():
-		get_viewport().set_input_as_handled() # a click from the fight, not for the box (story.gd click_too_soon)
+	# an open story box moves on only by its 다음 button or E / Space / Enter, and only once the line has finished typing
+	# (the owner, 2026-10-29: clicks from the fight kept paging it on); every other click and key is swallowed meanwhile
+	if story_open and event is InputEventMouseButton and event.pressed:
+		if not (ui.story_more.visible and ui.story_more.get_global_rect().has_point(event.position)):
+			get_viewport().set_input_as_handled()
 		return
-	if story_open and ((event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed)):
-		story.next_story()
+	if story_open and event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode in [KEY_E, KEY_SPACE, KEY_ENTER, KEY_KP_ENTER] and ui.story_more.visible:
+			story.next_button()
 		get_viewport().set_input_as_handled()
 		return
 	if intro and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
@@ -2063,9 +2073,18 @@ func _process(dt: float) -> void:
 			ui.story_text.visible_characters = int(typing)
 			if ui.story_text.visible_characters >= ui.story_text.text.length():
 				ui.story_text.visible_characters = -1
-		ui.story_more.modulate.a = 0.4 + 0.6 * absf(sin(t * 4.0))
+		ui.story_more.visible = ui.story_text.visible_characters == -1 # the 다음 button comes once the line is all there
+		ui.story_more.text = tr("닫기 ▶") if story_lines.is_empty() else tr("다음 ▶")
 		t += dt
 		if not intro: # keep the camera on Sora behind the dimmed scene
+			# a story that moves her (Noeul's night ends with her back at the village gate, rise_together) used to leave
+			# her picture where she had been until the box closed, so the camera showed the gate with no Sora (the owner,
+			# 2026-10-29: "마을 입구에서 다시 나타날 때에 약 3초 가량 소라가 보이지않음"); her picture and shadow follow now
+			if down_t <= 0.0 and Vector2(hero.position.x - player.x, hero.position.z - player.z).length() > 0.5:
+				ground_y = height_at(player.x, player.z)
+				hero.position = Vector3(player.x, ground_y, player.z)
+				hero_shadow.position = Vector3(player.x, ground_y + 0.02, player.z)
+				sora.sync_ghost()
 			var tg := Vector3(player.x, ground_y + 0.6, player.z)
 			camera.position = tg + Vector3(sin(cam_yaw) * cos(0.78) * cam_dist, sin(0.78) * cam_dist, cos(cam_yaw) * cos(0.78) * cam_dist)
 			camera.look_at(tg)
@@ -2441,6 +2460,7 @@ func _process(dt: float) -> void:
 
 # keep the story picture and dialogue box off the screen edges on narrow windows
 const STORY_BOX_H := 144.0
+const STORY_NEXT_W := 92.0 # the story box's 다음 button
 
 # Sora falls where she stands; 3 s later she wakes at the start (faint)
 var down_t := 0.0

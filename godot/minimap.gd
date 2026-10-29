@@ -92,7 +92,7 @@ func _draw() -> void:
 	# the gold "!" over the quest's next spot, the one the world's "!" bobs over (the owner, 2026-10-26); a far one
 	# sits on the rim on its side, and none while a story box is open
 	quest_at = Vector2.INF
-	var qm: Label3D = main.quarters_mark
+	var qm: Sprite3D = main.quarters_mark
 	if qm != null and qm.visible and not main.story_open:
 		var q: Vector2 = xf * (Vector2(qm.position.x, qm.position.z) + Vector2(0.5, 0.5))
 		var mid := size / 2.0

@@ -725,14 +725,12 @@ func update_quarters_mark() -> void:
 			m.quarters_mark.visible = false
 		return
 	if m.quarters_mark == null:
-		m.quarters_mark = Label3D.new()
-		m.quarters_mark.text = "!"
-		m.quarters_mark.font = m.ui_font
-		m.quarters_mark.font_size = 72
-		m.quarters_mark.pixel_size = 0.012 # about 0.85 m tall, readable from the fixed camera
-		m.quarters_mark.outline_size = 16
-		m.quarters_mark.modulate = Color("#ffd84a")
-		m.quarters_mark.outline_modulate = Color("#3a2a10")
+		# a gold diamond with a navy face and a gold "!", in the look of the skill keys and the minimap's mark (draft 1 of
+		# five, the owner, 2026-10-29: "느낌표를 조금 더 예쁘게"); art/ui/quest_mark.png, 200x224
+		m.quarters_mark = Sprite3D.new()
+		m.quarters_mark.texture = load("res://art/ui/quest_mark.png")
+		m.quarters_mark.pixel_size = 0.0042 # about 0.94 m tall, readable from the fixed camera
+		m.quarters_mark.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		m.quarters_mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		m.quarters_mark.no_depth_test = true
 		m.add_child(m.quarters_mark)
