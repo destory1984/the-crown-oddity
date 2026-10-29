@@ -272,8 +272,12 @@ func spawn_moth(at: Vector2) -> Dictionary:
 	return base_entry(make_moth(), at, foe_hp(0.6), 0.6, {"moth": true, "rest": 0.0})
 
 # the lantern village keeps its moths up only on a night Sora is in it: spots with no living moth get one, the rest are freed by day
+# the village is safe by night too (the owner, 2026-10-29: "마을에 몹이 왜 나타나지?" -> "마을에서 없애라"): the moths stay
+# away; this still clears any left over from an older build. The moth itself lives on in spawn_demo.
+const VILLAGE_MOTHS := false
+
 func village_moths() -> void:
-	var want: bool = m.in_village and m.in_house < 0 and m.is_night() and not m.intro
+	var want: bool = VILLAGE_MOTHS and m.in_village and m.in_house < 0 and m.is_night() and not m.intro
 	if want and not moths_out:
 		moths_out = true
 		for p in MOTH_SPOTS:

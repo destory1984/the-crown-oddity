@@ -626,7 +626,7 @@ func run() -> void:
 		main.player.z = fa.y + 1.6
 		main.village.fountain_hit(main, 1.4, Vector2(0, -1), 0.3, false)
 		await get_tree().create_timer(0.1).timeout
-		var splashed: bool = main.village.fountain_hits == h0 + 1 and main.village.fountain_splash.emitting and absf(main.village.fountain_water.position.y - 0.35) > 0.001
+		var splashed: bool = main.village.fountain_hits == h0 + 1 and main.village.fountain_splash.emitting and absf(main.village.fountain_water.position.y - 0.35) > 0.001 			and main.sfx_log.any(func(s): return String(s).begins_with("splash:")) # and the water slaps (v0.1.81)
 		main.village.fountain_hit(main, 1.4, Vector2(0, 1), 0.3, false) # facing away: nothing
 		var away_dry: bool = main.village.fountain_hits == h0 + 1
 		# the square's lantern stands within resting reach of the basin's south-east side (v0.1.76)
@@ -8546,7 +8546,7 @@ func run() -> void:
 			if main.village.grid[p.y][p.x] not in ".=" or folk_tiles.any(func(q): return q.distance_to(tile) < 6.0):
 				spots_ok = false
 				bad.append("moth %s" % tile)
-		# the moths are up at night in the village and gone by day
+		# no moths in the village, night or day (v0.1.80; they were up at night from v0.1.33)
 		var moths_night := 0
 		var moths_day := 0
 		var was_v: bool = main.in_village
@@ -8561,7 +8561,7 @@ func run() -> void:
 		main.in_village = was_v
 		main.hour = was_h
 		var marsh_birds: int = main.enemies.filter(func(e): return e.get("bird", false)).size()
-		check("new_foes", ok_all and spots_ok and moths_night == main.brick_foes.MOTH_SPOTS.size() and moths_day == 0 and marsh_birds >= 2,
+		check("new_foes", ok_all and spots_ok and moths_night == 0 and moths_day == 0 and marsh_birds >= 2,
 			"%s | spots ok=%s %s | moths night %d day %d | marsh birds %d" % [" | ".join(why), spots_ok, bad, moths_night, moths_day, marsh_birds])
 		reset_to(C)
 		calm_enemies(false)

@@ -45,6 +45,9 @@ func sfx_stream(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide :=
 				"step": # brushed grass: filtered noise that swells in, then fades
 					lp = lerpf(lp, randf_range(-1.0, 1.0), 0.12)
 					v = lp * 2.4 * minf(1.0, k * 6.0)
+				"splash": # water slapping: a bright hiss that dies fast over a falling bloop (the fountain struck)
+					lp = lerpf(lp, randf_range(-1.0, 1.0), 0.55)
+					v = lp * 1.8 * pow(1.0 - k, 3.0) + 0.6 * sin(phase * TAU) * minf(1.0, k * 20.0)
 				"noise":
 					lp = lerpf(lp, randf_range(-1.0, 1.0), 0.18) # one-pole low-pass takes the hiss off
 					v = lp * 2.2 * (0.6 + 0.4 * sin(phase * TAU))

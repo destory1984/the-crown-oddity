@@ -867,14 +867,15 @@ func fountain_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: boo
 	var y0 := 0.35
 	fountain_water.position.y = y0
 	fountain_slosh = fountain_water.create_tween()
-	for k in 4: # four swells, each smaller
+	for k in 4: # four swells, each smaller, each with its slap of water (the owner, 2026-10-29: "물 찰싹찰싹 소리 나게")
 		var amp := 0.05 * (1.0 - k / 4.0)
+		var slap_vol := 0.3 * (1.0 - k / 4.0)
+		fountain_slosh.tween_callback(func(): m.sfx(m.rnd(560.0, 760.0), 0.16, "splash", slap_vol, -420.0))
 		fountain_slosh.tween_property(fountain_water, "position:y", y0 + amp, 0.12).set_trans(Tween.TRANS_SINE)
 		fountain_slosh.parallel().tween_property(fountain_water, "rotation:x", amp * 1.4 * (1 if k % 2 == 0 else -1), 0.12)
 		fountain_slosh.tween_property(fountain_water, "position:y", y0 - amp * 0.6, 0.12).set_trans(Tween.TRANS_SINE)
 	fountain_slosh.tween_property(fountain_water, "position:y", y0, 0.15)
 	fountain_slosh.parallel().tween_property(fountain_water, "rotation:x", 0.0, 0.15)
-	m.sfx(520, 0.12, "sine", 0.15, -300)
 
 func fountain_set(wet: bool) -> void:
 	fountain_wet = wet
