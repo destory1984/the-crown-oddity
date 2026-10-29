@@ -921,6 +921,97 @@ func update_cup() -> void:
 		q.scale = Vector3.ONE * (0.7 + k * 0.9)
 		(q.material_override as StandardMaterial3D).albedo_color.a = sin(k * PI) * 0.45
 
+# three empty cups on a plank behind Bori's cottage, left to right; the sequence of looks is kept in shop.gd. A decoration:
+# no item, no achievement, no clue (delight idea 71)
+const TEA_GAP := 0.5
+var tea_at: Array = []     # Vector2 of each cup, left to right in the cottage's own frame
+var tea_steam: Array = []  # [MeshInstance3D, phase] two puffs over the last cup, shown while it steams
+const TEA_TOP := 0.36
+
+func build_tea_cups() -> void:
+	var mt: Object = m.marsh_toys
+	var at: Vector2 = mt.find_spot([mt.cot(Vector2(0.0, -2.3)), mt.cot(Vector2(0.0, -2.8)), mt.cot(Vector2(2.4, -2.0)), mt.cot(Vector2(-2.4, -2.0))], 0.8, 1.2)
+	if at.x < 0.0:
+		return
+	var g := Node3D.new()
+	mt.part(g, Vector3(1.5, 0.05, 0.4), Vector3(0, 0.2, 0), "#7a5232")           # plank
+	for s in [-1.0, 1.0]:
+		mt.part(g, Vector3(0.1, 0.2, 0.3), Vector3(0.62 * s, 0.1, 0), "#5a3a26") # legs
+	for k in 3:
+		var x := (k - 1) * TEA_GAP
+		mt.part(g, Vector3(0.14, 0.11, 0.14), Vector3(x, 0.28, 0), "#f0e8d8")    # cup
+		mt.part(g, Vector3(0.05, 0.05, 0.03), Vector3(x + 0.08, 0.285, 0), "#f0e8d8")
+		mt.part(g, Vector3(0.1, 0.01, 0.1), Vector3(x, 0.337, 0), "#3a2a1c")     # dark inside
+		tea_at.append(at + Vector2(x * cos(mt.COTTAGE_YAW), -x * sin(mt.COTTAGE_YAW)))
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.albedo_color = Color(1, 1, 1, 0.0)
+	for k in 2:
+		var q := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(0.12, 0.12)
+		q.mesh = qm
+		q.material_override = mat.duplicate()
+		q.position = Vector3(TEA_GAP, TEA_TOP, 0)
+		q.visible = false
+		g.add_child(q)
+		tea_steam.append([q, k * 0.5])
+	g.rotation.y = mt.COTTAGE_YAW
+	mt.put(g, at, 1.0)
+
+# nine reeds in the shape of Sora lying in the grass where she woke: pressed flat at first, standing again once she has met
+# Bori (story step 3). Only the pose changes; the awakening scene is not touched (delight idea 80)
+const REED_POSTS := [Vector2(0, -0.7), Vector2(-0.25, -0.4), Vector2(0.25, -0.4), Vector2(0, -0.3), Vector2(0, 0.05),
+		Vector2(-0.15, 0.3), Vector2(0.15, 0.3), Vector2(-0.15, 0.65), Vector2(0.15, 0.65)]
+const REED_FLAT := 1.35
+var start_reeds: Array = [] # pivots, one per reed
+var reeds_up := false
+var reeds_t := 0.0 # seconds left of the slow rising
+
+func reed_pose_up() -> bool:
+	return m.story_step >= 3
+
+func build_start_reeds() -> void:
+	var mt: Object = m.marsh_toys
+	for k in REED_POSTS.size():
+		var pv := Node3D.new()
+		var yaw := float(k) * 2.4
+		var b: MeshInstance3D = m.box(Vector3(0.04, 0.6, 0.04), mt.mat("#6f8a3e" if k % 2 == 0 else "#80994a"))
+		b.position = Vector3(0, 0.3, 0)
+		pv.add_child(b)
+		pv.rotation = Vector3(-REED_FLAT, yaw, 0.0) if not reed_pose_up() else Vector3(0.04 * sin(yaw), yaw, 0.0)
+		var at: Vector2 = Main.START + REED_POSTS[k]
+		pv.position = Vector3(at.x, m.height_at(at.x, at.y), at.y)
+		m.add_child(pv)
+		start_reeds.append(pv)
+	reeds_up = reed_pose_up()
+	mt.pads.append([Main.START, 1.0])
+
+# the reeds follow the story: when it has moved on they rise over 8 s if she is looking, or at once if she is far off
+func update_start_reeds(dt: float) -> void:
+	if start_reeds.is_empty():
+		return
+	if reed_pose_up() and not reeds_up:
+		reeds_up = true
+		var near: bool = Vector2(m.player.x, m.player.z).distance_to(Main.START) < 9.0
+		reeds_t = 8.0 if near else 0.0
+		if not near:
+			set_reeds(1.0)
+	elif not reed_pose_up() and reeds_up:
+		reeds_up = false # a new game on the same run: pressed again
+		reeds_t = 0.0
+		set_reeds(0.0)
+	if reeds_t > 0.0:
+		reeds_t = maxf(0.0, reeds_t - dt)
+		set_reeds(1.0 - reeds_t / 8.0)
+
+func set_reeds(f: float) -> void: # 0 pressed flat, 1 upright
+	for k in start_reeds.size():
+		var pv: Node3D = start_reeds[k]
+		pv.rotation.x = lerpf(-REED_FLAT, 0.04 * sin(pv.rotation.y), f)
+
 func ui_font_for_sign() -> Font:
 	return m.ui_font
 

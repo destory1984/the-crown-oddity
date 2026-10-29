@@ -19,10 +19,32 @@ const DIM := Color("#a99d84")
 # under it, 4 s above the toast line, the empty pips blinking meanwhile
 var pip_hint_t := 0.0
 const PIP_HINT := "밤에 켜진 등불 곁에서 가만히 쉬면 달빛이 찬다"
+# under the card, the pips the use asked for beside the pips she holds (delight idea 82); 0 asked = no row
+var pip_need := 0
+var pip_need_drawn := 0 # diamonds drawn in the two rows at the last draw (autoplay d82_pip_gap)
+var pip_have_drawn := 0
+
+# a stilled notched rim round a coin whose wait just ended, for those who miss its colour or sound (delight idea 99):
+# 16 notches, lit 2 s and eased out over the last 0.5 s, never blinking
+const RIM_SHOW := 2.0
+const RIM_NOTCHES := 16
+var rim_prev := [0.0, 0.0, 0.0, 0.0] # each coin's wait at the last frame
+var rim_t := [0.0, 0.0, 0.0, 0.0]    # seconds the rim is still shown
+var rim_drawn := 0                   # notches drawn at the last draw (autoplay d99_ready_rim)
+var bottle_drawn := false            # the one-bottle outline was drawn at the last draw (autoplay d86_last_bottle)
 
 func _process(dt: float) -> void:
 	pip_hint_t = maxf(0.0, pip_hint_t - dt)
+	update_rims(dt)
 	queue_redraw()
+
+func update_rims(dt: float) -> void:
+	var cds: Array = main.player.cds
+	for i in 4:
+		rim_t[i] = maxf(0.0, rim_t[i] - dt)
+		if rim_prev[i] > 0.0 and cds[i] <= 0.0:
+			rim_t[i] = RIM_SHOW
+		rim_prev[i] = cds[i]
 
 func draw_pip_hint() -> void:
 	var vs := get_viewport_rect().size
@@ -48,6 +70,48 @@ func draw_pip_hint() -> void:
 	diamond(Vector2(cx + 100.0, cy), 15.0, Color(0.62, 0.83, 1.0, a))
 	diamond(Vector2(cx + 100.0, cy), 7.0, Color(1, 1, 1, 0.6 * a))
 	text(Vector2(box.position.x, box.position.y + 88.0), PIP_HINT, 18, Color(TEXT, a), HORIZONTAL_ALIGNMENT_CENTER, box.size.x)
+	pip_need_drawn = 0
+	pip_have_drawn = 0
+	if pip_need > 0: # what the use asks and what she holds, side by side
+		var row := Rect2(box.position.x + 70.0, box.end.y + 6.0, 300.0, 30.0)
+		draw_rect(row, Color(NAVY, 0.9 * a))
+		draw_rect(row, Color(GOLD_DIM, a), false, 1.0)
+		var need := mini(pip_need, 12)
+		var have := mini(main.crown_pips, 12)
+		var y := row.position.y + 15.0
+		text(Vector2(row.position.x + 8.0, y + 6.0), "필요", 15, Color(TEXT, a))
+		for k in need:
+			diamond(Vector2(row.position.x + 62.0 + k * 16.0, y), 6.0, Color(GOLD, a))
+			diamond(Vector2(row.position.x + 62.0 + k * 16.0, y), 3.5, Color(NAVY, a))
+			pip_need_drawn += 1
+		text(Vector2(row.position.x + 162.0, y + 6.0), "지금", 15, Color(TEXT, a))
+		for k in have:
+			diamond(Vector2(row.position.x + 216.0 + k * 16.0, y), 6.0, Color(0.62, 0.83, 1.0, a))
+			pip_have_drawn += 1
+		if have == 0:
+			text(Vector2(row.position.x + 212.0, y + 6.0), "없음", 15, Color(DIM, a))
+
+# a small bottle (neck, shoulders, body) with its top-left corner at `at`; a dark line under the pale one so it reads on any icon
+func bottle_outline(at: Vector2) -> void:
+	var pts := PackedVector2Array([at + Vector2(3, 0), at + Vector2(6, 0), at + Vector2(6, 4), at + Vector2(9, 7), at + Vector2(9, 15),
+		at + Vector2(0, 15), at + Vector2(0, 7), at + Vector2(3, 4), at + Vector2(3, 0)])
+	draw_polyline(pts, Color(0, 0, 0, 0.7), 3.5)
+	draw_polyline(pts, TEXT, 1.5)
+	bottle_drawn = true
+
+func rim_points(c: Vector2, half: float) -> Array: # [from, to] of each notch, radial, just outside the cooldown sweep
+	var out: Array = []
+	for k in RIM_NOTCHES:
+		var a1 := TAU * k / RIM_NOTCHES
+		var d := Vector2(cos(a1), sin(a1))
+		out.append([c + d * half * 0.93, c + d * half * 1.04])
+	return out
+
+func draw_rim(c: Vector2, half: float, a: float) -> void:
+	draw_arc(c, half * 0.93, 0.0, TAU, 48, Color(GOLD, 0.8 * a), 1.5)
+	for n in rim_points(c, half):
+		draw_line(n[0], n[1], Color(GOLD, a), 3.0)
+	rim_drawn += RIM_NOTCHES
 
 func diamond(c: Vector2, r: float, col: Color) -> void:
 	draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r), c + Vector2(r, 0), c + Vector2(0, r), c + Vector2(-r, 0)]), col)
@@ -259,6 +323,8 @@ func _draw() -> void:
 	var names := ["회오리", "불씨탄", "빛파동", "회복약"] # phones have no keys: the tag names the skill
 	var cds: Array = p.cds
 	var cd_max := [main.SKILL_CD[0], main.SKILL_CD[1], main.SKILL_CD[2], 2.0]
+	rim_drawn = 0
+	bottle_drawn = false
 	for i in 4:
 		var sc := skill_spot(i) # 8 px apart, the last icon and the key tags 8 px from the right and bottom edges
 		var half := skill_size() / 2.0
@@ -277,6 +343,10 @@ func _draw() -> void:
 		text(kb + Vector2(-38, 5), names[i] if main.touch_ui else keys[i] + " " + names[i], 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 76)
 		if i == 3:
 			text(sc + Vector2(half * 0.41, half * 0.88), "×%d" % p.pots, 12, TEXT)
+			if p.pots == 1: # one bottle left: its outline beside the count, steady (delight idea 86)
+				bottle_outline(sc + Vector2(half * 0.41 - 12.0, half * 0.88 - 13.0))
+		if rim_t[i] > 0.0: # the wait just ended: a stilled notched rim
+			draw_rim(sc, half, minf(1.0, rim_t[i] / 0.5))
 	# the bottom-left buttons' names, on the same line (the buttons are hud_build.icon_button, 68 px at x 8, 84, 160, 236)
 	if main.ui.hint.visible and not main.touch_ui: # phones moved these keys up beside the minimap
 		var left := [["H", "도움말"], ["M", "소리"], ["Q", "할 일"], ["Esc", "설정"]]

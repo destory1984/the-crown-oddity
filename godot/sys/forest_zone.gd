@@ -39,6 +39,9 @@ func enter_forest() -> void:
 	m.save_game()
 
 func leave_forest() -> void:
+	for w in m.forest.walls:
+		if w.get("ph", 0) == 1: # she has gone: the next time she is by the wall it is a return
+			w.ph = 2
 	m.in_forest = false
 	m.in_village = true
 	m.player.x = m.village.marks.F.x - 1.2
@@ -185,9 +188,109 @@ func noeul_bow() -> void:
 	tw.tween_interval(0.25)
 	tw.tween_property(spr, "offset:y", y0, 0.3).set_trans(Tween.TRANS_SINE)
 
+# E at a cage she has already opened (delight idea 77): no squirrel, only an acorn husk that rolls out a little way, turns
+# over and fades. It is only a box; nothing is given and the rescue is not counted again
+const HUSK_REACH := 1.3
+const HUSK_COOL := 4.0
+const HUSK_ROLL := 0.7
+var husk_t := -10.0 # m.t of the last husk
+var husks := 0      # husks rolled (autoplay d77_acorn_husk)
+var husk_node: Node3D # the latest one
+
+func calm_here() -> bool: # no story, no shop, no fade, no living foe within 6 tiles
+	if m.story_open or m.shop_open or m.settings_open or m.intro or m.fade_rect.color.a > 0.0:
+		return false
+	for e in m.enemies:
+		if not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 6.0:
+			return false
+	return true
+
+func husk_key() -> bool:
+	if m.t - husk_t < HUSK_COOL or not calm_here():
+		return false
+	var me := Vector2(m.player.x, m.player.z)
+	for i in Main.FOREST.CAGES.size():
+		if not m.forest.freed[i]:
+			continue
+		var at: Vector2 = Main.FOREST.CAGES[i] + Vector2(Main.FOREST.FOREST_X, 0)
+		if me.distance_to(at) > HUSK_REACH:
+			continue
+		husk_t = m.t
+		husks += 1
+		var away := (at - me).normalized() if at != me else Vector2.RIGHT
+		var to := at + away * HUSK_ROLL
+		if not m.walkable(to.x, to.y):
+			to = at
+		var g := Node3D.new()
+		var nut: MeshInstance3D = m.box(Vector3(0.12, 0.1, 0.12), m.mat_color(Color("#a8743a")))
+		nut.position = Vector3(0, 0.05, 0)
+		g.add_child(nut)
+		var cap: MeshInstance3D = m.box(Vector3(0.13, 0.04, 0.13), m.mat_color(Color("#6a4a22")))
+		cap.position = Vector3(0, 0.11, 0)
+		g.add_child(cap)
+		g.position = Vector3(at.x, m.height_at(at.x, at.y) + 0.3, at.y)
+		m.add_child(g)
+		husk_node = g
+		var tw := g.create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(g, "position", Vector3(to.x, m.height_at(to.x, to.y), to.y), 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(g, "rotation:z", TAU * 1.5, 0.8)
+		tw.chain().tween_interval(2.0)
+		tw.chain().tween_property(g, "scale", Vector3.ONE * 0.01, 0.4)
+		tw.chain().tween_callback(g.queue_free)
+		m.sfx(520.0, 0.07, "triangle", 0.06, -120.0)
+		m.toast(tr("우리에서 도토리 껍질이 굴러 나왔다"))
+		return true
+	return false
+
+# an open wall she has left and come back to (delight idea 74): two bricks lie stacked like a small chair on the ground
+# beside it. Boxes with no blocker, so the passage and the wall's open flag stay as they were. Each wall keeps "ph":
+# 1 seen open from close, 2 left (10 tiles away, or out of the forest), 3 the chair is out
+const CHAIR_NEAR := 5.0
+const CHAIR_FAR := 10.0
+var chairs: Array = []
+
+func update_wall_chairs(me: Vector2) -> void:
+	for w in m.forest.walls:
+		if not w.open:
+			continue
+		var ph: int = w.get("ph", 0)
+		var d: float = me.distance_to(w.pos)
+		if ph == 0 and d < CHAIR_NEAR:
+			w.ph = 1
+		elif ph == 1 and d > CHAIR_FAR:
+			w.ph = 2
+		elif ph == 2 and d < CHAIR_NEAR:
+			w.ph = 3
+			build_wall_chair(w)
+
+func wall_chair_spot(w: Dictionary) -> Vector2: # a free corner tile beside the wall's tile, or (-1, -1)
+	for d in [Vector2(-1, -1), Vector2(-1, 1), Vector2(1, -1), Vector2(1, 1)]:
+		var p: Vector2 = w.pos + d
+		if m.forest.char_at(p.x, p.y) == "." and m.walkable(p.x, p.y):
+			return p
+	return Vector2(-1, -1)
+
+func build_wall_chair(w: Dictionary) -> void:
+	var p := wall_chair_spot(w)
+	if p.x < 0.0:
+		return
+	var g := Node3D.new()
+	var seat: MeshInstance3D = m.box(Vector3(0.42, 0.24, 0.42), m.mat_color(Color("#8a8a90")))
+	seat.position = Vector3(0, 0.12, 0)
+	g.add_child(seat)
+	var back: MeshInstance3D = m.box(Vector3(0.42, 0.22, 0.16), m.mat_color(Color("#a8322a")))
+	back.position = Vector3(0, 0.35, 0.13)
+	g.add_child(back)
+	g.position = Vector3(p.x, m.height_at(p.x, p.y), p.y)
+	g.rotation.y = atan2(w.pos.x - p.x, w.pos.y - p.y) # the seat faces the wall's gap
+	m.add_child(g)
+	chairs.append(g)
+
 func update_forest() -> void:
 	noeul_bow()
 	m.forest.update_looks(Vector2(m.player.x, m.player.z), m.is_night())
+	update_wall_chairs(Vector2(m.player.x, m.player.z))
 	update_hollow()
 	update_oak()
 	if m.forest_q == 1 and not m.story_open and Vector2(m.player.x, m.player.z).distance_to(m.forest.marks.N) < 6.0 			and not m.sealed_between(Vector2(m.player.x, m.player.z), m.forest.marks.N):

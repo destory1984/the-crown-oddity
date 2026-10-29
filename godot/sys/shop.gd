@@ -11,6 +11,65 @@ const SHOP_GREET := ["어서 오렴. 천천히 골라 보거라.", "오늘은 �
 func _init(main: Main) -> void:
 	m = main
 
+# Bori's three empty cups behind the cottage (delight idea 71): looked at left to right they are only empty, but the last one
+# of the three, reached in that order, still steams a little. Nothing is given and nothing is told; a wrong order starts over
+const CUP_REACH := 0.9
+const CUP_STEAM := 6.0
+const STEAM_X := 0.5  # the last cup's place on the plank and its rim: world_build.gd TEA_GAP and TEA_TOP (a constant read across
+const STEAM_Y := 0.36 # the two files would make them wait for each other to compile)
+var cup_next := 0      # the cup the order expects next
+var cup_steam_t := 0.0 # seconds the last cup still steams
+var cup_looks := 0     # cups looked at (autoplay d71_tea_cups)
+var cup_steams := 0    # times the last cup steamed
+
+func cup_look_near() -> int: # the nearest cup within reach, or -1
+	if m.story_step < 3:
+		return -1
+	var best := -1
+	var bd := CUP_REACH
+	for i in m.world_build.tea_at.size():
+		var d: float = Vector2(m.player.x, m.player.z).distance_to(m.world_build.tea_at[i])
+		if d < bd:
+			bd = d
+			best = i
+	return best
+
+func cup_key() -> bool:
+	var i := cup_look_near()
+	if i < 0:
+		return false
+	cup_looks += 1
+	m.sfx(1320.0 + i * 110.0, 0.05, "triangle", 0.06)
+	if i == cup_next:
+		cup_next += 1
+	else:
+		cup_next = 1 if i == 0 else 0
+	if cup_next >= 3: # the last of the three, in order
+		cup_next = 0
+		cup_steam_t = CUP_STEAM
+		cup_steams += 1
+		m.toast(tr("마지막 잔에서만 김이 난다"))
+	else:
+		m.toast(tr("빈 찻잔이다"))
+	return true
+
+func update_cups(dt: float) -> void:
+	var steam: Array = m.world_build.tea_steam
+	if steam.is_empty():
+		return
+	cup_steam_t = maxf(0.0, cup_steam_t - dt)
+	var on := cup_steam_t > 0.0
+	for s in steam:
+		var q: MeshInstance3D = s[0]
+		q.visible = on
+		if not on:
+			continue
+		var k: float = fmod(m.t * 0.4 + s[1], 1.0)
+		q.position.y = STEAM_Y + k * 0.4
+		q.position.x = STEAM_X + sin(k * 6.0 + s[1] * 4.0) * 0.03
+		q.scale = Vector3.ONE * (0.7 + k * 0.8)
+		(q.material_override as StandardMaterial3D).albedo_color.a = sin(k * PI) * 0.4 * minf(1.0, cup_steam_t / 0.5)
+
 func near_shop() -> bool:
 	return Vector2(m.player.x - m.shop_pos.x, m.player.z - m.shop_pos.z).length() < 1.6
 

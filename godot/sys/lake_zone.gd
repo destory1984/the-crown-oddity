@@ -56,6 +56,65 @@ func build_moon_plaque() -> void:
 	g.add_child(plaque)
 	m.rocks.append({"x": PLAQUE_AT.x, "z": PLAQUE_AT.y, "r": 0.25})
 
+# a height ruler by the door of Mulgyeol's island hut, tick marks every 0.1 tile; once he has joined and comes back to the hut
+# with Sora, a gold line fades in on it at the length of his pole. Looking at it is only a line of text (delight idea 72)
+const RULER_PX := Vector2i(8, 40)
+const RULER_STEP := 0.025 # tiles a pixel
+const POLE_Y := 0.85      # the pole's mark, tiles above the ground
+var ruler: Sprite3D
+var ruler_mark: Sprite3D
+var ruler_at := Vector2(-1, -1)
+var ruler_shown := false
+var ruler_a := 0.0
+
+func ruler_tex() -> ImageTexture:
+	return m.make_tex(RULER_PX.x, RULER_PX.y, func(img: Image):
+		m.px(img, 0, 0, RULER_PX.x, RULER_PX.y, Color("#c9a86a"))
+		m.px(img, 0, 0, 1, RULER_PX.y, Color("#7a5a34"))
+		m.px(img, RULER_PX.x - 1, 0, 1, RULER_PX.y, Color("#7a5a34"))
+		for k in 10: # a tick for every 0.1 tile, a long one every fifth
+			var y := RULER_PX.y - 1 - k * 4
+			m.px(img, 1, y, 5 if k % 5 == 0 else 3, 1, Color("#4a3320")))
+
+func build_height_ruler() -> void:
+	ruler_at = m.lake.marks.h + Vector2(0.55, 0.34)
+	ruler = Sprite3D.new()
+	ruler.texture = ruler_tex()
+	ruler.pixel_size = RULER_STEP
+	ruler.shaded = false
+	ruler.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	ruler.position = Vector3(ruler_at.x, RULER_PX.y * RULER_STEP / 2.0, ruler_at.y)
+	m.add_child(ruler)
+	ruler_mark = Sprite3D.new() # the pole's length, three pixels of gold across the ruler and a little past it
+	ruler_mark.texture = m.make_tex(RULER_PX.x + 4, 3, func(img: Image):
+		m.px(img, 0, 0, RULER_PX.x + 4, 3, Color("#ffd84a"))
+		m.px(img, 0, 2, RULER_PX.x + 4, 1, Color("#b8861a")))
+	ruler_mark.pixel_size = RULER_STEP
+	ruler_mark.shaded = false
+	ruler_mark.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	ruler_mark.position = Vector3(ruler_at.x, POLE_Y, ruler_at.y + 0.004)
+	ruler_mark.visible = false
+	m.add_child(ruler_mark)
+
+func update_height_ruler(dt: float) -> void:
+	if ruler == null:
+		return
+	if not ruler_shown:
+		var me := Vector2(m.player.x, m.player.z)
+		if m.lake_q >= 4 and m.mate != null and me.distance_to(ruler_at) < 4.0 				and Vector2(m.mate.position.x, m.mate.position.z).distance_to(ruler_at) < 4.5:
+			ruler_shown = true
+			ruler_mark.visible = true
+	if ruler_shown and ruler_a < 1.0:
+		ruler_a = minf(1.0, ruler_a + dt)
+		ruler_mark.modulate.a = ruler_a
+
+# E at the ruler once the line is on it
+func ruler_key() -> bool:
+	if not ruler_shown or Vector2(m.player.x, m.player.z).distance_to(ruler_at) > 1.2:
+		return false
+	m.toast(tr("물결의 장대가 이 금까지 온다"))
+	return true
+
 func update_moon_plaque() -> void:
 	if plaque == null:
 		return
@@ -139,7 +198,7 @@ func lake_key() -> bool:
 			m.player.z = m.lake.marks.Q.y + 1.0
 			m.snap_mate())
 		return true
-	return false
+	return ruler_key()
 
 func row_to_island() -> void:
 	m.lake_q = 3
@@ -500,6 +559,7 @@ func south_latch() -> void:
 func update_lake_south(dt: float) -> void:
 	var me := Vector2(m.player.x, m.player.z)
 	update_moon_plaque()
+	update_height_ruler(dt)
 	m.lake.tick(dt, m.t)
 	if me.y > Main.LAKE.SOUTH_Z + 0.5:
 		m.ui.zone_sub.text = "아랫못"

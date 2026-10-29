@@ -136,6 +136,8 @@ func build() -> void:
 	build_cattails()
 	build_rack()
 	build_mat()
+	m.world_build.build_tea_cups()
+	m.world_build.build_start_reeds()
 	clear_pads()
 
 func clear_pads() -> void: # one pass over the grass for every pad
@@ -314,6 +316,8 @@ func near(at: Vector2) -> bool:
 func key() -> bool:
 	if not usable():
 		return false
+	if m.shop.cup_key():
+		return true
 	if m.story_step >= 3 and mat_node != null and near(mat_at):
 		m.show_story("", Main.STORY.MARSH_MAT)
 		return true
@@ -332,6 +336,8 @@ func key() -> bool:
 func hint() -> String:
 	if not usable():
 		return ""
+	if m.shop.cup_look_near() >= 0:
+		return m.tr("E  찻잔 살펴보기")
 	if m.story_step >= 3 and mat_node != null and near(mat_at):
 		return m.tr("E  갈대 깔개 살펴보기")
 	if m.story_step < 2:
@@ -362,6 +368,8 @@ func update(dt: float) -> void:
 	update_frogs(dt)
 	update_cattails(dt)
 	update_pipe(dt)
+	m.shop.update_cups(dt)
+	m.world_build.update_start_reeds(dt)
 
 func update_duck(dt: float) -> void:
 	if duck == null:

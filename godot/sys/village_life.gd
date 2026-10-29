@@ -87,6 +87,7 @@ func restore_pips() -> int:
 
 func spend_pips(n: int) -> bool:
 	if m.crown_pips < n:
+		m.ui.hud.pip_need = n # and under it, the pips asked beside the pips held (delight idea 82)
 		m.ui.hud.pip_hint_t = 4.0 # a card with a lantern and the moon instead of a line that slips by (hud.gd)
 		return false
 	m.crown_pips -= n

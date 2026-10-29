@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -13436,6 +13436,320 @@ func run() -> void:
 		calm_enemies(false)
 		check("d70_run_water", short70 and thirsty and drink and cue and same and once70 and hurt and stale70,
 			"a 2 s run: none=%s a 3.5 s run: thirst=%s the next rest: drink=%s one cap cue=%s hp/sp/mp unchanged=%s used up=%s hurt at the end: none=%s stale: none=%s" % [short70, thirsty, drink, cue, same, once70, hurt, stale70])
+
+	if want.call("d71_tea_cups"):
+		# three empty cups on a plank behind Bori's cottage: looked at left to right the last one steams for 6 s; any other order starts over; nothing is given; quiet before step 3, during a story and out of reach (idea 71)
+		marsh_world()
+		var wb71: Object = main.world_build
+		var sh71: Object = main.shop
+		var mt71: Object = main.marsh_toys
+		var cups: Array = wb71.tea_at
+		var built71: bool = cups.size() == 3 and wb71.tea_steam.size() == 2 and cups.all(func(c): return marsh_ground_ok(c) and c.distance_to(main.cottage_at) < 5.0)
+		var spaced: bool = built71 and is_equal_approx(cups[0].distance_to(cups[1]), 0.5) and is_equal_approx(cups[1].distance_to(cups[2]), 0.5)
+		var gold71: int = main.player.gold
+		var pots71: int = main.player.pots
+		var hp71: float = main.player.hp
+		var look := func(i: int) -> bool:
+			reset_to(cups[i])
+			return mt71.key()
+		sh71.cup_next = 0
+		sh71.cup_steam_t = 0.0
+		var s0: int = sh71.cup_steams
+		var first: bool = look.call(0) and look.call(1) and sh71.cup_steams == s0 and sh71.cup_steam_t == 0.0
+		var done: bool = look.call(2) and sh71.cup_steams == s0 + 1 and is_equal_approx(sh71.cup_steam_t, 6.0)
+		sh71.update_cups(0.1)
+		var puffs: bool = wb71.tea_steam.all(func(q): return q[0].visible and absf(q[0].position.x - 0.5) < 0.05 and q[0].position.y > 0.36)
+		sh71.update_cups(6.0)
+		var ends: bool = wb71.tea_steam.all(func(q): return not q[0].visible)
+		look.call(2)
+		look.call(1)
+		look.call(0)
+		var backwards: bool = sh71.cup_steams == s0 + 1 and sh71.cup_steam_t == 0.0
+		look.call(0)
+		look.call(2) # skipped the middle one: starts over
+		look.call(1)
+		var skipped: bool = sh71.cup_steams == s0 + 1
+		sh71.cup_next = 0
+		look.call(0)
+		look.call(1)
+		look.call(0) # back to the first: the order restarts from it
+		look.call(1)
+		look.call(2)
+		var again: bool = sh71.cup_steams == s0 + 2
+		var plain71: bool = main.player.gold == gold71 and main.player.pots == pots71 and main.player.hp == hp71
+		sh71.cup_steam_t = 0.0
+		sh71.update_cups(0.1)
+		sh71.cup_next = 2
+		reset_to(cups[2] + Vector2(3.0, 0.0))
+		var far71: bool = sh71.cup_look_near() == -1 and not sh71.cup_key() and sh71.cup_next == 2 and not mt71.hint().contains("찻잔")
+		reset_to(cups[1])
+		var hint71: bool = mt71.hint() != ""
+		main.story_open = true
+		var story71: bool = not mt71.key() and mt71.hint() == "" and sh71.cup_next == 2
+		main.story_open = false
+		main.story_step = 2
+		var early71: bool = not mt71.key() and sh71.cup_look_near() == -1
+		main.story_step = 3
+		sh71.cup_next = 0
+		sh71.cup_steam_t = 0.0
+		calm_enemies(false)
+		check("d71_tea_cups", built71 and spaced and first and done and puffs and ends and backwards and skipped and again and plain71 and far71 and hint71 and story71 and early71,
+			"3 cups 0.5 apart on dry ground behind the cottage, 2 puffs=%s/%s in order: no steam for two=%s the third steams 6 s=%s puffs rise from the last cup=%s end=%s backwards none=%s skipping none=%s a restart works=%s no gold/potion/hp change=%s far=%s hint near=%s story=%s step 2=%s" \
+			% [built71, spaced, first, done, puffs, ends, backwards, skipped, again, plain71, far71, hint71, story71, early71])
+	if want.call("d72_height_ruler"):
+		# a height ruler by the island hut's door; the gold pole line fades in (1 s) only once Mulgyeol has joined and both are near the hut; E at it says one line (idea 72)
+		var lz72: Object = main.lake_zone
+		var q72: int = main.lake_q
+		var had_mate: bool = main.mate != null
+		var at72: Vector2 = lz72.ruler_at
+		var img72: Image = lz72.ruler.texture.get_image()
+		var ticks := 0
+		for y in img72.get_height():
+			if img72.get_pixel(1, y).is_equal_approx(Color("#4a3320")):
+				ticks += 1
+		var hut72: Vector2 = main.lake.marks.h
+		var built72: bool = ticks == 10 and absf(at72.x - hut72.x - 0.55) < 0.01 and at72.y > hut72.y and not lz72.ruler_mark.visible and is_equal_approx(lz72.ruler_mark.position.y, 0.85)
+		lz72.ruler_shown = false
+		lz72.ruler_a = 0.0
+		lz72.ruler_mark.visible = false
+		main.lake_q = 3
+		main.join_mate()
+		main.mate.position = Vector3(at72.x + 1.0, 0.0, at72.y + 1.0)
+		reset_to(at72 + Vector2(0.0, 1.0))
+		lz72.update_height_ruler(0.1)
+		var before: bool = not lz72.ruler_shown and not lz72.ruler_key()
+		main.lake_q = 4
+		reset_to(at72 + Vector2(6.0, 1.0)) # Sora far
+		lz72.update_height_ruler(0.1)
+		var far_s: bool = not lz72.ruler_shown
+		reset_to(at72 + Vector2(0.0, 1.0))
+		main.mate.position = Vector3(at72.x + 9.0, 0.0, at72.y) # Mulgyeol far
+		lz72.update_height_ruler(0.1)
+		var far_m: bool = not lz72.ruler_shown
+		main.mate.position = Vector3(at72.x + 1.0, 0.0, at72.y + 1.0)
+		lz72.update_height_ruler(0.1)
+		var shown: bool = lz72.ruler_shown and lz72.ruler_mark.visible and lz72.ruler_mark.modulate.a < 0.5
+		lz72.update_height_ruler(1.0)
+		var full: bool = is_equal_approx(lz72.ruler_mark.modulate.a, 1.0)
+		var talks: bool = lz72.ruler_key()
+		reset_to(at72 + Vector2(3.0, 1.0))
+		var quiet72: bool = not lz72.ruler_key()
+		lz72.ruler_shown = false
+		lz72.ruler_a = 0.0
+		lz72.ruler_mark.visible = false
+		main.lake_q = q72
+		if not had_mate:
+			main.mates.leave_mate()
+		check("d72_height_ruler", built72 and before and far_s and far_m and shown and full and talks and quiet72,
+			"ruler with 10 ticks beside the hut door, pole line at 0.85 hidden=%s before he joins: none=%s Sora far=%s he is far=%s both near: fades in=%s full after 1 s=%s E says the line=%s E 3 tiles off is quiet=%s" \
+			% [built72, before, far_s, far_m, shown, full, talks, quiet72])
+	if want.call("d74_wall_chair"):
+		# an open wall she has seen from close, left (10+ tiles) and come back to gets two stacked bricks like a small chair on a free corner tile; no blocker, the wall stays open; a shut wall gets none (idea 74)
+		var fz74: Object = main.forest_zone
+		var w74: Dictionary = main.forest.walls[0]
+		var shut74: Dictionary = main.forest.walls[1]
+		var open0: bool = w74.open
+		var shut0: bool = shut74.open
+		w74.open = true
+		w74.ph = 0
+		shut74.open = false
+		shut74.ph = 0
+		var rocks0: int = main.rocks.size()
+		var n0: int = fz74.chairs.size()
+		var near74: Vector2 = w74.pos + Vector2(2.0, 0.0)
+		var far74: Vector2 = w74.pos + Vector2(14.0, 0.0)
+		fz74.update_wall_chairs(far74)
+		var s_a: bool = w74.ph == 0
+		fz74.update_wall_chairs(near74)
+		var s_b: bool = w74.ph == 1 and fz74.chairs.size() == n0 # seen, nothing yet
+		fz74.update_wall_chairs(near74)
+		var s_c: bool = fz74.chairs.size() == n0
+		fz74.update_wall_chairs(w74.pos + Vector2(7.0, 0.0)) # not yet far enough
+		var s_d: bool = w74.ph == 1
+		fz74.update_wall_chairs(far74)
+		var s_e: bool = w74.ph == 2 and fz74.chairs.size() == n0
+		fz74.update_wall_chairs(near74)
+		var s_f: bool = w74.ph == 3 and fz74.chairs.size() == n0 + 1
+		var chair: Node3D = fz74.chairs[fz74.chairs.size() - 1]
+		var cp := Vector2(chair.position.x, chair.position.z)
+		var corner: bool = absf(cp.distance_to(w74.pos) - sqrt(2.0)) < 0.01 and main.forest.char_at(cp.x, cp.y) == "." and chair.get_child_count() == 2
+		fz74.update_wall_chairs(far74)
+		fz74.update_wall_chairs(near74)
+		var once74: bool = fz74.chairs.size() == n0 + 1
+		var open74: bool = w74.open and not main.forest.blocked(w74.pos.x, w74.pos.y) and main.rocks.size() == rocks0
+		fz74.update_wall_chairs(shut74.pos + Vector2(2.0, 0.0))
+		fz74.update_wall_chairs(shut74.pos + Vector2(14.0, 0.0))
+		fz74.update_wall_chairs(shut74.pos + Vector2(2.0, 0.0))
+		var shut_ok: bool = shut74.get("ph", 0) == 0 and fz74.chairs.size() == n0 + 1
+		chair.queue_free()
+		fz74.chairs.pop_back()
+		w74.open = open0
+		shut74.open = shut0
+		w74.ph = 0
+		shut74.ph = 0
+		check("d74_wall_chair", s_a and s_b and s_c and s_d and s_e and s_f and corner and once74 and open74 and shut_ok,
+			"far first: nothing=%s seen close=%s again close=%s 7 tiles is not left=%s left=%s back: one chair=%s on a free diagonal tile with 2 bricks=%s only once=%s wall still open, no blocker=%s a shut wall gets none=%s" \
+			% [s_a, s_b, s_c, s_d, s_e, s_f, corner, once74, open74, shut_ok])
+	if want.call("d77_acorn_husk"):
+		# E at a cage already freed rolls one acorn husk out and away (0.7 tiles), gone after about 3 s; 4 s between; nothing given, the rescue not counted again; an unfreed cage, a far spot, a foe or a story: none (idea 77)
+		var fz77: Object = main.forest_zone
+		var cage77: Vector2 = main.FOREST.CAGES[0] + Vector2(main.FOREST.FOREST_X, 0)
+		var freed0: Array = main.forest.freed.duplicate()
+		var acorn0: bool = main.has_acorn
+		main.close_story()
+		main.intro = false
+		calm_enemies(true)
+		main.forest.freed[0] = true
+		main.forest.freed[1] = false
+		fz77.husk_t = -10.0
+		var gold77: int = main.player.gold
+		var pots77: int = main.player.pots
+		var n77: int = fz77.husks
+		reset_to(cage77 + Vector2(-0.8, 0.0))
+		var rolled: bool = fz77.husk_key() and fz77.husks == n77 + 1 and fz77.husk_node != null
+		var husk: Node3D = fz77.husk_node
+		var same: bool = fz77.husk_key() == false and fz77.husks == n77 + 1
+		await wait(1.0)
+		var hd: float = Vector2(husk.position.x, husk.position.z).distance_to(cage77)
+		var moved: bool = hd < 0.8
+		await wait(2.6)
+		var gone: bool = not is_instance_valid(husk) or husk.is_queued_for_deletion()
+		var plain77: bool = main.player.gold == gold77 and main.player.pots == pots77 and main.forest.freed[0] and main.has_acorn == acorn0 and main.forest.freed.filter(func(f): return f).size() == 1
+		fz77.husk_t = -10.0
+		reset_to(main.FOREST.CAGES[1] + Vector2(main.FOREST.FOREST_X, 0) + Vector2(-0.8, 0.0))
+		var unfreed: bool = not fz77.husk_key() # cage 1 is still shut
+		reset_to(cage77 + Vector2(3.0, 0.0))
+		var far77: bool = not fz77.husk_key()
+		reset_to(cage77 + Vector2(-0.8, 0.0))
+		main.story_open = true
+		var story77: bool = not fz77.husk_key()
+		main.story_open = false
+		calm_enemies(false)
+		var foe77: bool = false
+		for e in main.enemies:
+			if not e.dead and not e.get("prop", false):
+				var keep_x: float = e.x
+				var keep_z: float = e.z
+				e.x = cage77.x + 2.0
+				e.z = cage77.y
+				foe77 = not fz77.husk_key()
+				e.x = keep_x
+				e.z = keep_z
+				break
+		main.forest.freed = freed0
+		main.has_acorn = acorn0
+		calm_enemies(true)
+		calm_enemies(false)
+		check("d77_acorn_husk", rolled and same and moved and gone and plain77 and unfreed and far77 and story77 and foe77,
+			"E at a freed cage rolls one husk=%s a second E at once is quiet=%s it rolled to %.2f tiles from the cage (under 0.8)=%s gone after 3.6 s=%s nothing given, rescue count same=%s unfreed cage=%s far=%s story=%s a foe within 6 tiles=%s" \
+			% [rolled, same, hd, moved, gone, plain77, unfreed, far77, story77, foe77])
+	if want.call("d80_start_reeds"):
+		# nine reeds in Sora's shape where she woke: flat before story step 3, upright after; they rise in 8 s if she is within 9 tiles, at once if she is far; the awakening is untouched (idea 80)
+		var wb80: Object = main.world_build
+		var step80: int = main.story_step
+		var reeds: Array = wb80.start_reeds
+		var near_start: bool = reeds.size() == 9 and reeds.all(func(r): return Vector2(r.position.x, r.position.z).distance_to(main.START) < 1.0)
+		main.story_step = 2
+		reset_to(main.START + Vector2(20.0, 0.0))
+		wb80.update_start_reeds(0.1)
+		var flat: bool = reeds.all(func(r): return r.rotation.x < -1.2)
+		main.story_step = 3
+		wb80.update_start_reeds(0.1) # far away: at once
+		var up_far: bool = reeds.all(func(r): return absf(r.rotation.x) < 0.06)
+		main.story_step = 2
+		wb80.update_start_reeds(0.1)
+		var again80: bool = reeds.all(func(r): return r.rotation.x < -1.2)
+		reset_to(main.START + Vector2(2.0, 0.0))
+		main.story_step = 3
+		wb80.update_start_reeds(0.1)
+		wb80.update_start_reeds(3.9) # half way
+		var mid: bool = reeds.all(func(r): return r.rotation.x < -0.3 and r.rotation.x > -1.0)
+		wb80.update_start_reeds(4.1)
+		var up_near: bool = reeds.all(func(r): return absf(r.rotation.x) < 0.06)
+		var still: bool = wb80.reeds_t == 0.0
+		main.story_step = step80
+		wb80.update_start_reeds(0.1)
+		check("d80_start_reeds", near_start and flat and up_far and again80 and mid and up_near and still,
+			"9 reeds within a tile of the start=%s flat before step 3=%s up at once when she is far=%s pressed again at step 2=%s half risen after 4 s near=%s upright after 8 s=%s settled=%s" \
+			% [near_start, flat, up_far, again80, mid, up_near, still])
+	if want.call("d82_pip_gap"):
+		# a refused use of the bracelet shows the pips it asks and the pips she holds side by side under the moon-light card; no cost changes, no pip spent (idea 82)
+		var hud82: Control = main.ui.hud
+		main.close_story()
+		main.intro = false
+		var pips82: int = main.crown_pips
+		main.crown_pips = 1
+		hud82.pip_need = 0
+		hud82.pip_hint_t = 0.0
+		var refused82: bool = not main.spend_pips(3) and main.crown_pips == 1 and hud82.pip_need == 3
+		await wait(0.3)
+		var row82: bool = hud82.pip_hint_t > 3.0 and hud82.pip_need_drawn == 3 and hud82.pip_have_drawn == 1
+		main.crown_pips = 0
+		hud82.pip_hint_t = 4.0
+		await wait(0.2)
+		var none82: bool = hud82.pip_need_drawn == 3 and hud82.pip_have_drawn == 0
+		main.crown_pips = 2
+		var paid82: bool = main.spend_pips(2) and main.crown_pips == 0
+		hud82.pip_need = 0
+		hud82.pip_hint_t = 4.0
+		await wait(0.2)
+		var quiet82: bool = hud82.pip_need_drawn == 0 and hud82.pip_have_drawn == 0
+		hud82.pip_hint_t = 0.0
+		main.crown_pips = pips82
+		check("d82_pip_gap", refused82 and row82 and none82 and paid82 and quiet82,
+			"refused with 1 of 3 held, nothing spent=%s card row shows 3 asked and 1 held=%s with none held=%s a paid use spends as before=%s no row when nothing is asked=%s" % [refused82, row82, none82, paid82, quiet82])
+	if want.call("d86_last_bottle"):
+		# with exactly one potion left a bottle outline is drawn beside the count; two or none: no outline (idea 86)
+		var hud86: Control = main.ui.hud
+		main.close_story()
+		main.intro = false
+		var pots86: int = main.player.pots
+		main.player.pots = 1
+		await wait(0.2)
+		var one86: bool = hud86.bottle_drawn
+		await wait(0.5)
+		var steady: bool = hud86.bottle_drawn # no blinking
+		main.player.pots = 2
+		await wait(0.2)
+		var two86: bool = not hud86.bottle_drawn
+		main.player.pots = 0
+		await wait(0.2)
+		var none86: bool = not hud86.bottle_drawn
+		main.player.pots = pots86
+		check("d86_last_bottle", one86 and steady and two86 and none86,
+			"one potion: bottle=%s still there 0.5 s on=%s two: none=%s zero: none=%s" % [one86, steady, two86, none86])
+	if want.call("d99_ready_rim"):
+		# when a wait ends (above 0 to 0) a 16-notch rim shows on that coin for 2 s, steady, then eases out in 0.5 s; a coin that was never waiting has none (idea 99)
+		var hud99: Control = main.ui.hud
+		main.close_story()
+		main.intro = false
+		var cds99: Array = main.player.cds
+		var keep99: Array = cds99.duplicate()
+		for i in 4:
+			cds99[i] = 0.0
+		await wait(0.2)
+		hud99.rim_t = [0.0, 0.0, 0.0, 0.0]
+		cds99[1] = 5.0
+		hud99.update_rims(0.05)
+		var waiting: bool = hud99.rim_t[1] == 0.0
+		cds99[1] = 0.0
+		hud99.update_rims(0.05)
+		var lit: bool = is_equal_approx(hud99.rim_t[1], 2.0) and hud99.rim_t[0] == 0.0 and hud99.rim_t[2] == 0.0 and hud99.rim_t[3] == 0.0
+		await wait(0.2)
+		var notches: bool = hud99.rim_drawn == 16 and hud99.rim_points(Vector2.ZERO, 34.0).size() == 16
+		hud99.update_rims(1.0)
+		await wait(0.2)
+		var held: bool = hud99.rim_t[1] > 0.5 and hud99.rim_drawn == 16 # steady, not blinking
+		hud99.update_rims(1.5)
+		await wait(0.2)
+		var gone99: bool = hud99.rim_t[1] == 0.0 and hud99.rim_drawn == 0
+		hud99.update_rims(0.1)
+		var never: bool = hud99.rim_t[0] == 0.0 and hud99.rim_t[2] == 0.0
+		for i in 4:
+			cds99[i] = keep99[i]
+		hud99.rim_t = [0.0, 0.0, 0.0, 0.0]
+		check("d99_ready_rim", waiting and lit and notches and held and gone99 and never,
+			"no rim while waiting=%s the wait ends: 2 s on that coin only=%s 16 notches drawn=%s steady at 1 s=%s gone after 2.5 s=%s others never=%s" % [waiting, lit, notches, held, gone99, never])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
