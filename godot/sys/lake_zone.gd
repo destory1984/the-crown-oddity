@@ -19,7 +19,7 @@ func enter_lake() -> void:
 	m.player.x = m.lake.marks.S.x
 	m.player.z = m.lake.marks.S.y + 1.2
 	m.ground_y = 0.0
-	m.ui.mini.map_tex = m.with_stair_marks(m.lake.map_tex(Main.LAKE.LAKE_X + Main.LAKE.W), [m.lake.marks.G])
+	m.ui.mini.map_tex = m.with_stair_marks(m.lake.map_tex(Main.LAKE.LAKE_X + Main.LAKE.W), [m.lake.marks.G, m.lake.marks.V])
 	m.ui.zone_name.text = "남쪽 호수"
 	m.ui.zone_sub.text = "굳은 물가"
 	if m.lake_q < 3:
@@ -60,7 +60,7 @@ func lake_key() -> bool:
 			m.burst(Vector3(m.lake.marks.D.x, 0.6, m.lake.marks.D.y), Color("#9fd4ff"), 40, 4.0)
 			m.shake = 0.3
 			m.sfx(196, 0.6, "triangle", 0.3, -60)
-			m.ui.mini.map_tex = m.with_stair_marks(m.lake.map_tex(Main.LAKE.LAKE_X + Main.LAKE.W), [m.lake.marks.G])
+			m.ui.mini.map_tex = m.with_stair_marks(m.lake.map_tex(Main.LAKE.LAKE_X + Main.LAKE.W), [m.lake.marks.G, m.lake.marks.V])
 			m.show_story("", Main.STORY.LAKE_THAW)
 			m.set_quest("부두의 물결에게 말을 걸자 (E)")
 			m.save_game()
@@ -208,7 +208,7 @@ func update_turtle(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	e.shadow.position = Vector3(e.x, 0.02, e.z)
 
 func lake_map() -> ImageTexture:
-	return m.with_stair_marks(m.lake.map_tex(Main.LAKE.LAKE_X + Main.LAKE.W), [m.lake.marks.G])
+	return m.with_stair_marks(m.lake.map_tex(Main.LAKE.LAKE_X + Main.LAKE.W), [m.lake.marks.G, m.lake.marks.V])
 
 func in_south_yard(p: Vector2) -> bool:
 	return p.x > SOUTH_YARD_X and p.y > 26.5 and p.y < 37.5
@@ -469,7 +469,7 @@ func update_lake_south(dt: float) -> void:
 var at_shore := false
 
 func on_island(me: Vector2) -> bool:
-	return m.in_lake and not in_grotto() and m.lake_q >= 4 and me.y > 12.0 and me.y < Main.LAKE.SOUTH_Z
+	return m.in_lake_main() and m.lake_q >= 4 and me.y > 12.0 and me.y < Main.LAKE.SOUTH_Z
 
 func shore_hint(me: Vector2) -> void:
 	var ahead: Vector2 = me + Vector2(m.player.face).normalized() * 0.8
@@ -480,7 +480,7 @@ func shore_hint(me: Vector2) -> void:
 
 # ---- 물빛 동굴 under the island (after the turtle): water-skip runs, archers, the brick crab and the water pearl
 func in_grotto() -> bool:
-	return m.in_lake and m.player.x >= Main.GROTTO.GROTTO_X - 0.5
+	return m.in_lake and m.player.x >= Main.GROTTO.GROTTO_X - 0.5 and m.player.x < Main.CORR.CORR_X - 0.5
 
 # steps going down on the island's south shore, at the lake's G: a stone frame over a stair that sinks step by step
 # into a dark opening, with a lamp on top, so it reads as a way down from far off
@@ -538,7 +538,7 @@ func leave_grotto() -> void:
 	m.player.x = m.lake.marks.G.x
 	m.player.z = m.lake.marks.G.y - 1.2
 	m.ground_y = 0.0
-	m.ui.mini.map_tex = m.with_stair_marks(m.lake.map_tex(Main.LAKE.LAKE_X + Main.LAKE.W), [m.lake.marks.G])
+	m.ui.mini.map_tex = m.with_stair_marks(m.lake.map_tex(Main.LAKE.LAKE_X + Main.LAKE.W), [m.lake.marks.G, m.lake.marks.V])
 	m.ui.zone_name.text = "남쪽 호수"
 	m.ui.zone_sub.text = "물결의 섬"
 	m.ui.boss.visible = false

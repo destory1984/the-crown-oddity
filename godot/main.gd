@@ -36,6 +36,7 @@
 #   sys/mates.gd          Companions: following, trails, health, Noeul sitting, update_mate.
 #   sys/garden_zone.gd    Garden: the heart, Hangyeol's road, the mold boss, the clock room, workers, winding.
 #   sys/workshop_zone.gd  Deep workshop: the great hall's door, three floors under the castle, the cradle, Simji's bench.
+#   sys/corridor_zone.gd  Water corridor (v0.1.84): four rooms under the lake island, levers, carts, Mulgyeol's posts, the sluice-keeper.
 extends Node3D
 
 # The systems: one object per sys/*.gd file (see the file map above), each holding this node as `m`.
@@ -71,6 +72,7 @@ var castle_zone := preload("res://sys/castle_zone.gd").new(self)
 var mates := preload("res://sys/mates.gd").new(self)
 var garden_zone := preload("res://sys/garden_zone.gd").new(self)
 var workshop_zone := preload("res://sys/workshop_zone.gd").new(self)
+var corridor_zone := preload("res://sys/corridor_zone.gd").new(self)
 var quest_marks := preload("res://sys/quest_marks.gd").new(self)
 var moon_tokens := preload("res://sys/tokens.gd").new(self)
 
@@ -156,6 +158,8 @@ var cave_door_open := false
 var cave_marks := {}        # letter -> world Vector2 (S, P, K, D, B, E; 1 2 3 the shrine's stones)
 
 func tile_at(x: float, z: float) -> int:
+	if x >= CORR.CORR_X - 0.5:
+		return WATER if corridor.blocked(x, z) else GRASS
 	if x >= WORK.WORK_X - 0.5:
 		return WATER if wfloors[WORK.floor_of(x)].blocked(x, z) else GRASS
 	if x >= VILLAGE.VILLAGE_X - 0.5:
@@ -313,6 +317,8 @@ var skip_grace := 0.0   # a short let-go of Shift or the arrows mid-river does n
 
 # water the water skip can run over: the marsh rivers and ponds, and the deep runs in the grotto
 func skip_water(x: float, z: float) -> bool:
+	if x >= CORR.CORR_X - 0.5:
+		return corridor.deep(x, z)
 	if x >= WORK.WORK_X - 0.5:
 		return false
 	if x >= VILLAGE.VILLAGE_X - 0.5:
@@ -442,6 +448,8 @@ func _ready() -> void:
 	hill.build(self)
 	grotto.build(self)
 	lake_zone.grotto_steps()
+	corridor.build(self)
+	corridor_zone.lake_steps()
 	cloud.build(self)
 	cloud.build_updraft(self, hill.marks.U)
 	castle.build(self)
@@ -702,6 +710,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.84: 호수 섬의 계단 아래에 물길 회랑이 생겼다. 방 넷(수위 손잡이, 운반대, 물결의 자리, 물레 셋과 3마리 한 조씩)을 지나 보스 벽돌 수문지기(체력 2000)를 쓰러뜨리고 응답대를 켜야 숲으로 가는 문이 열린다. 설계 값으로 46분이 길어졌다",
 	"· v0.1.83: 이야기 상자가 F9 뒤에 멋대로 닫히던 것과, 여관 대사가 설정창 위에 겹쳐 키가 막히던 것을 고쳤다. 분수는 마을에서 25칸 넘게 멀어지면 멈추고, 휴대전화에서는 물방울이 절반이다",
 	"· v0.1.82: 이야기 글자가 찍히는 동안 동숲처럼 말소리가 난다. 한글 두 글자마다 짧은 소리가 나고, 높이는 말하는 사람마다 다르며(소라 640Hz, 콩알 720Hz, 물결 430Hz, 노을 330Hz, 차돌 260Hz 등), 모음에 따라 오르내린다('ㅏ ㅗ'는 낮게, 'ㅣ ㅔ'는 높게). 이름 없는 해설은 조용하다. 설정의 '말소리' 단추로 끌 수 있다.",
 	"· v0.1.81: 분수를 치면 물낯이 네 번 출렁일 때마다 물이 찰싹이는 소리가 난다(밝은 쉬익 소리에 떨어지는 '퐁' 소리를 섞어 코드로 만들었고, 출렁임마다 작아진다). 전에는 '삐' 소리 하나였다.",
@@ -1471,6 +1480,7 @@ var mate_cd := 0.0
 const GARDEN := preload("res://garden.gd")
 const MARSH := preload("res://marsh.gd")
 const GROTTO := preload("res://grotto.gd")
+const CORR := preload("res://corridor.gd")
 const CLOUD := preload("res://cloud.gd")
 const CASTLE := preload("res://castle.gd")
 const STAIRS := preload("res://stairs.gd")
@@ -1499,6 +1509,13 @@ var grotto = GROTTO.new()   # 물빛 동굴 under Mulgyeol's island (Sora is sti
 var grotto_q := 0           # 0 never entered, 1 inside, 2 fighting the crab, 3 crab beaten, 4 pearl taken
 var grotto_side := false    # the side-room chest is open
 var grotto_spawned := false
+var corridor = CORR.new()   # 물길 회랑 under the island (v0.1.84, the owner's "1안"; Sora is still in_lake down there)
+var corridor_q := 0         # 0 never entered, 1..4 the three rooms and the wheel hall, 5 sluice-keeper beaten, 6 answered (the forest gate opens)
+var corr_sec: Array = corridor_zone.fresh_sections() # device flags per room (saved as corridor_section_state)
+var corr_bits := 0          # the wheel hall's three wheels, west to east: 001, 011, 111
+var corr_reward := false    # the knot and the potions were given (once)
+var corr_check := 0         # the last safe room
+var corr_told := false      # the keeper's talk was told
 var has_pearl := false      # 물빛 진주: stamina refills 1.5 times as fast
 var tokens: Array = [false, false, false, false, false, false] # the six moonkeeper tokens of THIS round (sys/tokens.gd): firefly jar, ring, pearl, squirrels, hill deed, library
 var marsh = MARSH.new()     # the map scraps and the moonkeeper chest
@@ -1573,6 +1590,8 @@ func crown_key() -> void:
 		return
 	if in_grotto() and lake_zone.grotto_key():
 		return
+	if in_corridor() and corridor_zone.corridor_key():
+		return
 	if in_cloud() and hill_zone.cloud_key():
 		return
 	if in_workshop() and workshop_zone.work_key():
@@ -1585,15 +1604,15 @@ func crown_key() -> void:
 		return
 	if in_village and in_house < 0 and market.magpie_key():
 		return
-	if (in_lake and not in_grotto() or in_village) and minigames.fish_key():
+	if (in_lake_main() or in_village) and minigames.fish_key():
 		return
 	if in_village and in_house < 0 and market.market_key():
 		return
-	if in_lake and not in_grotto() and Vector2(player.x, player.z).distance_to(lake.marks.h) < 2.0 and errands.deliver(2, STORY.MAIL_HUT):
+	if in_lake_main() and Vector2(player.x, player.z).distance_to(lake.marks.h) < 2.0 and errands.deliver(2, STORY.MAIL_HUT):
 		return
-	if in_lake and not in_grotto() and lake_zone.south_key():
+	if in_lake_main() and lake_zone.south_key():
 		return
-	if in_lake and lake_zone.lake_key():
+	if in_lake_main() and lake_zone.lake_key():
 		return
 	if in_hill and minigames.trial_key():
 		return
@@ -2237,7 +2256,7 @@ func _process(dt: float) -> void:
 		if l.visible and not l.get_meta("dark", false):
 			var ld := Vector2(l.position.x - player.x, l.position.z - player.z).length()
 			warm = maxf(warm, clampf(1.0 - (ld - 1.5) / 2.5, 0.0, 1.0))
-	if in_cave or in_grotto() or in_under() or in_workshop() or jar_node != null and jar_node.visible:
+	if in_cave or in_grotto() or in_corridor() or in_under() or in_workshop() or jar_node != null and jar_node.visible:
 		warm = maxf(warm, 0.6) # the cave lamp on her, or the firefly jar at her side
 	lit = lit.lerp(Color(1.0, 0.95, 0.86), warm * night)
 	hero.modulate = Color(1, 0.5, 0.5) if player.hurt_t > 0 else Color(lit.r, lit.g, lit.b, 0.3 if blink else 1.0)
@@ -2338,7 +2357,14 @@ func _process(dt: float) -> void:
 		fade_then(enter_grotto)
 	if in_grotto() and Vector2(player.x, player.z).distance_to(grotto.marks.S) < 0.7 and fade_rect.color.a == 0.0:
 		fade_then(lake_zone.leave_grotto)
-	if in_lake and not in_grotto():
+	if in_lake_main() and lake_q >= 4 and Vector2(player.x, player.z).distance_to(lake.marks.V) < 0.8 and fade_rect.color.a == 0.0:
+		if corridor_zone.can_enter(): # the water corridor's stair (v0.1.84): the pearl and the lower pond's water clock first
+			fade_then(corridor_zone.enter_corridor)
+		else:
+			corridor_zone.gate_note()
+	if in_corridor():
+		corridor_zone.update(dt)
+	if in_lake_main():
 		lake_zone.update_lake_south(dt)
 	if south_q >= 4:
 		grotto.turn_wheels(dt)
@@ -2696,6 +2722,8 @@ func mate_job_state() -> String: return lake_zone.mate_job_state()
 func spawn_south_ambush() -> void: lake_zone.spawn_south_ambush()
 func clear_south_job() -> void: lake_zone.clear_south_job()
 func in_grotto() -> bool: return lake_zone.in_grotto()
+func in_corridor() -> bool: return corridor_zone.in_corridor()
+func in_lake_main() -> bool: return in_lake and not in_grotto() and not in_corridor() # the island and the lower pond, not the grotto or the corridor
 func stair_frame(at: Vector2, turn := 0.0, shade := 0.0, lamp_col := Color("#9fd8ff")) -> Node3D: return lake_zone.stair_frame(at, turn, shade, lamp_col)
 func enter_grotto() -> void: lake_zone.enter_grotto()
 func turtle_beaten() -> void: lake_zone.turtle_beaten()

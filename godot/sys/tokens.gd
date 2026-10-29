@@ -84,6 +84,9 @@ func mill_done() -> bool:
 func trial_done() -> bool: # cleared this round (the best time is kept across rounds, this flag is not)
 	return m.trial_won
 
+func corridor_done() -> bool: # the water corridor's answer lamps lit (v0.1.84, the owner's "1안"): the forest asks for it too
+	return m.corridor_q >= 6
+
 func workshop_done() -> bool: # the deep workshop's cradle let go
 	return m.work_q >= 5
 
@@ -94,7 +97,7 @@ func quarters_done() -> bool: # the tin doorkeeper walked to his bunk and sat do
 # "knight" is the moon door to the throne room (past it once it is open or the fight began); "stairs" is the castle's east gate.
 func holds(area: String) -> bool:
 	match area:
-		"forest": return m.forest_q < 1 and not (m.tokens[PEARL] and pond_done())
+		"forest": return m.forest_q < 1 and not (m.tokens[PEARL] and pond_done() and corridor_done())
 		"hill": return m.hill_q < 1 and not (m.tokens[SQUIRRELS] and valley_done())
 		"castle": return m.castle_q < 1 and not (mill_done() and trial_done())
 		"knight": return m.castle_q < 2 and not m.castle.door_open and not workshop_done()
@@ -105,7 +108,7 @@ func holds(area: String) -> bool:
 # which need the story and the line name for a gate: the first one still missing
 func missing(area: String) -> String:
 	match area:
-		"forest": return "pearl" if not m.tokens[PEARL] else "pond"
+		"forest": return "pearl" if not m.tokens[PEARL] else ("pond" if not pond_done() else "corridor")
 		"hill": return "squirrels" if not m.tokens[SQUIRRELS] else "valley"
 		"castle":
 			if not mill_done() and not trial_done(): return "both"
@@ -147,6 +150,8 @@ func lake_line() -> String:
 	if holds("forest"):
 		if missing("forest") == "pond":
 			return "숲으로 가기 전에: 아랫못의 물시계를 되살리자"
+		if missing("forest") == "corridor":
+			return "숲으로 가기 전에: 물길 회랑에서 정원으로 물을 보내자"
 		return "숲으로 가기 전에: 물빛 동굴의 게를 물리치고 진주를 얻자"
 	return "물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"
 
@@ -213,7 +218,7 @@ func refresh_quest() -> void:
 # ---- the journal: what each gate still ahead asks for, under the tokens
 func gate_lines() -> Array:
 	var rows := [
-		["forest", m.lake_q >= 4, "숲으로 가는 문", [["물빛 진주", m.tokens[PEARL]], ["아랫못의 물시계", pond_done()]]],
+		["forest", m.lake_q >= 4, "숲으로 가는 문", [["물빛 진주", m.tokens[PEARL]], ["아랫못의 물시계", pond_done()], ["물길 회랑", corridor_done()]]],
 		["hill", m.forest_q >= 3, "언덕으로 가는 문", [["다람쥐 다섯", m.tokens[SQUIRRELS]], ["남쪽 골짜기의 기억", valley_done()]]],
 		["castle", m.hill_q >= 3, "성으로 가는 문", [["참새 방앗간", mill_done()], ["달빛 시련", trial_done()]]],
 		["knight", m.castle_q >= 1, "옥좌의 방 달의 문", [["작업장의 수리 요람", workshop_done()]]],

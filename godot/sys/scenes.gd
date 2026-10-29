@@ -116,6 +116,13 @@ const SCENES := {
 	"under_in": {"play": true, "village": true, "castle": true, "under_in": true, "hour": 16.0},
 	"workshop1": {"play": true, "village": true, "castle": true, "workshop": 1, "hour": 16.0}, # 달지기 작업장 B1: both lamps lit, the planks shown
 	"altar_work": {"play": true, "village": true, "castle": true, "workshop": 1, "hour": 16.0, "altar": true}, # the ember's altar on B1
+	"corridor": {"play": true, "village": true, "corridor": 0, "cq": 1, "hour": 15.0}, # 물길 회랑 (v0.1.84): the first room, low water
+	"corridor_high": {"play": true, "village": true, "corridor": 0, "cq": 1, "high": true, "cat": Vector2(5, 10), "hour": 15.0}, # the same, the water raised
+	"corridor2": {"play": true, "village": true, "corridor": 1, "cq": 2, "cat": Vector2(13, 10), "hour": 15.0},
+	"corridor3": {"play": true, "village": true, "corridor": 2, "cq": 3, "high": true, "cat": Vector2(13, 10), "hour": 15.0},
+	"corridor_core": {"play": true, "village": true, "corridor": 3, "cq": 4, "cat": Vector2(14, 12), "hour": 15.0},
+	"corridor_boss": {"play": true, "village": true, "corridor": 3, "cq": 4, "boss": true, "hour": 15.0}, # the sluice-keeper with its lane showing
+	"corridor_stairs": {"play": true, "village": true, "corridor": -1, "hour": 15.0}, # the stair on the island
 	"altar_grotto": {"play": true, "village": true, "crab": true, "hour": 21.0, "altar": true}, # the nova's altar in the crab's room
 	"workshop2": {"play": true, "village": true, "castle": true, "workshop": 2, "hour": 16.0}, # B2: the lid lifted, the stopper bare
 	"workshop3": {"play": true, "village": true, "castle": true, "workshop": 3, "hour": 16.0}, # B3: the work pit, one latch wound
@@ -453,6 +460,48 @@ func apply_test_args(args: PackedStringArray) -> void:
 				m.player.x = m.grotto.GROTTO_X + m.cave.GROTTO_ALTAR.x + 1.6
 				m.player.z = m.cave.GROTTO_ALTAR.y + 0.8
 			m.snap_mate()
+		if sc.has("corridor"): # the water corridor: "corridor" the room (-1: the island's stair), "cq" the quest, "high" the level, "boss" the keeper
+			m.night_q = 4
+			m.lake_q = 4
+			m.south_q = 4
+			m.tokens[2] = true
+			m.has_pearl = true
+			m.has_skip = true
+			m.enter_lake()
+			m.lake.thaw()
+			m.join_mate()
+			m.close_story()
+			if int(sc.corridor) < 0:
+				m.player.x = m.lake.marks.V.x + 2.0
+				m.player.z = m.lake.marks.V.y - 1.5
+			else:
+				var r: int = int(sc.corridor)
+				m.corridor_q = int(sc.get("cq", 1))
+				m.corridor_zone.repair()
+				m.corridor_zone.apply_state()
+				m.corridor_zone.enter_room(r, false)
+				m.close_story()
+				if sc.has("high") and r < 3:
+					m.corr_sec[r].water_high = true
+					m.corridor.set_water(r, true)
+				if sc.has("boss"):
+					m.corr_bits = 7
+					m.corr_sec[3].record_read = true
+					m.corr_sec[3].water_high = true
+					m.corr_sec[3].latch_fixed = true
+					m.corr_told = true
+					m.corridor_zone.apply_state()
+					m.corridor_zone.spawn_gate()
+					var gk = m.corridor_zone.gate_alive()
+					if gk != null:
+						gk.st_t = 2.6 # its lane shows about 4 s after the start
+					m.player.x = m.corridor.at(3, "B").x - 6.0
+					m.player.z = m.corridor.at(3, "B").y
+				if sc.has("cat"): # a spot in the room, local tile
+					m.player.x = m.corridor.origin(r) + sc.cat.x
+					m.player.z = sc.cat.y
+				m.snap_mates()
+				m.corridor_zone.refresh_quest()
 		if sc.get("hill", false): # the wind hills, one mill turning, Mulgyeol and Noeul along
 			m.night_q = 4
 			m.lake_q = 4
@@ -886,7 +935,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 
 # a late-game state for the journal and the HUD shots (and the lap 6 layout test): every side story started, five tokens lit
 const LATE := {"story_step": 12, "errand": 3, "kid_q": 3, "doran_q": 3, "fly_q": 3, "mail_q": 2, "mail_got": [true, true, true],
-	"has_skip": true, "shrine_seen": true, "lake_q": 4, "forest_q": 3, "hill_q": 3, "castle_q": 3, "cloud_q": 3, "grotto_q": 4,
+	"has_skip": true, "shrine_seen": true, "corridor_q": 6, "lake_q": 4, "forest_q": 3, "hill_q": 3, "castle_q": 3, "cloud_q": 3, "grotto_q": 4,
 	"south_q": 5, "clock_q": 5, "post_q": 4, "mill_q": 5, "shore_q": 3, "magpie_q": 3, "hollow_q": 4, "trial_best": 95.0,
 	"race_best": 41.0, "tokens": [true, true, true, true, false, true]}
 

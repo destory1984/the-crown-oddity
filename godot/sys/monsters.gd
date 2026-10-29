@@ -677,7 +677,7 @@ func refill_field(area: String) -> void:
 # v0.1.72: a boss or mini-boss counts as "in a fight" from the moment she comes within 12 tiles or hurts it, until it dies
 # or she is 40 tiles away, so resting cannot heal her just by stepping out of the bar's range (the owner chose "bosses get
 # tougher", 2026-10-28; boss7 review)
-const FIGHT_KEYS := ["boss", "noeul", "turtle", "crab", "hawk", "knight", "mole", "mold", "mill_guard"]
+const FIGHT_KEYS := ["boss", "noeul", "turtle", "crab", "hawk", "knight", "mole", "mold", "mill_guard", "gatekeeper"]
 func mark_fight(e: Dictionary, d: float) -> void:
 	for k in FIGHT_KEYS:
 		if e.get(k, false):
@@ -742,6 +742,9 @@ func update_enemies(dt: float, gy: float) -> void:
 		if e.get("knight", false):
 			m.castle_zone.update_knight(e, dt, d, to)
 			continue
+		if e.get("gatekeeper", false):
+			m.corridor_zone.update_gate(e, dt, d, to)
+			continue
 		if e.get("shard", false):
 			m.garden_zone.update_shard(e, dt)
 			continue
@@ -772,6 +775,9 @@ func update_enemies(dt: float, gy: float) -> void:
 			continue
 		if e.get("pendulum", false):
 			m.brick_foes.update_pendulum(e, dt, d, to)
+			continue
+		if e.get("bucket", false):
+			m.brick_foes.update_bucket(e, dt, d, to)
 			continue
 		if e.get("prop", false):
 			e.shadow.position = Vector3(e.x, 0.02, e.z)

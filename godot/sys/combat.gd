@@ -87,6 +87,8 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 		m.stats.crits += 1
 	if (e.get("boss", false) or e.get("mole", false)) and e.get("stun", 0.0) > 0.0:
 		amt *= 1.5
+	if e.get("gatekeeper", false) and e.expo <= 0.0:
+		amt *= 0.5 # the sluice-keeper takes full blows only while its axis lies open (v0.1.84)
 	var dmg := int(round(amt / m.ng_mult() * m.rnd(0.85, 1.15) * (1.0 if force_crit else (m.market.crit_mult() if crit else 1.0))))
 	m.hitstop = maxf(m.hitstop, 0.09 if crit and stop < 0.09 else stop)
 	if e.get("wind", 0.0) > 0.0 and not e.get("boss", false):
@@ -132,6 +134,10 @@ func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_cri
 			m.get_tree().create_timer(1.0).timeout.connect(m.knight_beaten)
 		elif e.get("hawk", false):
 			m.get_tree().create_timer(1.0).timeout.connect(m.hill_zone.hawk_beaten)
+		elif e.get("gatekeeper", false):
+			m.get_tree().create_timer(1.0).timeout.connect(m.corridor_zone.boss_beaten)
+		elif e.get("corr_prep", false):
+			pass # the wheel hall's groups pay once when the whole group is down (corridor_zone.finish_group)
 		elif e.get("mole", false):
 			m.player.gold += 150
 			gain_xp(120)
@@ -177,8 +183,8 @@ func gain_xp(n: int) -> void:
 # Monsters grow with the land, as in the Ys games (the owner, 2026-10-27: "서쪽 늪보다 동쪽 숲의 몹이 더 세다"): each
 # area adds its own step on top of a smaller share of Sora's level, so an area she has outgrown gets easier and the
 # next one is harder. Steps follow the story's road; the area is the one Sora stands in (monsters spawn near her).
-const AREA_STEP := [[620, 9], [560, 2], [530, 8], [500, 8], [480, 2], [430, 7], [390, 6], [350, 5], [310, 5], [270, 3],
-	[230, 9], [180, 4], [100, 1], [0, 0]] # x from: workshop, village, undercroft, stairs, houses, castle, cloud, grotto, hill, lake, garden, forest, cave, marsh
+const AREA_STEP := [[740, 5], [620, 9], [560, 2], [530, 8], [500, 8], [480, 2], [430, 7], [390, 6], [350, 5], [310, 5], [270, 3],
+	[230, 9], [180, 4], [100, 1], [0, 0]] # x from: water corridor (before the forest, so the grotto's step), workshop, village, undercroft, stairs, houses, castle, cloud, grotto, hill, lake, garden, forest, cave, marsh
 
 func area_step(x: float) -> int:
 	for a in AREA_STEP:

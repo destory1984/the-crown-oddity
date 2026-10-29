@@ -36,7 +36,7 @@ func fl(i: int):
 	return m.wfloors[i]
 
 func in_workshop() -> bool:
-	return m.in_hill and m.player.x >= Main.WORK.WORK_X - 0.5
+	return m.in_hill and m.player.x >= Main.WORK.WORK_X - 0.5 and m.player.x < Main.CORR.CORR_X - 0.5
 
 func floor_here() -> int:
 	return Main.WORK.floor_of(m.player.x)

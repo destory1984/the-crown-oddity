@@ -276,6 +276,9 @@ func faint() -> void:
 		m.minigames.end_race("경주 중에 쓰러졌다")
 	if m.trial_wave > 0:
 		m.minigames.end_trial("시련에서 쓰러졌다")
+	if m.in_corridor(): # the water corridor keeps her in the room she fell in (v0.1.84)
+		m.corridor_zone.on_faint()
+		return
 	if m.in_garden:
 		m.clear_clock_wave()
 		m.beat_clear()

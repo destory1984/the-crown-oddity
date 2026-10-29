@@ -22,6 +22,8 @@ func _init(main: Main) -> void:
 func quest_target() -> Vector3:
 	if m.intro or m.story_open or m.in_house >= 0:
 		return Vector3.INF
+	if m.in_corridor(): # the water corridor reads its own devices (v0.1.84): the first unfinished condition, not the line's words
+		return m.corridor_zone.next_spot()
 	var at := line_target(m.quest_raw)
 	if at == Vector3.INF:
 		at = side_target()
@@ -63,7 +65,7 @@ func here() -> String:
 	if m.in_village: return "village"
 	if m.in_forest: return "forest"
 	if m.in_garden: return "clock" if m.garden_zone.in_clock() else "garden"
-	if m.in_lake: return "grotto" if m.in_grotto() else "lake"
+	if m.in_lake: return "corridor" if m.in_corridor() else ("grotto" if m.in_grotto() else "lake")
 	if m.in_hill:
 		if m.in_castle(): return "castle"
 		if m.in_stairs(): return "stairs"
@@ -122,6 +124,7 @@ func line_target(raw: String) -> Vector3:
 		"village": at = village_target(raw)
 		"lake": at = lake_target(raw)
 		"grotto": at = grotto_target(raw)
+		"corridor": at = m.corridor_zone.next_spot()
 		"forest": at = forest_target(raw)
 		"hill": at = hill_target(raw)
 		"castle": at = castle_target(raw)
@@ -142,7 +145,7 @@ const TOKEN_CHAIN := ["lake", "forest", "hill", "castle"] # the road's areas, we
 
 func chain_pos() -> float:
 	match here():
-		"lake", "grotto": return 0.0
+		"lake", "grotto", "corridor": return 0.0
 		"village": return 0.5
 		"forest": return 1.0
 		"hill": return 2.0
@@ -254,7 +257,9 @@ func lake_target(raw: String) -> Vector3:
 	if raw.contains("벽돌 거북"):
 		return either(foe_at("turtle"), m.lake.marks.T, 3.4)
 	if raw.begins_with("숲으로 가기 전에"): # the grotto's steps on the island for the pearl, then the lower pond's next step
-		return over(m.lake.marks.G, 2.6) if not m.tokens[m.moon_tokens.PEARL] else pond_target()
+		if not m.tokens[m.moon_tokens.PEARL]:
+			return over(m.lake.marks.G, 2.6)
+		return pond_target() if m.south_q < 4 else over(m.lake.marks.V, 2.6) # the water corridor's stair once the pond is done
 	return Vector3.INF
 
 # the lower pond: the weir, the two rope posts (Mulgyeol swims down their chains), the water clockwork's key

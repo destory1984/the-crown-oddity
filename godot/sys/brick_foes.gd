@@ -532,6 +532,98 @@ func sweep(e: Dictionary) -> void:
 		for a in [-1.0, 0.0, 1.0]:
 			mate_hit(from + dir.rotated(a * 0.9) * t, 0.5, dmg)
 
+# ---------------------------------------------------------------- 벽돌 물받이 (water corridor, v0.1.84)
+# The owner chose the corridor (2026-10-29, "1안: 물길·관측원"). hp 40 + 13 per foe level, blow 8 + 2 per level (shots/plans/option1_design.md).
+# Within 4 tiles: a lane 1 wide and 4 long shows 0.9 s (locked), one spray 0.4 s, then the bucket head bows 1.8 s with its seams
+# open (the opening to cut). At most two buckets show a lane at once; no knockback; a bucket only ever aims at Sora.
+func make_bucket() -> Node3D:
+	var root := Node3D.new()
+	var g := Node3D.new()
+	root.add_child(g)
+	var mats: Array = []
+	m.brick(g, mats, Vector3(0.16, 0.2, 0.2), Vector3(-0.22, 0.1, 0), Color("#2e2a30"), false)
+	m.brick(g, mats, Vector3(0.16, 0.2, 0.2), Vector3(0.22, 0.1, 0), Color("#2e2a30"), false)
+	m.brick(g, mats, Vector3(0.9, 0.7, 0.7), Vector3(0, 0.55, 0), Color("#5c6a7c"))
+	var head := Node3D.new()
+	head.position = Vector3(0, 1.0, 0.0)
+	g.add_child(head)
+	m.brick(head, mats, Vector3(0.62, 0.4, 0.62), Vector3(0, 0.2, 0), Color("#3fb0b0"))
+	m.brick(head, mats, Vector3(0.5, 0.08, 0.5), Vector3(0, 0.44, 0), Color("#2a7a80"), false)
+	m.brick(head, mats, Vector3(0.22, 0.14, 0.3), Vector3(0, 0.12, 0.38), Color("#c8d4dc"), false) # the spout
+	for sx in [-0.3, 0.3]: # the two white seams
+		m.brick(g, mats, Vector3(0.06, 0.5, 0.04), Vector3(sx, 0.55, 0.36), Color("#f4f4ee"), false)
+	root.scale = Vector3.ONE * 1.1
+	root.set_meta("mats", mats)
+	root.set_meta("body", g)
+	root.set_meta("head", head)
+	return root
+
+func spawn_bucket(at: Vector2) -> Dictionary:
+	var e := base_entry(make_bucket(), at, 40 + m.foe_lv() * 13, 0.9, {"bucket": true, "spray_t": 0.0, "bow": 0.0})
+	e.atk_cd = 0.8
+	return e
+
+func bucket_lanes() -> int:
+	var n := 0
+	for o in m.enemies:
+		if not o.dead and o.get("bucket", false) and o.tele_t > 0.0:
+			n += 1
+	return n
+
+func update_bucket(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
+	tick(e, dt)
+	var from := Vector2(e.x, e.z)
+	var dirn := to / maxf(d, 0.01)
+	var v := Vector2.ZERO
+	var head: Node3D = e.node.get_meta("head")
+	e.spray_t = e.get("spray_t", 0.0) - dt
+	e.bow = e.get("bow", 0.0) - dt
+	if e.tele_t > 0.0:
+		e.tele_t -= dt
+		e.kx = 0.0
+		e.kz = 0.0
+		if e.tele_t <= 0.0:
+			spray(e)
+	elif e.spray_t > 0.0:
+		pass # the jet runs
+	elif e.bow > 0.0 or e.seam > 0.0:
+		pass # head down, seams open
+	elif e.hurt > 0.0 or e.stun > 0.0:
+		v = Vector2(e.kx, e.kz)
+	elif d < 7.0 and not m.intro:
+		if e.atk_cd <= 0.0 and d <= 4.0 and bucket_lanes() < 2:
+			e.tele_t = 0.9
+			e.atk_cd = 2.8
+			e.face = dirn
+			e.tele = m.monsters.warn_path(from, dirn, 4.0, 1.0, 0.9)
+			m.pop_num(Vector3(e.x, m.height_at(e.x, e.z) + 2.0, e.z), "!", Color("#ff5a4a"))
+		elif d > 3.0:
+			v = dirn * 1.2
+	elif d >= 7.0:
+		v = wander(e)
+	if e.tele_t > 0.0 or e.spray_t > 0.0:
+		face_to(e, e.face, dt, true)
+	elif v.length() > 0.1:
+		face_to(e, v, dt)
+	finish(e, v, dt, 0.0)
+	var bowed: bool = e.bow > 0.0 or e.seam > 0.0
+	head.rotation.x = lerpf(head.rotation.x, 0.9 if bowed else (-0.35 if e.tele_t > 0.0 else 0.0), minf(1.0, dt * 12.0))
+	flash(e, e.tele_t > 0.0)
+
+func spray(e: Dictionary) -> void:
+	var from := Vector2(e.x, e.z)
+	var dir: Vector2 = e.face
+	var dmg: int = 8 + m.foe_lv() * 2
+	m.monsters.tele_clear(e)
+	e.spray_t = 0.4
+	e.bow = 1.8
+	seam_for(e, 1.8)
+	for k in 4:
+		m.burst(Vector3(e.x + dir.x * (0.8 + k), 0.5, e.z + dir.y * (0.8 + k)), Color("#9fd8ff"), 8, 2.4)
+	m.sfx(300, 0.2, "noise", 0.12, -60)
+	if in_lane(from, dir, 4.0, 0.5, Vector2(m.player.x, m.player.z)):
+		m.player_hit(dmg, from, e)
+
 # ---------------------------------------------------------------- where they live
 # spots to hang on a field list: [world Vector2, letter] ("p" pendulum, "h" hopper)
 func spots(area: String) -> Array:

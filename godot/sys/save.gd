@@ -38,6 +38,7 @@ func save_game() -> void:
 		"under_side": m.under_side_open, "under_diary": m.under_diary_read, "has_lamp": m.has_lamp, "cave_quest": m.quest_before_cave,
 		"pip_max": m.pip_max, "pip_awards": m.pip_awards.keys(), "tokens": m.tokens, "trial_won": m.trial_won, "stairs_seen": m.stairs_seen, "moon_door": m.castle.door_open}
 	d.merge(m.workshop_zone.save_data())
+	d.merge(m.corridor_zone.save_data())
 	var f := FileAccess.open(m.SAVE_PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(d))
@@ -88,6 +89,7 @@ func load_game() -> void:
 		m.lake.thaw()
 	m.south_q = int(d.get("south_q", 0)) # old saves: the weir is still shut
 	m.has_whistle = bool(d.get("has_whistle", false))
+	m.corridor_zone.load_data(d) # the water corridor (v0.1.84); an old save past the forest comes in as done
 	m.lake.south_look(m.south_q)
 	m.clear_south_job()
 	if m.lake_q >= 4:
@@ -182,7 +184,11 @@ func load_game() -> void:
 		var lx: float = m.player.x
 		var lz: float = m.player.z
 		m.enter_lake()
-		if lx >= Main.GROTTO.GROTTO_X - 0.5:
+		if lx >= Main.CORR.CORR_X - 0.5: # saved in the water corridor: back at the last room's stair, friends beside her
+			m.corridor_zone.restore_at(m.corr_check)
+			lx = m.player.x
+			lz = m.player.z
+		elif lx >= Main.GROTTO.GROTTO_X - 0.5:
 			m.enter_grotto()
 		m.player.x = lx
 		m.player.z = lz
@@ -491,6 +497,7 @@ func return_to_start() -> void:
 	m.in_cave = false
 	m.in_village = false
 	m.in_forest = false
+	m.corridor_zone.clear_job()
 	m.in_lake = false
 	m.in_hill = false
 	m.in_garden = false

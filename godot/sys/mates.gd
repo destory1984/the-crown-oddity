@@ -335,7 +335,10 @@ func update_mate(dt: float) -> void:
 	if m.mulgyeol_sitting and (not sora_resting() or m.mate_down["mulgyeol"] > 0.0 or not m.mate_job.is_empty() or m.garden_zone.clock_hold()):
 		mulgyeol_sit(false)
 	if not m.mate_job.is_empty():
-		if m.in_lake and not m.in_grotto():
+		if m.in_corridor() and m.mate_job.get("kind", "") in ["corr_post", "corr_cart"]:
+			m.corridor_zone.update_mate_job(dt)
+			return
+		if m.in_lake_main():
 			m.lake_zone.update_mate_job(dt)
 			return
 		if m.in_workshop() and m.mate_job.get("kind", "") == "work": # B2's chain post

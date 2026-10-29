@@ -234,7 +234,7 @@ func end_race(msg: String) -> void:
 
 func fish_key() -> bool:
 	var me := Vector2(m.player.x, m.player.z)
-	if m.in_lake and not m.in_grotto() and m.lake_q >= 2 and me.distance_to(m.lake.marks.f) <= 1.5:
+	if m.in_lake_main() and m.lake_q >= 2 and me.distance_to(m.lake.marks.f) <= 1.5:
 		m.fish_at = m.lake.marks.f
 	elif m.in_village and m.in_house < 0 and me.distance_to(m.village.marks.f) <= 1.5:
 		m.fish_at = m.village.marks.f
@@ -296,7 +296,7 @@ func land_fish() -> void:
 func update_fishing(dt: float) -> void:
 	if m.fish_state == "":
 		return
-	if not (m.in_lake and not m.in_grotto() or m.in_village) or Vector2(m.player.x, m.player.z).distance_to(m.fish_at) > 2.0:
+	if not (m.in_lake_main() or m.in_village) or Vector2(m.player.x, m.player.z).distance_to(m.fish_at) > 2.0:
 		m.fish_state = ""
 		m.bobber.visible = false
 		return

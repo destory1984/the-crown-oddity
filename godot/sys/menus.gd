@@ -694,6 +694,8 @@ func journal_lines() -> Array:
 		side.call("호숫가 낚시", tr("끝") if m.fish_kinds.count(true) == 5 else tr("%d/5 종류") % m.fish_kinds.count(true))
 	if m.lake_q >= 4:
 		side.call("섬 밑 물빛 동굴", tr("끝") if m.grotto_q >= 4 else (tr("상자를 열자") if m.grotto_q == 3 else tr("섬 남쪽 계단으로")))
+		if m.corridor_q >= 1 or (m.south_q >= 4 and m.tokens[m.moon_tokens.PEARL]):
+			side.call("물길 회랑", m.corridor_zone.journal())
 		side.call("아랫못 물지기", [tr("섬 남쪽 끝 둑"), tr("물속 사슬은 물결에게 (E)"), tr("창살 안 걸쇠"), tr("물 태엽 열쇠를 감자"), tr("열쇠 기둥의 깡통"), tr("끝")][m.south_q])
 	if m.clock_q >= 1:
 		side.call("큰 태엽 방", [tr(""), tr("빈터 한가운데 구멍으로"), tr("굳은 톱니 셋 %d/3") % m.clock_gears.count(true), tr("왕관 무늬에 팔찌를 대자"), tr("다 같이 밀자"), tr("끝") if m.clock_box else tr("열쇠 북쪽 궤짝")][m.clock_q])
@@ -758,6 +760,7 @@ func journal_lines() -> Array:
 	if m.has_shoes: keep.append(tr("바람 신발"))
 	if m.has_oar_ring: keep.append(tr("삿대 고리"))
 	if m.has_whistle: keep.append(tr("물지기 호루라기"))
+	if m.corr_reward: keep.append(tr("회랑 물매듭"))
 	if m.has_oil: keep.append(tr("달지기 기름병"))
 	if m.shore_q == 3: keep.append(tr("보리의 등불"))
 	if m.has_cushion: keep.append(tr("갈대 방석"))

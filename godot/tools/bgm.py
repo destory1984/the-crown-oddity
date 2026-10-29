@@ -639,6 +639,15 @@ TRACKS.update(TRACKS_NEW)
 for _d in DROPPED:
     TRACKS.pop(_d)
 
+# the water corridor (v0.1.84, the owner chose "1안: 물길·관측원", 2026-10-29): one area tune and one boss tune, single files
+# (no _2.._5); the settings follow shots/plans/option1_design.md, and the observatory's pair is for its own build.
+CORRIDOR = {
+    "corridor": S("D", "dor", 120, "i IV bVII i", "bIII bVII IV i", "IV bVII i i", 741, (1, 1, 1)),
+    "corridor_boss": S("D", "harm", 144, "i iv V i", "bVI bVII i V", "iv V i i", 742, (2, 3, 0)),
+}
+TRACKS["corridor"] = lambda: fm_variant("corridor", CORRIDOR["corridor"], fam="sparse", lo=67, hi=89, dungeon=True)
+TRACKS["corridor_boss"] = lambda: fm_variant("corridor_boss", CORRIDOR["corridor_boss"], fam="boss", lo=71, hi=93, boss_like=True)
+
 if __name__ == "__main__":
     for name in sys.argv[1:] or TRACKS:
         TRACKS[name]()

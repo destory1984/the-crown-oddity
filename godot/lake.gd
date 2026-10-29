@@ -30,7 +30,7 @@ const ROWS := """###############S##############
 #XXXXXXXiiLiiiiiiiiiLiiXXXXXX#
 #XXXXXXXiiiiiiiTiiiiiiiXXXXXX#
 #XXXXXXXiiiiiiiiiiiiiiiXXXXXX#
-#XXXXXXXiiiihiiiiiiiiiiXXXXXX#
+#XXXXXXXiiiihiiiiiiiViiXXXXXX#
 #XXXXXXXXiiiiiiiiiiiiiXXXXXXX#
 #XXXXXXXXXXiiiiiiGiiXXXXXXXXX#
 #XXXXXXXXXXXXXiiiXXXXXXXXXXXX#
@@ -53,7 +53,7 @@ const ROWS := """###############S##############
 #########################W####"""
 
 var grid: Array = []
-var marks := {}          # S entry, P pier, Q island pier, T turtle, h hut, D sluice, G steps down to the grotto, f the fishing spot -> world Vector2
+var marks := {}          # S entry, P pier, Q island pier, T turtle, h hut, D sluice, G steps down to the grotto, V steps down to the water corridor (v0.1.84), f the fishing spot -> world Vector2
 var thawed := false      # the sluice is unwound and the lake is water again
 var spikes: MultiMeshInstance3D
 var water: MeshInstance3D
@@ -107,7 +107,7 @@ func blocked(x: float, z: float) -> bool:
 # speckled tops, a lighter island, and water weeds where the land meets the lake. Nothing grows on or next to the
 # boardwalk, a pier, the sluice, the turtle, the hut, the steps down, the fishing spot, a lamp, the weir, the boat
 # shed, a rope post or chain, the stepping stones, the grate and its latch, the key, the tin or the dam.
-const GRASS_CLEAR := "=PQThDGfYBlKcWHRo-LS"
+const GRASS_CLEAR := "=PQThDGfYBlKcWHRo-LSV"
 var grass_tiles: Array = [] # world tiles that got shore grass
 var weed_tiles: Array = []  # world tiles at the water's edge that got water weeds instead
 var dress_meshes: Array = []
@@ -148,7 +148,7 @@ func build(m: Node) -> void:
 		for x in W:
 			var c: String = grid[z][x]
 			var w := Vector2(LAKE_X + x, z)
-			if c in "SPQThDGfYBlKcWH":
+			if c in "SPQThDGfYBlKcWHV":
 				marks[c] = w
 			if c == "L":
 				lamp_spots.append(w)
@@ -170,7 +170,7 @@ func build(m: Node) -> void:
 			match c:
 				"=", "P", "Q": col = Color("#8a6a44") # boardwalk and piers
 				"#": col = Color("#4a3a2a")
-				"i", "T", "h", "L", "G", "f": col = Color("#7aa850")
+				"i", "T", "h", "L", "G", "f", "V": col = Color("#7aa850")
 				"g", "a", "s", "R", "B", "l", "K", "c", "H", "Y": col = Color("#7aa850")
 				"W": col = Color("#4a3a2a")
 			if c == "#" or c == "W":
@@ -180,7 +180,7 @@ func build(m: Node) -> void:
 			if c in "=PQ#W":
 				blocks.append([xf, col])
 			else: # shore and island grass: the speckled top brings the colour (dress)
-				ground.append([xf, c == "i"])
+				ground.append([xf, c == "i" or c == "V"])
 	m.add_chunks(blocks, LAKE_X)
 	dress(m, ground)
 	spikes = m.multimesh_of(spike_list)

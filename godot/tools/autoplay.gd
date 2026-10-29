@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_gate", "corridor_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -156,6 +156,56 @@ func wait_for(cond: Callable, sec: float) -> bool:
 		await wait(0.1)
 		t += 0.1
 	return cond.call()
+
+# ---- 물길 회랑 tests (v0.1.84): the world around the corridor, a room with the state of quest step q, a press of E at a device
+func corr_world() -> void:
+	main.close_story()
+	main.in_village = false
+	main.in_forest = false
+	main.in_hill = false
+	main.in_garden = false
+	main.in_cave = false
+	main.in_lake = true
+	main.night_q = 4
+	main.lake_q = 4
+	main.south_q = 4
+	main.tokens[2] = true
+	main.has_pearl = true
+	main.has_skip = true
+	main.join_mate()
+
+func corr_prep(q: int, r: int) -> void:
+	corr_world()
+	corr_kill(corr_foes()) # the last test's bricks are gone
+	main.corr_sec = main.corridor_zone.fresh_sections()
+	main.corr_bits = 0
+	main.corr_reward = false
+	main.corr_told = false
+	main.corridor_q = q
+	main.corridor_zone.clear_fight()
+	main.corridor_zone.clear_job()
+	main.corridor_zone.spawned = [false, false, false, false]
+	main.corridor_zone.arrived = false
+	main.corridor_zone.lights_t = -1.0
+	main.corridor_zone.repair()
+	main.corridor_zone.apply_state()
+	main.corridor_zone.enter_room(r, false)
+	main.close_story()
+	main.player.hp = float(main.player.max_hp)
+
+# stand beside a device and press E; the story box a device opens stays for the test to read
+func corr_press(letter: String, r: int, i := 0, off := Vector2(0.9, 0)) -> void:
+	var p: Vector2 = main.corridor.at(r, letter, i)
+	reset_to(p + off)
+	tap(KEY_E)
+	await wait(0.25)
+
+func corr_foes() -> Array:
+	return main.enemies.filter(func(e): return not e.dead and (e.get("bucket", false) or e.get("corr_prep", false)))
+
+func corr_kill(list: Array) -> void:
+	for e in list:
+		main.damage_enemy(e, 99999.0, Vector2(e.x, e.z - 1.0), 0.0, true)
 
 func run() -> void:
 	var want := func(n): return only == "all" or n in only.split(",")
@@ -1951,6 +2001,7 @@ func run() -> void:
 		main.forest_q = 0
 		main.tokens[2] = true # the road to the forest asks for the pearl token (v0.1.62)
 		main.south_q = 4 # and the lower pond's water clock (v0.1.68)
+		main.corridor_q = 6 # and the water corridor (v0.1.84)
 		main.hour = 22.0
 		reset_to(main.village.marks.F + Vector2(-0.3, 0))
 		await wait(1.5)
@@ -8691,6 +8742,7 @@ func run() -> void:
 		var q1: bool = main.main_road_quest().begins_with("숲으로 가기 전에")
 		main.tokens[2] = true
 		main.south_q = 4
+		main.corridor_q = 6 # and the water corridor (v0.1.84)
 		reset_to(vf + Vector2(-0.3, 0))
 		await wait(1.5)
 		var o1: bool = main.in_forest and main.forest_q == 1
@@ -8775,6 +8827,7 @@ func run() -> void:
 		var never: bool = not main.moon_tokens.holds("forest") and not main.moon_tokens.holds("hill") and not main.moon_tokens.holds("castle")
 		main.forest_q = 0
 		main.south_q = 4
+		main.corridor_q = 6 # and the water corridor (v0.1.84)
 		main.moon_tokens.earn(2) # the pearl: the line goes back to the road
 		var back4: bool = not main.quest_raw.begins_with("숲으로 가기 전에")
 		if not (m4 and holds_all and never and back4):
@@ -9154,6 +9207,7 @@ func run() -> void:
 		main.south_q = 3
 		main.lake_zone.south_key() # not near the spring: nothing
 		main.south_q = 4
+		main.corridor_q = 6 # and the water corridor (v0.1.84)
 		main.moon_tokens.refresh_quest()
 		var back: bool = main.quest_raw == "물결과 함께 마을 동쪽 문으로, 굳은 숲에 가자"
 		reset_to(vf + Vector2(-0.3, 0))
@@ -9717,6 +9771,600 @@ func run() -> void:
 		check("gate_fix5", lamps_ok and key_line and door_mark and marsh_ok and kept and raid_open and fresh,
 			"early in the workshop marks the work lamps=%s; key chest after the painting: line to the door=%s, mark on the door=%s; marsh steps back to a villager marked at the village entrance=%s; beaten raid kept across the entry autosave=%s, shed-and-beaten saved=%s, not shed not saved=%s" % [lamps_ok, key_line, door_mark, marsh_ok, kept, raid_open, fresh])
 		main.return_to_start()
+	# ---- 물길 회랑 (v0.1.84, the owner's "1안" 2026-10-29): the lake island's stair, four rooms, the keeper, the answer stand
+	if want.call("corridor_enter"):
+		calm_enemies(true)
+		corr_world()
+		main.tokens[2] = false
+		main.south_q = 4
+		main.corridor_q = 0
+		main.forest_q = 0
+		reset_to(main.lake.marks.V + Vector2(0, 0.3))
+		main.toast_t = 0.0
+		await wait(0.7)
+		var no_pearl: bool = not main.in_corridor() and main.corridor_q == 0
+		main.tokens[2] = true
+		main.south_q = 3
+		reset_to(main.lake.marks.V + Vector2(0, 0.3))
+		main.toast_t = 0.0
+		await wait(0.7)
+		var no_pond: bool = not main.in_corridor() and main.corridor_q == 0
+		main.south_q = 4
+		reset_to(main.lake.marks.V + Vector2(0, 0.3))
+		await wait(1.5)
+		var inside: bool = main.in_corridor() and main.corridor_q == 1 and main.story_open and not main.in_grotto() and main.in_lake and not main.in_lake_main()
+		main.close_story()
+		var at_s: bool = main.corridor.room_of(main.player.x) == 0 and Vector2(main.player.x, main.player.z).distance_to(main.corridor.at(0, "S") + Vector2(1, 0)) < 0.6
+		var zone: bool = main.ui.zone_name.text == "물길 회랑"
+		# eight maps in four rooms: 30 x 22, a wall all round, origins 740/780/820/860, no other area's test fits there, and S reaches D reaches N or C
+		var dims := true
+		var reach := true
+		for r in 4:
+			var g: Array = main.corridor.grids[r]
+			dims = dims and g.size() == 22 and g.all(func(row): return row.length() == 30 and row[0] == "#" and row[29] == "#") and g[0] == "#".repeat(30) and g[21] == "#".repeat(30)
+			dims = dims and main.corridor.origin(r) == 740 + 40 * r
+			var goal: String = "N" if r < 3 else "C"
+			reach = reach and main.corridor.at(r, "S") != Vector2.INF and main.corridor.at(r, goal) != Vector2.INF
+			if r < 3:
+				var d: Vector2 = main.corridor.at(r, "D")
+				reach = reach and d != Vector2.INF and main.corridor.at(r, "S").x < d.x and d.x < main.corridor.at(r, "N").x and d.y == main.corridor.at(r, "S").y
+				for z in 22:
+					if z != int(d.y):
+						reach = reach and main.corridor.grids[r][z][20] == "#" # the wall of D is solid but for D
+		var apart: bool = not main.in_castle() and not main.in_workshop() and not main.in_cloud() and not main.in_stairs() and not main.in_under()
+		var wall_water: bool = main.tile_at(740.0, 0.0) == main.WATER and main.tile_at(main.corridor.at(0, "S").x + 1.0, 10.0) == main.GRASS
+		# the grotto's test does not catch the corridor, nor the corridor the grotto
+		var keep_x: float = main.player.x
+		main.player.x = main.GROTTO.GROTTO_X + 3.0
+		var grotto_ok: bool = main.in_grotto() and not main.in_corridor()
+		main.player.x = keep_x
+		# the stair out: back on the island by V
+		reset_to(main.corridor.at(0, "S") + Vector2(0.3, 0))
+		await wait(1.5)
+		var out: bool = not main.in_corridor() and main.in_lake_main() and Vector2(main.player.x, main.player.z).distance_to(main.lake.marks.V) < 2.0
+		check("corridor_enter", no_pearl and no_pond and inside and at_s and zone and dims and reach and apart and wall_water and grotto_ok and out,
+			"V shut without the pearl=%s or the pond=%s; entered q1 with the talk=%s beside S=%s, zone=%s; maps 30x22 walled, origins, S to D to N/C=%s/%s, no clash=%s, wall=%s, grotto apart=%s, stair out=%s" % [no_pearl, no_pond, inside, at_s, zone, dims, reach, apart, wall_water, grotto_ok, out])
+		calm_enemies(false)
+		main.in_lake = false
+		main.corridor_q = 6
+
+	if want.call("corridor_s1"):
+		# room 1: the plate, Mulgyeol's post, the lever (a refusal in the channel), the water skip, the latch, the gate, the next room
+		calm_enemies(true)
+		await corr_prep(1, 0)
+		corr_kill(corr_foes())
+		var C = main.corridor
+		var Z = main.corridor_zone
+		var o: int = C.origin(0)
+		var D: Vector2 = C.at(0, "D")
+		var shut: bool = not main.walkable(D.x, D.y) and main.tile_at(D.x, D.y) == main.WATER
+		await corr_press("H", 0)
+		var read: bool = main.corr_sec[0].record_read and main.story_open
+		main.close_story()
+		await corr_press("F", 0, 0, Vector2(-0.8, 0))
+		var early_no: bool = not main.corr_sec[0].latch_fixed and main.corridor_q == 1
+		await corr_press("A", 0)
+		await wait(2.3)
+		var high: bool = C.high[0] and main.corr_sec[0].water_high and main.tile_at(o + 9.0, 10.0) == main.WATER and main.skip_water(o + 9.0, 10.0)
+		# the water skip crosses the deep channel, walking does not
+		reset_to(Vector2(o + 6.6, 5.0))
+		hold_world(Vector2(1, 0))
+		await wait(1.0)
+		release()
+		var walk_stops: bool = main.player.x < o + 8.0
+		reset_to(Vector2(o + 6.6, 5.0))
+		main.player.sp = 100.0
+		hold_world(Vector2(1, 0))
+		main.fake_keys[KEY_SHIFT] = true
+		await wait(1.2)
+		release()
+		var skipped: bool = main.player.x > o + 11.0
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		await corr_press("A", 0)
+		await wait(2.3)
+		var low: bool = not C.high[0] and main.corr_sec[0].water_high == false and main.tile_at(o + 9.0, 10.0) != main.WATER
+		# the lever starts and Sora steps into the channel before the level moves: it stops, she is never walled in
+		await corr_press("A", 0)
+		reset_to(Vector2(o + 9.0, 10.0))
+		await wait(1.4)
+		var refused: bool = not C.high[0] and Z.trans.is_empty() and main.tile_at(o + 9.0, 10.0) != main.WATER
+		await wait(1.2)
+		# Mulgyeol takes the post
+		await corr_press("P", 0)
+		await wait(1.6)
+		var posted: bool = Z.post_room == 0 and not main.mate_job.is_empty() and Vector2(main.mate.position.x, main.mate.position.z).distance_to(C.at(0, "P")) < 0.4
+		await corr_press("F", 0, 0, Vector2(-0.8, 0))
+		var low_no: bool = not main.corr_sec[0].latch_fixed
+		await corr_press("A", 0)
+		await wait(2.3)
+		await corr_press("F", 0, 0, Vector2(-0.8, 0))
+		await wait(0.3)
+		var fixed: bool = main.corr_sec[0].latch_fixed and main.corridor_q == 2 and C.gate_open[0] and main.walkable(D.x, D.y) and Z.post_room == -1 and main.mate_job.is_empty()
+		await wait(2.3)
+		var settled: bool = not C.high[0] and not main.corr_sec[0].water_high
+		# the door N leads on
+		reset_to(C.at(0, "N") + Vector2(-0.5, 0))
+		await wait(1.5)
+		var onward: bool = main.corridor.room_of(main.player.x) == 1 and main.ui.zone_sub.text == "회랑 · 되돌리는 물"
+		check("corridor_s1", shut and read and early_no and high and walk_stops and skipped and low and refused and posted and low_no and fixed and settled and onward,
+			"D shut=%s; plate read=%s; latch refused early=%s; lever raises=%s; walking stops=%s, skip crosses=%s; lowers=%s; stepping in cancels=%s; post=%s; latch needs high water=%s; fixed, gate open, post freed=%s; water settles=%s; next room=%s" % [shut, read, early_no, high, walk_stops, skipped, low, refused, posted, low_no, fixed, settled, onward])
+		calm_enemies(false)
+		main.in_lake = false
+		main.corridor_q = 6
+
+	if want.call("corridor_s2"):
+		# room 2: a bucket's lane and spray, the far-bank bricks, the drain, the lever that fixes the channel
+		calm_enemies(true)
+		await corr_prep(2, 1)
+		hold_mates()
+		var C = main.corridor
+		var Z = main.corridor_zone
+		var o: int = C.origin(1)
+		var bs: Array = main.enemies.filter(func(e): return not e.dead and e.get("bucket", false))
+		var two: bool = bs.size() == 2 and Z.foes_alive(1)
+		var b: Dictionary = bs[0]
+		var lv: int = main.foe_lv()
+		var stats: bool = b.max_hp == 40 + lv * 13
+		bs[1].dead = true
+		bs[1].node.queue_free()
+		bs[1].shadow.queue_free()
+		# the lane: warned 0.9 s, hits the lane only; then the head bows 1.8 s with the seams open
+		var seen_tele := false
+		var bowed := false
+		var hurt_early := false
+		var in_hit := false
+		var out_hit := false
+		for trial in 2:
+			b.x = o + 12.0
+			b.z = 6.0
+			b.atk_cd = 0.0
+			b.tele_t = 0.0
+			b.bow = 0.0
+			b.seam = 0.0
+			b.spray_t = 0.0
+			var stand := Vector2(b.x + 2.5, b.z)
+			reset_to(stand)
+			main.player.inv = 0.0
+			var hp0: float = main.player.hp
+			var t := 0.0
+			var moved := false
+			while t < 2.0:
+				hold_mates()
+				main.player.x = stand.x
+				main.player.z = stand.y
+				if b.tele_t > 0.0:
+					seen_tele = true
+					hurt_early = hurt_early or main.player.hp < hp0 - 0.01
+					if trial == 1 and not moved: # the lane is locked: step beside it
+						moved = true
+						var f: Vector2 = b.face
+						stand = Vector2(b.x, b.z) + f * 2.0 + Vector2(-f.y, f.x) * 1.8
+				if b.seam > 0.0 and b.bow > 0.0:
+					bowed = true
+				await wait(0.05)
+				t += 0.05
+			if trial == 0:
+				in_hit = main.player.hp < hp0 - 0.01
+			else:
+				out_hit = main.player.hp < hp0 - 0.01
+		var lane_ok: bool = seen_tele and bowed and in_hit and not out_hit and not hurt_early
+		corr_kill([b])
+		await wait(0.1)
+		# the far-bank work: raise, (foes dead already here), F drains
+		main.corr_sec[1].water_high = false
+		await corr_press("A", 1)
+		await wait(2.3)
+		var raised: bool = C.high[1]
+		await corr_press("F", 1, 0, Vector2(-0.8, 0))
+		await wait(0.3)
+		var drained: bool = main.corr_sec[1].drained and main.corridor_q == 2
+		await wait(2.3)
+		var low: bool = not C.high[1] and not main.corr_sec[1].water_high
+		var a_not_yet: bool = not C.gate_open[1]
+		await corr_press("A", 1)
+		await wait(0.3)
+		var fixed: bool = main.corr_sec[1].latch_fixed and main.corridor_q == 3 and C.gate_open[1]
+		# live bricks hold F
+		Z.spawned[1] = false
+		main.corridor_q = 2
+		main.corr_sec[1] = {"water_high": true, "drained": false, "latch_fixed": false}
+		C.set_gate(1, false)
+		C.set_water(1, true)
+		Z.enter_room(1, false)
+		await corr_press("F", 1, 0, Vector2(-0.8, 0))
+		var held: bool = not main.corr_sec[1].drained and Z.foes_alive(1)
+		check("corridor_s2", two and stats and lane_ok and raised and drained and low and a_not_yet and fixed and held,
+			"two buckets=%s, hp 40+13/lv=%s; lane warned then hit once and only in the lane, then bowed=%s (tele %s bow %s in %s out %s early %s); raised=%s drains=%s settles=%s fixes q3=%s; live bricks hold the drain=%s" % [two, stats, lane_ok, seen_tele, bowed, in_hit, out_hit, hurt_early, raised, drained, low, fixed, held])
+		corr_kill(corr_foes())
+		calm_enemies(false)
+		main.in_lake = false
+		main.corridor_q = 6
+
+	if want.call("corridor_s3"):
+		# room 3: the post, the lever, the cart (no blows aboard, 2 tiles a second), the mooring, the wheel, Mulgyeol back
+		calm_enemies(true)
+		await corr_prep(3, 2)
+		var C = main.corridor
+		var Z = main.corridor_zone
+		var o: int = C.origin(2)
+		await corr_press("T", 2, 0, Vector2(0.4, 0))
+		var no_ride: bool = Z.ride.is_empty() and not Z.arrived
+		await corr_press("P", 2)
+		await wait(1.5)
+		await corr_press("T", 2, 0, Vector2(0.4, 0))
+		var low_stops: bool = Z.ride.is_empty() # the water is low: the cart waits
+		await corr_press("A", 2)
+		await wait(2.3)
+		await corr_press("T", 2, 0, Vector2(0.4, 0))
+		var riding: bool = not Z.ride.is_empty()
+		var t0 := Time.get_ticks_msec()
+		await wait(0.5)
+		var no_blows: bool = main.player.atk_cd >= 0.25
+		await wait_for(func(): return Z.arrived, 5.0)
+		var secs: float = float(Time.get_ticks_msec() - t0) / 1000.0
+		var rr: Vector2 = C.at(2, "R")
+		var on_r: bool = Z.arrived and Vector2(main.player.x, main.player.z).distance_to(rr) < 0.3
+		var pace: bool = secs > 2.4 and secs < 4.2 # 6 tiles at 2 a second
+		await corr_press("F", 2, 0, Vector2(-0.8, -0.5))
+		var moor_first: bool = not main.corr_sec[2].latch_fixed # the wheel waits for the mooring
+		await corr_press("R", 2, 0, Vector2(-0.5, 0))
+		var docked: bool = main.corr_sec[2].docked and Z.post_room == -1 and main.mate_job.is_empty()
+		await corr_press("F", 2, 0, Vector2(-0.8, -0.5))
+		await wait(0.3)
+		var done: bool = main.corr_sec[2].latch_fixed and main.corridor_q == 4 and C.gate_open[2] and main.story_open
+		main.close_story()
+		check("corridor_s3", no_ride and low_stops and riding and no_blows and on_r and pace and moor_first and docked and done,
+			"cart needs post and high water=%s/%s; rides=%s, no blows=%s, reaches R=%s in %.1f s (%s); wheel waits for the mooring=%s; moored, post freed=%s; wheel fixed, q4, gate open, talk=%s" % [no_ride, low_stops, riding, no_blows, on_r, secs, pace, moor_first, docked, done])
+		corr_kill(corr_foes())
+		calm_enemies(false)
+		main.in_lake = false
+		main.corridor_q = 6
+
+	if want.call("corridor_core"):
+		# the wheel hall: plate, sluice, Mulgyeol across the tank, three wheels west to east each with a group of three, then the talk and the keeper
+		calm_enemies(true)
+		await corr_prep(4, 3)
+		var C = main.corridor
+		var Z = main.corridor_zone
+		await corr_press("F", 3, 0, Vector2(0.0, 1.0))
+		var none0: bool = Z.group_active < 0 and main.corr_bits == 0 and corr_foes().is_empty()
+		await corr_press("H", 3)
+		var read: bool = main.corr_sec[3].record_read
+		await corr_press("A", 3)
+		var held: bool = main.corr_sec[3].water_high
+		await corr_press("F", 3, 0, Vector2(0.0, 1.0))
+		var none1: bool = Z.group_active < 0 and corr_foes().is_empty() # Mulgyeol has not crossed yet
+		await corr_press("P", 3)
+		var started: bool = main.mate_job.get("kind", "") == "corr_cart"
+		var t0 := Time.get_ticks_msec()
+		await wait_for(func(): return main.corr_sec[3].latch_fixed, 9.0)
+		var secs: float = float(Time.get_ticks_msec() - t0) / 1000.0
+		var crossed: bool = main.corr_sec[3].latch_fixed and secs < 8.5 and Vector2(main.mate.position.x, main.mate.position.z).distance_to(C.at(3, "R")) < 0.8
+		await corr_press("F", 3, 1, Vector2(0.0, 1.0))
+		var order: bool = Z.group_active < 0 and corr_foes().is_empty() and main.corr_bits == 0
+		var gold0: int = main.player.gold
+		var groups := true
+		var why := ""
+		for i in 3:
+			await corr_press("F", 3, i, Vector2(0.0, 1.0))
+			var fs: Array = corr_foes().filter(func(e): return e.get("corr_prep", false))
+			var shape: bool = fs.size() == 3 and fs.filter(func(e): return e.archer).size() == 1 and Z.group_active == i
+			await corr_press("F", 3, i, Vector2(0.0, 1.0)) # again while it fights: refused
+			var still: bool = corr_foes().size() == 3
+			var g1: int = main.player.gold
+			corr_kill(fs)
+			await wait(0.5)
+			var paid: bool = main.player.gold == g1 + 20 and main.corr_bits == [1, 3, 7][i] and Z.group_active < 0
+			groups = groups and shape and still and paid
+			why += "[%d n=%d arch=%d act=%d shape %s still %s paid %s] " % [i, fs.size(), fs.filter(func(e): return e.archer).size(), Z.group_active, shape, still, paid]
+		main.player.hp = float(main.player.max_hp)
+		# near the keeper: the talk, then the keeper stands (2000 hp), Mulgyeol on his post
+		reset_to(C.at(3, "B") + Vector2(-7.0, 0))
+		await wait(0.5)
+		var talk: bool = main.story_open and main.corr_told
+		main.close_story()
+		await wait(0.3)
+		var gk = Z.gate_alive()
+		var stands: bool = gk != null and gk.max_hp == 2000 and Z.post_room == 3
+		check("corridor_core", none0 and read and held and none1 and started and crossed and order and groups and talk and stands,
+			"no group early=%s/%s; plate=%s; sluice held=%s; Mulgyeol crosses in %.1f s=%s; east wheel first refused=%s; groups of 3 (one archer), pay 20 once, bits 001/011/111=%s %s; talk=%s; keeper 2000 hp, post kept=%s" % [none0, none1, read, held, secs, crossed, order, groups, why, talk, stands])
+		Z.clear_fight()
+		calm_enemies(false)
+		main.in_lake = false
+		main.corridor_q = 6
+
+	if want.call("corridor_boss"):
+		# the sluice-keeper: lane warned 1.2 s then one blow, the ring below 60 %, half damage unless the axis lies open, the side door,
+		# faint resets it, one reward
+		calm_enemies(true)
+		await corr_prep(4, 3)
+		main.corr_bits = 7
+		main.corr_told = true
+		main.corr_sec[3] = {"record_read": true, "water_high": true, "latch_fixed": true, "sent": false}
+		main.corridor_zone.apply_state()
+		var C = main.corridor
+		var Z = main.corridor_zone
+		var B: Vector2 = C.at(3, "B")
+		Z.spawn_gate()
+		var e: Dictionary = Z.gate_alive()
+		var lone: bool = e != null and e.hp == 2000.0
+		main.join_mate()
+		# a lane aimed from the east: stand in it, then stand out of it
+		var lane_hits := 0
+		var warned := false
+		for trial in 2:
+			e.st = "idle"
+			e.st_t = 0.0
+			e.hp = 2000.0
+			reset_to(B + Vector2(5.0, 0))
+			main.player.inv = 0.0
+			var hp0: float = main.player.hp
+			await wait(0.15)
+			warned = warned or (e.st == "warn" and e.get("tele", null) != null)
+			var dir0: Vector2 = e.dir
+			if trial == 1:
+				main.player.x = B.x
+				main.player.z = B.y + 3.5 # off the lane, inside the ring's radius but this is the first phase: no ring
+			await wait_for(func(): return e.st == "strike", 2.0)
+			main.player.inv = 0.0
+			await wait(0.2)
+			var took: bool = main.player.hp < hp0 - 0.01
+			lane_hits += (1 if took else 0) if trial == 0 else (100 if took else 0)
+			e.st = "idle"
+			e.st_t = 9.0
+			e.expo = 0.0
+			main.player.hp = float(main.player.max_hp)
+		var lane_ok: bool = warned and lane_hits == 1
+		# closed it takes half, open the full blow
+		var closed := 0.0
+		var open := 0.0
+		for k in 6:
+			e.expo = 0.0
+			var h0: float = e.hp
+			main.damage_enemy(e, 100.0, B + Vector2(2, 0), 0.0, true)
+			closed += h0 - e.hp
+			e.expo = 3.0
+			h0 = e.hp
+			main.damage_enemy(e, 100.0, B + Vector2(2, 0), 0.0, true)
+			open += h0 - e.hp
+			e.hp = 2000.0
+		var ratio: float = open / maxf(closed, 0.01)
+		var halves: bool = ratio > 1.7 and ratio < 2.3
+		# phase two (below 60 %): the ring after the lane, its blow once, only inside 4 tiles
+		e.hp = 1100.0
+		e.st = "idle"
+		e.st_t = 0.0
+		e.expo = 0.0
+		reset_to(B + Vector2(6.0, 0))
+		main.player.inv = 0.0
+		await wait(0.15)
+		var ph2: bool = e.ph2
+		main.player.x = B.x
+		main.player.z = B.y + 3.0
+		await wait_for(func(): return e.st == "ring", 3.0)
+		var ringed: bool = e.st == "ring"
+		var hpr: float = main.player.hp
+		main.player.inv = 0.0
+		await wait_for(func(): return e.st == "wave", 2.0)
+		await wait(0.1)
+		var wave_hit: bool = main.player.hp < hpr - 0.01
+		e.st = "idle"
+		e.st_t = 99.0
+		# every second pattern the side door shows, 6 s; the lever then adds 5 s of the open axis
+		e.pats = 1
+		e.st = "rest"
+		e.st_t = 0.01
+		e.expo = 0.0
+		await wait(0.2)
+		var assist: bool = e.assist > 5.0 and Z.next_spot() != Vector3.INF
+		var mark_at_a: bool = absf(Z.next_spot().x - C.at(3, "A").x) < 0.01
+		await corr_press("A", 3)
+		var side_door: bool = e.assist <= 0.0 and e.expo > 4.0
+		e.st = "idle"
+		e.st_t = 99.0
+		# the stairs are shut while it stands; a faint wakes her at the stair with the keeper starting over
+		reset_to(C.at(3, "S") + Vector2(0.3, 0))
+		await wait(0.6)
+		var shut: bool = main.in_corridor() and main.corridor.room_of(main.player.x) == 3
+		main.sora.faint()
+		await wait(0.2)
+		var woke: bool = main.in_corridor() and Z.gate_alive() == null and main.corridor_q == 4 and main.corr_bits == 7 and main.player.hp == float(main.player.max_hp) and Vector2(main.player.x, main.player.z).distance_to(C.at(3, "S") + Vector2(1, 0)) < 0.6 and not main.ui.boss.visible
+		Z.spawn_gate()
+		e = Z.gate_alive()
+		var again: bool = e != null and e.hp == 2000.0
+		# the kill: q5, the knot, two potions, gold once
+		var g0: int = main.player.gold
+		var p0: int = main.player.pots
+		e.st_t = 99.0
+		e.hp = 1.0
+		main.damage_enemy(e, 100.0, B + Vector2(2, 0), 0.0, true)
+		await wait(1.6)
+		var beaten: bool = main.corridor_q == 5 and main.corr_reward and main.player.pots == p0 + 2 and main.player.gold == g0 + 260 and not main.ui.boss.visible
+		Z.boss_beaten()
+		var once: bool = main.player.gold == g0 + 260 and main.player.pots == p0 + 2
+		# the answer stand: the water goes (lamps), then the answer closes it
+		var tokens0: int = main.moon_tokens.count()
+		await corr_press("C", 3)
+		var sent: bool = main.corr_sec[3].sent and main.corridor_q == 5
+		await corr_press("C", 3)
+		var wait_lamps: bool = main.corridor_q == 5
+		await wait(3.2)
+		await corr_press("C", 3)
+		var closed_q: bool = main.corridor_q == 6 and main.story_open
+		main.close_story()
+		var opened: bool = not main.moon_tokens.holds("forest") or main.forest_q >= 1
+		var not_token: bool = main.moon_tokens.count() == tokens0 and main.tokens.size() == 6 and main.moon_tokens.STAIRS_NEED == 4
+		check("corridor_boss", lone and lane_ok and halves and ph2 and ringed and wave_hit and assist and mark_at_a and side_door and shut and woke and again and beaten and once and sent and wait_lamps and closed_q and opened and not_token,
+			"keeper 2000=%s; lane warned and hit once, none off it=%s; half closed (x%.2f)=%s; phase 2 ring %s/%s hit %s; side door %s on the lever %s, +5 s=%s; faint wakes at the stair, keeper reset=%s %s; kill once: q5 knot 2 potions gold=%s/%s; stand: sent=%s, waits=%s, answer q6=%s, forest opens=%s; no token=%s" % [lone, lane_ok, ratio, halves, ph2, ringed, wave_hit, assist, mark_at_a, side_door, woke, again, beaten, once, sent, wait_lamps, closed_q, opened, not_token])
+		calm_enemies(false)
+		main.in_lake = false
+		main.corridor_q = 6
+
+	if want.call("corridor_save"):
+		# saved mid-way: q, the three room dictionaries, the wheel bits, the knot and the checkpoint come back; the room starts at its stair;
+		# a fight cut short is cleared and the wheels already joined stay; old and odd saves are mended
+		calm_enemies(true)
+		await corr_prep(2, 1)
+		var Z = main.corridor_zone
+		var C = main.corridor
+		main.corr_sec[0].record_read = true
+		main.corr_sec[0].latch_fixed = true
+		main.corr_sec[1].water_high = true
+		main.corr_sec[1].drained = false
+		C.set_gate(0, true)
+		C.set_water(1, true)
+		main.corr_check = 1
+		reset_to(Vector2(C.origin(1) + 14.0, 8.0))
+		main.save_game()
+		var sd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var keys: bool = int(sd.get("corridor_q", -1)) == 2 and sd.get("corridor_section_state", []).size() == 4 and sd.has("corridor_core_bits") and sd.has("corridor_reward_claimed") and sd.has("corridor_checkpoint")
+		# wipe, then load
+		main.corr_sec = Z.fresh_sections()
+		main.corridor_q = 0
+		main.corr_bits = 0
+		C.set_gate(0, false)
+		C.set_water(1, false)
+		main.load_game()
+		await wait(0.4)
+		main.close_story()
+		var back: bool = main.in_corridor() and main.corridor_q == 2 and main.corr_sec[0].record_read and main.corr_sec[0].latch_fixed and main.corr_sec[1].water_high and C.high[1] and C.gate_open[0] and not C.gate_open[1]
+		var at_stair: bool = Vector2(main.player.x, main.player.z).distance_to(C.at(1, "S") + Vector2(1, 0)) < 0.6
+		# the wheel hall cut mid-group: bits kept, the bricks of the group gone, the keeper not there
+		await corr_prep(4, 3)
+		main.corr_bits = 1
+		main.corr_sec[3] = {"record_read": true, "water_high": true, "latch_fixed": true, "sent": false}
+		Z.apply_state()
+		await corr_press("F", 3, 1, Vector2(0.0, 1.0))
+		var fighting: bool = Z.group_active == 1 and corr_foes().size() == 3
+		main.save_game()
+		main.corr_bits = 0
+		main.load_game()
+		await wait(0.4)
+		main.close_story()
+		var cut: bool = main.corr_bits == 1 and Z.group_active < 0 and corr_foes().is_empty() and Z.gate_alive() == null and C.wheels[3][0].on and not C.wheels[3][1].on
+		# old saves: no key is q0, or q6 when the save is already past the forest; odd values are mended
+		main.forest_q = 0
+		Z.load_data({})
+		var old0: bool = main.corridor_q == 0 and main.corr_sec[0].latch_fixed == false
+		main.forest_q = 1
+		Z.load_data({})
+		var old6: bool = main.corridor_q == 6 and main.corr_sec[2].latch_fixed and main.corr_bits == 7
+		main.forest_q = 0
+		Z.load_data({"corridor_q": 9, "corridor_section_state": [1, "x", {"water_high": 5, "latch_fixed": true}], "corridor_core_bits": 5, "corridor_checkpoint": 9})
+		var odd: bool = main.corridor_q == 6 and main.corr_check == 3 and main.corr_bits == 7
+		Z.load_data({"corridor_q": 1, "corridor_section_state": [{"latch_fixed": true, "water_high": true}], "corridor_core_bits": 5})
+		var mended: bool = main.corridor_q == 1 and main.corr_bits == 0 and not main.corr_sec[0].latch_fixed and main.corr_sec[0].water_high
+		Z.load_data({"corridor_q": 5, "corridor_section_state": [], "corridor_core_bits": 0})
+		var q5: bool = main.corr_reward and main.corr_bits == 7 and main.corr_sec[3].latch_fixed
+		check("corridor_save", keys and back and at_stair and fighting and cut and old0 and old6 and odd and mended and q5,
+			"save keys=%s; reload mid-way=%s at the stair=%s; group cut: fighting=%s, bits kept and bricks gone=%s; old save q0=%s, past the forest q6=%s; odd values=%s, mended=%s, q5 keeps the knot=%s" % [keys, back, at_stair, fighting, cut, old0, old6, odd, mended, q5])
+		calm_enemies(false)
+		main.in_lake = false
+		main.forest_q = maxi(main.forest_q, 0)
+		main.corridor_q = 6
+		Z.load_data({"corridor_q": 6})
+
+	if want.call("corridor_gate"):
+		# the forest gate: the pearl, the pond and the corridor, each missing holds it; all three or a save already past it do not;
+		# the waystones do not reach the forest early; the quest line and the gold "!" lead the way in and back
+		main.close_story()
+		var truth := true
+		var rows := ""
+		main.forest_q = 0
+		for bits in 8:
+			main.tokens[2] = (bits & 1) != 0
+			main.south_q = 4 if (bits & 2) != 0 else 0
+			main.corridor_q = 6 if (bits & 4) != 0 else 0
+			var want_hold: bool = bits != 7
+			var held: bool = main.moon_tokens.holds("forest")
+			truth = truth and held == want_hold
+			rows += "%d%s " % [bits, "H" if held else "-"]
+		main.tokens[2] = true
+		main.south_q = 4
+		main.corridor_q = 0
+		var miss: String = main.moon_tokens.missing("forest")
+		main.tokens[2] = false
+		var miss_pearl: String = main.moon_tokens.missing("forest")
+		main.tokens[2] = true
+		main.south_q = 0
+		var miss_pond: String = main.moon_tokens.missing("forest")
+		var order: bool = miss == "corridor" and miss_pearl == "pearl" and miss_pond == "pond"
+		main.south_q = 4
+		main.forest_q = 1
+		main.tokens[2] = false
+		main.corridor_q = 0
+		var past: bool = not main.moon_tokens.holds("forest") # a save already in the forest is never held again
+		main.forest_q = 0
+		main.tokens[2] = true
+		# the held gate says the corridor line and sets the need
+		main.in_village = true
+		main.in_lake = false
+		reset_to(main.village.marks.F + Vector2(-0.3, 0))
+		var pass1: bool = main.moon_tokens.gate("forest", main.village.marks.F)
+		var said: bool = (not pass1) and main.story_open and main.quest_raw == "숲으로 가기 전에: 물길 회랑에서 정원으로 물을 보내자"
+		main.close_story()
+		var story_ok: bool = main.STORY.GATE.has("forest_corridor") and main.STORY.GATE["forest_corridor"][0].begins_with("||진주와 물시계는 깨어났으나")
+		main.corridor_q = 6
+		var pass2: bool = main.moon_tokens.gate("forest", main.village.marks.F)
+		var journal: bool = true
+		main.corridor_q = 0
+		journal = main.moon_tokens.gate_lines().any(func(l): return l.contains("물길 회랑") and l.contains("아직"))
+		main.corridor_q = 6
+		journal = journal and not main.moon_tokens.gate_lines().any(func(l): return l.contains("물길 회랑"))
+		# waystones: the forest and the later stones stay unknown (and untravelled) until they were reached
+		var keep_q: Array = [main.hill_q, main.castle_q]
+		main.forest_q = 0
+		main.hill_q = 0
+		main.castle_q = 0
+		main.corridor_q = 0
+		var unknown: bool = not main.way_known(3) and not main.way_known(4) and not main.way_known(5)
+		var ix: float = main.player.x
+		main.waystones.travel(3)
+		await wait(0.6)
+		var stays: bool = not main.in_forest and absf(main.player.x - ix) < 1.0
+		# the line and the "!" in the lake lead to the stair, then through the rooms, then home
+		main.in_village = false
+		corr_world()
+		main.corridor_q = 0
+		main.tokens[2] = true
+		main.set_quest(main.moon_tokens.lake_line())
+		reset_to(main.lake.marks.V + Vector2(3.0, -2.0))
+		main.ui.mini.map_tex = main.lake_zone.lake_map()
+		var mark_v: Vector3 = main.quest_marks.quest_target()
+		var lead: bool = absf(mark_v.x - main.lake.marks.V.x) < 0.01 and absf(mark_v.z - main.lake.marks.V.y) < 0.01
+		await corr_prep(1, 0)
+		var m0: Vector3 = main.quest_marks.quest_target()
+		var at_h: bool = absf(m0.x - main.corridor.at(0, "H").x) < 0.01
+		await corr_prep(3, 0)
+		var m1: Vector3 = main.quest_marks.quest_target()
+		var at_n: bool = absf(m1.x - main.corridor.at(0, "N").x) < 0.01 # the work is two rooms on: the door N
+		await corr_prep(6, 3)
+		var m2: Vector3 = main.quest_marks.quest_target()
+		var at_s: bool = absf(m2.x - main.corridor.at(3, "S").x) < 0.01 and main.quest_raw != "" # done: the stair, the line is the road's
+		main.in_lake = false
+		main.corridor_q = 6
+		main.hill_q = keep_q[0]
+		main.castle_q = keep_q[1]
+		check("corridor_gate", truth and order and past and said and story_ok and pass2 and journal and unknown and stays and lead and at_h and at_n and at_s,
+			"forest gate table (bits pearl/pond/corridor, H=held) %s=%s; missing order corridor/pearl/pond=%s; past forest never held=%s; held says the line and the talk=%s/%s; opens=%s; journal=%s; waystones unknown=%s stay=%s; ! at V=%s, at plate=%s, at door=%s, at stair=%s" % [rows, truth, order, past, said, story_ok, pass2, journal, unknown, stays, lead, at_h, at_n, at_s])
+
+	if want.call("corridor_round"):
+		# a new round: the corridor starts again (nothing of it is kept), and the knot is not a token
+		main.forest_q = 0
+		main.corridor_q = 6
+		main.corr_reward = true
+		main.corr_bits = 7
+		main.corr_sec[2].latch_fixed = true
+		main.write_new_round()
+		var sd2 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var dropped: bool = not sd2.has("corridor_q") and not sd2.has("corridor_section_state") and not sd2.has("corridor_core_bits") and not sd2.has("corridor_reward_claimed")
+		main.corridor_zone.load_data(sd2)
+		var fresh: bool = main.corridor_q == 0 and not main.corr_reward and main.corr_bits == 0 and not main.corr_sec[2].latch_fixed and not main.corridor.gate_open[0]
+		check("corridor_round", dropped and fresh, "new-round save has no corridor keys=%s; loading it starts at q0 with no knot and shut gates=%s" % [dropped, fresh])
+		main.corridor_zone.load_data({"corridor_q": 6})
+		main.return_to_start()
+
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
 	get_tree().quit(failed)

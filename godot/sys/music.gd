@@ -1,4 +1,4 @@
-# Background music: nine places, five looping tunes each, made by tools/bgm.py; two buses (Sfx, Music), a 1 s crossfade,
+# Background music: nine places, five looping tunes each (the water corridor's area tune and boss tune are one file each, v0.1.84), made by tools/bgm.py; two buses (Sfx, Music), a 1 s crossfade,
 # the music switch. A place's tunes take turns: after ROTATE seconds the next of its five fades in.
 # `m` is the main node (main.gd), its state and helpers are reached as m.x.
 extends RefCounted
@@ -7,9 +7,9 @@ const Main := preload("res://main.gd")
 
 var m: Main
 
-const TUNES := ["title", "field_marsh", "field_wild", "dungeon", "boss", "boss_final", "village", "night", "ending"]
+const TUNES := ["title", "field_marsh", "field_wild", "dungeon", "boss", "boss_final", "village", "night", "ending", "corridor", "corridor_boss"]
 const TUNE_NAMES := {"title": "제목", "field_marsh": "늪과 호수", "field_wild": "바람 부는 들", "dungeon": "동굴과 성", "boss": "우두머리",
-	"boss_final": "마지막 싸움", "village": "마을", "night": "밤", "ending": "끝맺음"}
+	"boss_final": "마지막 싸움", "village": "마을", "night": "밤", "ending": "끝맺음", "corridor": "물길 회랑", "corridor_boss": "벽돌 수문지기"}
 const MUSIC_DB := -14.0 # the Music bus under the effects (Master stays at 0 dB)
 const OFF_DB := -80.0
 const FADE := 1.0 # the fade of the music switch
@@ -19,7 +19,8 @@ const FADE_OUT := 1.5
 const FADE_IN := 2.0
 var fade_tw: Tween
 const VARIANTS := 5 # <name>.ogg, <name>_2.ogg .. <name>_5.ogg (the owner, 2026-10-27: 5 per place)
-const DROPPED := ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "field_marsh_4", "field_marsh_5", "night_2"] # tunes the owner took out (2026-10-27, and 8 more 10-28); their files are gone
+const DROPPED := ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "field_marsh_4", "field_marsh_5", "night_2",
+	"corridor_2", "corridor_3", "corridor_4", "corridor_5", "corridor_boss_2", "corridor_boss_3", "corridor_boss_4", "corridor_boss_5"] # tunes the owner took out (2026-10-27, and 8 more 10-28); their files are gone
 
 # how many tunes a place has once the dropped ones are taken out
 func count_for(name: String) -> int:
@@ -104,6 +105,9 @@ func pick() -> String:
 	# the mold fight
 	if m.in_garden and (m.garden_q == 2 or m.enemies.any(func(e): return e.get("mold", false) and not e.dead)):
 		return "boss_final"
+	# the water corridor (the owner's "1안", 2026-10-29): its own area tune, and the keeper's tune only while its bar is up
+	if m.in_corridor():
+		return "corridor_boss" if m.ui.boss.visible else "corridor"
 	# any other boss awake: the health bar is up (the Brick King, the turtle, the cart-mole, the knight, the oak duel, the hawk, Hangyeol's echo)
 	if m.ui.boss.visible:
 		return "boss"
