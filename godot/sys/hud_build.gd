@@ -35,6 +35,7 @@ func village_sign() -> void:
 	g.position = Vector3(43.6, m.height_at(43.6, 18.6), 18.6)
 	m.add_child(g)
 	m.rocks.append({"x": 43.6, "z": 18.6, "r": 0.25})
+	m.sign_spots.append(Vector2(43.6, 18.6))
 
 const MATES_TOP := 162.0 # lap 6: the first companion row sits below the gem row (its gems end at y 152); the name label starts 2 px above
 const STATUS_H := 158.0 # the bars, the moon gauge and the gem row end here (gems y 146 + 6, 6 px air)
@@ -47,6 +48,7 @@ func build_mate_hud(root: Control) -> void:
 		row.position = Vector2(140, MATES_TOP + i * 34) # layout_top moves the rows beside the big portrait ring; they start under the token gems (hud.gd token_spots, y 146 + 6)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(row)
+		root.move_child(row, m.ui.story.get_index()) # under the story layer, not drawn over its picture (the owner, 2026-10-29)
 		var face := TextureRect.new()
 		face.texture = load("res://art/portrait/%s.png" % ["mulgyeol", "jae"][i])
 		face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -77,7 +79,8 @@ func update_mate_hud() -> void:
 	for i in 2:
 		var r: Dictionary = m.ui.mate_rows[i]
 		var node: Node3D = data[i][0]
-		r.row.visible = node != null and not m.intro and not m.in_cave and not m.ui.get("picture", false)
+		var big_pic: bool = m.story_open and m.ui.story_frame.visible and not m.story.small_pic # the owner, 2026-10-29: the rows were drawn over the story picture
+		r.row.visible = node != null and not m.intro and not m.in_cave and not m.ui.get("picture", false) and not big_pic
 		if not r.row.visible:
 			continue
 		var id: String = ["mulgyeol", "noeul"][i]
@@ -103,11 +106,13 @@ func enable_touch() -> void:
 	var col := [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn] # two by two, 60 px like the zoom coins and the skills, 8 px apart, left of the minimap
 	for i in col.size():
 		place(col[i], Control.PRESET_TOP_RIGHT, Vector2(-194 - 8 - 60 - (1 - i % 2) * 68, 8 + (i / 2) * 68), Vector2(60, 60))
+	place(m.ui.bag_btn, Control.PRESET_TOP_RIGHT, Vector2(-466, 8), Vector2(60, 60)) # the bag key: left of the zoom coins' column (x -368 +- 30), 8 px off them, level with the first row; a third row under the journal key met the quest line
+	m.ui.bag_btn.visible = not m.intro
 	use_touch_help(true)
 	m.cfg.text = maxi(int(m.cfg.text), 2) # text a size up on a small screen
 	m.apply_settings()
 	await m.get_tree().process_frame # the sheets know their size a frame later
-	for sheet in [m.ui.ways, m.ui.help]:
+	for sheet in [m.ui.ways, m.ui.help, m.ui.bag]:
 		fit_sheet(sheet)
 	fit_journal()
 	m.ui.set_card.pivot_offset = m.ui.set_card.size / 2.0
@@ -200,7 +205,7 @@ func quest_blocks(with_player := true) -> Array:
 	if m.ui.boss.visible:
 		out.append(boss_rect())
 	out.append(m.ui.mini.get_parent().get_global_rect())
-	for b in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn]:
+	for b in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn, m.ui.bag_btn]:
 		if (b as Control).visible:
 			out.append((b as Control).get_global_rect())
 	if m.touch_layer != null:
@@ -405,9 +410,10 @@ func disable_touch() -> void:
 		m.touch_layer.queue_free()
 		m.touch_layer = null
 	var col := [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn]
+	m.ui.bag_btn.visible = false # the bag key is for phones; the keyboard has Tab (a fifth key on the desktop row met the quest line on a narrow window)
 	for i in col.size():
 		place(col[i], Control.PRESET_BOTTOM_LEFT, Vector2(8 + i * 76, -93), Vector2(68, 68))
-	for sheet in [m.ui.journal, m.ui.ways, m.ui.help, m.ui.set_card]:
+	for sheet in [m.ui.journal, m.ui.ways, m.ui.help, m.ui.set_card, m.ui.bag]:
 		sheet.scale = Vector2.ONE
 		m.menus.size_back_keys(sheet)
 	fit_journal()
@@ -415,6 +421,7 @@ func disable_touch() -> void:
 	use_touch_help(false)
 	for c in [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn, m.ui.mini.get_parent()]: # the touch layer hid them under sheets
 		c.visible = not m.intro
+	m.ui.bag_btn.visible = false
 	m.ui.hint.visible = not m.intro and not m.ui.help.visible
 	m.fit_shop()
 	m.menus.layout_help()
@@ -817,6 +824,9 @@ func build_hud() -> void:
 	m.menus.refresh_sound_btn()
 	m.ui.journal_btn = icon_button(root, "journal", "Q", "일지", 160, func(): m.toggle_journal(not m.ui.journal.visible))
 	m.ui.settings_btn = icon_button(root, "gear", "Esc", "설정", 236, func(): m.toggle_settings(not m.settings_open))
+	m.ui.bag_btn = icon_button(root, "bag", "Tab", "소지품", 312, func(): m.menus.toggle_bag(not m.ui.bag.visible))
+	m.ui.bag_btn.visible = false # the fifth key of the row (the owner, 2026-10-29: "인벤토리 보는 명령어")
+	m.menus.build_bag(root)
 	m.menus.build_settings(root)
 	if m.touch_ui:
 		enable_touch()
@@ -995,7 +1005,7 @@ func build_hud() -> void:
 	for c in root.get_children():
 		if c != title:
 			c.visible = false
-	m.ui.hidden_for_intro = root.get_children().filter(func(c): return c != title and c != m.ui.help and c != m.ui.journal and c != m.ui.ways and c != m.ui.settings and c != m.ui.boss and c != m.ui.shop and c != m.ui.shop_hint and c != m.ui.slowmo_tint and c != m.ui.story and c != m.ui.quest and c != m.ui.legacy)
+	m.ui.hidden_for_intro = root.get_children().filter(func(c): return c != title and c != m.ui.help and c != m.ui.journal and c != m.ui.bag and c != m.ui.bag_btn and c != m.ui.ways and c != m.ui.settings and c != m.ui.boss and c != m.ui.shop and c != m.ui.shop_hint and c != m.ui.slowmo_tint and c != m.ui.story and c != m.ui.quest and c != m.ui.legacy)
 	for k in ["zone", "stats"]:
 		pass
 
@@ -1018,6 +1028,8 @@ func rest_why(night_now: bool) -> String:
 	if dark and not lit and night_now:
 		return "꺼진 등불 곁에서는 달빛이 차지 않는다"
 	return ""
+
+var full_chimes := 0 # times the moon light filled with its soft low chime (autoplay full_chime)
 
 func update_pips(dt: float) -> void:
 	m.pip_flash -= dt
@@ -1082,5 +1094,8 @@ func update_pips(dt: float) -> void:
 			m.crown_pips += 1
 			m.burst(Vector3(m.player.x, m.ground_y + 1.6, m.player.z), Color("#9fd4ff"), 10, 1.2)
 			m.sfx(880, 0.15, "sine", 0.15)
+			if m.crown_pips >= m.pip_max: # the last blip leaves a low, soft tone behind it (delight idea 45)
+				full_chimes += 1
+				m.get_tree().create_timer(0.16).timeout.connect(func(): m.sfx(330, 0.7, "sine", 0.1, 20.0))
 	else:
 		m.rest_t = 0.0

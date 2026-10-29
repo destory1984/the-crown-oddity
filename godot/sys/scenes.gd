@@ -34,6 +34,8 @@ const SCENES := {
 	"pier": {"play": true, "village": true, "vat": Vector2(32, 29), "hour": 14.0},
 	"inn": {"play": true, "village": true, "vat": Vector2(8, 30), "hour": 14.0},
 	"fountain": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0}, # the square's fountain, dry
+	"small_things": {"play": true, "village": true, "vat": Vector2(13.0, 10.0), "hour": 14.0, "small": true}, # Kongal's chalk figures and the turning pinwheels (v0.1.104)
+	"small_wheels": {"play": true, "village": true, "vat": Vector2(14.0, 5.0), "hour": 14.0, "small": true},
 	"fountain_wet": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "wound": true}, # after the ending
 	"phone_hud": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "touch": true}, # the touch layout
 	"pip_hint": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "pip_hint": true}, # the moon-light card
@@ -75,6 +77,8 @@ const SCENES := {
 	"journal": {"play": true, "journal": true},
 	"journal_late": {"play": true, "journal": true, "late": true, "win": Vector2i(960, 540)}, # a late-game journal on a 960x540 window, keyboard (lap 6)
 	"journal_late_touch": {"play": true, "journal": true, "late": true, "win": Vector2i(960, 540), "touch": true},
+	"bag": {"play": true, "bag": true, "late": true, "win": Vector2i(960, 540)}, # the bag (Tab) late in the game on a 960x540 window
+	"bag_touch": {"play": true, "bag": true, "late": true, "win": Vector2i(960, 540), "touch": true},
 	"hud_gems_touch": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "touch": true, "late": true, "win": Vector2i(960, 540), "mates": true}, # token gems and two companions, touch (lap 6)
 	"hud_gems": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "late": true, "win": Vector2i(960, 540), "mates": true},
 	"wolves": {"play": true, "village": true, "forest": true, "wolves": true, "hour": 16.5},
@@ -131,6 +135,8 @@ const SCENES := {
 	"workshop2": {"play": true, "village": true, "castle": true, "workshop": 2, "hour": 16.0}, # B2: the lid lifted, the stopper bare
 	"workshop3": {"play": true, "village": true, "castle": true, "workshop": 3, "hour": 16.0}, # B3: the work pit, one latch wound
 	"stairs_top": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 3, "hour": 16.0},
+	"stairs_wall": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 3, "hour": 22.0, "lit_path": true, "stairs_pos": Vector2(6.0, 15.0)}, # beside the west wall: lanterns and a chime
+	"stairs_night": {"play": true, "village": true, "castle": true, "stairs": true, "stairs_at": 3, "hour": 22.0, "lit_path": true}, # the climbed path glowing, lanterns, petals, chimes and the moon (v0.1.101)
 	"scrap": {"play": true, "at": Vector2(42.5, 5.5), "hour": 17.0},
 	"shore": {"play": true, "shore": 1, "at": Vector2(18.5, 19.5), "hour": 15.0},              # the basket in the mud by day
 	"shore_float": {"play": true, "shore": 3, "at": Vector2(17.2, 23.0), "hour": 22.0},        # the lantern held at the first snag
@@ -652,6 +658,17 @@ func apply_test_args(args: PackedStringArray) -> void:
 				m.player.x = Main.STAIRS.STAIRS_X + 9.0
 				m.player.z = [26.5, 20.5, 12.5, 4.5][land]
 				m.set_quest(m.castle_zone.stairs_quest())
+			if sc.get("lit_path", false): # she has climbed from the foot: every step on the way lit
+				for zz in range(27, 3, -1):
+					for xx in [10, 11, 12]:
+						m.player.x = Main.STAIRS.STAIRS_X + float(xx)
+						m.player.z = float(zz)
+						m.stairs.update(m, 0.0, true)
+				m.player.x = Main.STAIRS.STAIRS_X + 9.0
+				m.player.z = 4.5
+			if sc.has("stairs_pos"):
+				m.player.x = Main.STAIRS.STAIRS_X + sc.stairs_pos.x
+				m.player.z = sc.stairs_pos.y
 			m.snap_mates()
 		if sc.get("trial", false): # the moon trial's third wave, wolves around the stone ring on the wind hills
 			m.night_q = 4
@@ -756,6 +773,21 @@ func apply_test_args(args: PackedStringArray) -> void:
 		if sc.get("touch", false):
 			await m.hud_build.enable_touch()
 		m.toggle_journal(true)
+	if sc.get("small", false): # the chalk figures and pinwheels answer her deeds
+		m.kid_q = 3
+		m.mul_q = 1
+		m.mill_q = 3
+		for mm in m.hill.mills:
+			mm.turning = true
+	if sc.get("bag", false): # the bag with most keepsakes
+		var root2: Window = m.get_tree().root
+		root2.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root2.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root2.content_scale_size = sc.win
+		scene_late(m)
+		if sc.get("touch", false):
+			await m.hud_build.enable_touch()
+		m.menus.toggle_bag(true)
 	if sc.get("ways", false): # the waystone list by Bori's cottage
 		m.story_step = 9
 		m.lake_q = 1

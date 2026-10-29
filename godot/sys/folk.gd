@@ -32,6 +32,9 @@ const HOP_STEP := 0.9 # tiles walked per hop (the user, 2026-10-25: 0.45 → 0.9
 const MATE_HOP_STEP := 1.8 # the companions run at Sora's pace, so they hop half as often as villagers (the user, 2026-10-25: "너무 폴짝거리네", "인터벌 4배로")
 const HOP_SQUASH_T := 0.06
 var hops := {} # key -> {last, p, base, scale, squash, n}
+var nod_t := {} # key -> seconds left of a nod (delight idea 29)
+var folk_nods := 0 # nods given (autoplay folk_nod)
+const NOD_T := 0.45
 
 func hop(key: String, spr: Sprite3D, dt: float, base_y := 0.0, height := HOP_H, alt := false, step := HOP_STEP) -> void:
 	var g := Vector2(spr.global_position.x, spr.global_position.z)
@@ -63,6 +66,12 @@ func hop(key: String, spr: Sprite3D, dt: float, base_y := 0.0, height := HOP_H, 
 		spr.scale = Vector3(bs.x * 1.08, bs.y * 0.9, bs.z)
 	else:
 		spr.scale = Vector3(bs.x * (1.0 - 0.03 * arc), bs.y * (1.0 + 0.05 * arc), bs.z)
+	var nt: float = nod_t.get(key, 0.0)
+	if nt > 0.0: # a small dip of the head: lower and a little squashed, once
+		nod_t[key] = nt - dt
+		var dip := sin(PI * (1.0 - nt / NOD_T))
+		spr.position.y -= dip * 0.08
+		spr.scale.y *= 1.0 - dip * 0.07
 
 func house_char(x: float, z: float) -> String:
 	var tx := int(round(x)) - Main.HOUSE_X
@@ -108,6 +117,7 @@ func build_house_room() -> void:
 	m.cupboard.position = Vector3(Main.HOUSE_X + 6.5, 0, 1.3)
 	m.add_child(m.cupboard)
 	m.rocks.append({"x": Main.HOUSE_X + 6.5, "z": 1.3, "r": 0.5})
+	build_door_bell()
 	var hearth := OmniLight3D.new()
 	hearth.light_color = Color("#ffc890")
 	hearth.light_energy = 2.0
@@ -270,7 +280,12 @@ func route_update(id: String, dt: float, home_only: bool, speed: float) -> bool:
 	var d: Vector2 = to - r.pos
 	var dir := d.normalized()
 	if Vector2(m.player.x, m.player.z).distance_to(r.pos + dir * 0.5) < 0.9: # Sora is in the way: let her pass
+		r.stalled = r.get("stalled", 0.0) + dt
 		return false
+	if r.get("stalled", 0.0) >= 1.0: # a real wait is over (not a brush past): a small nod of thanks
+		folk_nods += 1
+		nod_t["folk_" + id] = NOD_T
+	r.stalled = 0.0
 	r.pos = (r.pos as Vector2) + dir * minf(dt * speed, d.length())
 	(m.village.folk_node[id] as Sprite3D).flip_h = m.screen_left(dir)
 	if (r.pos as Vector2).distance_to(to) < 0.01:
@@ -427,7 +442,46 @@ func house_door_near() -> int:
 			return i
 	return -1
 
+# a little bell over the doorway inside every house: it rings a beat after she steps in, swinging twice, the small sound
+# only at the end of the second swing (delight idea 3)
+var bell: Node3D
+var bell_rings := 0 # times it has rung (autoplay door_bell)
+
+func build_door_bell() -> void:
+	var wood: Material = m.mat_color(Color("#6a4a2e"))
+	var at := Vector3(Main.HOUSE_EXIT.x, 0, Main.HOUSE_EXIT.y - 0.15)
+	for sx in [-0.6, 0.6]:
+		var post: MeshInstance3D = m.box(Vector3(0.08, 1.8, 0.08), wood)
+		post.position = Vector3(at.x + sx, 0.9, at.z)
+		m.add_child(post)
+	var bar: MeshInstance3D = m.box(Vector3(1.3, 0.07, 0.07), wood)
+	bar.position = Vector3(at.x, 1.8, at.z)
+	m.add_child(bar)
+	bell = Node3D.new()
+	bell.position = Vector3(at.x, 1.78, at.z)
+	var loop: MeshInstance3D = m.box(Vector3(0.02, 0.16, 0.02), m.mat_color(Color("#3a2a1a")))
+	loop.position = Vector3(0, -0.08, 0)
+	bell.add_child(loop)
+	var body: MeshInstance3D = m.box(Vector3(0.13, 0.15, 0.13), m.mat_color(Color("#e8b018")))
+	body.position = Vector3(0, -0.24, 0)
+	bell.add_child(body)
+	var clap: MeshInstance3D = m.box(Vector3(0.05, 0.05, 0.05), m.mat_color(Color("#8a6a1a")))
+	clap.position = Vector3(0, -0.34, 0)
+	bell.add_child(clap)
+	m.add_child(bell)
+
+func ring_door_bell() -> void:
+	if m.in_house < 0 or bell == null:
+		return
+	bell_rings += 1
+	var tw := bell.create_tween()
+	tw.tween_property(bell, "rotation:z", 0.5, 0.18).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(bell, "rotation:z", -0.4, 0.3).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(bell, "rotation:z", 0.0, 0.3).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func(): m.sfx(1760, 0.45, "sine", 0.07))
+
 func enter_house(i: int) -> void:
+	m.get_tree().create_timer(0.55).timeout.connect(ring_door_bell) # a beat after she is in
 	m.in_house = i
 	m.house_wall_mat.albedo_color = HOUSE_WALLS[i % HOUSE_WALLS.size()]
 	m.player.x = Main.HOUSE_X + 4.0

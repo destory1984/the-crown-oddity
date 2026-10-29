@@ -710,6 +710,12 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.104: 작은 정성 열한 가지를 더했다. 장난감 벽돌이 굴러 세 번 닿는 소리, 보리 할머니 앞에서 차 마시기와 풍차 앞에서 바람개비 꺼내기, 기다려 준 주민의 끄덕임, 체력이 가득하면 회복약을 아끼기, 비 그친 뒤 처마 물방울 18개, 달빛이 다 찰 때 낮은 소리, 엄지가 흔들려도 0.92에서 달리고 0.84까지 유지, 표지판을 세 번 읽으면 노을의 한마디, 콩알의 왕관 낙서와 수달 낙서, 풍차를 고치면 도는 마을 바람개비 넷, 늦게 울리는 문종이다.",
+	"· v0.1.103: 큰 이야기 그림이 떠 있는 동안 물결과 노을의 이름, 상태, 막대 두 줄이 그림 위에 겹쳐 그려지던 것을 숨겼다. 두 줄은 이야기 판 아래 층으로 옮겼고, 작은 구석 그림과 그림 없는 대화에서는 그대로 보인다.",
+	"· v0.1.102: 호수 섬의 물길 회랑 계단이 화살표처럼 보이던 것을 고쳤다. 폭 1.4칸에 여섯 단으로 깊어지며 어두워지고, 끝에 검은 입구가 있으며, 위에 물길 회랑 이름이 떠 있다.",
+	"· v0.1.101: 달의 계단이 더 예뻐졌다. 소라가 밟은 계단 가장자리가 연푸른 빛으로 켜져 남고, 양쪽 벽에서 종이 등이 천천히 떠오르며, 달꽃잎이 흩날린다. 꼭대기 문 뒤에는 지름 8칸의 큰 달이 뜨고, 여섯 개 풍경이 소라가 3칸 안으로 지날 때 한 번씩 울린다.",
+	"· v0.1.100: 새 판을 시작해 첫 장면이 끝나면 부름을 거부하는 장면이 한 번 나온다. 소라가 왕관을 벗으려다 안 벗겨지자 등불 하나만 켜 보기로 하는 일곱 줄이며, 불러오기와 다시 보기에는 나오지 않는다.",
+	"· v0.1.99: Tab으로 소지품 창을 연다. 장비 칼과 갑옷과 놋 방패, 지닌 물건 25가지 가운데 얻은 것마다 한 줄 효과, 회복약과 금화, 달지기 표식 6개를 카드로 보여 주고, 열려 있는 동안 세상이 멈춘다. 휴대폰에는 일지 키 아래에 8px 간격으로 가방 키를 더했다.",
 	"· v0.1.98: F9 확인 창을 세 줄로 쉽게 고쳤다: 무엇이 지워지는지, 지금 몇 회차·몇 레벨인지, 어떻게 지우는지. 말소리를 크게 했다(크기 0.09 → 0.32, 한 음절 0.055 → 0.08초, 끝까지 울림).",
 	"· v0.1.97: 정원 한가운데 싸움터 가장자리에 높이 약 1.15m의 달맞이꽃을 둥글게 심었다(칼이 닿으면 흔들린다). 길돌이 8 → 10개가 되었다: 9 달의 계단, 0 정원 한가운데.",
 	"· v0.1.96: 마지막 싸움 삽화를 다시 그렸다(시안 셋 가운데 B, 소라를 가까이 크게). 새 삽화 셋이 들어갔다: 달 조각이 부서지는 장면, 땅이 깨어나 고블린이 하품하는 아침, 다리 위에서 보름달을 보는 마지막 장면. 끝 줄 다음에는 엔딩 크레딧이 올라간다(1.5초 뒤 아무 키로 건너뛰기, 엔딩 다시 보기에서도 나옴).",
@@ -1285,6 +1291,7 @@ var chat_cd := 6.0
 var balloon_cache := {}
 
 var bubbles_said := 0 # counted for the tests
+var sign_spots: Array = [] # world Vector2 beside each readable sign (the signpost, the stalls, the inn): E near one counts as reading it (chatter.sign_look)
 
 # a short talk at rest: each line in its speaker's balloon, 2.4 s apart; Sora's balloon stands where she rests
 var talk_id := 0          # bumped to cut a rest talk short
@@ -1571,6 +1578,7 @@ const SIMJI_QUEST := "광장의 등불지기에게 말을 걸자 (E)"
 # then the bracelet's uses (lamps, bricks, waystones, fishing), then whatever Space opens (houses, chests, cupboards)
 func crown_key() -> void:
 	var me := Vector2(player.x, player.z)
+	chatter.sign_look() # reading a sign again and again earns Noeul's tease; the key still does what it does
 	if waystones.way_key():
 		return
 	if in_marsh() and shop.near_shop(): # Bori answers to E like every other villager (Space still works)
@@ -2049,9 +2057,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			toggle_settings(false)
 		return
 	# Esc on the journal or the controls sheet closes it and goes back to the game (the user asked for this)
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE and (ui.journal.visible or ui.help.visible):
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE and (ui.journal.visible or ui.help.visible or ui.bag.visible):
 		toggle_journal(false)
 		toggle_help(false)
+		menus.toggle_bag(false)
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE and not way_open:
 		toggle_settings(true)
@@ -2080,9 +2089,12 @@ func _unhandled_input(event: InputEvent) -> void:
 				raining = not raining
 				rain.emitting = raining
 				toast("비가 내린다" if raining else "비가 그쳤다")
+				if not raining:
+					effects.eaves_drip() # a few drops more at the eaves after the rain (delight idea 31)
 			KEY_P: ui.root.visible = not ui.root.visible
 			KEY_H: toggle_help(not ui.help.visible)
 			KEY_Q: toggle_journal(not ui.journal.visible)
+			KEY_TAB: menus.toggle_bag(not ui.bag.visible)
 			KEY_E: crown_key()
 			KEY_F8: return_to_start()
 			KEY_M: toggle_sound()
@@ -2100,7 +2112,7 @@ func _process(dt: float) -> void:
 		return
 	if settings_open: # and while the settings are open
 		return
-	if ui.journal.visible: # and while she reads the journal (GPT lap 7: 104 -> 62 HP over the guide)
+	if ui.journal.visible or ui.bag.visible: # and while she reads the journal or the bag (GPT lap 7: 104 -> 62 HP over the guide)
 		return
 	if down_t > 0.0:
 		t += dt
@@ -2281,6 +2293,7 @@ func _process(dt: float) -> void:
 	effects.update_armour_ring(hero_shadow.position, hero_shadow.visible and hero.visible)
 
 	monsters.update_enemies(dt * (SLOWMO if slowmo > 0 else 1.0), gy)
+	stairs.update(self, dt, in_stairs())
 	if in_stairs() and not stairs.door_open and fade_rect.color.a == 0.0:
 		var sq: String = castle_zone.stairs_quest()
 		if sq != stairs_q_shown:
@@ -2410,6 +2423,7 @@ func _process(dt: float) -> void:
 	minigames.update_race(dt)
 	minigames.update_fishing(dt)
 	if in_village:
+		village.life_update(self, dt)
 		market.update_market(dt)
 		update_magpie(dt)
 	chatter.update_chat(dt)

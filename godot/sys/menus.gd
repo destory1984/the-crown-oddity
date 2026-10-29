@@ -598,6 +598,7 @@ func refresh_sound_btn() -> void:
 func toggle_help(show: bool) -> void:
 	if show:
 		m.ui.journal.visible = false
+		m.ui.bag.visible = false
 	m.ui.help.visible = show
 	m.ui.hint.visible = not show
 	if show:
@@ -642,6 +643,7 @@ func journal_bbcode(lines: Array) -> String:
 func toggle_journal(show: bool) -> void:
 	if show:
 		m.ui.help.visible = false
+		m.ui.bag.visible = false
 		m.hud_build.fit_journal()
 		var lines: Array = journal_lines()
 		var cut: int = lines.find(tr("도전 과제"))
@@ -748,32 +750,7 @@ func journal_lines() -> Array:
 	out.append(tr("놀이 시간 %s · 물리친 괴물 %d마리") % [m.errands.play_time_text(), m.stats.kills])
 	out.append("")
 	out.append(tr("지닌 것"))
-	var keep: Array = []
-	if m.has_skip: keep.append(tr("물수제비 걸음"))
-	if m.has_unbrick: keep.append(tr("벽돌 풀기"))
-	if m.fly_q >= 3: keep.append(tr("반딧불 병"))
-	if m.has_pearl: keep.append(tr("물빛 진주"))
-	if m.has_feather: keep.append(tr("바람 깃털"))
-	if m.has_acorn: keep.append(tr("싹 튼 도토리") if m.has_sprout else tr("다람쥐 도토리"))
-	if m.hollow_q == 3: keep.append(tr("열셋째 등불"))
-	if m.has_ring: keep.append(tr("수정 반지"))
-	if m.has_shoes: keep.append(tr("바람 신발"))
-	if m.has_oar_ring: keep.append(tr("삿대 고리"))
-	if m.has_whistle: keep.append(tr("물지기 호루라기"))
-	if m.corr_reward: keep.append(tr("회랑 물매듭"))
-	if m.has_oil: keep.append(tr("달지기 기름병"))
-	if m.shore_q == 3: keep.append(tr("보리의 등불"))
-	if m.has_cushion: keep.append(tr("갈대 방석"))
-	if m.has_bait: keep.append(tr("미끼 주머니"))
-	if m.quarters_q == 1 or m.quarters_q == 2: keep.append(tr("녹슨 태엽"))
-	if m.has_buckler: keep.append(tr("작은 놋 방패"))
-	if m.post_q == 3: keep.append(tr("보리의 엽서"))
-	if m.has_armour: keep.append(tr("달지기 갑옷"))
-	if m.has_tea: keep.append(tr("달꽃 차"))
-	if m.has_shard: keep.append(tr("구름 조각"))
-	if m.has_bookmark: keep.append(tr("달지기 책갈피"))
-	if m.has_lamp: keep.append(tr("한결의 등잔"))
-	if m.has_medal: keep.append(tr("과녁 메달"))
+	var keep: Array = keepsakes().map(func(k): return k[0])
 	out.append("  " + (", ".join(keep) if not keep.is_empty() else tr("왕관과 태엽 팔찌")))
 	# level moves so far and the next one (the owner asked for perks past Lv8, 2026-10-25)
 	out.append("")
@@ -789,3 +766,175 @@ func journal_lines() -> Array:
 	if next_lv > 0:
 		out.append("  " + tr("다음: Lv%d %s") % [next_lv, tr(Combat.LV_NAMES[next_lv])])
 	return out
+
+# every keepsake with the one line of what it does: [name, effect, kind]. The journal lists the names, the bag (Tab) shows
+# each as a card; "gear" ones (the armour and the buckler) sit under 장비 there (the owner, 2026-10-29: "인벤토리 보는
+# 명령어 만들어줘")
+func keepsakes() -> Array:
+	var k: Array = []
+	var add := func(have: bool, name: String, effect: String, kind: String):
+		if have:
+			k.append([name, effect, kind])
+	add.call(m.has_skip, tr("물수제비 걸음"), tr("Shift로 달리면 물 위를 튕기듯 건넌다"), "item")
+	add.call(m.has_unbrick, tr("벽돌 풀기"), tr("팔찌로 벽돌 벽과 벽돌 더미를 흙으로 푼다 (E)"), "item")
+	add.call(m.fly_q >= 3, tr("반딧불 병"), tr("곁에 두면 등불이 없어도 밤에 쉬며 달빛을 채운다"), "item")
+	add.call(m.has_pearl, tr("물빛 진주"), tr("굳은 숲으로 가는 길을 여는 열쇠 하나"), "item")
+	add.call(m.has_feather, tr("바람 깃털"), tr("구르기에 드는 기운이 25에서 15로 준다"), "item")
+	add.call(m.has_acorn, tr("싹 튼 도토리") if m.has_sprout else tr("다람쥐 도토리"), tr("회복약이 체력을 %d 채운다") % (75 if m.has_sprout else 65), "item")
+	add.call(m.hollow_q == 3, tr("열셋째 등불"), tr("노을이 되찾은 기억을 담은 등불"), "item")
+	add.call(m.has_ring, tr("수정 반지"), tr("치명타 확률이 15%에서 25%로 오른다"), "item")
+	add.call(m.has_shoes, tr("바람 신발"), tr("달리기가 1초에 6.2칸에서 7칸으로 빨라진다"), "item")
+	add.call(m.has_oar_ring, tr("삿대 고리"), tr("동료의 한 방이 소라 공격력의 25%에서 30%로 세진다"), "item")
+	add.call(m.has_whistle, tr("물지기 호루라기"), tr("물결이 쓰러져도 10초 대신 5초 만에 일어난다"), "item")
+	add.call(m.corr_reward, tr("회랑 물매듭"), tr("물길 회랑을 건너온 징표"), "item")
+	add.call(m.has_oil, tr("달지기 기름병"), tr("회복약을 마시면 기세도 20 찬다"), "item")
+	add.call(m.shore_q == 3, tr("보리의 등불"), tr("깨어난 물가에서 보리가 건넨 등불"), "item")
+	add.call(m.has_cushion, tr("갈대 방석"), tr("밤에 등불 곁에서 쉬면 체력이 1초에 4씩 찬다"), "item")
+	add.call(m.has_bait, tr("미끼 주머니"), tr("낚시에서 입질이 30% 빨리 온다"), "item")
+	add.call(m.quarters_q == 1 or m.quarters_q == 2, tr("녹슨 태엽"), tr("숙소의 기사에게 가져다줄 부서진 태엽"), "item")
+	add.call(m.has_buckler, tr("작은 놋 방패"), tr("섬광 막기 창이 0.12초에서 0.16초로 늘어난다"), "gear")
+	add.call(m.post_q == 3, tr("보리의 엽서"), tr("보리 할머니께 전할 엽서"), "item")
+	add.call(m.has_armour, tr("달지기 갑옷"), tr("받는 피해가 15% 줄어든다"), "gear")
+	add.call(m.has_tea, tr("달꽃 차"), tr("밤에 쉬며 달빛을 채우는 시간이 0.6배로 준다"), "item")
+	add.call(m.has_shard, tr("구름 조각"), tr("기술을 다시 쓰는 시간이 20% 줄어든다"), "item")
+	add.call(m.has_bookmark, tr("달지기 책갈피"), tr("얻는 경험치가 1.2배가 된다"), "item")
+	add.call(m.has_lamp, tr("한결의 등잔"), tr("한결이 남긴 등잔. 최대 체력 +20, 공격력 +3"), "item")
+	add.call(m.has_medal, tr("과녁 메달"), tr("치명타 피해가 1.8배에서 2.0배로 늘어난다"), "item")
+	return k
+
+# ---- 소지품 (Tab): equipment, keepsakes, what she spends and the six tokens, as cards on one scrolling sheet in the
+# settings' navy with a gold rim; items without a picture of their own wear a gold diamond
+const BAG_ART := {"potion": "res://art/ui/item_0.png", "blade": "res://art/ui/item_2.png", "armour": "res://art/ui/item_3.png"}
+
+func diamond_tex() -> ImageTexture:
+	if m.icon_cache.has("diamond"):
+		return m.icon_cache["diamond"]
+	var img := Image.create(36, 36, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in 36:
+		for x in 36:
+			var d := absf(x - 17.5) + absf(y - 17.5)
+			if d <= 15.0:
+				img.set_pixel(x, y, Color("#ffe3a0") if d > 12.5 else Color("#f6b951").darkened(0.12 * (d / 12.5)))
+	var tex := ImageTexture.create_from_image(img)
+	m.icon_cache["diamond"] = tex
+	return tex
+
+func build_bag(root: Control) -> void:
+	var bag := menu_panel(root, Vector2(-400, -283.5), Vector2(800, 567), Control.PRESET_CENTER)
+	var sb := flat(Color("#091627"), Color("#b8964f"), 1, 14, 0.0) # the gold rim
+	sb.shadow_color = Color(0, 0, 0, 0.53)
+	sb.shadow_size = 24
+	sb.shadow_offset = Vector2(0, 12)
+	bag.add_theme_stylebox_override("panel", sb)
+	bag.mouse_filter = Control.MOUSE_FILTER_STOP
+	var title := m.hud_build.label(bag, "소지품", Vector2(62, 20), 14, Color("#a99d84"))
+	menu_rule(bag, Vector2(14, 60), 772)
+	var sc := ScrollContainer.new()
+	sc.position = Vector2(14, 70)
+	sc.size = Vector2(772, 487)
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.get_v_scroll_bar().modulate = Color(1, 1, 1, 0.6)
+	sc.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseMotion and (ev.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0: # a touch drag arrives as a mouse drag
+			sc.scroll_vertical -= int(ev.relative.y))
+	bag.add_child(sc)
+	var box := VBoxContainer.new()
+	box.custom_minimum_size = Vector2(756, 0)
+	box.add_theme_constant_override("separation", 8)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sc.add_child(box)
+	back_key(bag, func(): toggle_bag(false)).set_meta("title", title)
+	bag.visible = false
+	m.ui.bag = bag
+	m.ui.bag_box = box
+	m.ui.bag_scroll = sc
+
+# what the bag shows: [[section title, [{name, effect, art, dim}]]]
+func bag_sections() -> Array:
+	var gear: Array = []
+	var blade: int = m.shop_bought[2]
+	gear.append({"name": tr("벼린 칼 %d단") % blade if blade > 0 else tr("태엽 칼"), "art": BAG_ART.blade,
+		"effect": tr("공격력 %d · 한 단에 +3") % m.player.atk if blade > 0 else tr("공격력 %d · 상점에서 갈면 한 단에 +3") % m.player.atk})
+	var plate: int = m.shop_bought[3]
+	if plate > 0:
+		gear.append({"name": tr("튼튼한 갑옷 %d단") % plate, "effect": tr("최대 체력 %d · 한 단에 +15") % m.player.max_hp, "art": BAG_ART.armour})
+	elif not m.has_armour:
+		gear.append({"name": tr("맨몸"), "effect": tr("상점에서 튼튼한 갑옷을 살 수 있다"), "art": BAG_ART.armour, "dim": true})
+	var keeps: Array = keepsakes()
+	for k in keeps:
+		if k[2] == "gear":
+			gear.append({"name": k[0], "effect": k[1]})
+	var items: Array = [{"name": tr("왕관"), "effect": tr("벗겨지지 않는 달지기의 표식")}, {"name": tr("태엽 팔찌"), "effect": tr("두 팔목의 열쇠. 등불과 벽돌에 E")}]
+	for k in keeps:
+		if k[2] == "item":
+			items.append({"name": k[0], "effect": k[1]})
+	var heal: int = int((75.0 if m.has_sprout else (65.0 if m.has_acorn else 45.0)) * (1.3 if m.player.lv >= 25 else 1.0))
+	var use: Array = [{"name": tr("회복약 %d개") % m.player.pots, "effect": tr("4 키로 마신다 · 체력 %d 회복") % heal, "art": BAG_ART.potion, "dim": m.player.pots <= 0},
+		{"name": tr("금화 %d닢") % m.player.gold, "effect": tr("상점과 장터에서 쓴다")}]
+	var toks: Array = []
+	for i in m.tokens.size():
+		toks.append({"name": tr(m.moon_tokens.NAMES[i]), "effect": tr("얻었다") if m.tokens[i] else tr(m.moon_tokens.HOW[i]), "dim": not m.tokens[i]})
+	return [[tr("장비"), gear], [tr("지닌 물건"), items], [tr("쓰는 것"), use], [tr("달지기 표식") + " %d/6" % m.moon_tokens.count(), toks]]
+
+func bag_fill() -> void:
+	var box: VBoxContainer = m.ui.bag_box
+	for c in box.get_children():
+		box.remove_child(c)
+		c.queue_free()
+	for sec in bag_sections():
+		var h := m.hud_build.label(box, sec[0], Vector2.ZERO, 17, Color("#f6d27a"))
+		h.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		var grid := GridContainer.new()
+		grid.columns = 2
+		grid.add_theme_constant_override("h_separation", 12)
+		grid.add_theme_constant_override("v_separation", 8)
+		grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(grid)
+		for e in sec[1]:
+			bag_card(grid, e)
+
+func bag_card(parent: Control, e: Dictionary) -> void:
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(372, 64)
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var dim: bool = e.get("dim", false)
+	card.add_theme_stylebox_override("panel", flat(Color("#0d1a3acc"), Color("#9fb4ff33") if dim else Color("#f6b95199"), 1, 10, 8.0))
+	card.modulate = Color(1, 1, 1, 0.6 if dim else 1.0)
+	parent.add_child(card)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(row)
+	var ic := TextureRect.new()
+	ic.texture = load(e.art) if e.has("art") else diamond_tex()
+	ic.custom_minimum_size = Vector2(36, 36)
+	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(ic)
+	var col := VBoxContainer.new()
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(col)
+	var n := m.hud_build.label(col, e.name, Vector2.ZERO, 16, Color("#f6d27a"))
+	n.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	var d := m.hud_build.label(col, Main.Ko.keep_words(String(e.effect)), Vector2.ZERO, 14, ODD_MUTED)
+	d.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.custom_minimum_size = Vector2(290, 0)
+
+func toggle_bag(show: bool) -> void:
+	if show:
+		m.ui.journal.visible = false
+		if m.ui.help.visible:
+			toggle_help(false)
+		if m.way_open:
+			m.waystones.toggle_ways(false)
+		bag_fill()
+		m.hud_build.fit_sheet(m.ui.bag)
+		m.ui.bag_scroll.scroll_vertical = 0
+	m.ui.bag.visible = show
+	if show:
+		m.ui.bag.move_to_front()

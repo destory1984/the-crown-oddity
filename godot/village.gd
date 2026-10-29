@@ -336,6 +336,7 @@ func build(m: Node) -> void:
 	tw.tween_interval(0.35)
 	tw.tween_callback(func(): spr.frame = 0)
 	m.rocks.append({"x": marks.M.x, "z": marks.M.y, "r": 0.5})
+	build_small_things(m)
 
 # props by the six working villagers: a woodpile, an ore cart, the hardened field, a fish basket, reed baskets,
 # crates by the kid's handcart. The field is only low furrows (walkable); the rest block like small rocks.
@@ -490,6 +491,7 @@ func build_market(m: Node) -> void:
 		var box: MeshInstance3D = m.box(Vector3(0.26, 0.22, 0.2), m.mat_color(Color("#4a3a2a")))
 		box.position = Vector3(0.7, 0.81, 0.36)
 		g.add_child(box)
+		m.sign_spots.append(Vector2(g.position.x, g.position.z + 0.9))
 		var sign: Sprite3D = m.sign_icon({"1": "apple", "2": "moon", "3": "tea"}[key], 0.6)
 		sign.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 		sign.position = Vector3(0, 2.0, 0.3)
@@ -530,6 +532,7 @@ func build_inn(m: Node) -> void:
 			var win: MeshInstance3D = m.box(Vector3(0.6, 0.45, 0.06), m.glow_mat(Color("#ffc46a"), 1.5))
 			win.position = Vector3(wx, wy, 1.42)
 			g.add_child(win)
+	m.sign_spots.append(Vector2(n.x, n.y + 0.4))
 	var sign: Sprite3D = m.sign_icon("inn", 0.9)
 	sign.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	sign.position = Vector3(0, 3.4, 1.4)
@@ -894,6 +897,10 @@ func fountain_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: boo
 # 데굴데굴 굴러가게 해보자"). They lie where they fell until the village is built again (a load).
 var toy_bricks: Array = []
 var toy_rolls := 0 # bricks sent rolling (autoplay toy_bricks)
+# a rolling brick taps the ground three times as it lands, each tap smaller and lower (delight idea 47, shots/plans/delight100.md)
+const TOY_TAPS := [[440.0, 0.07], [330.0, 0.055], [247.0, 0.04]]
+var toy_taps := 0 # taps heard (autoplay toy_taps)
+var toy_tap_last := -1 # the number of the last tap
 
 func bricks_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool) -> void:
 	var me := Vector2(m.player.x, m.player.z)
@@ -916,8 +923,13 @@ func bricks_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool)
 		sent += 1
 		var start := b.position
 		var basis0 := b.basis
+		var landed := [0]
 		var tw := b.create_tween()
 		tw.tween_method(func(k: float):
+			var land := int(k * 3.0) # the hop is flat at a third and at two thirds: a landing each
+			if land > landed[0] and land < 3:
+				landed[0] = land
+				toy_tap(m, land - 1)
 			var e := 1.0 - pow(1.0 - k, 2.0) # fast off the blow, slowing down
 			var pos := Vector2(start.x, start.z).lerp(to, e)
 			var hop := absf(sin(k * PI * 3.0)) * 0.35 * (1.0 - k) # three hops, each lower
@@ -928,10 +940,134 @@ func bricks_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool)
 			var yaw := atan2(-b.basis.z.x, -b.basis.z.z)
 			b.basis = Basis(Vector3.UP, yaw)
 			b.position.y = 0.1
+			toy_tap(m, 2)
 			b.remove_meta("rolling"))
 		m.burst(Vector3(b.position.x, 0.3, b.position.z), Color("#d8c8a8"), 4, 1.2)
 	if sent > 0: # a clatter of toy bricks
 		m.sfx(m.rnd(180.0, 220.0), 0.1, "square", 0.08, -60.0)
+
+# ---- small things that answer what Sora has done (delight ideas 76 and 78, shots/plans/delight100.md): Kongal's chalk
+# figures by his spot (a crowned stick figure once his kid goblin is home, a little otter once Mulgyeol is known) and four
+# small pinwheels that turn as the hill's windmills do (the three small ones, then the big one)
+const PINWHEEL_TILES := [Vector2(7.5, 2.6), Vector2(17.5, 2.6), Vector2(29.5, 2.6), Vector2(11.5, 13.6)]
+var doodle_crown: MeshInstance3D
+var doodle_otter: MeshInstance3D
+var pinwheels: Array = [] # [{"hub": Node3D}]
+
+func chalk_line(img: Image, a: Vector2, b: Vector2) -> void:
+	var n := int(maxf(absf(b.x - a.x), absf(b.y - a.y))) + 1
+	for i in n + 1:
+		var p := a.lerp(b, float(i) / n)
+		for dx in [0, 1, 2]: # three pixels wide, like chalk
+			for dy in [0, 1]:
+				var q := Vector2i(int(p.x) + dx, int(p.y) + dy)
+				if q.x >= 0 and q.y >= 0 and q.x < img.get_width() and q.y < img.get_height():
+					img.set_pixelv(q, Color(1.0, 0.99, 0.94, 1.0))
+
+func chalk_circle(img: Image, c: Vector2, r: float, sx := 1.0) -> void:
+	var pts := 20
+	for i in pts:
+		var a0 := TAU * i / pts
+		var a1 := TAU * (i + 1) / pts
+		chalk_line(img, c + Vector2(cos(a0) * r * sx, sin(a0) * r), c + Vector2(cos(a1) * r * sx, sin(a1) * r))
+
+func doodle_tex(kind: String) -> ImageTexture:
+	var img := Image.create(96, 64, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	if kind == "crown": # a stick figure with a zigzag crown, arms up
+		chalk_circle(img, Vector2(48, 24), 7.0)
+		chalk_line(img, Vector2(41, 17), Vector2(41, 9))
+		chalk_line(img, Vector2(41, 9), Vector2(45, 14))
+		chalk_line(img, Vector2(45, 14), Vector2(48, 8))
+		chalk_line(img, Vector2(48, 8), Vector2(51, 14))
+		chalk_line(img, Vector2(51, 14), Vector2(55, 9))
+		chalk_line(img, Vector2(55, 9), Vector2(55, 17))
+		chalk_line(img, Vector2(48, 31), Vector2(48, 46))
+		chalk_line(img, Vector2(48, 35), Vector2(38, 28))
+		chalk_line(img, Vector2(48, 35), Vector2(58, 28))
+		chalk_line(img, Vector2(48, 46), Vector2(40, 58))
+		chalk_line(img, Vector2(48, 46), Vector2(56, 58))
+	else: # a small otter: round head with ears, a long body and a curled tail
+		chalk_circle(img, Vector2(30, 28), 9.0)
+		chalk_line(img, Vector2(24, 21), Vector2(22, 14))
+		chalk_line(img, Vector2(22, 14), Vector2(28, 19))
+		chalk_line(img, Vector2(36, 21), Vector2(40, 14))
+		chalk_line(img, Vector2(40, 14), Vector2(38, 20))
+		chalk_circle(img, Vector2(58, 38), 12.0, 1.7)
+		chalk_line(img, Vector2(78, 42), Vector2(88, 38))
+		chalk_line(img, Vector2(88, 38), Vector2(92, 30))
+		chalk_line(img, Vector2(92, 30), Vector2(86, 26))
+		chalk_line(img, Vector2(47, 49), Vector2(47, 58))
+		chalk_line(img, Vector2(66, 49), Vector2(66, 58))
+		img.set_pixel(27, 26, Color(0.96, 0.95, 0.88, 0.9))
+		img.set_pixel(34, 26, Color(0.96, 0.95, 0.88, 0.9))
+	return ImageTexture.create_from_image(img)
+
+func chalk_plane(m: Node, kind: String, at: Vector2, yaw: float) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var q := PlaneMesh.new()
+	q.size = Vector2(1.8, 1.2)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_texture = doodle_tex(kind)
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	q.material = mat
+	mi.mesh = q
+	mi.position = Vector3(at.x, 0.012, at.y)
+	mi.rotation.y = yaw
+	mi.visible = false
+	m.add_child(mi)
+	return mi
+
+func build_small_things(m: Node) -> void:
+	var k: Vector2 = folk_pos["kongal"]
+	doodle_crown = chalk_plane(m, "crown", k + Vector2(1.5, -3.2), 0.2) # on the square's south edge, three tiles from his spot
+	doodle_otter = chalk_plane(m, "otter", k + Vector2(3.5, -3.1), -0.15)
+	var stick: Material = m.mat_color(Color("#7a5232"))
+	var cols := [Color("#d8342c"), Color("#2f5fb8"), Color("#e8c23a"), Color("#3a9a4a")]
+	for i in PINWHEEL_TILES.size():
+		var t: Vector2 = PINWHEEL_TILES[i]
+		var g := Node3D.new()
+		g.position = Vector3(VILLAGE_X + t.x, 0, t.y)
+		var pole: MeshInstance3D = m.box(Vector3(0.05, 0.9, 0.05), stick)
+		pole.position = Vector3(0, 0.45, 0)
+		g.add_child(pole)
+		var hub := Node3D.new()
+		hub.position = Vector3(0, 0.95, 0.05)
+		for b in 4:
+			var blade: MeshInstance3D = m.box(Vector3(0.3, 0.14, 0.02), m.mat_color(cols[(b + i) % 4]))
+			blade.position = Vector3(0.15, 0.07, 0)
+			var arm := Node3D.new()
+			arm.rotation.z = b * PI / 2.0
+			arm.add_child(blade)
+			hub.add_child(arm)
+		var cap: MeshInstance3D = m.box(Vector3(0.08, 0.08, 0.06), m.mat_color(Color("#f2ead8")))
+		hub.add_child(cap)
+		g.add_child(hub)
+		m.add_child(g)
+		pinwheels.append({"hub": hub, "turning": false})
+
+# which pinwheels turn: the first three with the hill's three small windmills, the fourth with the big one (mill_q 3)
+func pinwheel_turning(m: Node, i: int) -> bool:
+	if i < 3:
+		return m.hill.mills.size() > i and bool(m.hill.mills[i].turning)
+	return m.mill_q >= 3
+
+func life_update(m: Node, dt: float) -> void:
+	if doodle_crown != null:
+		doodle_crown.visible = m.kid_q >= 3
+		doodle_otter.visible = m.mul_q >= 1 or m.mate != null
+	for i in pinwheels.size():
+		var on: bool = pinwheel_turning(m, i)
+		pinwheels[i].turning = on
+		if on:
+			(pinwheels[i].hub as Node3D).rotation.z -= dt * (4.0 + i * 0.6)
+
+func toy_tap(m: Node, n: int) -> void:
+	toy_taps += 1
+	toy_tap_last = n
+	m.sfx(TOY_TAPS[n][0], 0.05, "triangle", TOY_TAPS[n][1], -30.0)
 
 func fountain_set(wet: bool) -> void:
 	fountain_wet = wet

@@ -142,6 +142,31 @@ func set_hero_idle(name: String, frame: int) -> void:
 	m.hero.pixel_size = m.walk_px # same cell size and scale as the walk sheets
 	m.hero.offset = m.walk_off
 
+# the act she picks after waiting: at Bori's cottage she sips tea once a visit, beside a turning small windmill she takes
+# out her pinwheel once a visit (delight ideas 61 and 62); anywhere else a random one
+var tea_visit := false
+var wheel_visit := false
+var place_acts := 0 # tea and pinwheel acts chosen by the place (autoplay idle_places)
+
+func idle_pick() -> String:
+	var p := Vector2(m.player.x, m.player.z)
+	if not m.in_village and not m.in_cave and not m.in_lake and not m.in_forest and not m.in_hill and not m.in_garden and p.distance_to(Vector2(m.shop_pos.x, m.shop_pos.z)) < 2.6:
+		if not tea_visit:
+			tea_visit = true
+			place_acts += 1
+			return "rest-tea"
+	else:
+		tea_visit = false
+	var at_mill: bool = m.in_hill and m.hill.mills.any(func(mm): return mm.turning and p.distance_to(mm.pos) < 3.0)
+	if at_mill:
+		if not wheel_visit:
+			wheel_visit = true
+			place_acts += 1
+			return "rest-pinwheel"
+	else:
+		wheel_visit = false
+	return IDLE_ACTS.pick_random()
+
 func update_idle(dt: float) -> void:
 	# just stopped: breathe, facing the viewer, the head and shoulders easing 1-2 px down and up a frame every 0.25 s
 	# (art/sora/*/breath.png; the owner, 2026-10-28: "가만히 있을 때에도 조금씩 숨을 헐떡이면서 움직이잖아", Noeul and
@@ -155,7 +180,7 @@ func update_idle(dt: float) -> void:
 	if m.idle_left <= 0.0:
 		var calm: bool = m.combat.nearest_enemy(7.0) == null
 		if m.idle_name == "breath" and calm and m.t - m.last_input_t >= 10.0:
-			m.idle_name = IDLE_ACTS.pick_random()
+			m.idle_name = idle_pick()
 			m.idle_left = 8.9 if m.idle_name in IDLE_LONG else 4.45 # two or four loops of four frames
 		else:
 			m.idle_name = "breath"

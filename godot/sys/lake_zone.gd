@@ -487,8 +487,10 @@ func in_grotto() -> bool:
 func grotto_steps() -> void:
 	stair_frame(m.lake.marks.G)
 
-func stair_frame(at: Vector2, turn := 0.0, shade := 0.0, lamp_col := Color("#9fd8ff")) -> Node3D:
+func stair_frame(at: Vector2, turn := 0.0, shade := 0.0, lamp_col := Color("#9fd8ff"), deep := false) -> Node3D:
 	var g := Node3D.new()
+	if deep: # six treads, each darker than the last, between long side walls: it reads as steps going down, not as an arrow
+		return deep_stair(g, at, turn, shade, lamp_col)
 	var frame: Material = m.mat_color(Color("#7a7468").darkened(shade))
 	var hole: MeshInstance3D = m.box(Vector3(1.1, 0.06, 1.2), m.mat_color(Color("#101418")))
 	hole.position = Vector3(0, 0.03, 0)
@@ -506,6 +508,35 @@ func stair_frame(at: Vector2, turn := 0.0, shade := 0.0, lamp_col := Color("#9fd
 	g.add_child(back)
 	var lamp: MeshInstance3D = m.box(Vector3(0.22, 0.26, 0.22), m.glow_mat(lamp_col, 1.4))
 	lamp.position = Vector3(0, 1.05, -0.65)
+	g.add_child(lamp)
+	g.rotation.y = turn
+	g.position = Vector3(at.x, 0, at.y)
+	m.add_child(g)
+	return g
+
+# the water corridor's stair at the lake's V (the owner, 2026-10-29: "이건 어디로 가는 화살표야"): wider and longer than the grotto's,
+# six treads that go darker and a little lower with every step, a near tread with a lit lip, a dark mouth at the end
+func deep_stair(g: Node3D, at: Vector2, turn: float, shade: float, lamp_col: Color) -> Node3D:
+	var frame: Material = m.mat_color(Color("#7a7468").darkened(shade))
+	var mouth: MeshInstance3D = m.box(Vector3(1.5, 0.05, 0.5), m.mat_color(Color("#06090c")))
+	mouth.position = Vector3(0, 0.02, -1.45)
+	g.add_child(mouth)
+	for k in 6:
+		var tread: MeshInstance3D = m.box(Vector3(1.4, 0.07, 0.34), m.mat_color(Color("#cfcabd").darkened(shade + k * 0.13)))
+		tread.position = Vector3(0, 0.09 - k * 0.012, 0.95 - k * 0.38)
+		g.add_child(tread)
+		var riser: MeshInstance3D = m.box(Vector3(1.4, 0.05, 0.05), m.mat_color(Color("#f2eee0") if k == 0 else Color("#3c3a36").darkened(k * 0.1)))
+		riser.position = Vector3(0, 0.1 - k * 0.012, 1.1 - k * 0.38)
+		g.add_child(riser)
+	for side in [-0.82, 0.82]: # low side walls that lean in toward the dark end
+		var w: MeshInstance3D = m.box(Vector3(0.18, 0.42, 2.8), frame)
+		w.position = Vector3(side, 0.21, -0.2)
+		g.add_child(w)
+	var back: MeshInstance3D = m.box(Vector3(1.8, 0.95, 0.18), frame)
+	back.position = Vector3(0, 0.47, -1.65)
+	g.add_child(back)
+	var lamp: MeshInstance3D = m.box(Vector3(0.22, 0.26, 0.22), m.glow_mat(lamp_col, 1.4))
+	lamp.position = Vector3(0, 1.1, -1.65)
 	g.add_child(lamp)
 	g.rotation.y = turn
 	g.position = Vector3(at.x, 0, at.y)

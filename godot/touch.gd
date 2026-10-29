@@ -12,6 +12,10 @@ var pad_at := Vector2.ZERO
 var held := {}             # finger index -> key name, for the keys that act while held (guard)
 const PAD_R := 80.0        # how far the knob goes
 const RUN_AT := 0.92       # pushed this far the stick runs
+const RUN_OFF := 0.84      # and it keeps running until it falls below this (a wobbling thumb at the edge no longer flips walk and run; delight idea 93)
+
+static func run_state(len: float, was_running: bool) -> bool:
+	return len >= RUN_AT or (was_running and len >= RUN_OFF)
 
 var tex := {}
 
@@ -44,7 +48,7 @@ func keys() -> Dictionary:
 # the keys are for play only: a story, the shop, a sheet or the settings take taps as clicks
 func playing() -> bool:
 	return not main.intro and not main.story_open and not main.shop_open and not main.settings_open \
-		and not main.ui.journal.visible and not main.ui.help.visible and not main.way_open and main.down_t <= 0.0
+		and not main.ui.journal.visible and not main.ui.help.visible and not main.ui.bag.visible and not main.way_open and main.down_t <= 0.0
 
 func key_at(p: Vector2) -> String:
 	var k := keys()
@@ -87,7 +91,7 @@ func _input(event: InputEvent) -> void:
 			pad_origin = pad_at - v.normalized() * PAD_R # the stick follows a thumb that slides past the rim
 			v = v.normalized()
 		main.touch_move = v if v.length() > 0.15 else Vector2.ZERO
-		if v.length() >= RUN_AT:
+		if run_state(v.length(), main.touch_keys.has(KEY_SHIFT)):
 			main.touch_keys[KEY_SHIFT] = true
 		else:
 			main.touch_keys.erase(KEY_SHIFT)
@@ -108,8 +112,8 @@ func press(n: String, idx: int) -> void:
 
 # the menu keys and the minimap step aside while a story, the shop, a sheet or the settings are up
 func step_aside() -> void:
-	var up: bool = main.intro or main.story_open or main.shop_open or main.settings_open or main.ui.journal.visible or main.ui.help.visible
-	for c in [main.ui.hint, main.ui.sound_btn, main.ui.journal_btn, main.ui.settings_btn, main.ui.mini.get_parent()]:
+	var up: bool = main.intro or main.story_open or main.shop_open or main.settings_open or main.ui.journal.visible or main.ui.help.visible or main.ui.bag.visible
+	for c in [main.ui.hint, main.ui.sound_btn, main.ui.journal_btn, main.ui.settings_btn, main.ui.bag_btn, main.ui.mini.get_parent()]:
 		c.visible = not up
 
 func _process(_dt: float) -> void:

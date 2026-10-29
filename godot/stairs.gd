@@ -181,6 +181,7 @@ func build(m: Node) -> void:
 	door.add_child(moon)
 	door.position = Vector3(STAIRS_X + 11.5, 0, 2)
 	m.add_child(door)
+	fx_build(m)
 
 # a tall dark lantern post for the top landing; E lights it
 func moon_lamp(m: Node, at: Vector2) -> Dictionary:
@@ -248,3 +249,202 @@ func map_tex(width: int) -> ImageTexture:
 				"L": col = Color("#ffd060")
 			img.set_pixel(STAIRS_X + x, z, col)
 	return ImageTexture.create_from_image(img)
+
+# ---- the moon stairs made lovely (the owner, 2026-10-29: "달의계단에도 와~ 이쁘다, 할만한 요소 넣어줘"): each step's edge
+# lights pale blue when Sora stands on it and stays lit, so the climbed path glows; paper lanterns rise slowly along both
+# walls; moon-petals drift down the whole climb; a big moon stands behind the top door; wind chimes on posts ring (code
+# sound) as she passes. Boxes, CPUParticles3D and Sprite3D only; the particles run only while she is on the stairs.
+var lit_tiles := {}          # Vector2i(x, z) of the climbed steps -> their glowing edge
+var lantern_fx: Array = []   # the two lantern emitters
+var petal_fx: CPUParticles3D
+var moon_disc: Sprite3D
+var chimes: Array = []       # [{"pos": Vector2, "hang": Node3D, "near": bool}]
+var chime_rings := 0
+var fx_on := false
+var edge_mesh: PlaneMesh
+var edge_mat: StandardMaterial3D
+var fx_root: Node3D
+const CHIME_NEAR := 3.0      # the chime rings when she comes this close, and again once she has been 4.2 away
+const CHIME_POSTS := [Vector2(2.8, 9.0), Vector2(2.8, 17.0), Vector2(2.8, 24.0), Vector2(20.2, 9.0), Vector2(20.2, 17.0), Vector2(20.2, 24.0)]
+
+func edge_tex() -> ImageTexture: # a soft pale-blue frame, clear in the middle
+	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	for y in 64:
+		for x in 64:
+			var d: float = minf(minf(x, y), minf(63 - x, 63 - y))
+			var a: float = clampf(1.0 - absf(d - 3.0) / 3.2, 0.0, 1.0)
+			a = a * a * (3.0 - 2.0 * a)
+			img.set_pixel(x, y, Color(0.62, 0.84, 1.0, a))
+	return ImageTexture.create_from_image(img)
+
+func moon_tex() -> ImageTexture: # a pale disc with a few soft seas and a wide halo
+	var n := 256
+	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+	var seas := [[Vector2(-0.12, -0.06), 0.16], [Vector2(0.1, 0.12), 0.11], [Vector2(0.14, -0.14), 0.07], [Vector2(-0.06, 0.18), 0.06]]
+	for y in n:
+		for x in n:
+			var p := Vector2(x / float(n) - 0.5, y / float(n) - 0.5)
+			var r := p.length()
+			var col := Color(0.9, 0.94, 1.0, 0.0)
+			if r < 0.4:
+				var k := clampf((0.4 - r) / 0.012, 0.0, 1.0)
+				var shade := 0.0
+				for s in seas:
+					shade = maxf(shade, clampf(1.0 - (p - s[0]).length() / s[1], 0.0, 1.0))
+				col = Color(0.96, 0.97, 1.0, k).lerp(Color(0.74, 0.8, 0.94, k), shade * 0.55)
+			elif r < 0.5:
+				col = Color(0.8, 0.88, 1.0, 0.32 * pow(1.0 - (r - 0.4) / 0.1, 2.0))
+			img.set_pixel(x, y, col)
+	return ImageTexture.create_from_image(img)
+
+func fx_build(m: Node) -> void:
+	fx_root = Node3D.new()
+	m.add_child(fx_root)
+	edge_mesh = PlaneMesh.new()
+	edge_mesh.size = Vector2(0.96, 0.96)
+	edge_mat = StandardMaterial3D.new()
+	edge_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	edge_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	edge_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	edge_mat.albedo_texture = edge_tex()
+	edge_mat.albedo_color = Color(1, 1, 1, 0.9)
+	edge_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	edge_mesh.material = edge_mat
+	# paper lanterns rise from both walls: warm paper boxes that fade in and out
+	var paper := BoxMesh.new()
+	paper.size = Vector3(0.22, 0.3, 0.22)
+	var pm: StandardMaterial3D = m.glow_mat(Color("#ff9c4a"), 1.4)
+	pm.vertex_color_use_as_albedo = true
+	paper.material = pm
+	for x in [1.2, W - 1.2]:
+		var p := CPUParticles3D.new()
+		p.mesh = paper
+		p.amount = 12
+		p.lifetime = 12.0
+		p.preprocess = 12.0
+		p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		p.emission_box_extents = Vector3(0.6, 0.1, 13.0)
+		p.direction = Vector3(0.08 if x < 5.0 else -0.08, 1, 0)
+		p.spread = 6.0
+		p.gravity = Vector3.ZERO
+		p.initial_velocity_min = 0.35
+		p.initial_velocity_max = 0.6
+		p.scale_amount_min = 0.7
+		p.scale_amount_max = 1.3
+		p.color_ramp = fade_ramp()
+		p.position = Vector3(STAIRS_X + x, 0.4, 15.0)
+		p.emitting = false
+		fx_root.add_child(p)
+		lantern_fx.append(p)
+	# moon-petals: small pale blue-white flakes that sink slowly over the whole climb
+	var petal := QuadMesh.new()
+	petal.size = Vector2(0.09, 0.14)
+	var ptm: StandardMaterial3D = m.glow_mat(Color("#cfe4ff"), 2.0)
+	ptm.vertex_color_use_as_albedo = true
+	ptm.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	petal.material = ptm
+	petal_fx = CPUParticles3D.new()
+	petal_fx.mesh = petal
+	petal_fx.amount = 56
+	petal_fx.lifetime = 12.0
+	petal_fx.preprocess = 12.0
+	petal_fx.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	petal_fx.emission_box_extents = Vector3(10.0, 0.3, 14.0)
+	petal_fx.direction = Vector3(0.3, -1, 0.1)
+	petal_fx.spread = 40.0
+	petal_fx.gravity = Vector3(0.1, -0.3, 0.0)
+	petal_fx.initial_velocity_min = 0.05
+	petal_fx.initial_velocity_max = 0.25
+	petal_fx.damping_min = 0.4
+	petal_fx.damping_max = 0.9
+	petal_fx.angle_min = -180.0
+	petal_fx.angle_max = 180.0
+	petal_fx.angular_velocity_min = -60.0
+	petal_fx.angular_velocity_max = 60.0
+	petal_fx.scale_amount_min = 0.6
+	petal_fx.scale_amount_max = 1.4
+	petal_fx.color_ramp = fade_ramp()
+	petal_fx.position = Vector3(STAIRS_X + 11.5, 4.2, 15.0)
+	petal_fx.emitting = false
+	fx_root.add_child(petal_fx)
+	# a large moon behind the top door, over the dark beyond the stairs
+	moon_disc = Sprite3D.new()
+	moon_disc.texture = moon_tex()
+	moon_disc.pixel_size = 0.04 # 256 px: 10 units across with its halo, the disc 8
+	moon_disc.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	moon_disc.shaded = false
+	moon_disc.transparent = true
+	moon_disc.position = Vector3(STAIRS_X + 11.5, 5.4, -3.5)
+	fx_root.add_child(moon_disc)
+	# wind chimes on slim posts along both walls
+	var wood: Material = m.mat_color(Color("#3b2a1e"))
+	var metal: Material = m.glow_mat(Color("#cfe3ff"), 0.9)
+	for cp in CHIME_POSTS:
+		var g := Node3D.new()
+		g.position = Vector3(STAIRS_X + cp.x, 0, cp.y)
+		var post: MeshInstance3D = m.box(Vector3(0.08, 1.7, 0.08), wood)
+		post.position = Vector3(0, 0.85, 0)
+		g.add_child(post)
+		var bar: MeshInstance3D = m.box(Vector3(0.5, 0.05, 0.05), wood)
+		bar.position = Vector3(0, 1.68, 0)
+		g.add_child(bar)
+		var hang := Node3D.new()
+		hang.position = Vector3(0, 1.66, 0)
+		for k in 4:
+			var len: float = [0.55, 0.42, 0.7, 0.34][k]
+			var rod: MeshInstance3D = m.box(Vector3(0.035, len, 0.035), metal)
+			rod.position = Vector3(-0.18 + k * 0.12, -len / 2.0, 0)
+			hang.add_child(rod)
+		g.add_child(hang)
+		fx_root.add_child(g)
+		chimes.append({"pos": Vector2(STAIRS_X + cp.x, cp.y), "hang": hang, "near": false})
+
+func fade_ramp() -> Gradient:
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 0.15, 0.8, 1.0])
+	g.colors = PackedColorArray([Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 0.9), Color(1, 1, 1, 0)])
+	return g
+
+# every frame she is on the stairs (main._process): the step under her lights, the chimes listen; the particles run only here
+func update(m: Node, _dt: float, on: bool) -> void:
+	if on != fx_on:
+		fx_on = on
+		for p in lantern_fx:
+			(p as CPUParticles3D).emitting = on
+			if on:
+				(p as CPUParticles3D).restart()
+		petal_fx.emitting = on
+		if on:
+			petal_fx.restart()
+	if not on:
+		return
+	var me := Vector2(m.player.x, m.player.z)
+	var tile := Vector2i(int(round(me.x)), int(round(me.y)))
+	if not blocked(me.x, me.y) and char_at(me.x, me.y) != "#" and not lit_tiles.has(tile):
+		var e := MeshInstance3D.new()
+		e.mesh = edge_mesh
+		e.position = Vector3(tile.x, 0.015, tile.y)
+		e.transparency = 1.0
+		fx_root.add_child(e)
+		lit_tiles[tile] = e
+		var tw := e.create_tween()
+		tw.tween_property(e, "transparency", 0.0, 0.5)
+		m.burst(Vector3(tile.x, 0.2, tile.y), Color("#9fd4ff"), 3, 0.7)
+	for c in chimes:
+		var d: float = me.distance_to(c.pos)
+		if d < CHIME_NEAR and not c.near:
+			c.near = true
+			ring_chime(m, c)
+		elif d > CHIME_NEAR + 1.2:
+			c.near = false
+
+# the hanging rods swing and die away; three bell tones, code sound, a little apart
+func ring_chime(m: Node, c: Dictionary) -> void:
+	chime_rings += 1
+	var hang: Node3D = c.hang
+	var tw := hang.create_tween()
+	tw.tween_method(func(k: float):
+		hang.rotation = Vector3(sin(k * PI * 9.0) * 0.28 * (1.0 - k), 0, sin(k * PI * 7.0 + 1.0) * 0.32 * (1.0 - k)), 0.0, 1.0, 2.4)
+	var base: float = [1568.0, 1760.0, 1319.0, 1976.0][chime_rings % 4]
+	for i in 3:
+		m.get_tree().create_timer(0.11 * i).timeout.connect(func(): m.sfx(base * [1.0, 1.26, 1.5][i], 0.9, "sine", 0.05))

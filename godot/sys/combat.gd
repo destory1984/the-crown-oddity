@@ -532,11 +532,19 @@ func rest_heal(dt: float) -> void:
 		rest_glow_t = 0.0
 		m.burst(Vector3(m.player.x, m.ground_y + 0.1, m.player.z), Color("#9fe07a"), 4, 0.6)
 
+var potion_kept := 0 # drinks refused at full strength (autoplay potion_kept)
+
 func drink_potion() -> void:
 	if m.player.pots <= 0:
 		m.toast("회복약이 없다")
 		return
 	if m.player.cds[3] > 0:
+		return
+	if m.player.hp >= float(m.player.max_hp) and (not m.has_oil or m.player.mp >= m.player.max_mp): # nothing to mend: the cork squeaks and the potion stays (delight idea 56)
+		m.player.cds[3] = 0.5
+		potion_kept += 1
+		m.sfx(300, 0.08, "triangle", 0.1, 180.0)
+		m.toast("기운이 가득해서 약을 아꼈다")
 		return
 	m.player.pots -= 1
 	m.player.cds[3] = 2.0

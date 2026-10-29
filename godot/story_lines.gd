@@ -32,6 +32,18 @@ const WAKE := [
 	"소라|determined|일단 움직이자. 서쪽 오두막. 거기 가면 뭔가 알 수 있을 거야.",
 ]
 
+# the refusal of the call (Hero's Journey, stage 3; the owner approved shots/plans/hero_journey_fix.md part A): after WAKE, before the
+# first lamp; Sora does not want to wind the garden, tries the crown, and lights one lamp to see the road
+const REFUSAL := [
+	"소라|sad|정원을 감으라고? 난 집에 가고 싶어. 이 왕관도…… 내 것이 아니야.",
+	"||소라는 왕관 양옆을 잡아 들어 올렸다. 왕관은 머리에서 조금도 떨어지지 않았다.",
+	"소라|surprised|왜 안 벗겨져……?",
+	"||쪽지의 ‘두 팔목의 팔찌가 열쇠’라는 글씨 아래로, 꺼진 등불이 보였다.",
+	"소라|sad|내가 왜 해야 하는지도 모르는데…….",
+	"||등불 너머 서쪽 길은 어두웠다. 소라는 왕관에서 손을 떼고 팔목을 내려다보았다.",
+	"소라|calm|저 등불 하나만 켜 보자. 길이 보이면, 그다음은 그때 생각할래.",
+]
+
 const LANTERN := [
 	"||팔목의 팔찌에 손을 대자 푸른빛이 흘러나와, 꺼져 있던 등불로 옮겨붙었다.",
 	"소라|surprised|켜졌다……? 내가 켠 거야?",

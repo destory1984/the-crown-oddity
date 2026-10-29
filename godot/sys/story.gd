@@ -12,6 +12,7 @@ const TOUCH_WORDS := [["Shift를 누르고 달리면", "막대를 끝까지 밀�
 const STORY_MARGIN := 28.0
 
 var small_pic := false # the open story's picture is the small corner one
+var refusal_due := false # the first WAKE is on screen: when it closes the refusal of the call plays once (not on a load)
 
 func _init(main: Main) -> void:
 	m = main
@@ -157,6 +158,8 @@ func close_sheets() -> void:
 		m.toggle_settings(false)
 	if m.ui.journal.visible:
 		m.toggle_journal(false)
+	if m.ui.bag.visible:
+		m.menus.toggle_bag(false)
 	if m.ui.help.visible:
 		m.toggle_help(false)
 	if m.shop_open:
@@ -180,6 +183,7 @@ func show_story(path: String, lines: Array, small := false) -> void:
 	m.ui.story.modulate.a = 0.0
 	m.ui.story.visible = true
 	m.story_open = true
+	m.hud_build.update_mate_hud() # the world waits while a story is open: the companions' rows hide under a big picture now
 	show_line(m.story_lines.pop_front())
 	fade_tw = m.create_tween()
 	fade_tw.tween_property(m.ui.story, "modulate:a", 1.0, 0.6)
@@ -252,6 +256,9 @@ func close_story() -> void:
 		f.call_deferred()
 	if m.story_step == 0 and not m.intro:
 		begin_opening()
+		if refusal_due: # after the fade below has been set up, so this story's fade-in is the one that stays
+			refusal_due = false
+			show_story.call_deferred("", Main.STORY.REFUSAL)
 	if fade_tw != null and fade_tw.is_valid():
 		fade_tw.kill()
 	fade_tw = m.create_tween()
@@ -272,6 +279,7 @@ func start_game(with_story := true) -> void:
 		m.pip_note = ""
 		m.get_tree().create_timer(1.2).timeout.connect(func(): m.toast(note))
 	if with_story and (not m.loaded or m.story_step == 0): # a new round loads with the story back at 0
+		refusal_due = true
 		show_story("res://art/story/01_wake.jpg", Main.STORY.WAKE)
 	if m.ending_due:
 		m.garden_zone.mold_breaks()

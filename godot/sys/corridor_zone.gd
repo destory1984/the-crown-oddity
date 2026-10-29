@@ -73,8 +73,20 @@ func gate_note() -> void:
 	else:
 		m.toast("아직 물길 회랑으로 내려갈 수 없다")
 
-func lake_steps() -> void: # the stair on the island, a teal lamp over it
-	m.lake_zone.stair_frame(m.lake.marks.V, 0.0, 0.0, Color("#a8f0c8"))
+var lake_label: Label3D # 물길 회랑 over the lake stair, like the forest exits' names
+
+func lake_steps() -> void: # the stair on the island, a teal lamp over it, and its name floating above
+	var g: Node3D = m.lake_zone.stair_frame(m.lake.marks.V, 0.0, 0.0, Color("#a8f0c8"), true)
+	lake_label = Label3D.new()
+	lake_label.font = m.ui_font
+	lake_label.text = "물길 회랑"
+	lake_label.font_size = 40
+	lake_label.pixel_size = 0.012
+	lake_label.outline_size = 12
+	lake_label.modulate = Color("#d8fff0")
+	lake_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	lake_label.position = Vector3(0, 2.4, -0.4)
+	g.add_child(lake_label)
 
 func enter_corridor() -> void:
 	enter_room(0, false)

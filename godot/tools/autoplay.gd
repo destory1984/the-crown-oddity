@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -250,14 +250,19 @@ func run() -> void:
 		await wait(0.3)
 		check("start_click", not main.intro and absf(main.cam_yaw - main.CAM_YAW) < 0.001, "title closes on a mouse click, camera back to the fixed angle (yaw %.3f)" % main.cam_yaw)
 		check("story_opens", main.story_open, "opening illustration shows after the title")
-		for k in 120: # the 다음 button shows once a line has typed out; E presses it (v0.1.74)
+		var lines_seen := 0
+		var refusal_seen := false
+		for k in 500: # the 다음 button shows once a line has typed out; E presses it (v0.1.74); the WAKE's ten lines, then the refusal's seven (v0.1.100)
 			if not main.story_open:
 				break
+			if plain(main.ui.story_text.text).contains("집에 가고 싶어"):
+				refusal_seen = true
 			if main.ui.story_more.visible:
+				lines_seen += 1
 				tap(KEY_E)
 			await wait(0.1)
 		await wait(0.7)
-		check("story_closes", not main.story_open and not main.ui.story.visible, "two clicks page through and close it")
+		check("story_closes", not main.story_open and not main.ui.story.visible and refusal_seen and main.story_step == 1, "pages through the first scene and the refusal after it, then closes (%d presses, refusal seen %s, step %d)" % [lines_seen, refusal_seen, main.story_step])
 	if main.intro:
 		main.start_game(false)
 	if main.story_open:
@@ -10638,6 +10643,658 @@ func run() -> void:
 		check("corridor_round", dropped and fresh, "new-round save has no corridor keys=%s; loading it starts at q0 with no knot and shut gates=%s" % [dropped, fresh])
 		main.corridor_zone.load_data({"corridor_q": 6})
 		main.return_to_start()
+
+	if want.call("bag"):
+		# the bag (Tab, v0.1.99; the owner, 2026-10-29: inventory command): a sheet of cards for equipment, keepsakes, what she
+		# spends and the six tokens; Tab, Esc or its back key close it, the world waits while it is open, phones get a key
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		await wait(0.2)
+		var keep := [main.has_armour, main.has_buckler, main.has_ring, main.has_oil, main.shop_bought[2], main.player.pots, main.tokens.duplicate()]
+		main.has_armour = true
+		main.has_buckler = true
+		main.has_ring = true
+		main.has_oil = true
+		main.shop_bought[2] = 2
+		main.player.pots = 3
+		main.tokens = [true, false, true, false, false, false]
+		tap(KEY_TAB)
+		await wait(0.3)
+		var opened: bool = main.ui.bag.visible and not main.ui.journal.visible and not main.ui.help.visible
+		var t1: float = main.t
+		await wait(0.5)
+		var waits: bool = is_equal_approx(main.t, t1)
+		var secs: Array = main.menus.bag_sections()
+		var names_of := func(i: int) -> Array: return secs[i][1].map(func(e): return String(e.name))
+		var gear: Array = names_of.call(0)
+		var items: Array = names_of.call(1)
+		var gear_ok: bool = gear.size() == 3 and "작은 놋 방패" in gear and "달지기 갑옷" in gear and gear[0].contains("2") and not ("작은 놋 방패" in items) and "수정 반지" in items and "왕관" in items
+		var uses: Array = names_of.call(2)
+		var use_ok: bool = uses.size() == 2 and "3" in uses[0] and String(secs[2][1][0].effect).contains("45")
+		var toks: Array = secs[3][1]
+		var tok_ok: bool = toks.size() == 6 and not toks[0].get("dim", false) and toks[1].get("dim", false) and String(secs[3][0]).ends_with("2/6")
+		var shown: int = 0
+		for g in main.ui.bag_box.get_children():
+			if g is GridContainer:
+				shown += g.get_child_count()
+		var cards: bool = shown == gear.size() + items.size() + uses.size() + toks.size() and main.ui.bag_box.get_child_count() == 8
+		var jl: Array = main.menus.journal_lines()
+		var jl_keep: String = String(jl[jl.find(tr("지닌 것")) + 1])
+		var same_names: bool = jl_keep.contains("수정 반지") and jl_keep.contains("작은 놋 방패") and jl_keep.contains("달지기 갑옷")
+		var every: bool = main.menus.keepsakes().all(func(k): return String(k[1]) != "")
+		tap(KEY_TAB)
+		await wait(0.2)
+		var tab_closes: bool = not main.ui.bag.visible
+		tap(KEY_TAB)
+		await wait(0.2)
+		tap(KEY_ESCAPE)
+		await wait(0.2)
+		var esc_closes: bool = not main.ui.bag.visible and not main.settings_open
+		tap(KEY_TAB)
+		await wait(0.2)
+		tap(KEY_Q)
+		await wait(0.2)
+		var swaps: bool = main.ui.journal.visible and not main.ui.bag.visible
+		tap(KEY_TAB)
+		await wait(0.2)
+		var swaps_back: bool = main.ui.bag.visible and not main.ui.journal.visible
+		(main.ui.bag.find_children("*", "Button", true, false)[0] as Button).pressed.emit() # the back key
+		await wait(0.1)
+		var back_closes: bool = not main.ui.bag.visible
+		main.has_armour = keep[0]
+		main.has_buckler = keep[1]
+		main.has_ring = keep[2]
+		main.has_oil = keep[3]
+		main.shop_bought[2] = keep[4]
+		main.player.pots = keep[5]
+		main.tokens = keep[6]
+		# phones: the bag key is the fifth key, left of the zoom coins with the same 8 px gap, level with the first row
+		var root: Window = main.get_tree().root
+		var scale0 := [root.content_scale_mode, root.content_scale_aspect, root.content_scale_size]
+		root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root.content_scale_size = Vector2i(960, 540)
+		await wait(0.1)
+		main.enable_touch()
+		await wait(0.3)
+		var hb: Rect2 = main.ui.hint.get_global_rect()
+		var jb: Rect2 = main.ui.journal_btn.get_global_rect()
+		var bb: Rect2 = main.ui.bag_btn.get_global_rect()
+		var vs: Vector2 = main.get_viewport().get_visible_rect().size
+		var zi: Array = main.touch_layer.keys()["zoom_in"]
+		var key_ok: bool = main.ui.bag_btn.visible and bb.size == jb.size and absf(bb.end.x + 8.0 - (zi[0].x - zi[1])) < 0.5 and absf(bb.position.y - hb.position.y) < 0.5 			and Rect2(Vector2.ZERO, vs).encloses(bb) and not bb.intersects(main.ui.settings_btn.get_global_rect()) and not bb.intersects(main.ui.hint.get_global_rect()) and not bb.intersects(main.ui.mini.get_parent().get_global_rect()) and hb.size.x == 60.0
+		main.ui.bag_btn.pressed.emit()
+		await wait(0.2)
+		var tap_opens: bool = main.ui.bag.visible
+		main.menus.toggle_bag(false)
+		main.disable_touch()
+		root.content_scale_mode = scale0[0]
+		root.content_scale_aspect = scale0[1]
+		root.content_scale_size = scale0[2]
+		await wait(0.2)
+		check("bag", opened and waits and gear_ok and use_ok and tok_ok and cards and same_names and every and tab_closes and esc_closes and swaps and swaps_back and back_closes and key_ok and tap_opens,
+			"Tab opens=%s world waits=%s gear cards=%s spend cards=%s token cards=%s all cards shown=%s journal lists the same names=%s every keepsake has an effect=%s Tab closes=%s Esc closes=%s Q swaps=%s Tab swaps back=%s back key=%s phone key beside the zoom coins with 8 px=%s (%s %s %s %s) key opens=%s" % [opened, waits, gear_ok, use_ok, tok_ok, cards, same_names, every, tab_closes, esc_closes, swaps, swaps_back, back_closes, key_ok, hb, jb, bb, vs, tap_opens])
+
+	if want.call("refusal"):
+		# the refusal of the call (v0.1.100; Hero's Journey stage 3): seven lines after the first WAKE, once, before the first lamp;
+		# a load or a later story never plays it
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		await wait(0.2)
+		var lines: Array = main.STORY.REFUSAL
+		var faces_ok: bool = lines.size() == 7
+		for l in lines:
+			var parts: PackedStringArray = String(l).split("|", true, 2)
+			if parts[0] == "소라":
+				faces_ok = faces_ok and ResourceLoader.exists("res://art/ui/face_sora_%s.png" % parts[1])
+		var step0: int = main.story_step
+		var lamp0 = main.dark_lamp
+		main.story_step = 0
+		main.story.refusal_due = true
+		main.show_story("res://art/story/01_wake.jpg", main.STORY.WAKE)
+		var started := false
+		for k in 400: # page the WAKE: each line types out before the 다음 button shows
+			await wait(0.1)
+			if plain(main.ui.story_text.text).contains("집에 가고 싶어"):
+				started = main.story_open and main.story_step == 1
+				break
+			if not main.story_open:
+				break
+			if main.ui.story_text.visible_characters == -1 and main.ui.story_more.visible:
+				main.story.next_story()
+		await wait(0.9)
+		started = started and main.ui.story.modulate.a > 0.5
+		var said := 0
+		for k in 600:
+			if not main.story_open:
+				break
+			await wait(0.1)
+			if main.ui.story_text.visible_characters == -1 and main.ui.story_more.visible:
+				said += 1
+				main.story.next_story()
+				await wait(0.05)
+		await wait(0.3)
+		var seven: bool = said == 7
+		var once: bool = not main.story_open and not main.story.refusal_due and main.story_step == 1
+		# a story closing later (or a load: story_step 1, flag off) does not play it again
+		main.show_story("", ["||그저 한 줄."])
+		main.close_story()
+		await wait(0.5)
+		var not_again: bool = not main.story_open
+		main.story_step = 1
+		main.save_game()
+		main.load_game()
+		await wait(0.5)
+		var not_on_load: bool = not main.story_open and not main.story.refusal_due
+		main.story_step = step0
+		main.dark_lamp = lamp0
+		check("refusal", faces_ok and started and seven and once and not_again and not_on_load,
+			"7 lines with existing faces=%s opens after the WAKE at step 1=%s paged %d lines=%s closes once=%s later story no repeat=%s a load no repeat=%s" % [faces_ok, started, said, seven, once, not_again, not_on_load])
+
+	if want.call("stairs_fx"):
+		# the moon stairs' lovely things (v0.1.101): steps she stood on keep a pale blue edge, paper lanterns and petals run only
+		# on the stairs, a big moon behind the top door, chimes ring once as she comes by
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		main.castle_q = 3
+		main.enter_stairs()
+		main.close_story()
+		main.stairs.open_wall()
+		var sx: int = main.STAIRS.STAIRS_X
+		var n0: int = main.stairs.lit_tiles.size()
+		var top_new: int = 0 if main.stairs.lit_tiles.has(Vector2i(sx + 12, 6)) else 1 # an earlier test may have climbed past it
+		for tile in [Vector2(8, 20), Vector2(9, 20), Vector2(9, 19)]:
+			reset_to(Vector2(sx + tile.x, tile.y))
+			await wait(0.15)
+		var lit3: bool = main.stairs.lit_tiles.size() == n0 + 3 and main.stairs.lit_tiles.has(Vector2i(sx + 9, 19))
+		reset_to(Vector2(sx + 9, 19))
+		await wait(0.15)
+		var no_dup: bool = main.stairs.lit_tiles.size() == n0 + 3 # the same step twice lights one edge
+		reset_to(Vector2(sx + 12, 6)) # far up the climb, on a plain step: the earlier edges stay
+		await wait(0.2)
+		var stays: bool = (main.stairs.lit_tiles[Vector2i(sx + 8, 20)] as MeshInstance3D).transparency < 0.05 and main.stairs.lit_tiles.size() == n0 + 3 + top_new and main.stairs.lit_tiles.has(Vector2i(sx + 12, 6))
+		var e: MeshInstance3D = main.stairs.lit_tiles[Vector2i(sx + 8, 20)]
+		var flat: bool = absf(e.position.y - 0.015) < 0.001 and (e.mesh as PlaneMesh).size.x < 1.0
+		var water: bool = main.stairs.lit_tiles.has(Vector2i(sx + 9, 17)) == false # the channel is not a step
+		var on: bool = main.stairs.lantern_fx.size() == 2 and main.stairs.lantern_fx.all(func(p): return p.emitting) and main.stairs.petal_fx.emitting
+		var moon: bool = main.stairs.moon_disc != null and main.stairs.moon_disc.position.z < 0.0 and main.stairs.moon_disc.position.y > 3.0 \
+			and main.stairs.moon_disc.texture.get_width() * main.stairs.moon_disc.pixel_size >= 8.0
+		# the chimes: a post at (sx + 2.8, 17); she comes by, it rings once; she stays, no more; she goes off and returns, again
+		var posts: bool = main.stairs.chimes.size() == 6
+		var r0: int = main.stairs.chime_rings
+		reset_to(Vector2(sx + 5.0, 17.0))
+		await wait(0.2)
+		var rang: bool = main.stairs.chime_rings == r0 + 1
+		await wait(0.3)
+		var once: bool = main.stairs.chime_rings == r0 + 1
+		var swing: bool = (main.stairs.chimes[1].hang as Node3D).rotation.length() > 0.0
+		reset_to(Vector2(sx + 11.0, 17.0))
+		await wait(0.2)
+		reset_to(Vector2(sx + 5.0, 17.0))
+		await wait(0.2)
+		var again: bool = main.stairs.chime_rings >= r0 + 2
+		# off the stairs the particles stop
+		main.castle_zone.leave_stairs()
+		await wait(0.3)
+		var off: bool = not main.stairs.lantern_fx.any(func(p): return p.emitting) and not main.stairs.petal_fx.emitting
+		check("stairs_fx", lit3 and no_dup and stays and flat and water and on and moon and posts and rang and once and swing and again and off,
+			"three new steps lit=%s no double=%s earlier edge stays lit=%s flat on the step=%s water not lit=%s lanterns and petals on=%s big moon behind the door=%s 6 chime posts=%s rings on coming by=%s only once=%s rods swing=%s rings again=%s particles off away=%s" % [lit3, no_dup, stays, flat, water, on, moon, posts, rang, once, swing, again, off])
+		main.return_to_start()
+
+	if want.call("lake_stair"):
+		# the lake's stair to the water corridor (v0.1.102): a name floats over it like the forest exits, and six treads go darker
+		# and lower so it reads as steps going down
+		var lab: Label3D = main.corridor_zone.lake_label
+		var stair: Node3D = lab.get_parent() as Node3D
+		var vmark: Vector2 = main.lake.marks.V
+		var named: bool = lab.text == "물길 회랑" and lab.billboard == BaseMaterial3D.BILLBOARD_ENABLED and lab.font_size >= 40
+		var placed: bool = Vector2(stair.position.x, stair.position.z).distance_to(vmark) < 0.01 and lab.global_position.y > 1.5
+		var treads: Array = []
+		for c in stair.get_children():
+			if c is MeshInstance3D and c.mesh is BoxMesh and absf((c.mesh as BoxMesh).size.x - 1.4) < 0.01 and absf((c.mesh as BoxMesh).size.y - 0.07) < 0.01:
+				treads.append(c)
+		var six: bool = treads.size() == 6
+		var lower := true
+		var darker := true
+		for i in range(1, treads.size()):
+			lower = lower and treads[i].position.y < treads[i - 1].position.y and treads[i].position.z < treads[i - 1].position.z
+			darker = darker and ((treads[i].material_override.albedo_color as Color).v < (treads[i - 1].material_override.albedo_color as Color).v)
+		check("lake_stair", named and placed and six and lower and darker,
+			"name over the stair=%s on the lake's V mark=%s six treads=%s each lower and further=%s each darker=%s" % [named, placed, six, lower, darker])
+
+	if want.call("picture_hud"):
+		# a big story picture hides the companions' rows (v0.1.103; the owner: they were drawn on top of the picture) and nothing
+		# else sits above it but the story's own parts and the fade and the title
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		await wait(0.2)
+		var rows: Array = main.ui.mate_rows
+		var node0 = main.mate
+		var node1 = main.mate2
+		main.join_mate()
+		main.join_noeul()
+		await wait(0.3)
+		var shown_before: bool = rows[0].row.visible and rows[1].row.visible
+		main.show_story("res://art/story/01_wake.jpg", ["||그림이 떠 있다."])
+		await wait(0.8)
+		var hidden: bool = not rows[0].row.visible and not rows[1].row.visible
+		var root: Control = main.ui.root
+		var above: Array = []
+		var after_story := false
+		for c in root.get_children():
+			if c == main.ui.story:
+				after_story = true
+			elif after_story and c is CanvasItem and c.visible and c.modulate.a > 0.0 and c != main.ui.title:
+				above.append(c.name)
+		var clean: bool = above.is_empty()
+		main.close_story()
+		await wait(1.0)
+		var back: bool = rows[0].row.visible and rows[1].row.visible
+		# a small corner picture (the old painting) and a talk-only story keep the rows
+		main.show_story("res://art/story/01_wake.jpg", ["||작은 그림."], true)
+		await wait(0.6)
+		var small_keeps: bool = rows[0].row.visible
+		main.close_story()
+		await wait(0.6)
+		main.show_story("", ["||그림 없는 이야기."])
+		await wait(0.6)
+		var talk_keeps: bool = rows[0].row.visible
+		main.close_story()
+		if node0 == null:
+			main.mates.leave_mate()
+		if node1 == null:
+			main.mate2.queue_free()
+			main.mate2 = null
+		check("picture_hud", shown_before and hidden and clean and back and small_keeps and talk_keeps,
+			"rows on before=%s hidden under the big picture=%s nothing else above it (%s)=%s back after=%s small picture keeps them=%s a talk story keeps them=%s" % [shown_before, hidden, above, clean, back, small_keeps, talk_keeps])
+
+	# ---- v0.1.104: small delights from shots/plans/delight100.md (ideas 47, 61, 29, 56, 31, 45, 93, 12, 76, 62, 78, 3)
+	if want.call("toy_taps"):
+		# a rolling toy brick taps the ground three times as it lands, each tap smaller and lower (idea 47)
+		var bs2: Array = main.village.toy_bricks
+		var ok2 := false
+		var info2 := "no toy bricks"
+		if not bs2.is_empty():
+			var b2: MeshInstance3D = bs2[0]
+			var px2: float = main.player.x
+			var pz2: float = main.player.z
+			main.player.x = b2.position.x - 0.8
+			main.player.z = b2.position.z
+			var r2: int = main.village.toy_rolls
+			var t2: int = main.village.toy_taps
+			main.village.bricks_hit(main, 1.4, Vector2(1, 0), 0.3, true)
+			await wait(1.8)
+			var rolled: int = main.village.toy_rolls - r2
+			var taps: int = main.village.toy_taps - t2
+			var tp: Array = main.village.TOY_TAPS
+			var falling: bool = tp.size() == 3 and tp[0][0] > tp[1][0] and tp[1][0] > tp[2][0] and tp[0][1] > tp[1][1] and tp[1][1] > tp[2][1]
+			ok2 = rolled >= 3 and taps == rolled * 3 and falling and main.village.toy_tap_last == 2
+			info2 = "%d bricks rolled, %d taps (3 each)=%s, each tap lower and softer=%s" % [rolled, taps, taps == rolled * 3, falling]
+			main.player.x = px2
+			main.player.z = pz2
+		check("toy_taps", ok2, info2)
+	if want.call("idle_places"):
+		# the act she picks after waiting: tea once a visit at Bori's cottage, her pinwheel beside a turning small windmill (ideas 61, 62)
+		main.in_village = false
+		main.in_hill = false
+		var in_m: bool = main.in_marsh()
+		var s: Object = main.sora
+		s.tea_visit = false
+		s.wheel_visit = false
+		var a0: int = s.place_acts
+		reset_to(Vector2(main.shop_pos.x, main.shop_pos.z + 1.2))
+		var first: String = s.idle_pick()
+		var second_n: int = s.place_acts
+		s.idle_pick()
+		var once_tea: bool = first == "rest-tea" and second_n == a0 + 1 and s.place_acts == a0 + 1
+		reset_to(Vector2(20, 30))
+		s.idle_pick() # away: the visit is over
+		reset_to(Vector2(main.shop_pos.x, main.shop_pos.z + 1.2))
+		var again: String = s.idle_pick()
+		var tea_again: bool = again == "rest-tea" and s.place_acts == a0 + 2
+		var was_turning: bool = main.hill.mills[0].turning
+		main.in_hill = true
+		main.hill.mills[0].turning = true
+		var mp: Vector2 = main.hill.mills[0].pos
+		reset_to(mp + Vector2(1.5, 0))
+		var wheel: String = s.idle_pick()
+		var wheel_ok: bool = wheel == "rest-pinwheel" and s.place_acts == a0 + 3
+		s.idle_pick()
+		var wheel_once: bool = s.place_acts == a0 + 3
+		main.hill.mills[0].turning = false # a stopped mill brings no wheel out
+		reset_to(mp + Vector2(40, 0))
+		s.idle_pick()
+		reset_to(mp + Vector2(1.5, 0))
+		s.idle_pick()
+		var stopped: bool = s.place_acts == a0 + 3
+		main.hill.mills[0].turning = was_turning
+		main.in_hill = false
+		var files: bool = ResourceLoader.exists("res://art/sora/px96/rest-tea.png") and ResourceLoader.exists("res://art/sora/px96/rest-pinwheel.png")
+		check("idle_places", in_m and once_tea and tea_again and wheel_ok and wheel_once and stopped and files,
+			"tea once at Bori's=%s again on a new visit=%s pinwheel at a turning mill=%s once=%s none at a stopped mill=%s pictures exist=%s" % [once_tea, tea_again, wheel_ok, wheel_once, stopped, files])
+	if want.call("folk_nod"):
+		# a villager who waited for Sora nods once when the way is clear; a brush past brings no nod (idea 29)
+		var id := "doran"
+		var f: Object = main.folk
+		var rs: Dictionary = f.folk_route_state(id)
+		rs.i = 1
+		rs.pos = f.route_at(id, 0)
+		rs.wait = 0.0
+		rs.back = false
+		rs.stalled = 0.0
+		var dir: Vector2 = (f.route_at(id, 1) - rs.pos).normalized()
+		var spot: Vector2 = rs.pos + dir * 0.5
+		reset_to(spot)
+		var n0: int = f.folk_nods
+		for k in 12:
+			f.route_update(id, 0.1, false, 1.4)
+		var waiting: bool = f.folk_nods == n0 and rs.stalled > 1.1 and rs.pos.distance_to(f.route_at(id, 0)) < 0.01
+		reset_to(spot + Vector2(5, 5))
+		f.route_update(id, 0.1, false, 1.4)
+		var nodded: bool = f.folk_nods == n0 + 1 and f.nod_t.get("folk_" + id, 0.0) > 0.0
+		f.route_update(id, 0.1, false, 1.4)
+		var only_once: bool = f.folk_nods == n0 + 1
+		var spr: Sprite3D = main.village.folk_node[id]
+		for k in 4:
+			f.hop("folk_" + id, spr, 0.15)
+		var settled: bool = f.nod_t.get("folk_" + id, 0.0) <= 0.0
+		rs.pos = f.route_at(id, 0)
+		reset_to(spot) # a brush past: 0.3 s
+		for k in 3:
+			f.route_update(id, 0.1, false, 1.4)
+		reset_to(spot + Vector2(5, 5))
+		f.route_update(id, 0.1, false, 1.4)
+		var brush: bool = f.folk_nods == n0 + 1
+		f.route_reset(id)
+		check("folk_nod", waiting and nodded and only_once and settled and brush,
+			"stood in his way 1.2 s, no nod yet=%s nod when the way is clear=%s only one=%s the dip ends=%s a brush past gives none=%s" % [waiting, nodded, only_once, settled, brush])
+	if want.call("potion_kept"):
+		# the potion button at full strength keeps the bottle (idea 56)
+		var pots0: int = main.player.pots
+		var hp0b: float = main.player.hp
+		var oil0: bool = main.has_oil
+		var mp0: float = main.player.mp
+		main.has_oil = false
+		main.player.pots = 3
+		main.player.hp = float(main.player.max_hp)
+		main.player.cds[3] = 0.0
+		var k0: int = main.combat.potion_kept
+		main.drink_potion()
+		var kept: bool = main.player.pots == 3 and main.combat.potion_kept == k0 + 1
+		main.player.cds[3] = 0.0
+		main.player.hp = float(main.player.max_hp) - 30.0
+		main.drink_potion()
+		var drunk: bool = main.player.pots == 2 and main.player.hp > float(main.player.max_hp) - 30.0
+		main.has_oil = true # the oil bottle's mana counts: low mana makes a drink worth it
+		main.player.cds[3] = 0.0
+		main.player.hp = float(main.player.max_hp)
+		main.player.mp = 10.0
+		main.drink_potion()
+		var oil_drinks: bool = main.player.pots == 1
+		main.player.cds[3] = 0.0
+		main.player.hp = float(main.player.max_hp)
+		main.player.mp = float(main.player.max_mp)
+		main.drink_potion()
+		var oil_kept: bool = main.player.pots == 1
+		main.player.cds[3] = 0.0
+		main.player.pots = 0
+		main.drink_potion()
+		var none: bool = main.player.pots == 0
+		main.player.pots = pots0
+		main.player.hp = hp0b
+		main.player.mp = mp0
+		main.has_oil = oil0
+		main.player.cds[3] = 0.0
+		check("potion_kept", kept and drunk and oil_drinks and oil_kept and none,
+			"full strength keeps the bottle=%s hurt drinks=%s full HP but low mana drinks with the oil=%s all full keeps=%s no potion left still says so=%s" % [kept, drunk, oil_drinks, oil_kept, none])
+	if want.call("eave_drips"):
+		# after the rain stops a few drops fall from the eaves near her, one by one, and stop (idea 31)
+		main.in_village = true
+		main.in_house = -1
+		main.raining = false
+		main.rain.emitting = false
+		var d0: Vector2 = main.village.doors[0]
+		reset_to(d0 + Vector2(0, 0.6))
+		var near: int = main.effects.eave_points().filter(func(p): return Vector2(p.x - d0.x, p.z - d0.y).length() < 16.0).size()
+		var want_drops: int = 3 * mini(6, near)
+		var n1: int = main.effects.eave_drips
+		tap(KEY_R) # rain on: no drips
+		await wait(0.2)
+		var rain_on: bool = main.raining
+		var quiet: bool = main.effects.eave_drips == n1
+		tap(KEY_R) # rain off: the eaves drip
+		await wait(0.3)
+		var off: bool = not main.raining
+		await wait(6.5)
+		var made: int = main.effects.eave_drips - n1
+		check("eave_drips", rain_on and quiet and off and made == want_drops and made >= 6,
+			"rain on makes no drip=%s rain stops=%s drops %d of %d (3 for each of %d eaves near her, six at most)" % [quiet, off, made, want_drops, mini(6, near)])
+		main.in_village = false
+	if want.call("full_chime"):
+		# the moon light filling by rest leaves a low soft tone after the last blip; the earlier blips do not (idea 45)
+		calm_enemies(true)
+		for e in main.enemies:
+			if e.get("cave", false) and not e.get("mole", false):
+				e.x = 2.0
+				e.z = 2.0
+		for e in main.enemies.filter(func(e): return e.get("moth", false)):
+			e.dead = true
+			e.hp = 0.0
+			e.respawn = 9999.0
+		main.hour = 23.0
+		var lamp2 = main.lanterns.filter(func(l): return l.position.x > 130.0 and not l.get_meta("dark", false))[0]
+		reset_to(Vector2(lamp2.position.x + 0.4, lamp2.position.z + 1.0))
+		main.crown_pips = 0
+		main.rest_t = 100.0
+		var c0: int = main.hud_build.full_chimes
+		await wait(0.4)
+		var blip_only: bool = main.crown_pips >= 1 and main.hud_build.full_chimes == c0 and main.crown_pips < main.pip_max
+		main.crown_pips = main.pip_max - 1
+		main.rest_t = 100.0
+		main.sfx_log.clear()
+		await wait(0.6)
+		var filled: bool = main.crown_pips == main.pip_max and main.hud_build.full_chimes == c0 + 1
+		var low_tone: bool = main.sfx_log.has("sine:330") and main.sfx_log.has("sine:880")
+		calm_enemies(false)
+		check("full_chime", blip_only and filled and low_tone, "an ordinary blip has no chime=%s the last one chimes once=%s with the low 330 Hz tone after the 880 Hz blip=%s" % [blip_only, filled, low_tone])
+	if want.call("run_hold"):
+		# the stick's run does not flicker at the rim: it starts at 0.92 and holds until 0.84 (idea 93)
+		var T: GDScript = load("res://touch.gd")
+		var seq := [0.5, 0.9, 0.93, 0.9, 0.88, 0.93, 0.86, 0.9, 0.8, 0.7]
+		var run := false
+		var changes := 0
+		var old := false
+		var old_changes := 0
+		for v in seq:
+			var nr: bool = T.run_state(v, run)
+			if nr != run:
+				changes += 1
+			run = nr
+			var no: bool = v >= 0.92
+			if no != old:
+				old_changes += 1
+			old = no
+		var steady: bool = changes == 2 and old_changes == 4 and T.run_state(0.9, false) == false and T.run_state(0.9, true) == true and T.run_state(0.83, true) == false
+		# the same through real finger events
+		var root2: Window = main.get_tree().root
+		var sc2 := [root2.content_scale_mode, root2.content_scale_aspect, root2.content_scale_size]
+		root2.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root2.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root2.content_scale_size = Vector2i(960, 540)
+		await wait(0.1)
+		main.enable_touch()
+		await wait(0.3)
+		var tl: Control = main.touch_layer
+		var down := InputEventScreenTouch.new()
+		down.index = 0
+		down.pressed = true
+		down.position = Vector2(150, 400)
+		tl._input(down)
+		var shifts: Array = []
+		for v in seq:
+			var dr := InputEventScreenDrag.new()
+			dr.index = 0
+			dr.position = Vector2(150, 400) + Vector2(tl.PAD_R * v, 0)
+			tl._input(dr)
+			shifts.append(main.touch_keys.has(KEY_SHIFT))
+		var flips := 0
+		for i in range(1, shifts.size()):
+			if shifts[i] != shifts[i - 1]:
+				flips += 1
+		var up := InputEventScreenTouch.new()
+		up.index = 0
+		up.pressed = false
+		up.position = Vector2(150, 400)
+		tl._input(up)
+		main.disable_touch()
+		root2.content_scale_mode = sc2[0]
+		root2.content_scale_aspect = sc2[1]
+		root2.content_scale_size = sc2[2]
+		await wait(0.1)
+		check("run_hold", steady and flips == 2, "state changes over a wobbling thumb %d (the single threshold changed %d)=%s, through finger events %d flips=%s" % [changes, old_changes, steady, flips, flips == 2])
+	if want.call("sign_tease"):
+		# reading the same sign three times in a row makes Noeul offer to memorise it, once for each sign (idea 12)
+		main.join_noeul()
+		var ch: Object = main.chatter
+		ch.sign_looks.clear()
+		ch.sign_teased.clear()
+		var si: int = main.sign_spots.find(Vector2(43.6, 18.6)) # the signpost by the east bridge
+		var sp: Vector2 = main.sign_spots[si]
+		reset_to(sp + Vector2(0, 0.8))
+		var tz0: int = ch.sign_teases
+		var b0: int = main.bubbles_said
+		main.crown_key() # the real key counts as a look
+		await wait(0.1)
+		main.close_story() # after other tests the same key may also open a talk; the count is what this test is about
+		await wait(0.2)
+		b0 = main.bubbles_said # that talk may have said a bubble of its own
+		var counted: bool = ch.sign_looks.has(si) and ch.sign_looks[si][0] == 1
+		ch.sign_look()
+		var before: bool = ch.sign_teases == tz0
+		ch.sign_look()
+		var teased: bool = ch.sign_teases == tz0 + 1 and main.bubbles_said == b0 + 1
+		ch.sign_look()
+		ch.sign_look()
+		var once_only: bool = ch.sign_teases == tz0 + 1
+		var gap_ok := true # a long pause starts the count again
+		ch.sign_teased.clear()
+		ch.sign_looks[si] = [2, main.t - 100.0]
+		ch.sign_look()
+		gap_ok = ch.sign_looks[si][0] == 1 and ch.sign_teases == tz0 + 1
+		var sp2: Vector2 = main.sign_spots[1 if si == 0 else 0] # another sign has its own count
+		reset_to(sp2 + Vector2(0, 0.5))
+		for k in 3:
+			ch.sign_look()
+		var second: bool = ch.sign_teases == tz0 + 2
+		var alone := true # without Noeul nobody teases
+		var mate2_keep = main.mate2
+		main.mate2 = null
+		ch.sign_teased.clear()
+		ch.sign_looks.clear()
+		for k in 3:
+			ch.sign_look()
+		alone = ch.sign_teases == tz0 + 2
+		main.mate2 = mate2_keep
+		var spots: bool = main.sign_spots.size() >= 5 # the signpost, three stalls and the inn
+		check("sign_tease", counted and before and teased and once_only and gap_ok and second and alone and spots,
+			"E at the signpost counts=%s quiet before the third=%s Noeul teases on the third=%s once=%s a long pause resets=%s a second sign has its own count=%s no tease without Noeul=%s 5 sign spots=%s" % [counted, before, teased, once_only, gap_ok, second, alone, spots])
+	if want.call("doodles"):
+		# Kongal's chalk figures: the crowned one after his kid goblin is home, the otter once Mulgyeol is known (idea 76)
+		var v2: Object = main.village
+		park_mates(true)
+		var kid0: int = main.kid_q
+		var mul0: int = main.mul_q
+		main.kid_q = 0
+		main.mul_q = 0
+		v2.life_update(main, 0.0)
+		var none2: bool = not v2.doodle_crown.visible and not v2.doodle_otter.visible
+		main.kid_q = 3
+		v2.life_update(main, 0.0)
+		var crown_only: bool = v2.doodle_crown.visible and not v2.doodle_otter.visible
+		main.mul_q = 1
+		v2.life_update(main, 0.0)
+		var both: bool = v2.doodle_crown.visible and v2.doodle_otter.visible
+		main.kid_q = 0
+		v2.life_update(main, 0.0)
+		var otter_only: bool = not v2.doodle_crown.visible and v2.doodle_otter.visible
+		var chalk := [0, 0]
+		for i in 2:
+			var img: Image = v2.doodle_tex(["crown", "otter"][i]).get_image()
+			for y in img.get_height():
+				for x in img.get_width():
+					if img.get_pixel(x, y).a > 0.3:
+						chalk[i] += 1
+		var drawn: bool = chalk[0] > 80 and chalk[1] > 80
+		var k2: Vector2 = v2.folk_pos["kongal"]
+		var near_k: bool = Vector2(v2.doodle_crown.position.x, v2.doodle_crown.position.z).distance_to(k2) < 5.0 and Vector2(v2.doodle_otter.position.x, v2.doodle_otter.position.z).distance_to(k2) < 5.0 and v2.doodle_crown.position.y < 0.05
+		main.kid_q = kid0
+		main.mul_q = mul0
+		park_mates(false)
+		check("doodles", none2 and crown_only and both and otter_only and drawn and near_k,
+			"nothing at the start=%s crown after the rescue=%s both once Mulgyeol is known=%s otter alone=%s chalk pixels %s=%s flat by Kongal=%s" % [none2, crown_only, both, otter_only, chalk, drawn, near_k])
+	if want.call("pinwheels"):
+		# four small village pinwheels turn with the hill's windmills: the first three with the small ones, the fourth with the big one (idea 78)
+		var v3: Object = main.village
+		var mills0: Array = main.hill.mills.map(func(mm): return mm.turning)
+		var mq0: int = main.mill_q
+		for mm in main.hill.mills:
+			mm.turning = false
+		main.mill_q = 0
+		var rot0: Array = v3.pinwheels.map(func(p): return p.hub.rotation.z)
+		v3.life_update(main, 0.5)
+		var still: bool = v3.pinwheels.size() == 4 and v3.pinwheels.all(func(p): return not p.turning) and absf(v3.pinwheels[0].hub.rotation.z - rot0[0]) < 0.0001
+		main.hill.mills[1].turning = true
+		var r1: float = v3.pinwheels[1].hub.rotation.z
+		var r0b: float = v3.pinwheels[0].hub.rotation.z
+		v3.life_update(main, 0.5)
+		var second_only: bool = absf(v3.pinwheels[1].hub.rotation.z - r1) > 0.5 and absf(v3.pinwheels[0].hub.rotation.z - r0b) < 0.0001 and not v3.pinwheels[3].turning
+		main.mill_q = 3
+		var r3: float = v3.pinwheels[3].hub.rotation.z
+		v3.life_update(main, 0.5)
+		var big: bool = absf(v3.pinwheels[3].hub.rotation.z - r3) > 0.5
+		var open_ground := true # each stands on open ground, clear of walls
+		for t in v3.PINWHEEL_TILES:
+			open_ground = open_ground and not v3.blocked(v3.VILLAGE_X + t.x, t.y)
+		for i in main.hill.mills.size():
+			main.hill.mills[i].turning = mills0[i]
+		main.mill_q = mq0
+		check("pinwheels", still and second_only and big and open_ground,
+			"all still while the windmills are stopped=%s only the second turns with the second windmill=%s the fourth with the big one=%s on open ground=%s" % [still, second_only, big, open_ground])
+	if want.call("door_bell"):
+		# the doorway bell inside a house rings a beat after she steps in, swinging twice, with its small sound at the end (idea 3)
+		main.in_village = true
+		main.in_house = -1
+		reset_to(main.village.doors[0] + Vector2(0, 0.4))
+		var f2: Object = main.folk
+		var br0: int = f2.bell_rings
+		main.sfx_log.clear()
+		main.enter_house(0)
+		var t_in: float = main.t
+		var early: bool = f2.bell_rings == br0
+		var peak := 0.0
+		var first_at := -1.0
+		for k in 30:
+			await wait(0.05)
+			peak = maxf(peak, absf(f2.bell.rotation.z))
+			if first_at < 0.0 and f2.bell_rings > br0:
+				first_at = k * 0.05
+		await wait(0.9)
+		var rang: bool = f2.bell_rings == br0 + 1 and first_at >= 0.3 and peak > 0.3 and absf(f2.bell.rotation.z) < 0.05
+		var tone: bool = main.sfx_log.has("sine:1760")
+		var swings: bool = f2.bell.get_parent() != null and f2.bell.position.y > 1.5
+		main.leave_house() # a quick way out before the beat: no ring
+		var br1: int = f2.bell_rings
+		main.enter_house(1)
+		main.leave_house()
+		await wait(1.0)
+		var skipped: bool = f2.bell_rings == br1
+		main.in_village = false
+		check("door_bell", early and rang and tone and swings and skipped,
+			"no ring at the moment she steps in=%s rings later (%.2f s) and swings=%s the small sound at the end=%s hangs over the doorway=%s no ring if she left first=%s" % [early, first_at, rang, tone, swings, skipped])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

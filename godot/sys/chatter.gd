@@ -37,6 +37,33 @@ func balloon_tex(w: int) -> ImageTexture:
 	m.balloon_cache[w] = tex
 	return tex
 
+# E beside the same sign three times within 45 s: Noeul offers to memorise it, once for each sign (delight idea 12)
+var sign_looks := {} # sign index -> [looks in a row, time of the last]
+var sign_teased := {} # sign index -> true
+var sign_teases := 0 # teases said (autoplay sign_tease)
+
+func sign_look() -> void:
+	if m.intro or m.story_open or m.in_house >= 0:
+		return
+	var me := Vector2(m.player.x, m.player.z)
+	var best := -1
+	var best_d := 1.9
+	for i in m.sign_spots.size():
+		var d: float = me.distance_to(m.sign_spots[i])
+		if d < best_d:
+			best_d = d
+			best = i
+	if best < 0:
+		return
+	m.sfx(784, 0.06, "triangle", 0.06) # a tick as she reads it
+	var rec: Array = sign_looks.get(best, [0, -100.0])
+	rec = [1 if m.t - float(rec[1]) > 45.0 else int(rec[0]) + 1, m.t]
+	sign_looks[best] = rec
+	if rec[0] >= 3 and not sign_teased.has(best) and m.mate2 != null:
+		sign_teased[best] = true
+		sign_teases += 1
+		say_bubble(m.mate2, tr("이번엔 내가 외울게."), 3.0)
+
 func say_bubble(who: Node3D, text: String, dur := 3.5) -> void:
 	m.bubbles_said += 1
 	var b := Node3D.new()

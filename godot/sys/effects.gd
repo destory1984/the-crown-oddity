@@ -256,6 +256,41 @@ func pop_num(pos: Vector3, text: String, color := Color.WHITE) -> void:
 		n.position.y += dt * 1.2
 		(n as Label3D).modulate.a = 1.0 - maxf(0.0, k - 0.5) * 2.0)
 
+# after the rain stops a few drops still fall from the eaves near her, one by one, each gap longer, until they stop (delight
+# idea 31): the roof edges of the village houses and Bori's cottage, six at most, three drops each
+var eave_drips := 0 # drops started (autoplay eave_drips)
+
+func eave_points() -> Array:
+	var out: Array = []
+	for d in m.village.doors: # the roof edge sits a little in front of the wall, either side of the door
+		out.append(Vector3(d.x - 0.9, 1.75, d.y - 0.7))
+		out.append(Vector3(d.x + 1.0, 1.75, d.y - 0.7))
+	out.append(Vector3(m.shop_pos.x - 1.2, 1.9, m.shop_pos.z - 0.1))
+	out.append(Vector3(m.shop_pos.x + 1.2, 1.9, m.shop_pos.z - 0.1))
+	return out
+
+func eaves_drip() -> void:
+	var me := Vector3(m.player.x, 0, m.player.z)
+	var near: Array = eave_points().filter(func(p): return Vector2(p.x - me.x, p.z - me.z).length() < 16.0)
+	near.sort_custom(func(a, b): return Vector2(a.x - me.x, a.z - me.z).length() < Vector2(b.x - me.x, b.z - me.z).length())
+	for p in near.slice(0, 6):
+		var t: float = m.rnd(0.3, 1.0)
+		for k in 3:
+			var at: float = t
+			m.get_tree().create_timer(at).timeout.connect(func(): eave_drop(p))
+			t += m.rnd(0.9, 1.5) * (1.0 + k * 0.9)
+
+func eave_drop(p: Vector3) -> void:
+	eave_drips += 1
+	var drop: MeshInstance3D = m.box(Vector3(0.04, 0.1, 0.04), m.glow_mat(Color("#bfe6ff"), 1.4))
+	drop.position = p
+	m.add_child(drop)
+	var tw := drop.create_tween()
+	tw.tween_property(drop, "position:y", 0.05, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		burst(Vector3(p.x, 0.1, p.z), Color("#bfe6ff"), 3, 0.8)
+		drop.queue_free())
+
 func fade_then(fn: Callable) -> void:
 	var tw := m.create_tween()
 	tw.tween_property(m.fade_rect, "color:a", 1.0, 0.4)
