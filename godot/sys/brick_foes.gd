@@ -624,6 +624,93 @@ func spray(e: Dictionary) -> void:
 	if in_lane(from, dir, 4.0, 0.5, Vector2(m.player.x, m.player.z)):
 		m.player_hit(dmg, from, e)
 
+# ---------------------------------------------------------------- 벽돌 눈금새 (moon-watch observatory, v0.1.120)
+# hp 30 + 14 per foe level, blow 9 + 2 per level (shots/plans/option1_design.md). Within 6 tiles: a lane 1 wide and 6 long shows 1.1 s
+# (locked), one brick leaves along it at 5 tiles a second, then the wings fold 2 s with the seams open (the opening to cut).
+# It never follows her across the gap (its walk and its brick stop at the edge) and takes no knockback.
+func make_scalebird() -> Node3D:
+	var root := Node3D.new()
+	var g := Node3D.new()
+	root.add_child(g)
+	var mats: Array = []
+	m.brick(g, mats, Vector3(0.1, 0.3, 0.1), Vector3(-0.12, 0.15, 0), Color("#6a6a74"), false) # legs
+	m.brick(g, mats, Vector3(0.1, 0.3, 0.1), Vector3(0.12, 0.15, 0), Color("#6a6a74"), false)
+	m.brick(g, mats, Vector3(0.5, 0.9, 0.5), Vector3(0, 0.75, 0), Color("#6a5e8a")) # the box body
+	m.brick(g, mats, Vector3(0.26, 0.26, 0.26), Vector3(0, 1.36, 0.18), Color("#8a8a96")) # the square grey beak
+	m.brick(g, mats, Vector3(0.05, 0.06, 0.03), Vector3(-0.1, 1.16, 0.26), Color("#ffc23a"), false, true)
+	m.brick(g, mats, Vector3(0.05, 0.06, 0.03), Vector3(0.1, 1.16, 0.26), Color("#ffc23a"), false, true)
+	var wings: Array = []
+	for side in [-1.0, 1.0]: # two yellow wings ruled like a scale
+		var wing := Node3D.new()
+		wing.position = Vector3(side * 0.27, 0.95, 0)
+		g.add_child(wing)
+		m.brick(wing, mats, Vector3(0.1, 0.7, 0.44), Vector3(side * 0.05, -0.1, 0), Color("#e8c83a"), false)
+		for k in 3:
+			m.brick(wing, mats, Vector3(0.12, 0.05, 0.3), Vector3(side * 0.07, 0.08 - k * 0.2, 0), Color("#6a5a20"), false)
+		wings.append(wing)
+	var seam := glow_box(g, Vector3(0.3, 0.05, 0.3), Vector3(0, 1.22, 0), Color("#ffd84a"))
+	seam.visible = false
+	root.scale = Vector3.ONE * 1.1
+	root.set_meta("mats", mats)
+	root.set_meta("body", g)
+	root.set_meta("wings", wings)
+	root.set_meta("seam", seam)
+	return root
+
+func spawn_scalebird(at: Vector2) -> Dictionary:
+	var e := base_entry(make_scalebird(), at, 30 + m.foe_lv() * 14, 0.6, {"scalebird": true, "fold": 0.0})
+	e.atk_cd = 1.0
+	return e
+
+func update_scalebird(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
+	tick(e, dt)
+	var from := Vector2(e.x, e.z)
+	var dirn := to / maxf(d, 0.01)
+	var v := Vector2.ZERO
+	e.kx = 0.0 # no knockback
+	e.kz = 0.0
+	e.fold = e.get("fold", 0.0) - dt
+	if e.tele_t > 0.0:
+		e.tele_t -= dt
+		if e.tele_t <= 0.0:
+			shoot_scale(e)
+	elif e.fold > 0.0 or e.seam > 0.0:
+		pass # wings folded, the seams open
+	elif e.hurt > 0.0 or e.stun > 0.0:
+		pass
+	elif d < 8.0 and not m.intro:
+		if e.atk_cd <= 0.0 and d <= 6.0:
+			e.tele_t = 1.1
+			e.atk_cd = 4.2
+			e.face = dirn
+			e.tele = m.monsters.warn_path(from, dirn, 6.0, 1.0, 1.1)
+			m.pop_num(Vector3(e.x, m.height_at(e.x, e.z) + 2.0, e.z), "!", Color("#ff5a4a"))
+		elif d > 4.5:
+			v = dirn * 1.3
+		elif d < 2.5:
+			v = -dirn * 1.0
+	else:
+		v = wander(e)
+	if e.tele_t > 0.0:
+		face_to(e, e.face, dt, true)
+	elif v.length() > 0.1:
+		face_to(e, v, dt)
+	finish(e, v, dt, 0.0)
+	var folded: bool = e.fold > 0.0 or e.seam > 0.0
+	var wings: Array = e.node.get_meta("wings")
+	for k in wings.size():
+		var spread: float = 0.15 if folded else (0.9 if e.tele_t > 0.0 else 0.4)
+		wings[k].rotation.z = lerpf(wings[k].rotation.z, (-1.0 if k == 0 else 1.0) * spread, minf(1.0, dt * 12.0))
+	e.node.get_meta("seam").visible = e.seam > 0.0
+	flash(e, e.tele_t > 0.0)
+
+func shoot_scale(e: Dictionary) -> void:
+	var from := Vector2(e.x, e.z)
+	m.monsters.tele_clear(e)
+	m.monsters.throw_brick(from, e.face, e, 5.0, 6.0 / 5.0 + 0.2, foe_dmg(1.0))
+	e.fold = 2.0
+	seam_for(e, 2.0)
+
 # ---------------------------------------------------------------- where they live
 # spots to hang on a field list: [world Vector2, letter] ("p" pendulum, "h" hopper)
 func spots(area: String) -> Array:

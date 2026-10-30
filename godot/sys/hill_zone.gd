@@ -31,6 +31,8 @@ func in_cloud() -> bool:
 
 # wind vents exist on the cloud mound and on the castle's broken floor
 func vent_here(x: float, z: float) -> Vector2:
+	if m.in_observatory():
+		return m.observatory_zone.vent_at(x, z)
 	if m.in_under():
 		return m.under.vent_at(x, z)
 	if m.in_stairs():
@@ -42,6 +44,8 @@ func vent_here(x: float, z: float) -> Vector2:
 	return Vector2.ZERO
 
 func gust_char(x: float, z: float) -> String:
+	if x >= Main.OBS.OBS_X - 0.5:
+		return m.obs.char_at(x, z)
 	if x >= Main.UNDER.UNDER_X - 0.5:
 		return m.under.char_at(x, z)
 	if x >= Main.STAIRS.STAIRS_X - 0.5:

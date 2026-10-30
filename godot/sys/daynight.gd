@@ -39,13 +39,15 @@ func skip_time(hours: float) -> void:
 
 func update_daylight(dt: float) -> void:
 	m.env.tonemap_exposure = 0.9
-	if m.in_grotto() or m.in_corridor() or m.in_under() or m.in_clock() or m.in_workshop(): # underground: the same soft blue light at any hour, a lamp on Sora (the clock waits, as in the cave)
+	if m.in_grotto() or m.in_corridor() or m.in_observatory() or m.in_under() or m.in_clock() or m.in_workshop(): # underground: the same soft blue light at any hour, a lamp on Sora (the clock waits, as in the cave)
 		m.sun.light_energy = 0.35
 		m.env.ambient_light_color = Color("#9ab4d8")
 		if m.in_workshop(): # the deep workshop: amber on B1, wet blue on B2, pale clay on B3
 			m.env.ambient_light_color = Color(["#d8b890", "#9ab4d8", "#d8d0bc"][m.workshop_zone.floor_here()])
 		if m.in_corridor(): # each corridor room its own tint (v0.1.84): slate, moss, brass, pale
 			m.env.ambient_light_color = Color(Main.CORR.AMBIENT_COL[m.corridor.room_of(m.player.x)])
+		if m.in_observatory(): # each observatory floor its own tint (v0.1.120): dusk lilac, cold blue, amber, night blue
+			m.env.ambient_light_color = Color(Main.OBS.AMBIENT_COL[m.obs.room_of(m.player.x)])
 		m.env.ambient_light_energy = 1.4
 		m.env.glow_intensity = 0.6
 		m.env.glow_bloom = 0.05

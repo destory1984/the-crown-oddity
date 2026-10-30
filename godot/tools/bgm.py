@@ -648,6 +648,15 @@ CORRIDOR = {
 TRACKS["corridor"] = lambda: fm_variant("corridor", CORRIDOR["corridor"], fam="sparse", lo=67, hi=89, dungeon=True)
 TRACKS["corridor_boss"] = lambda: fm_variant("corridor_boss", CORRIDOR["corridor_boss"], fam="boss", lo=71, hi=93, boss_like=True)
 
+# the moon-watch observatory (v0.1.120, the same "1안", 2026-10-29): its own area tune and boss tune, single files; the settings follow
+# shots/plans/option1_design.md ("음악"): long lead lines over rising broken chords, the boss tune hard and fast
+OBSERVATORY = {
+    "observatory": S("A", "min", 128, "i bVII bVI bVII", "bIII bVII iv i", "bVI bVII i i", 901, (3, 2, 1)),
+    "observatory_boss": S("A", "harm", 150, "i iv V i", "bVI bVII i V", "iv V i i", 902, (2, 3, 0)),
+}
+TRACKS["observatory"] = lambda: fm_variant("observatory", OBSERVATORY["observatory"], fam="sparse", lo=67, hi=89, dungeon=True)
+TRACKS["observatory_boss"] = lambda: fm_variant("observatory_boss", OBSERVATORY["observatory_boss"], fam="boss", lo=71, hi=93, boss_like=True)
+
 if __name__ == "__main__":
     for name in sys.argv[1:] or TRACKS:
         TRACKS[name]()

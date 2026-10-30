@@ -24,6 +24,8 @@ func quest_target() -> Vector3:
 		return Vector3.INF
 	if m.in_corridor(): # the water corridor reads its own devices (v0.1.84): the first unfinished condition, not the line's words
 		return m.corridor_zone.next_spot()
+	if m.in_observatory(): # and so does the observatory (v0.1.120)
+		return m.observatory_zone.next_spot()
 	var at := line_target(m.quest_raw)
 	if at == Vector3.INF:
 		at = side_target()
@@ -67,6 +69,7 @@ func here() -> String:
 	if m.in_garden: return "clock" if m.garden_zone.in_clock() else "garden"
 	if m.in_lake: return "corridor" if m.in_corridor() else ("grotto" if m.in_grotto() else "lake")
 	if m.in_hill:
+		if m.in_observatory(): return "observatory"
 		if m.in_castle(): return "castle"
 		if m.in_stairs(): return "stairs"
 		if m.in_cloud() or m.in_under() or m.in_workshop(): return ""
@@ -125,6 +128,7 @@ func line_target(raw: String) -> Vector3:
 		"lake": at = lake_target(raw)
 		"grotto": at = grotto_target(raw)
 		"corridor": at = m.corridor_zone.next_spot()
+		"observatory": at = m.observatory_zone.next_spot()
 		"forest": at = forest_target(raw)
 		"hill": at = hill_target(raw)
 		"castle": at = castle_target(raw)
@@ -146,6 +150,7 @@ const TOKEN_CHAIN := ["lake", "forest", "hill", "castle"] # the road's areas, we
 func chain_pos() -> float:
 	match here():
 		"lake", "grotto", "corridor": return 0.0
+		"observatory": return 2.0
 		"village": return 0.5
 		"forest": return 1.0
 		"hill": return 2.0
@@ -187,6 +192,7 @@ func token_exit(goal: int) -> Vector3:
 		"grotto": return over(m.grotto.marks.S)
 		"forest": return over(m.forest.marks.E if east else m.forest.marks.S)
 		"hill": return over(m.hill.marks.X if east else m.hill.marks.S)
+		"observatory": return over(m.obs.at(0, "S"))
 		"castle": return over(m.castle.marks.E if east else m.castle.marks.S)
 		"stairs": return over(m.stairs.marks.S)
 	return Vector3.INF
@@ -360,6 +366,8 @@ func hill_deed_target() -> Vector3:
 		spots.append(mill)
 	if not m.trial_won: # the castle gate asks for both since v0.1.68
 		spots.append(m.hill.marks.R)
+	if m.mill_q >= 5 and m.trial_won and m.observatory_q < 6: # and for the observatory since v0.1.120, after the other two
+		spots.append(m.hill.marks.O)
 	return over(nearest(spots), 2.4) if not spots.is_empty() else Vector3.INF
 
 func castle_target(raw: String) -> Vector3:

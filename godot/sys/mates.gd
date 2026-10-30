@@ -475,6 +475,8 @@ func mate_near(at: Vector2, r: float) -> String:
 	for id in ["mulgyeol", "noeul"]:
 		if id == "mulgyeol" and m.mate_job.get("kind", "") in ["corr_post", "corr_cart"]:
 			continue # at work at a sluice: out of the fight (v0.1.91; a blow on him there stopped the work and he never got up)
+		if id == "noeul" and m.mate2_job.get("kind", "") == "obs_post":
+			continue # at his post, steadying her hand: out of the fight
 		var node := mate_node(id)
 		if node != null and node.visible and m.mate_down[id] <= 0.0 and Vector2(node.position.x, node.position.z).distance_to(at) < r:
 			return id
@@ -565,6 +567,15 @@ func update_mate2(dt: float) -> void:
 	m.mate2.visible = true
 	if not sora_resting() or m.mate_down["noeul"] > 0.0:
 		noeul_sit(false)
+	if not m.mate2_job.is_empty(): # Noeul at a post in the observatory (v0.1.120)
+		if m.in_observatory() and m.mate2_job.get("kind", "") == "obs_post":
+			noeul_sit(false)
+			if mate_tick("noeul", dt): # knocked down at his post: his rest runs, the work stops and the post is free
+				m.observatory_zone.clear_job()
+				return
+			m.observatory_zone.update_mate2_job(dt)
+			return
+		m.mate2_job = {}
 	if m.garden_zone.clock_hold(): # at a spoke of the big key, pushing with everyone
 		noeul_sit(false)
 		var hs := m.hand_spot(Main.CLOCK_HANDS.find("noeul"))

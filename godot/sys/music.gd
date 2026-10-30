@@ -7,9 +7,9 @@ const Main := preload("res://main.gd")
 
 var m: Main
 
-const TUNES := ["title", "field_marsh", "field_wild", "dungeon", "boss", "boss_final", "village", "night", "ending", "corridor", "corridor_boss"]
+const TUNES := ["title", "field_marsh", "field_wild", "dungeon", "boss", "boss_final", "village", "night", "ending", "corridor", "corridor_boss", "observatory", "observatory_boss"]
 const TUNE_NAMES := {"title": "제목", "field_marsh": "늪과 호수", "field_wild": "바람 부는 들", "dungeon": "동굴과 성", "boss": "우두머리",
-	"boss_final": "마지막 싸움", "village": "마을", "night": "밤", "ending": "끝맺음", "corridor": "물길 회랑", "corridor_boss": "벽돌 수문지기"}
+	"boss_final": "마지막 싸움", "village": "마을", "night": "밤", "ending": "끝맺음", "corridor": "물길 회랑", "corridor_boss": "벽돌 수문지기", "observatory": "달맞이 관측원", "observatory_boss": "벽돌 달나방"}
 const MUSIC_DB := -14.0 # the Music bus under the effects (Master stays at 0 dB)
 const OFF_DB := -80.0
 const FADE := 1.0 # the fade of the music switch
@@ -20,7 +20,8 @@ const FADE_IN := 2.0
 var fade_tw: Tween
 const VARIANTS := 5 # <name>.ogg, <name>_2.ogg .. <name>_5.ogg (the owner, 2026-10-27: 5 per place)
 const DROPPED := ["ending", "ending_4", "ending_5", "boss_3", "boss_4", "boss_final_4", "boss_final_5", "field_marsh_3", "field_marsh_4", "field_marsh_5", "night_2",
-	"corridor_2", "corridor_3", "corridor_4", "corridor_5", "corridor_boss_2", "corridor_boss_3", "corridor_boss_4", "corridor_boss_5"] # tunes the owner took out (2026-10-27, and 8 more 10-28); their files are gone
+	"corridor_2", "corridor_3", "corridor_4", "corridor_5", "corridor_boss_2", "corridor_boss_3", "corridor_boss_4", "corridor_boss_5",
+	"observatory_2", "observatory_3", "observatory_4", "observatory_5", "observatory_boss_2", "observatory_boss_3", "observatory_boss_4", "observatory_boss_5"] # tunes the owner took out (2026-10-27, and 8 more 10-28); their files are gone
 
 # how many tunes a place has once the dropped ones are taken out
 func count_for(name: String) -> int:
@@ -108,6 +109,9 @@ func pick() -> String:
 	# the water corridor (the owner's "1안", 2026-10-29): its own area tune, and the keeper's tune only while its bar is up
 	if m.in_corridor():
 		return "corridor_boss" if m.ui.boss.visible else "corridor"
+	# the moon-watch observatory (the same "1안"): its area tune, and the moth's tune only while its bar is up
+	if m.in_observatory():
+		return "observatory_boss" if m.ui.boss.visible else "observatory"
 	# any other boss awake: the health bar is up (the Brick King, the turtle, the cart-mole, the knight, the oak duel, the hawk, Hangyeol's echo)
 	if m.ui.boss.visible:
 		return "boss"

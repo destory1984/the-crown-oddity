@@ -37,6 +37,7 @@
 #   sys/garden_zone.gd    Garden: the heart, Hangyeol's road, the mold boss, the clock room, workers, winding.
 #   sys/workshop_zone.gd  Deep workshop: the great hall's door, three floors under the castle, the cradle, Simji's bench.
 #   sys/corridor_zone.gd  Water corridor (v0.1.84): four rooms under the lake island, levers, carts, Mulgyeol's posts, the sluice-keeper.
+#   sys/observatory_zone.gd  Moon-watch observatory (v0.1.120): four rooms up from the hill, wind hole, swivel platform, mirrors, Noeul's hand, the brick moth.
 #   sys/marsh_toys.gd     Reed-marsh toys (v0.1.106): the wind-up duck, three frogs, cattail fluff, the reed pipe rack, Bori's mat.
 #   sys/football.gd       The village square's football and goal (v0.1.109): kicks, bounces, the goal flash and score banner, the goals count.
 #   sys/safe_area.gd      The phone's home bar and camera hole (v0.1.119): the safe area in canvas pixels, feeding touch.gd, hud.gd and hud_build.gd.
@@ -78,6 +79,7 @@ var mates := preload("res://sys/mates.gd").new(self)
 var garden_zone := preload("res://sys/garden_zone.gd").new(self)
 var workshop_zone := preload("res://sys/workshop_zone.gd").new(self)
 var corridor_zone := preload("res://sys/corridor_zone.gd").new(self)
+var observatory_zone := preload("res://sys/observatory_zone.gd").new(self)
 var quest_marks := preload("res://sys/quest_marks.gd").new(self)
 var moon_tokens := preload("res://sys/tokens.gd").new(self)
 var marsh_toys := preload("res://sys/marsh_toys.gd").new(self)
@@ -170,6 +172,8 @@ var cave_door_open := false
 var cave_marks := {}        # letter -> world Vector2 (S, P, K, D, B, E; 1 2 3 the shrine's stones)
 
 func tile_at(x: float, z: float) -> int:
+	if x >= OBS.OBS_X - 0.5:
+		return WATER if obs.blocked(x, z) else GRASS
 	if x >= CORR.CORR_X - 0.5:
 		return WATER if corridor.blocked(x, z) else GRASS
 	if x >= WORK.WORK_X - 0.5:
@@ -329,6 +333,8 @@ var skip_grace := 0.0   # a short let-go of Shift or the arrows mid-river does n
 
 # water the water skip can run over: the marsh rivers and ponds, and the deep runs in the grotto
 func skip_water(x: float, z: float) -> bool:
+	if x >= OBS.OBS_X - 0.5:
+		return false
 	if x >= CORR.CORR_X - 0.5:
 		return corridor.deep(x, z)
 	if x >= WORK.WORK_X - 0.5:
@@ -470,6 +476,8 @@ func _ready() -> void:
 	hill_zone.build_bridge_ribbons()
 	corridor.build(self)
 	corridor_zone.lake_steps()
+	obs.build(self)
+	observatory_zone.hill_steps()
 	cloud.build(self)
 	cloud.build_updraft(self, hill.marks.U)
 	castle.build(self)
@@ -738,6 +746,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.120: 바람 언덕 동쪽 끝에 계단이 생겨 달맞이 관측원에 오를 수 있다. 방 넷(30 x 22칸)에 풍차, 바람구멍, 도는 발판, 반사경, 노을의 손, 벽돌 눈금새와 벽돌 달나방(체력 2400)이 있다. 참새 방앗간과 달빛 시련을 마친 뒤 응답등 셋을 켜야 성문이 열린다. 꼭대기에서 소라가 혼자 신호를 보내다 팔찌의 푸른빛이 꺼지고, 노을이 손을 받쳐 주면 반사경 셋을 서쪽부터 다시 잇는다. 지역곡과 보스곡 두 곡을 더했고 시험 아홉 개를 만들었다.",
 	"· v0.1.119: v0.1.119: 화면 가장자리 배려 두 가지를 더했다. 전화기의 홈 막대와 카메라 구멍이 가리는 가장자리를 화면 안전 구역으로 읽어, 터치 단추, 기술 단추, 작은 지도, 메뉴 단추, 왼쪽 위 상태 칸, 할 일 줄이 그만큼 안쪽에 선다(안전 구역이 화면 전체거나 컴퓨터 창이면 한 칸도 움직이지 않는다). 또 전화나 다른 창으로 갔다 오면 게임이 멈추고 한가운데 돌아왔다 단추가 뜨며, 막대와 막기를 놓은 것으로 치고 그 단추를 누른 뒤에만 다시 움직인다. 열려 있던 이야기는 그 줄 그대로 남는다.",
 	"· v0.1.118: v0.1.118: 작은 정성 여덟 가지를 더했다. 설정에 읽기 속도(보통, 1.5배, 2배)가 생겨 긴 말풍선이 더 오래 떠 있고 다음 잡담은 그 말풍선이 사라진 뒤에 나온다. 한 손 조작을 켜면 막기와 달리기 단추를 한 번 눌러 켜고 다시 눌러 끄며 켜 둔 동안 단추 곁에 글자가 남는다. 왼손잡이 배치는 이동 막대와 전투 단추, 기술 단추 넷의 자리를 맞바꾼다. 팔찌 단추를 누르면 위에 상자 열기나 말 걸기 같은 할 일이 1.3초 뜬다. 막기 단추는 누른 엄지가 테두리에서 36px 안쪽으로 미끄러져도 유지된다. 전투 단추를 1.1배와 1.24배로 키울 수 있고 커져도 단추 사이는 10px 이상 벌어진다. 화면 가장자리의 말풍선은 안쪽으로 밀리고 꼬리는 말하는 이를 가리킨다. 8초 동안 손을 떼고 10칸 안에 적이 없으면 전투 단추가 30퍼센트 밝기로 옅어지고 첫 터치는 기다림 없이 먹힌다.",
 	"· v0.1.117: 작은 정성 열 가지를 더했다. 마을 갈림길에 세 번째로 돌아와 쉬면 소라가 지도를 펼쳐 지역 이름만 읽는다. 마을 남쪽의 작은 종 셋을 낮은 소리부터 치면 0.7초 뒤 먼 종이 세 음으로 답한다. 서재 책을 다시 읽으면 처음 덮은 쪽 모서리가 접혀 있다. 바닥의 네 벽돌을 칼 방향으로 돌려 모두 같은 쪽을 보게 하면 틈에서 꽃이 올라온다. 3일 이상 쉬었다 이어 하면 일지가 마지막으로 끝낸 일과 지금 갈 곳 두 줄만 먼저 보여 준다. 상점 약병 카드에 지금 마시면 오를 체력이 나온다. 일지의 마을 사람 이름을 누르면 집 번호와 낮과 밤에 만날 수 있는지 보인다. 실수로 닫은 세 줄 이상의 대화를 2초 안에 닫고 6초 안에 다시 열면 마지막 문장부터 이어진다. 저장이 오류 없이 끝나면 왼쪽 아래 태엽이 0.7초에 한 바퀴 돌고 일지에 마지막 저장 시각이 남으며 실패하면 글만 뜬다. 울림 수정을 칠 때 낮은 소리부터 1개에서 4개까지 점이 머리 위에 0.9초 뜬다.",
@@ -1548,6 +1557,7 @@ const GARDEN := preload("res://garden.gd")
 const MARSH := preload("res://marsh.gd")
 const GROTTO := preload("res://grotto.gd")
 const CORR := preload("res://corridor.gd")
+const OBS := preload("res://observatory.gd")
 const CLOUD := preload("res://cloud.gd")
 const CASTLE := preload("res://castle.gd")
 const STAIRS := preload("res://stairs.gd")
@@ -1583,6 +1593,17 @@ var corr_bits := 0          # the wheel hall's three wheels, west to east: 001, 
 var corr_reward := false    # the knot and the potions were given (once)
 var corr_check := 0         # the last safe room
 var corr_told := false      # the keeper's talk was told
+var obs = OBS.new()         # 달맞이 관측원 up from the hill's east end (v0.1.120, the owner's "1안"; Sora is still in_hill up there)
+var observatory_q := 0      # 0 never entered, 1..4 the three floors and the top, 5 moth beaten, 6 answered (the castle gate opens)
+var obs_sec: Array = observatory_zone.fresh_sections() # device flags per room (saved as observatory_section_state)
+var obs_bits := 0           # the top room's three mirrors, west to east: 001, 011, 111
+var obs_reward := false     # the scale and the potions were given (once)
+var obs_check := 0          # the last safe room
+var obs_told := false       # the moth's talk was told
+var obs_top_tested := false # the test signal is up (the ordeal is over)
+var obs_ordeal := false     # Sora signalled alone and the bracelets went dark (hero_journey_fix B)
+var obs_relay := 0          # the ordeal's mirrors joined again, west to east: 001, 011, 111
+var mate2_job := {}         # Noeul sent to a post in the observatory: kind obs_post, "to"
 var has_pearl := false      # 물빛 진주: stamina refills 1.5 times as fast
 var tokens: Array = [false, false, false, false, false, false] # the six moonkeeper tokens of THIS round (sys/tokens.gd): firefly jar, ring, pearl, squirrels, hill deed, library
 var marsh = MARSH.new()     # the map scraps and the moonkeeper chest
@@ -1663,6 +1684,8 @@ func crown_key() -> void:
 	if in_grotto() and lake_zone.grotto_key():
 		return
 	if in_corridor() and corridor_zone.corridor_key():
+		return
+	if in_observatory() and observatory_zone.observatory_key():
 		return
 	if in_cloud() and hill_zone.cloud_key():
 		return
@@ -2342,7 +2365,7 @@ func _process(dt: float) -> void:
 		if l.visible and not l.get_meta("dark", false):
 			var ld := Vector2(l.position.x - player.x, l.position.z - player.z).length()
 			warm = maxf(warm, clampf(1.0 - (ld - 1.5) / 2.5, 0.0, 1.0))
-	if in_cave or in_grotto() or in_corridor() or in_under() or in_workshop() or jar_node != null and jar_node.visible:
+	if in_cave or in_grotto() or in_corridor() or in_observatory() or in_under() or in_workshop() or jar_node != null and jar_node.visible:
 		warm = maxf(warm, 0.6) # the cave lamp on her, or the firefly jar at her side
 	lit = lit.lerp(Color(1.0, 0.95, 0.86), warm * night)
 	hero.modulate = Color(1, 0.5, 0.5) if player.hurt_t > 0 else Color(lit.r, lit.g, lit.b, 0.3 if blink else 1.0)
@@ -2386,6 +2409,11 @@ func _process(dt: float) -> void:
 				fade_then(enter_castle)
 		elif toast_t <= 0.0:
 			toast("벽돌 매가 하늘을 지키고 있다")
+	if in_hill and not in_observatory() and Vector2(player.x, player.z).distance_to(hill.marks.O) < 0.8 and fade_rect.color.a == 0.0:
+		if observatory_zone.can_enter(): # the moon-watch observatory's stair (v0.1.120): the hawk, the sparrow mill and the moon trial first
+			fade_then(observatory_zone.enter_observatory)
+		else:
+			observatory_zone.gate_note()
 	if in_hill and not in_cloud() and Vector2(player.x, player.z).distance_to(hill.marks.U) < 0.8 and fade_rect.color.a == 0.0:
 		if hill_q >= 3:
 			fade_then(enter_cloud)
@@ -2451,6 +2479,8 @@ func _process(dt: float) -> void:
 			corridor_zone.gate_note()
 	if in_corridor():
 		corridor_zone.update(dt)
+	if in_observatory():
+		observatory_zone.update(dt)
 	if in_lake_main():
 		lake_zone.update_lake_south(dt)
 	if south_q >= 4:
@@ -2823,6 +2853,7 @@ func spawn_south_ambush() -> void: lake_zone.spawn_south_ambush()
 func clear_south_job() -> void: lake_zone.clear_south_job()
 func in_grotto() -> bool: return lake_zone.in_grotto()
 func in_corridor() -> bool: return corridor_zone.in_corridor()
+func in_observatory() -> bool: return observatory_zone.in_observatory()
 func in_lake_main() -> bool: return in_lake and not in_grotto() and not in_corridor() # the island and the lower pond, not the grotto or the corridor
 func stair_frame(at: Vector2, turn := 0.0, shade := 0.0, lamp_col := Color("#9fd8ff")) -> Node3D: return lake_zone.stair_frame(at, turn, shade, lamp_col)
 func enter_grotto() -> void: lake_zone.enter_grotto()

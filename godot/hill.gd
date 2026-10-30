@@ -54,7 +54,7 @@ S========...L..M....__.L...B.....X
 ##################################"""
 
 var grid: Array = []
-var marks := {}          # S entry, X exit east, B the hawk's perch, U the updraft up to the cloud mound -> world Vector2
+var marks := {}          # S entry, X exit east, B the hawk's perch, U the updraft up to the cloud mound, O the stair up to the moon-watch observatory (v0.1.120) -> world Vector2
 var mills: Array = []    # [{"pos": Vector2, "blades": Node3D, "turning": bool}]
 var foes: Array = []     # [world Vector2, kind] with kind "s" shield goblin, "a" archer, "g" goblin, "w" wolf
 var bridge: Node3D
@@ -167,6 +167,7 @@ func build(m: Node) -> void:
 	var ground: Array = []
 	var path: Array = []
 	var lamp_spots: Array = []
+	marks["O"] = Vector2(HILL_X + 31, 11) # the stair up to the moon-watch observatory (v0.1.120), in front of the castle road X
 	for z in H:
 		for x in W:
 			var c: String = grid[z][x]

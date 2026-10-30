@@ -478,6 +478,9 @@ func faint() -> void:
 	if m.in_corridor(): # the water corridor keeps her in the room she fell in (v0.1.84)
 		m.corridor_zone.on_faint()
 		return
+	if m.in_observatory(): # and so does the moon-watch observatory (v0.1.120)
+		m.observatory_zone.on_faint()
+		return
 	if m.in_garden:
 		m.clear_clock_wave()
 		m.beat_clear()

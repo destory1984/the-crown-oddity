@@ -40,6 +40,7 @@ func save_game() -> void:
 	d.merge(m.football.save_data())
 	d.merge(m.workshop_zone.save_data())
 	d.merge(m.corridor_zone.save_data())
+	d.merge(m.observatory_zone.save_data())
 	d["saved_at"] = Time.get_unix_time_from_system()
 	var f := FileAccess.open(m.SAVE_PATH, FileAccess.WRITE)
 	var ok := false
@@ -125,6 +126,7 @@ func load_game() -> void:
 	m.south_q = int(d.get("south_q", 0)) # old saves: the weir is still shut
 	m.has_whistle = bool(d.get("has_whistle", false))
 	m.corridor_zone.load_data(d) # the water corridor (v0.1.84); an old save past the forest comes in as done
+	m.observatory_zone.load_data(d) # the observatory (v0.1.120); an old save past the castle's door comes in as done
 	m.lake.south_look(m.south_q)
 	m.clear_south_job()
 	if m.lake_q >= 4:
@@ -393,7 +395,11 @@ func load_game() -> void:
 		var hx: float = m.player.x
 		var hz: float = m.player.z
 		m.enter_hill()
-		if hx >= Main.WORK.WORK_X - 0.5: # saved on a workshop floor: that floor's arrival tile, companions beside her
+		if hx >= Main.OBS.OBS_X - 0.5: # saved in the observatory: back at the last room's stair, friends beside her
+			m.observatory_zone.restore_at(m.obs_check)
+			hx = m.player.x
+			hz = m.player.z
+		elif hx >= Main.WORK.WORK_X - 0.5: # saved on a workshop floor: that floor's arrival tile, companions beside her
 			m.workshop_zone.enter_floor(Main.WORK.floor_of(hx), "A")
 			hx = m.player.x
 			hz = m.player.z
@@ -408,6 +414,8 @@ func load_game() -> void:
 		m.player.x = hx
 		m.player.z = hz
 		m.snap_mates()
+		if m.in_observatory(): # the snap above took Noeul off his post: the room puts the ordeal's roles back
+			m.observatory_zone.settle(m.obs.room_of(m.player.x))
 	if bool(d.get("in_garden", false)):
 		var gx: float = m.player.x
 		var gz: float = m.player.z
@@ -542,6 +550,7 @@ func return_to_start() -> void:
 	m.in_village = false
 	m.in_forest = false
 	m.corridor_zone.clear_job()
+	m.observatory_zone.clear_job()
 	m.in_lake = false
 	m.in_hill = false
 	m.in_garden = false

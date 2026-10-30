@@ -87,6 +87,9 @@ func trial_done() -> bool: # cleared this round (the best time is kept across ro
 func corridor_done() -> bool: # the water corridor's answer lamps lit (v0.1.84, the owner's "1안"): the forest asks for it too
 	return m.corridor_q >= 6
 
+func observatory_done() -> bool: # the moon-watch observatory's answer lamps lit (v0.1.120, the same "1안"): the castle asks for it too
+	return m.observatory_q >= 6
+
 func workshop_done() -> bool: # the deep workshop's cradle let go
 	return m.work_q >= 5
 
@@ -99,7 +102,7 @@ func holds(area: String) -> bool:
 	match area:
 		"forest": return m.forest_q < 1 and not (m.tokens[PEARL] and pond_done() and corridor_done())
 		"hill": return m.hill_q < 1 and not (m.tokens[SQUIRRELS] and valley_done())
-		"castle": return m.castle_q < 1 and not (mill_done() and trial_done())
+		"castle": return m.castle_q < 1 and not (mill_done() and trial_done() and observatory_done())
 		"knight": return m.castle_q < 2 and not m.castle.door_open and not workshop_done()
 		"stairs": return m.castle_q >= 3 and m.garden_q == 0 and not m.stairs_seen and not quarters_done()
 		"garden": return m.road_q == 0 and m.garden_q == 0 and count() < STAIRS_NEED
@@ -112,7 +115,9 @@ func missing(area: String) -> String:
 		"hill": return "squirrels" if not m.tokens[SQUIRRELS] else "valley"
 		"castle":
 			if not mill_done() and not trial_done(): return "both"
-			return "mill" if not mill_done() else "trial"
+			if not mill_done(): return "mill"
+			if not trial_done(): return "trial"
+			return "observatory"
 	return area
 
 # a gate: true lets her through. Held, it sets Sora back a step from the mark and opens the story box.
@@ -168,6 +173,7 @@ func hill_line() -> String:
 		match missing("castle"):
 			"mill": return "성으로 가기 전에: 참새 방앗간을 되살리자"
 			"trial": return "성으로 가기 전에: 달빛 시련을 마치자"
+			"observatory": return "성으로 가기 전에: 달맞이 관측원에서 바람 신호를 보내자"
 		return "성으로 가기 전에: 참새 방앗간을 되살리고 달빛 시련을 마치자"
 	return "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
 
@@ -220,7 +226,7 @@ func gate_lines() -> Array:
 	var rows := [
 		["forest", m.lake_q >= 4, "숲으로 가는 문", [["물빛 진주", m.tokens[PEARL]], ["아랫못의 물시계", pond_done()], ["물길 회랑", corridor_done()]]],
 		["hill", m.forest_q >= 3, "언덕으로 가는 문", [["다람쥐 다섯", m.tokens[SQUIRRELS]], ["남쪽 골짜기의 기억", valley_done()]]],
-		["castle", m.hill_q >= 3, "성으로 가는 문", [["참새 방앗간", mill_done()], ["달빛 시련", trial_done()]]],
+		["castle", m.hill_q >= 3, "성으로 가는 문", [["참새 방앗간", mill_done()], ["달빛 시련", trial_done()], ["달맞이 관측원", observatory_done()]]],
 		["knight", m.castle_q >= 1, "옥좌의 방 달의 문", [["작업장의 수리 요람", workshop_done()]]],
 		["stairs", m.castle_q >= 3, "달의 계단", [["숙소의 깡통 문지기", quarters_done()]]],
 	]

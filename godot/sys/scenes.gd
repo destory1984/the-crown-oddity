@@ -131,6 +131,9 @@ const SCENES := {
 	"corridor_arm": {"play": true, "village": true, "corridor": 3, "cq": 4, "boss": true, "arm": true, "hour": 15.0}, # the keeper's arm warning held
 	"corridor_ring": {"play": true, "village": true, "corridor": 3, "cq": 4, "boss": true, "ring": true, "hour": 15.0}, # the keeper's ring warning held
 	"corridor_boss": {"play": true, "village": true, "corridor": 3, "cq": 4, "boss": true, "hour": 15.0}, # the sluice-keeper with its lane showing
+	"observatory": {"play": true, "village": true, "observatory": 3, "oq": 4, "bits": 3, "hour": 20.0, "cat": Vector2(13, 12)}, # 달맞이 관측원 (v0.1.120): the top room, two mirrors set
+	"observatory_hill": {"play": true, "village": true, "observatory": -1, "hour": 17.0}, # the stair up on the hill
+	"observatory1": {"play": true, "village": true, "observatory": 0, "oq": 1, "hour": 17.0, "cat": Vector2(6, 13.5)}, # the first floor, the wind on
 	"corridor_stairs": {"play": true, "village": true, "corridor": -1, "hour": 15.0}, # the stair on the island
 	"altar_grotto": {"play": true, "village": true, "crab": true, "hour": 21.0, "altar": true}, # the nova's altar in the crab's room
 	"workshop2": {"play": true, "village": true, "castle": true, "workshop": 2, "hour": 16.0}, # B2: the lid lifted, the stopper bare
@@ -523,6 +526,40 @@ func apply_test_args(args: PackedStringArray) -> void:
 					m.player.z = sc.cat.y
 				m.snap_mates()
 				m.corridor_zone.refresh_quest()
+		if sc.has("observatory"): # the moon-watch observatory: "observatory" the room (-1: the hill's stair), "oq" the quest, "bits" the top room's mirrors
+			m.night_q = 4
+			m.lake_q = 4
+			m.forest_q = 3
+			m.hill_q = 3
+			m.mill_q = 5
+			m.trial_won = true
+			m.has_skip = true
+			m.join_mate()
+			m.join_noeul()
+			m.enter_hill()
+			m.close_story()
+			if int(sc.observatory) < 0:
+				m.player.x = m.hill.marks.O.x + 2.0
+				m.player.z = m.hill.marks.O.y + 2.0
+			else:
+				var r: int = int(sc.observatory)
+				m.observatory_q = int(sc.get("oq", 1))
+				m.obs_sec[0].record_read = true
+				if r == 3:
+					m.obs_sec[3].record_read = true
+					m.obs_sec[3].wind = true
+					m.obs_bits = int(sc.get("bits", 0))
+				else:
+					m.obs_sec[r].wind = true
+				m.observatory_zone.repair()
+				m.observatory_zone.apply_state()
+				m.observatory_zone.enter_room(r, false)
+				m.close_story()
+				if sc.has("cat"): # a spot in the room, local tile
+					m.player.x = m.obs.origin(r) + sc.cat.x
+					m.player.z = sc.cat.y
+				m.snap_mates()
+				m.observatory_zone.refresh_quest()
 		if sc.get("hill", false): # the wind hills, one mill turning, Mulgyeol and Noeul along
 			m.night_q = 4
 			m.lake_q = 4

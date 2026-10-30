@@ -809,6 +809,8 @@ func journal_lines() -> Array:
 		side.call("바람개비 경주", tr("최고 기록 %.1f초") % m.race_best if m.race_best > 0.0 else tr("언덕 남서쪽 깃대에서"))
 	if m.cloud_q >= 1:
 		side.call("보이지 않는 구름길", tr("끝") if m.has_shard else tr("첫 섬 남쪽에서 E로 길을 비춰 보자"))
+	if m.observatory_q >= 1 or (m.hill_q >= 3 and m.mill_q >= 5 and m.trial_won):
+		side.call("달맞이 관측원", m.observatory_zone.journal())
 	if m.hill_q >= 3:
 		side.call("구름 둔덕", tr("끝") if m.cloud_q >= 3 else tr("언덕 북쪽 바람구멍으로"))
 	if m.castle_q >= 3:
@@ -884,6 +886,7 @@ func keepsakes() -> Array:
 	add.call(m.has_oar_ring, tr("삿대 고리"), tr("동료의 한 방이 소라 공격력의 25%에서 30%로 세진다"), "item")
 	add.call(m.has_whistle, tr("물지기 호루라기"), tr("물결이 쓰러져도 10초 대신 5초 만에 일어난다"), "item")
 	add.call(m.corr_reward, tr("회랑 물매듭"), tr("물길 회랑을 건너온 징표"), "item")
+	add.call(m.obs_reward, tr("달맞이 눈금판"), tr("노을과 같은 방향으로 맞춘 신호의 눈금"), "item")
 	add.call(m.has_oil, tr("달지기 기름병"), tr("회복약을 마시면 기세도 20 찬다"), "item")
 	add.call(m.shore_q == 3, tr("보리의 등불"), tr("깨어난 물가에서 보리가 건넨 등불"), "item")
 	add.call(m.has_cushion, tr("갈대 방석"), tr("밤에 등불 곁에서 쉬면 체력이 1초에 4씩 찬다"), "item")

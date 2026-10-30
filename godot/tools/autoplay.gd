@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -283,6 +283,64 @@ func corr_foes() -> Array:
 func corr_kill(list: Array) -> void:
 	for e in list:
 		main.damage_enemy(e, 99999.0, Vector2(e.x, e.z - 1.0), 0.0, true)
+
+# ---- 달맞이 관측원 tests (v0.1.120): the world around the observatory, a room with the state of quest step q, a press of E at a device
+func obs_world() -> void:
+	main.close_story()
+	main.in_village = false
+	main.in_forest = false
+	main.in_lake = false
+	main.in_garden = false
+	main.in_cave = false
+	main.in_hill = true
+	main.night_q = 4
+	main.lake_q = 4
+	main.forest_q = 3
+	main.hill_q = 3
+	main.mill_q = 5
+	main.trial_won = true
+	main.has_skip = true
+	main.join_mate()
+	main.join_noeul()
+	main.mate_down["mulgyeol"] = 0.0
+	main.mate_down["noeul"] = 0.0
+
+func obs_foes() -> Array:
+	return main.enemies.filter(func(e): return not e.dead and (e.get("scalebird", false) or e.get("obs_prep", false) or e.get("moth_boss", false)))
+
+func obs_kill(list: Array) -> void:
+	for e in list:
+		main.damage_enemy(e, 99999.0, Vector2(e.x, e.z - 1.0), 0.0, true)
+
+func obs_prep(q: int, r: int) -> void:
+	obs_world()
+	obs_kill(obs_foes()) # the last test's bricks are gone
+	main.obs_sec = main.observatory_zone.fresh_sections()
+	main.obs_bits = 0
+	main.obs_reward = false
+	main.obs_told = false
+	main.obs_top_tested = false
+	main.obs_ordeal = false
+	main.obs_relay = 0
+	main.observatory_q = q
+	var Z = main.observatory_zone
+	Z.clear_fight()
+	Z.clear_job()
+	Z.spawned = [false, false, false, false]
+	Z.lights_t = -1.0
+	Z.relay_told = false
+	Z.repair()
+	Z.apply_state()
+	Z.enter_room(r, false)
+	main.close_story()
+	main.player.hp = float(main.player.max_hp)
+
+# stand beside a device and press E; the story box a device opens stays for the test to read
+func obs_press(letter: String, r: int, i := 0, off := Vector2(0.9, 0)) -> void:
+	var p: Vector2 = main.obs.at(r, letter, i)
+	reset_to(p + off)
+	tap(KEY_E)
+	await wait(0.25)
 
 func run() -> void:
 	var want := func(n): return only == "all" or n in only.split(",")
@@ -2807,6 +2865,7 @@ func run() -> void:
 		main.tokens[4] = true # the way to the castle asks for the hill deed (v0.1.62)
 		main.mill_q = 5 # both the mill and the trial since v0.1.68
 		main.trial_won = true
+		main.observatory_q = 6 # and the observatory since v0.1.120
 		main.work_q = 5 # and the moon door opens only after the deep workshop (v0.1.68)
 		main.work_seen = true # the workshop door's first look (a story box within 6 tiles of it) would stop the vent crossing
 		main.has_unbrick = true
@@ -9197,6 +9256,7 @@ func run() -> void:
 		main.moon_tokens.earn(4) # the deed done: the need line goes back to the road
 		main.mill_q = 5 # both the mill and the trial (v0.1.68)
 		main.trial_won = true
+		main.observatory_q = 6 # and the observatory (v0.1.120)
 		main.moon_tokens.refresh_quest()
 		var back3: bool = main.quest_raw == "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
 		reset_to(hx + Vector2(-0.3, 0))
@@ -9742,8 +9802,9 @@ func run() -> void:
 		var mark_trial: bool = mt2 != Vector3.INF and Vector2(mt2.x, mt2.z).distance_to(main.hill.marks.R) < 0.1
 		var jl: String = plain("\n".join(PackedStringArray(main.journal_lines())))
 		var jour: bool = "참새 방앗간 끝" in jl and "달빛 시련 아직" in jl
-		# both: the line goes back to the road and the gate opens
+		# both: the line goes back to the road and the gate opens (with the observatory answered, v0.1.120)
 		main.trial_won = true
+		main.observatory_q = 6
 		main.moon_tokens.refresh_quest()
 		var back: bool = main.quest_raw == "언덕 동쪽 끝 길로, 달지기들의 성에 가자"
 		reset_to(hx + Vector2(-0.3, 0))
@@ -10952,6 +11013,703 @@ func run() -> void:
 		var fresh: bool = main.corridor_q == 0 and not main.corr_reward and main.corr_bits == 0 and not main.corr_sec[2].latch_fixed and not main.corridor.gate_open[0]
 		check("corridor_round", dropped and fresh, "new-round save has no corridor keys=%s; loading it starts at q0 with no knot and shut gates=%s" % [dropped, fresh])
 		main.corridor_zone.load_data({"corridor_q": 6})
+		main.return_to_start()
+
+	# ---- 달맞이 관측원 (v0.1.120, the owner's "1안" 2026-10-29): the hill's stair, four rooms, the ordeal, the moth, the answer stand
+	if want.call("obs_enter"):
+		calm_enemies(true)
+		obs_world()
+		var keep_q: Array = [main.hill_q, main.mill_q, main.trial_won, main.castle_q]
+		main.observatory_q = 0
+		main.castle_q = 0
+		main.hill_q = 1 # (2 would call the hawk's talk: the perch is 4 tiles off)
+		reset_to(main.hill.marks.O + Vector2(0, 0.3))
+		main.toast_t = 0.0
+		await wait(0.7)
+		var no_hawk: bool = not main.in_observatory() and main.observatory_q == 0
+		main.hill_q = 3
+		main.mill_q = 4
+		reset_to(main.hill.marks.O + Vector2(0, 0.3))
+		main.toast_t = 0.0
+		await wait(0.7)
+		var no_mill: bool = not main.in_observatory() and main.observatory_q == 0
+		main.mill_q = 5
+		main.trial_won = false
+		reset_to(main.hill.marks.O + Vector2(0, 0.3))
+		main.toast_t = 0.0
+		await wait(0.7)
+		var no_trial: bool = not main.in_observatory() and main.observatory_q == 0
+		main.trial_won = true
+		reset_to(main.hill.marks.O + Vector2(0, 0.3))
+		await wait(1.5)
+		var inside: bool = main.in_observatory() and main.observatory_q == 1 and main.story_open and main.in_hill and not main.in_corridor() and not main.in_lake
+		main.close_story()
+		var at_s: bool = main.obs.room_of(main.player.x) == 0 and Vector2(main.player.x, main.player.z).distance_to(main.obs.at(0, "S") + Vector2(1, 0)) < 0.6
+		var zone: bool = main.ui.zone_name.text == "달맞이 관측원"
+		# eight maps in four rooms: 30 x 22, a wall all round, origins 900/940/980/1020, the gap in cols 8..10, and S reaches D reaches N or C
+		var dims := true
+		var reach := true
+		var gaps := true
+		for r in 4:
+			var g: Array = main.obs.grids[r]
+			dims = dims and g.size() == 22 and g.all(func(row): return row.length() == 30 and row[0] == "#" and row[29] == "#") and g[0] == "#".repeat(30) and g[21] == "#".repeat(30)
+			dims = dims and main.obs.origin(r) == 900 + 40 * r
+			var goal: String = "N" if r < 3 else "C"
+			reach = reach and main.obs.at(r, "S") != Vector2.INF and main.obs.at(r, goal) != Vector2.INF
+			if r < 3:
+				var d: Vector2 = main.obs.at(r, "D")
+				reach = reach and d != Vector2.INF and main.obs.at(r, "S").x < d.x and d.x < main.obs.at(r, "N").x and d.y == main.obs.at(r, "S").y
+				for z in 22:
+					if z != int(d.y):
+						reach = reach and main.obs.grids[r][z][20] == "#"
+					if z > 0 and z < 21:
+						gaps = gaps and g[z].substr(8, 3) == "___"
+				gaps = gaps and main.obs.at(r, "O").x == main.obs.origin(r) + 7 and main.obs.at(r, "T").x == main.obs.origin(r) + 12 and main.obs.at(r, "Q").y == main.obs.at(r, "R").y - 3
+		# no other area's test fits where the rooms are, and the corridor stops where they begin
+		var apart := true
+		for px in [900.0, 940.0, 980.0, 1020.0, 1049.0]:
+			var keep_x: float = main.player.x
+			main.player.x = px
+			apart = apart and main.in_observatory() and not main.in_corridor() and not main.in_castle() and not main.in_workshop() and not main.in_cloud() and not main.in_stairs() and not main.in_under() and not main.in_grotto()
+			main.player.x = keep_x
+		var keep_hill: bool = main.in_hill
+		main.in_hill = false
+		main.in_lake = true
+		var keep_px: float = main.player.x
+		main.player.x = 899.0
+		var last_corr: bool = main.in_corridor() and not main.in_observatory()
+		main.player.x = 900.0
+		var first_obs: bool = not main.in_corridor()
+		main.player.x = keep_px
+		main.in_lake = false
+		main.in_hill = keep_hill
+		var wall_water: bool = main.tile_at(900.0, 0.0) == main.WATER and main.tile_at(main.obs.at(0, "S").x + 1.0, 10.0) == main.GRASS and main.tile_at(909.0, 10.0) == main.WATER
+		# the stair out: back on the hill by O
+		reset_to(main.obs.at(0, "S") + Vector2(0.3, 0))
+		await wait(1.5)
+		var out: bool = not main.in_observatory() and main.in_hill and Vector2(main.player.x, main.player.z).distance_to(main.hill.marks.O) < 2.0
+		check("obs_enter", no_hawk and no_mill and no_trial and inside and at_s and zone and dims and reach and gaps and apart and last_corr and first_obs and wall_water and out,
+			"O shut without the hawk=%s, the mill=%s, the trial=%s; entered q1 with the talk=%s beside S=%s, zone=%s; maps 30x22 walled, origins, gap, S to D to N/C=%s/%s/%s, no clash=%s, the corridor ends at 899=%s/%s, wall=%s, stair out=%s" % [no_hawk, no_mill, no_trial, inside, at_s, zone, dims, reach, gaps, apart, last_corr, first_obs, wall_water, out])
+		calm_enemies(false)
+		main.hill_q = keep_q[0]
+		main.mill_q = keep_q[1]
+		main.trial_won = keep_q[2]
+		main.castle_q = keep_q[3]
+		main.in_hill = false
+		main.observatory_q = 6
+
+	if want.call("obs_s1"):
+		# floor 1: the note, the windmill, the wind hole's gust over the gap, the swivel platform, Noeul's post, the mirror, the receiver
+		calm_enemies(true)
+		await obs_prep(1, 0)
+		obs_kill(obs_foes())
+		var C = main.obs
+		var Z = main.observatory_zone
+		var o: int = C.origin(0)
+		var D: Vector2 = C.at(0, "D")
+		var shut: bool = not main.walkable(D.x, D.y) and main.tile_at(D.x, D.y) == main.WATER
+		await obs_press("M", 0)
+		var note_first: bool = not main.obs_sec[0].wind
+		await obs_press("H", 0)
+		var read: bool = main.obs_sec[0].record_read and main.story_open
+		main.close_story()
+		# walking does not cross the gap, and the hole sleeps until the windmill turns
+		reset_to(Vector2(o + 6.0, 5.0))
+		hold_world(Vector2(1, 0))
+		await wait(1.0)
+		release()
+		var walk_stops: bool = main.player.x < o + 8.0
+		var dormant: bool = Z.vent_at(o + 7.0, 10.0) == Vector2.ZERO
+		await obs_press("M", 0)
+		var wind: bool = main.obs_sec[0].wind and Z.vent_at(o + 7.0, 10.0) == Vector2(1, 0) and C.wind_on[0]
+		# the hole carries her across: 8 tiles a second over the three tiles of gap, onto the far bank
+		reset_to(Vector2(o + 5.5, 10.0))
+		hold_world(Vector2(1, 0))
+		await wait(0.5)
+		release()
+		await wait(1.2)
+		var crossed: bool = main.player.x > o + 11.0 and main.player.x < o + 13.0 and absf(main.player.z - 10.0) < 0.6 and main.gust_dir == Vector2.ZERO
+		var mates_land: bool = Vector2(main.mate.position.x, main.mate.position.z).distance_to(Vector2(main.player.x, main.player.z)) < 4.0 and Vector2(main.mate2.position.x, main.mate2.position.z).distance_to(Vector2(main.player.x, main.player.z)) < 4.0
+		# the swivel platform: 2 s to turn, then rows 9..11 of cols 8..10 are floor; nobody on it, and not cut off from the far bank
+		await obs_press("T", 0, 0, Vector2(0.9, 0))
+		var turning: bool = not Z.trans.is_empty() and not C.plat_open[0] and not main.walkable(o + 9.0, 10.0)
+		await wait(2.4)
+		var bridged: bool = main.obs_sec[0].angle == 1 and C.plat_open[0] and main.walkable(o + 9.0, 10.0) and main.walkable(o + 8.0, 9.0) and main.walkable(o + 10.0, 11.0) and not main.walkable(o + 9.0, 12.0) and not main.walkable(o + 9.0, 8.0) and Z.vent_at(o + 7.0, 10.0) == Vector2.ZERO
+		reset_to(Vector2(o + 9.0, 10.0))
+		Z.key_t(0)
+		var on_it: bool = Z.trans.is_empty() and main.obs_sec[0].angle == 1
+		reset_to(Vector2(o + 11.5, 10.0))
+		Z.key_t(0)
+		var cut_off: bool = Z.trans.is_empty() and main.obs_sec[0].angle == 1
+		reset_to(Vector2(o + 6.0, 10.0))
+		hold_world(Vector2(1, 0))
+		await wait(1.6)
+		release()
+		var walks_over: bool = main.player.x > o + 11.0 and main.gust_dir == Vector2.ZERO
+		reset_to(Vector2(o + 11.5, 10.0))
+		hold_world(Vector2(-1, 0))
+		await wait(1.2)
+		release()
+		var walks_back: bool = main.player.x < o + 8.0 and main.gust_dir == Vector2.ZERO
+		# Noeul's post, then the mirror (two quarter turns from south to north) and the receiver
+		await obs_press("P", 0)
+		await wait(1.8)
+		var posted: bool = Z.post_room == 0 and main.mate2_job.get("kind", "") == "obs_post" and Vector2(main.mate2.position.x, main.mate2.position.z).distance_to(C.at(0, "P")) < 0.4
+		await obs_press("Q", 0)
+		var q_dark: bool = main.observatory_q == 1 and not main.obs_sec[0].fixed
+		await obs_press("R", 0)
+		await obs_press("R", 0)
+		var true_mirror: bool = main.obs_sec[0].mirror_dir == 0 and C.grooves[0][1].emission_energy_multiplier > 1.0
+		Z.release_post()
+		await obs_press("Q", 0)
+		var needs_hand: bool = main.observatory_q == 1
+		await obs_press("P", 0)
+		await wait(0.4)
+		await obs_press("Q", 0)
+		var fixed: bool = main.obs_sec[0].fixed and main.observatory_q == 2 and C.gate_open[0] and main.walkable(D.x, D.y) and Z.post_room == -1 and main.mate2_job.is_empty()
+		reset_to(C.at(0, "N") + Vector2(-0.5, 0))
+		await wait(1.5)
+		var onward: bool = main.obs.room_of(main.player.x) == 1 and main.ui.zone_sub.text == "관측원 · 꺼진 빛"
+		check("obs_s1", shut and note_first and read and walk_stops and dormant and wind and crossed and mates_land and turning and bridged and on_it and cut_off and walks_over and walks_back and posted and q_dark and true_mirror and needs_hand and fixed and onward,
+			"D shut=%s; M waits for the note=%s, note read=%s; walking stops=%s, hole sleeps=%s then blows=%s, gust crosses=%s, friends land=%s; platform turns=%s, bridges=%s, refuses on it=%s and from the far bank=%s, walk over=%s and back=%s; post=%s; receiver dark=%s, mirror true=%s, needs the hand=%s; fixed, gate open, post freed=%s; next floor=%s" % [shut, note_first, read, walk_stops, dormant, wind, crossed, mates_land, turning, bridged, on_it, cut_off, walks_over, walks_back, posted, q_dark, true_mirror, needs_hand, fixed, onward])
+		calm_enemies(false)
+		main.in_hill = false
+		main.observatory_q = 6
+
+	if want.call("obs_s2"):
+		# floor 2: the scale-birds (stats, one lane then one brick, folded wings, no knockback, no crossing), the lantern, the mirror, the hand
+		calm_enemies(true)
+		await obs_prep(2, 1)
+		hold_mates()
+		var C = main.obs
+		var Z = main.observatory_zone
+		var o: int = C.origin(1)
+		main.mate_down["mulgyeol"] = 999.0 # friends down, so no brick stops on one of them in the lane
+		main.mate_down["noeul"] = 999.0
+		var birds: Array = obs_foes()
+		var two: bool = birds.size() == 2 and birds.all(func(e): return e.get("scalebird", false) and e.max_hp == 30 + main.foe_lv() * 14)
+		var b: Dictionary = birds[0]
+		var b2: Dictionary = birds[1]
+		b2.atk_cd = 99.0
+		b2.x = o + 2.0
+		b2.z = 19.0
+		b.x = o + 15.0
+		b.z = 6.0
+		# standing in its line 4 tiles off: 1.1 s of warning, then one brick, then the wings fold 2 s with the seams open
+		b.atk_cd = 0.0
+		b.fold = 0.0
+		reset_to(Vector2(o + 19.0, 6.0))
+		main.player.inv = 0.0
+		var hp0: float = main.player.hp
+		await wait(0.4)
+		var warned: bool = b.tele_t > 0.0 and b.get("tele", null) != null and absf(b.face.x) > 0.9
+		await wait_for(func(): return b.fold > 1.0, 2.0)
+		var shot: bool = b.fold > 1.0 and b.seam > 1.0
+		main.player.inv = 0.0
+		await wait(1.2)
+		var lane_hit: bool = main.player.hp < hp0 - 0.01
+		# the same line, Sora steps out of it during the warning: nothing lands
+		b.atk_cd = 0.0
+		b.fold = 0.0
+		b.seam = 0.0
+		b.x = o + 15.0
+		b.z = 6.0
+		reset_to(Vector2(o + 19.0, 6.0))
+		main.player.inv = 0.0
+		var hp1: float = main.player.hp
+		await wait(0.3)
+		main.player.z = 9.0
+		await wait(2.2)
+		var lane_miss: bool = main.player.hp >= hp1 - 0.01
+		main.damage_enemy(b, 1.0, Vector2(b.x - 1.0, b.z), 5.0)
+		await wait(0.1)
+		var no_kb: bool = absf(b.kx) + absf(b.kz) < 0.01
+		# it does not come over the gap after her
+		b.x = o + 11.5
+		b.z = 10.0
+		b.fold = 0.0
+		b.seam = 0.0
+		b.atk_cd = 99.0
+		reset_to(Vector2(o + 5.0, 10.0))
+		await wait(1.5)
+		var stays: bool = b.x > o + 10.4
+		obs_kill([b, b2])
+		# the lantern, the hand and the mirror: the receiver shows the missing piece each time
+		await obs_prep(2, 1)
+		hold_mates()
+		var live: Array = obs_foes()
+		for e in live:
+			e.atk_cd = 99.0
+		main.obs_sec[1].wind = true
+		main.obs_sec[1].mirror_dir = 0
+		Z.apply_state()
+		Z.place_post(1)
+		await obs_press("Q", 1)
+		var birds_block: bool = main.observatory_q == 2
+		obs_kill(obs_foes())
+		await obs_press("Q", 1)
+		var lamp_first: bool = main.observatory_q == 2
+		var dark_run: bool = C.grooves[1][2].emission_energy_multiplier < 0.5
+		await obs_press("L", 1, 1)
+		var lit: bool = main.obs_sec[1].lamp_lit and C.grooves[1][2].emission_energy_multiplier > 1.0 and C.grooves[1][0].emission_energy_multiplier > 1.0
+		Z.release_post()
+		await obs_press("Q", 1)
+		var hand_first: bool = main.observatory_q == 2
+		await obs_press("P", 1)
+		await wait(0.4)
+		await obs_press("Q", 1)
+		var fixed: bool = main.obs_sec[1].fixed and main.observatory_q == 3 and C.gate_open[1] and main.mate2_job.is_empty()
+		check("obs_s2", two and warned and shot and lane_hit and lane_miss and no_kb and stays and birds_block and lamp_first and dark_run and lit and hand_first and fixed,
+			"two scale-birds, hp 30+14 a level=%s; lane warned=%s, one brick then folded=%s, hit in the lane=%s, miss out of it=%s; no knockback=%s; stays on its bank=%s; living birds block the receiver=%s; the lantern first=%s (run dark=%s), lit=%s; the hand first=%s; fixed q3=%s" % [two, warned, shot, lane_hit, lane_miss, no_kb, stays, birds_block, lamp_first, dark_run, lit, hand_first, fixed])
+		calm_enemies(false)
+		main.in_hill = false
+		main.observatory_q = 6
+
+	if want.call("obs_s3"):
+		# floor 3: the first gust shakes the signal once, then Noeul's hand holds it
+		calm_enemies(true)
+		await obs_prep(3, 2)
+		obs_kill(obs_foes())
+		var C = main.obs
+		var Z = main.observatory_zone
+		var o: int = C.origin(2)
+		await obs_press("M", 2)
+		var wind: bool = main.obs_sec[2].wind
+		await obs_press("R", 2)
+		await obs_press("R", 2)
+		var mirror: bool = main.obs_sec[2].mirror_dir == 0
+		await obs_press("Q", 2)
+		var gust: bool = main.obs_sec[2].gust_seen and main.observatory_q == 3 and not main.obs_sec[2].fixed and not main.story_open
+		var line: bool = plain(main.quest_raw) == "노을에게 흔들리는 손을 맡기자 (E)"
+		await obs_press("Q", 2)
+		var again_no: bool = main.observatory_q == 3 and not main.obs_sec[2].fixed
+		await obs_press("P", 2)
+		await wait(0.4)
+		await obs_press("Q", 2)
+		var done: bool = main.obs_sec[2].fixed and main.observatory_q == 4 and C.gate_open[2] and main.story_open
+		main.close_story()
+		check("obs_s3", wind and mirror and gust and line and again_no and done,
+			"wind on=%s, mirror north=%s; first signal shaken once, no talk=%s, the line asks for the hand=%s, still not without the hand=%s; with the hand q4 and the talk=%s" % [wind, mirror, gust, line, again_no, done])
+		calm_enemies(false)
+		main.in_hill = false
+		main.observatory_q = 6
+
+	if want.call("obs_top"):
+		# the top room: the note, the wind, three mirrors west to east with a group each, the break (Sora alone), the relay with Noeul, the test signal
+		calm_enemies(true)
+		await obs_prep(4, 3)
+		var C = main.obs
+		var Z = main.observatory_zone
+		var o: int = C.origin(3)
+		var mark_h: bool = absf(Z.next_spot().x - C.at(3, "H").x) < 0.01
+		await obs_press("R", 3, 0, Vector2(0.0, 0.9))
+		var note_first: bool = main.obs_sec[3].dirs[0] == 2
+		await obs_press("H", 3)
+		var read: bool = main.obs_sec[3].record_read and main.story_open
+		main.close_story()
+		var mark_m: bool = absf(Z.next_spot().x - C.at(3, "M").x) < 0.01
+		await obs_press("R", 3, 0, Vector2(0.0, 0.9))
+		var wind_first: bool = main.obs_sec[3].dirs[0] == 2
+		await obs_press("M", 3)
+		var wind: bool = main.obs_sec[3].wind and C.grooves[3][0].emission_energy_multiplier > 1.0
+		var mark_r: bool = absf(Z.next_spot().x - C.at(3, "R", 0).x) < 0.01
+		await obs_press("R", 3, 1, Vector2(0.0, 0.9))
+		var order: bool = main.obs_sec[3].dirs[1] == 2 and Z.group_active < 0
+		var gold0: int = main.player.gold
+		var groups := true
+		for i in 3:
+			var presses: int = 3 if i < 2 else 1 # west and middle turn south to east in three quarter turns, the east one is true already
+			for k in presses:
+				await obs_press("R", 3, i, Vector2(0.0, 0.9))
+			var fs: Array = obs_foes()
+			var comp: bool = Z.group_active == i and fs.size() == 3 and fs.filter(func(e): return e.get("bat", false)).size() == 2 and fs.filter(func(e): return e.get("archer", false)).size() == 1
+			await obs_press("R", 3, i, Vector2(0.0, 0.9)) # again while the group fights: refused
+			var still: bool = obs_foes().size() == 3 and main.obs_bits == [0, 1, 3][i]
+			var mark_foe: bool = Z.next_spot() != Vector3.INF
+			obs_kill(fs)
+			await wait(0.4)
+			groups = groups and comp and still and mark_foe and main.obs_bits == [1, 3, 7][i] and Z.group_active < 0 and main.player.gold == gold0 + 20 * (i + 1)
+		var dirs_ok: bool = main.obs_sec[3].dirs == [1, 1, 2]
+		var mark_q: bool = absf(Z.next_spot().x - C.at(3, "Q").x) < 0.01
+		# the first signal: Sora alone, the bracelets go dark, the mirrors turn back; no gauge, hp or purse is touched
+		var pips0: int = main.crown_pips
+		var hp0: float = main.player.hp
+		var pots0: int = main.player.pots
+		var gold1: int = main.player.gold
+		await obs_press("Q", 3)
+		var broke: bool = main.obs_ordeal and main.story_open and not main.obs_top_tested and main.obs_sec[3].dirs == [2, 2, 2] and main.obs_bits == 7 and Z.dark
+		var nothing_lost: bool = main.crown_pips == pips0 and main.player.hp == hp0 and main.player.pots == pots0 and main.player.gold == gold1
+		main.close_story()
+		await wait_for(func(): return Vector2(main.mate2.position.x, main.mate2.position.z).distance_to(C.at(3, "P")) < 0.6, 7.0)
+		var gone_dark: bool = not C.bracelet.visible and Z.dark
+		var waits_at_p: bool = main.mate2_job.get("kind", "") == "obs_post" and Z.post_room == -1 and Vector2(main.mate2.position.x, main.mate2.position.z).distance_to(C.at(3, "P")) < 0.6
+		var mark_p: bool = absf(Z.next_spot().x - C.at(3, "P").x) < 0.01
+		# the relay: nothing works without the hand; then west to east again, saved at each mirror
+		await obs_press("Q", 3)
+		var q_no: bool = not main.obs_top_tested and Z.busy_t == 0.0
+		await obs_press("R", 3, 0, Vector2(0.0, 0.9))
+		var r_no: bool = main.obs_sec[3].dirs[0] == 2 and main.obs_relay == 0
+		var bubbles0: int = main.bubbles_said
+		await obs_press("P", 3)
+		var placed: bool = Z.post_room == 3 and Z.relay_told and main.bubbles_said >= bubbles0 + 1
+		await obs_press("R", 3, 1, Vector2(0.0, 0.9))
+		var west_first: bool = main.obs_relay == 0 and main.obs_sec[3].dirs[1] == 2
+		var no_new_foes: bool = obs_foes().is_empty()
+		for k in 3:
+			await obs_press("R", 3, 0, Vector2(0.0, 0.9))
+		var one: bool = main.obs_relay == 1 and main.obs_sec[3].dirs[0] == 1 and main.bubbles_said >= bubbles0 + 2
+		var sd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var saved1: bool = int(sd.get("observatory_relay_bits", -1)) == 1 and bool(sd.get("observatory_ordeal_started", false)) and not bool(sd.get("observatory_top_tested", true))
+		await obs_press("Q", 3)
+		var early_q: bool = not main.obs_top_tested and Z.busy_t == 0.0
+		for k in 3:
+			await obs_press("R", 3, 1, Vector2(0.0, 0.9))
+		await obs_press("R", 3, 2, Vector2(0.0, 0.9)) # the east mirror is true already: E sets it
+		var all_three: bool = main.obs_relay == 7 and main.obs_sec[3].dirs == [1, 1, 2] and main.obs_bits == 7 and no_new_foes and obs_foes().is_empty()
+		var mark_q2: bool = absf(Z.next_spot().x - C.at(3, "Q").x) < 0.01
+		await obs_press("Q", 3)
+		var hand_held: bool = Z.busy_t > 0.0 and not main.obs_top_tested
+		await wait(1.3)
+		var rekindled: bool = main.obs_top_tested and main.story_open and not Z.dark and main.observatory_q == 4
+		reset_to(Vector2(o + 3.0, 16.0)) # away from the moth's spot, so its talk does not start yet
+		main.close_story()
+		await wait(0.3)
+		var glow_back: bool = C.bracelet.visible
+		var mark_b: bool = absf(Z.next_spot().x - C.at(3, "B").x) < 0.01
+		check("obs_top", mark_h and note_first and read and mark_m and wind_first and wind and mark_r and order and groups and dirs_ok and mark_q and broke and nothing_lost and gone_dark and waits_at_p and mark_p and q_no and r_no and placed and west_first and one and saved1 and early_q and all_three and mark_q2 and hand_held and rekindled and glow_back and mark_b,
+			"note first=%s/%s, read=%s; wind first=%s, blows=%s; marks H/M/R/Q=%s/%s/%s/%s; order=%s; three groups bat2+archer1 once each=%s, dirs 1,1,2=%s; the break: %s, nothing lost=%s; Noeul waits at P=%s (mark %s); without the hand: Q=%s, R=%s; post=%s; west first=%s; mirror one joined, saved=%s/%s; early Q=%s; all three joined, no new foes=%s, mark Q=%s; hand held=%s; test signal up with the talk=%s; mark B=%s" % [mark_h, note_first, read, wind_first, wind, mark_m, mark_r, mark_q, mark_q2, order, groups, dirs_ok, broke, nothing_lost, waits_at_p, mark_p, q_no, r_no, placed, west_first, one, saved1, early_q, all_three, mark_q2, hand_held, rekindled, mark_b])
+		calm_enemies(false)
+		main.in_hill = false
+		main.observatory_q = 6
+
+	if want.call("obs_boss"):
+		# the brick moth: three lines warned 1.3 s then one brick each, the cross below 60 %, half damage unless it rests, the window and the hand,
+		# the failed window reopens, a kill with no help, faint resets it, one reward, then the answer stand
+		calm_enemies(true)
+		await obs_prep(4, 3)
+		main.obs_bits = 7
+		main.obs_told = true
+		main.obs_ordeal = true
+		main.obs_top_tested = true
+		main.obs_relay = 7
+		main.obs_sec[3] = {"record_read": true, "wind": true, "dirs": [1, 1, 2], "sent": false}
+		var C = main.obs
+		var Z = main.observatory_zone
+		Z.repair()
+		Z.apply_state()
+		var B: Vector2 = C.at(3, "B")
+		Z.spawn_moth()
+		var e: Dictionary = Z.moth_alive()
+		var lone: bool = e != null and e.hp == 2400.0 and Z.post_room == 3 and main.mate2_job.get("kind", "") == "obs_post"
+		hold_mates()
+		main.mate_down["mulgyeol"] = 999.0 # Mulgyeol down, so no brick stops on him in the lane
+		# the fan is aimed when its warning starts: stand in the middle line, then (second time) leave it
+		var lane_hits := 0
+		var warned := false
+		for trial in 2:
+			e.st = "idle"
+			e.st_t = 0.0
+			e.hp = 2400.0
+			e.expo = 0.0
+			reset_to(B + Vector2(5.0, 0))
+			main.player.inv = 0.0
+			var hpa: float = main.player.hp
+			await wait(0.15)
+			warned = warned or (e.st == "warn" and e.tele_nodes.size() == 3)
+			if trial == 1:
+				main.player.x = B.x - 3.0
+				main.player.z = B.y + 6.0
+			await wait_for(func(): return e.st == "land", 3.0)
+			main.player.inv = 0.0
+			await wait(1.4)
+			var took: bool = main.player.hp < hpa - 0.01
+			lane_hits += (1 if took else 0) if trial == 0 else (100 if took else 0)
+			e.st = "idle"
+			e.st_t = 99.0
+			e.expo = 0.0
+			main.player.hp = float(main.player.max_hp)
+		var fan_ok: bool = warned and lane_hits == 1
+		# aloft or just up it takes half, resting with the axis open the full blow
+		var closed := 0.0
+		var open := 0.0
+		for k in 6:
+			e.expo = 0.0
+			var h0: float = e.hp
+			main.damage_enemy(e, 100.0, B + Vector2(2, 0), 0.0, true)
+			closed += h0 - e.hp
+			e.expo = 3.0
+			h0 = e.hp
+			main.damage_enemy(e, 100.0, B + Vector2(2, 0), 0.0, true)
+			open += h0 - e.hp
+			e.hp = 2400.0
+		var ratio: float = open / maxf(closed, 0.01)
+		var halves: bool = ratio > 1.7 and ratio < 2.3
+		# below 60 %: after the bricks a cross over its spot (arms 2 wide), the corners of the room are safe
+		var cross_hits := 0
+		var cross_seen := false
+		for trial in 2:
+			e.hp = 1100.0
+			e.st = "idle"
+			e.st_t = 0.0
+			e.expo = 0.0
+			reset_to(B + Vector2(6.0, 0))
+			main.player.inv = 0.0
+			await wait(0.15)
+			var ph2: bool = e.ph2
+			main.player.x = B.x - 12.0 if trial == 0 else B.x
+			main.player.z = B.y - 8.0 if trial == 0 else B.y + 3.0
+			await wait_for(func(): return e.st == "cross", 4.0)
+			cross_seen = (e.st == "cross" and e.tele_nodes.size() == 2 and ph2) if trial == 0 else cross_seen and e.st == "cross"
+			var hpc: float = main.player.hp
+			main.player.inv = 0.0
+			await wait_for(func(): return e.st == "slam", 2.5)
+			await wait(0.1)
+			var tookc: bool = main.player.hp < hpc - 0.01
+			cross_hits += (100 if tookc else 0) if trial == 0 else (1 if tookc else 0)
+			e.st = "idle"
+			e.st_t = 99.0
+			main.player.hp = float(main.player.max_hp)
+		var cross_ok: bool = cross_seen and cross_hits == 1
+		# every second pattern the window shows 6 s at the receiver; the hand stops the moth's clock 0.8 s, then it lands with the axis open 5 s
+		e.hp = 2400.0
+		e.pats = 1
+		e.st = "land"
+		e.st_t = 0.01
+		e.expo = 0.0
+		await wait(0.2)
+		var window: bool = e.assist > 5.0 and Z.next_spot() != Vector3.INF and absf(Z.next_spot().x - C.at(3, "Q").x) < 0.01
+		e.st = "warn"
+		e.st_t = 50.0
+		e.dir = Vector2(1, 0)
+		await obs_press("Q", 3)
+		await wait(0.4)
+		var clock_stands: bool = e.hand_t > 0.0 and e.st_t > 49.0 and e.st == "warn"
+		await wait(0.6)
+		var landed: bool = e.st == "land" and e.expo > 4.0 and e.hand_t <= 0.0 and e.assist <= 0.0
+		# a window that was not used opens again two patterns later, and the moth falls with no help at all
+		e.pats = 3
+		e.st = "land"
+		e.st_t = 0.01
+		e.expo = 0.0
+		await wait(0.2)
+		var reopens: bool = e.assist > 5.0
+		e.st = "idle"
+		e.st_t = 99.0
+		e.assist = 0.0
+		# the stair is shut while it stands; a faint wakes her at the stair with the moth starting over
+		reset_to(C.at(3, "S") + Vector2(0.3, 0))
+		await wait(0.6)
+		var shut: bool = main.in_observatory() and main.obs.room_of(main.player.x) == 3
+		main.sora.faint()
+		await wait(0.2)
+		var woke: bool = main.in_observatory() and Z.moth_alive() == null and main.observatory_q == 4 and main.obs_top_tested and main.obs_bits == 7 and main.player.hp == float(main.player.max_hp) and Vector2(main.player.x, main.player.z).distance_to(C.at(3, "S") + Vector2(1, 0)) < 0.6 and not main.ui.boss.visible
+		Z.spawn_moth()
+		e = Z.moth_alive()
+		var again: bool = e != null and e.hp == 2400.0
+		# the kill: q5, the scale, two potions, gold once
+		var g0: int = main.player.gold
+		var p0: int = main.player.pots
+		e.st_t = 99.0
+		e.hp = 1.0
+		main.damage_enemy(e, 100.0, B + Vector2(2, 0), 0.0, true)
+		await wait(1.6)
+		var beaten: bool = main.observatory_q == 5 and main.obs_reward and main.player.pots == p0 + 2 and main.player.gold >= g0 + 300 and main.player.gold <= g0 + 330 and not main.ui.boss.visible
+		var g1: int = main.player.gold
+		Z.boss_beaten()
+		var once: bool = main.player.gold == g1 and main.player.pots == p0 + 2
+		# the answer stand: the corridor's lamps first; then the hand's talk, the lamps, and the answer closes it
+		var tokens0: int = main.moon_tokens.count()
+		var keep_cq: int = main.corridor_q
+		main.corridor_q = 0
+		await obs_press("C", 3)
+		var corr_first: bool = not main.obs_sec[3].sent and main.observatory_q == 5
+		main.corridor_q = 6
+		await obs_press("C", 3)
+		var sent: bool = main.obs_sec[3].sent and main.observatory_q == 5 and main.story_open
+		main.close_story()
+		await obs_press("C", 3)
+		var wait_lamps: bool = main.observatory_q == 5
+		await wait(3.2)
+		await obs_press("C", 3)
+		var closed_q: bool = main.observatory_q == 6 and C.shortcut.visible
+		var opened: bool = not main.moon_tokens.holds("castle") or main.castle_q >= 1
+		var not_token: bool = main.moon_tokens.count() == tokens0 and main.tokens.size() == 6 and main.moon_tokens.STAIRS_NEED == 4
+		reset_to(C.at(3, "S") + Vector2(0.3, 0))
+		await wait(1.5)
+		var home: bool = not main.in_observatory() and main.in_hill and Vector2(main.player.x, main.player.z).distance_to(main.hill.marks.O) < 2.0
+		main.corridor_q = keep_cq
+		check("obs_boss", lone and fan_ok and halves and cross_ok and window and clock_stands and landed and reopens and shut and woke and again and beaten and once and corr_first and sent and wait_lamps and closed_q and opened and not_token and home,
+			"moth 2400=%s; fan warned and hit once, none off it=%s; half aloft (x%.2f)=%s; cross seen and only on the arms=%s; window at Q=%s, the hand stops its clock=%s then it lands open 5 s=%s; unused window reopens=%s; faint wakes at the stair, moth reset=%s %s; kill once: q5 scale 2 potions gold=%s/%s; stand: needs the corridor=%s, sent=%s, waits=%s, answer q6=%s, castle opens=%s; no token=%s; stair home=%s" % [lone, fan_ok, ratio, halves, cross_ok, window, clock_stands, landed, reopens, woke, again, beaten, once, corr_first, sent, wait_lamps, closed_q, opened, not_token, home])
+		calm_enemies(false)
+		main.in_hill = false
+		main.observatory_q = 6
+
+	if want.call("obs_save"):
+		# saved mid-ordeal: q, the four room dictionaries, the bits, the relay and the checkpoint come back; the room starts at its stair with Noeul at his post;
+		# a fight cut short is cleared and the mirrors already set stay; old and odd saves are mended
+		calm_enemies(true)
+		await obs_prep(4, 3)
+		var Z = main.observatory_zone
+		var C = main.obs
+		main.obs_bits = 7
+		main.obs_ordeal = true
+		main.obs_relay = 1
+		main.obs_sec[3].record_read = true
+		main.obs_sec[3].wind = true
+		main.obs_sec[0].record_read = true
+		main.obs_sec[0].fixed = true
+		main.obs_sec[0].angle = 1
+		main.obs_sec[0].mirror_dir = 0
+		main.obs_sec[0].wind = true
+		main.obs_check = 3
+		Z.repair()
+		Z.apply_state()
+		reset_to(Vector2(C.origin(3) + 14.0, 8.0))
+		main.save_game()
+		var sd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var keys: bool = int(sd.get("observatory_q", -1)) == 4 and sd.get("observatory_section_state", []).size() == 4 and sd.has("observatory_core_bits") and sd.has("observatory_reward_claimed") and sd.has("observatory_checkpoint") and sd.has("observatory_top_tested") and bool(sd.get("observatory_ordeal_started", false)) and int(sd.get("observatory_relay_bits", -1)) == 1
+		main.obs_sec = Z.fresh_sections()
+		main.observatory_q = 0
+		main.obs_bits = 0
+		main.obs_relay = 0
+		main.obs_ordeal = false
+		main.load_game()
+		await wait(0.4)
+		main.close_story()
+		var back: bool = main.in_observatory() and main.observatory_q == 4 and main.obs_ordeal and main.obs_relay == 1 and main.obs_bits == 7 and not main.obs_top_tested and main.obs_sec[3].dirs == [1, 2, 2] and Z.dark and main.obs_sec[0].fixed and C.gate_open[0]
+		var at_stair: bool = Vector2(main.player.x, main.player.z).distance_to(C.at(3, "S") + Vector2(1, 0)) < 0.6
+		var noeul_waits: bool = main.mate2_job.get("kind", "") == "obs_post" and Z.post_room == -1 and Vector2(main.mate2.position.x, main.mate2.position.z).distance_to(C.at(3, "P")) < 0.6
+		await obs_press("P", 3)
+		var repost: bool = Z.post_room == 3
+		# the first group cut mid-fight: the mirror set before it stays, the bricks of the group go
+		await obs_prep(4, 3)
+		main.obs_bits = 1
+		main.obs_sec[3].record_read = true
+		main.obs_sec[3].wind = true
+		Z.repair()
+		Z.apply_state()
+		for k in 3:
+			await obs_press("R", 3, 1, Vector2(0.0, 0.9))
+		var fighting: bool = Z.group_active == 1 and obs_foes().size() == 3
+		main.save_game()
+		main.obs_bits = 0
+		main.load_game()
+		await wait(0.4)
+		main.close_story()
+		var cut: bool = main.obs_bits == 1 and Z.group_active < 0 and obs_foes().is_empty() and Z.moth_alive() == null and main.obs_sec[3].dirs == [1, 2, 2]
+		# old saves: no key is q0, or q6 when the save is already past the castle's door; odd values are mended; a present key is never migrated
+		Z.load_data({})
+		var old0: bool = main.observatory_q == 0 and main.obs_sec[0].fixed == false
+		Z.load_data({"castle_q": 1})
+		var old6: bool = main.observatory_q == 6 and main.obs_sec[2].fixed and main.obs_bits == 7 and main.obs_top_tested and main.obs_sec[3].dirs == [1, 1, 2] and main.obs_sec[3].sent
+		Z.load_data({"observatory_q": 0, "castle_q": 3})
+		var no_migrate: bool = main.observatory_q == 0
+		Z.load_data({"observatory_q": 9, "observatory_section_state": [1, "x", {"angle": 5, "wind": true}], "observatory_core_bits": 5, "observatory_checkpoint": 9})
+		var odd: bool = main.observatory_q == 6 and main.obs_check == 3 and main.obs_bits == 7
+		Z.load_data({"observatory_q": 1, "observatory_section_state": [{"fixed": true, "angle": 1, "mirror_dir": 7, "wind": true}], "observatory_core_bits": 5})
+		var mended: bool = main.observatory_q == 1 and main.obs_bits == 0 and not main.obs_sec[0].fixed and main.obs_sec[0].mirror_dir == 2 and main.obs_sec[0].angle == 1 and main.obs_sec[0].wind
+		Z.load_data({"observatory_q": 5})
+		var q5: bool = main.obs_reward and main.obs_bits == 7 and main.obs_top_tested and main.obs_sec[3].wind
+		Z.load_data({"observatory_q": 4, "observatory_top_tested": true})
+		var tested: bool = main.obs_ordeal and main.obs_relay == 7 and main.obs_bits == 7 and main.obs_sec[3].dirs == [1, 1, 2]
+		Z.load_data({"observatory_q": 4, "observatory_ordeal_started": true})
+		var ordeal_only: bool = main.obs_ordeal and main.obs_bits == 7 and main.obs_relay == 0 and not main.obs_top_tested and main.obs_sec[3].dirs == [2, 2, 2]
+		check("obs_save", keys and back and at_stair and noeul_waits and repost and fighting and cut and old0 and old6 and no_migrate and odd and mended and q5 and tested and ordeal_only,
+			"save keys=%s; reload mid-ordeal=%s at the stair=%s, Noeul at his post=%s, asked again=%s; group cut: fighting=%s, kept and bricks gone=%s; old save q0=%s, past the castle q6=%s, key present never migrated=%s; odd values=%s, mended=%s, q5 keeps the scale=%s; tested=%s, ordeal alone=%s" % [keys, back, at_stair, noeul_waits, repost, fighting, cut, old0, old6, no_migrate, odd, mended, q5, tested, ordeal_only])
+		calm_enemies(false)
+		main.in_hill = false
+		Z.load_data({"observatory_q": 6})
+		main.obs_check = 0
+
+	if want.call("obs_gate"):
+		# the castle gate: the sparrow mill, the moon trial and the observatory, each missing holds it; all three or a save already past it do not;
+		# the quest line and the gold "!" lead the way in and back; the six tokens stay six
+		main.close_story()
+		var keep_s: Array = [main.mill_q, main.trial_won, main.observatory_q, main.castle_q, main.hill_q]
+		main.castle_q = 0
+		var truth := true
+		var rows := ""
+		for bits in 8:
+			main.mill_q = 5 if (bits & 1) != 0 else 0
+			main.trial_won = (bits & 2) != 0
+			main.observatory_q = 6 if (bits & 4) != 0 else 0
+			var want_hold: bool = bits != 7
+			var held: bool = main.moon_tokens.holds("castle")
+			truth = truth and held == want_hold
+			rows += "%d%s " % [bits, "H" if held else "-"]
+		main.mill_q = 5
+		main.trial_won = true
+		main.observatory_q = 0
+		var miss: String = main.moon_tokens.missing("castle")
+		main.mill_q = 0
+		var miss_mill: String = main.moon_tokens.missing("castle")
+		main.mill_q = 5
+		main.trial_won = false
+		var miss_trial: String = main.moon_tokens.missing("castle")
+		main.mill_q = 0
+		var miss_both: String = main.moon_tokens.missing("castle")
+		var order: bool = miss == "observatory" and miss_mill == "mill" and miss_trial == "trial" and miss_both == "both"
+		main.mill_q = 5
+		main.trial_won = true
+		main.castle_q = 1
+		var past: bool = not main.moon_tokens.holds("castle") # a save already in the castle is never held again
+		main.castle_q = 0
+		# the held gate says the observatory line and the talk
+		main.in_village = false
+		main.in_hill = true
+		main.hill_q = 3
+		reset_to(main.hill.marks.X + Vector2(-0.3, 0))
+		var pass1: bool = main.moon_tokens.gate("castle", main.hill.marks.X)
+		var said: bool = (not pass1) and main.story_open and main.quest_raw == "성으로 가기 전에: 달맞이 관측원에서 바람 신호를 보내자"
+		var story_ok: bool = main.STORY.GATE.has("castle_observatory") and main.STORY.GATE["castle_observatory"][0].begins_with("||언덕의 바람은 모였으나")
+		main.close_story()
+		var hold_line: bool = main.moon_tokens.hill_line() == "성으로 가기 전에: 달맞이 관측원에서 바람 신호를 보내자"
+		var journal: bool = main.moon_tokens.gate_lines().any(func(l): return l.contains("달맞이 관측원") and l.contains("아직"))
+		main.observatory_q = 6
+		var pass2: bool = main.moon_tokens.gate("castle", main.hill.marks.X)
+		journal = journal and not main.moon_tokens.gate_lines().any(func(l): return l.contains("달맞이 관측원"))
+		var six: bool = main.tokens.size() == 6 and main.moon_tokens.STAIRS_NEED == 4 and main.moon_tokens.NAMES.size() == 6
+		# the line and the "!" lead to the stair on the hill, through the floors, then home
+		main.observatory_q = 0
+		main.set_quest(main.moon_tokens.hill_line())
+		reset_to(main.hill.marks.O + Vector2(-3.0, 2.0))
+		var mark_o: Vector3 = main.quest_marks.quest_target()
+		var lead: bool = absf(mark_o.x - main.hill.marks.O.x) < 0.01 and absf(mark_o.z - main.hill.marks.O.y) < 0.01
+		await obs_prep(1, 0)
+		var m0: Vector3 = main.quest_marks.quest_target()
+		var at_h: bool = absf(m0.x - main.obs.at(0, "H").x) < 0.01
+		await obs_prep(3, 0)
+		var m1: Vector3 = main.quest_marks.quest_target()
+		var at_n: bool = absf(m1.x - main.obs.at(0, "N").x) < 0.01 # the work is two floors on: the door N
+		await obs_prep(6, 3)
+		var m2: Vector3 = main.quest_marks.quest_target()
+		var at_s: bool = absf(m2.x - main.obs.at(3, "S").x) < 0.01 and main.quest_raw != ""
+		main.in_hill = false
+		main.observatory_q = 6
+		main.mill_q = keep_s[0]
+		main.trial_won = keep_s[1]
+		main.castle_q = keep_s[3]
+		main.hill_q = keep_s[4]
+		check("obs_gate", truth and order and past and said and story_ok and hold_line and pass2 and journal and six and lead and at_h and at_n and at_s,
+			"castle gate table (bits mill/trial/observatory, H=held) %s=%s; missing order observatory/mill/trial/both=%s; past castle never held=%s; held says the line and the talk=%s/%s, line=%s; opens=%s; journal=%s; six tokens=%s; ! at O=%s, at note=%s, at door=%s, at stair=%s" % [rows, truth, order, past, said, story_ok, hold_line, pass2, journal, six, lead, at_h, at_n, at_s])
+
+	if want.call("obs_round"):
+		# a new round: the observatory starts again (nothing of it is kept), and the scale is not a token
+		main.castle_q = 0
+		main.observatory_q = 6
+		main.obs_reward = true
+		main.obs_bits = 7
+		main.obs_top_tested = true
+		main.obs_ordeal = true
+		main.obs_relay = 7
+		main.obs_sec[2].fixed = true
+		main.write_new_round()
+		var sd2 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var dropped: bool = not sd2.has("observatory_q") and not sd2.has("observatory_section_state") and not sd2.has("observatory_core_bits") and not sd2.has("observatory_reward_claimed") and not sd2.has("observatory_relay_bits") and not sd2.has("observatory_ordeal_started")
+		main.observatory_zone.load_data(sd2)
+		var fresh: bool = main.observatory_q == 0 and not main.obs_reward and main.obs_bits == 0 and main.obs_relay == 0 and not main.obs_ordeal and not main.obs_top_tested and not main.obs_sec[2].fixed and not main.obs.gate_open[0] and not main.obs.plat_open[0]
+		check("obs_round", dropped and fresh, "new-round save has no observatory keys=%s; loading it starts at q0 with no scale, no ordeal and shut gates=%s" % [dropped, fresh])
+		main.observatory_zone.load_data({"observatory_q": 6})
 		main.return_to_start()
 
 	if want.call("bag"):

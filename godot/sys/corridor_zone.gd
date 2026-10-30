@@ -38,7 +38,7 @@ func _init(main: Main) -> void:
 	m = main
 
 func in_corridor() -> bool:
-	return m.in_lake and m.player.x >= Main.CORR.CORR_X - 0.5
+	return m.in_lake and m.player.x >= Main.CORR.CORR_X - 0.5 and m.player.x < Main.OBS.OBS_X - 0.5
 
 func room() -> int:
 	return m.corridor.room_of(m.player.x)
