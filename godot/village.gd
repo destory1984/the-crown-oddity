@@ -341,6 +341,8 @@ func build(m: Node) -> void:
 	tw.tween_callback(func(): spr.frame = 0)
 	m.rocks.append({"x": marks.M.x, "z": marks.M.y, "r": 0.5})
 	build_small_things(m)
+	build_bells(m)
+	build_turn_blocks(m)
 	m.football.build()
 
 # props by the six working villagers: a woodpile, an ore cart, the hardened field, a fish basket, reed baskets,
@@ -1136,6 +1138,7 @@ func life_update(m: Node, dt: float) -> void:
 	if doodle_crown != null:
 		doodle_crown.visible = m.kid_q >= 3
 		doodle_otter.visible = m.mul_q >= 1 or m.mate != null
+	bells_update(m, dt)
 	for i in pinwheels.size():
 		var on: bool = pinwheel_turning(m, i)
 		pinwheels[i].turning = on
@@ -1162,6 +1165,192 @@ func pinwheels_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bo
 	if sent > 0: # a light whirr
 		m.sfx(520.0, 0.3, "noise", 0.1, 600.0)
 		m.sfx(600.0, 0.25, "triangle", 0.06, 500.0)
+
+# ---- three small bells on posts in the south lane and a fourth far to the east (delight idea 73, shots/plans/delight100.md):
+# struck lowest note first, middle, then highest, the far bell swings and rings the three notes back. The posts are not
+# in the order of their notes (BELL_NOTES), a wrong note starts the try over, and nothing is given for it.
+const BELL_TILES := [Vector2(4.5, 21.5), Vector2(7.5, 21.5), Vector2(10.5, 21.5)]
+const BELL_FAR := Vector2(42.5, 21.5)
+const BELL_NOTES := [659.0, 523.0, 784.0] # post 1 is the middle note, post 2 the lowest, post 3 the highest
+const BELL_RANK := [1, 0, 2]              # each post's place in low-to-high order
+const BELL_GAP := 4.0   # a try is dropped when the next bell takes longer than this
+const BELL_ANSWER := 0.7 # seconds from the third bell to the far bell's first note
+const BELL_STEP := 0.4   # between the far bell's three notes
+var bells: Array = []     # [{"pivot", "rank", "hurt", "note"}] the three posts
+var bell_far: Node3D
+var bell_next := 0        # the rank the try expects next
+var bell_last := -100.0   # time of the last bell
+var bell_hits := 0        # bells struck (autoplay d73_bell_answer)
+var bell_answers := 0     # times the far bell was asked
+var bell_far_rings := 0   # notes the far bell has rung
+
+func make_bell(m: Node, at: Vector2, size: float) -> Node3D:
+	var g := Node3D.new()
+	g.position = Vector3(VILLAGE_X + at.x, 0, at.y)
+	var wood: Material = m.mat_color(Color("#7a5232"))
+	var post: MeshInstance3D = m.box(Vector3(0.08, 1.1, 0.08), wood)
+	post.position = Vector3(0, 0.55, 0)
+	g.add_child(post)
+	var arm: MeshInstance3D = m.box(Vector3(0.5, 0.06, 0.06), wood)
+	arm.position = Vector3(0.2, 1.1, 0)
+	g.add_child(arm)
+	var pivot := Node3D.new() # swings from the arm's end
+	pivot.position = Vector3(0.4, 1.08, 0)
+	var brass: Material = m.mat_color(Color("#d9a93a"))
+	var top: MeshInstance3D = m.box(Vector3(0.1, 0.12, 0.1) * size, brass)
+	top.position = Vector3(0, -0.1, 0)
+	pivot.add_child(top)
+	var skirt: MeshInstance3D = m.box(Vector3(0.2, 0.14, 0.2) * size, brass)
+	skirt.position = Vector3(0, -0.22 * size, 0)
+	pivot.add_child(skirt)
+	var clap: MeshInstance3D = m.box(Vector3(0.05, 0.05, 0.05), m.mat_color(Color("#4a3a24")))
+	clap.position = Vector3(0, -0.32 * size, 0)
+	pivot.add_child(clap)
+	g.add_child(pivot)
+	m.add_child(g)
+	return pivot
+
+func build_bells(m: Node) -> void:
+	for i in BELL_TILES.size():
+		var size: float = 1.3 - 0.25 * BELL_RANK[i] # the lowest note is the biggest bell
+		bells.append({"pivot": make_bell(m, BELL_TILES[i], size), "rank": BELL_RANK[i], "hurt": 0.0, "note": BELL_NOTES[i]})
+	bell_far = make_bell(m, BELL_FAR, 1.0)
+
+func bell_swing(pivot: Node3D, amp: float) -> void:
+	var tw := pivot.create_tween()
+	tw.tween_property(pivot, "rotation:z", amp, 0.12).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(pivot, "rotation:z", -amp * 0.6, 0.2).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(pivot, "rotation:z", amp * 0.25, 0.2).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(pivot, "rotation:z", 0.0, 0.2).set_trans(Tween.TRANS_SINE)
+
+func bells_update(_m: Node, dt: float) -> void:
+	for b in bells:
+		b.hurt = maxf(0.0, b.hurt - dt)
+	for b in turn_blocks:
+		b.hurt = maxf(0.0, b.hurt - dt)
+
+func bells_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool) -> void:
+	var me := Vector2(m.player.x, m.player.z)
+	for b in bells:
+		var pv: Node3D = b.pivot
+		var d := Vector2(pv.global_position.x, pv.global_position.z) - me
+		if b.hurt > 0.0 or d.length() > reach + 0.6 or not (all_round or d.normalized().dot(f) > cone - 0.2):
+			continue
+		b.hurt = 0.3 # one swing rings a bell once
+		bell_hits += 1
+		m.sfx(b.note, 0.5, "sine", 0.22)
+		bell_swing(pv, 0.5)
+		if m.t - bell_last > BELL_GAP:
+			bell_next = 0
+		bell_last = m.t
+		if b.rank == bell_next:
+			bell_next += 1
+		else:
+			bell_next = 1 if b.rank == 0 else 0
+		if bell_next >= 3:
+			bell_next = 0
+			bell_answers += 1
+			m.get_tree().create_timer(BELL_ANSWER).timeout.connect(func(): bell_answer(m))
+
+func bell_answer(m: Node) -> void:
+	for k in 3: # the three notes in the order asked, softer, from the far bell
+		m.get_tree().create_timer(BELL_STEP * k).timeout.connect(func():
+			if bell_far == null or not is_instance_valid(bell_far):
+				return
+			bell_far_rings += 1
+			m.sfx(BELL_NOTES[[1, 0, 2][k]], 0.5, "sine", 0.1)
+			bell_swing(bell_far, 0.4))
+
+# ---- four small blocks round a gap in the lane (delight idea 79): a blow turns the nearest block it reaches to the way she
+# faces (east, south, west or north, whichever she faces most), a stud on its face shows the way. A blow turns one block,
+# so four need several. All four turned the same way and a flower rises from the gap; turn one away and it sinks.
+# Nothing is given and the blocks never block anyone.
+const TURN_AT := Vector2(30.5, 21.5)
+const TURN_OFF := 0.7
+const TURN_START := [0, 1, 2, 3] # the four are never all alike when the village is built
+var turn_blocks: Array = [] # [{"node", "dir", "hurt"}]
+var turn_flower: Node3D
+var turn_up := false       # the flower is up
+var turn_hits := 0         # blocks turned (autoplay d79_four_blocks)
+
+func build_turn_blocks(m: Node) -> void:
+	var corners := [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]
+	var cols := [Color("#b4231e"), Color("#2f5fb8"), Color("#e8c23a"), Color("#3a9a4a")]
+	for i in 4:
+		var g := Node3D.new()
+		var c: Vector2 = corners[i]
+		g.position = Vector3(VILLAGE_X + TURN_AT.x + c.x * TURN_OFF, 0.1, TURN_AT.y + c.y * TURN_OFF)
+		var body: MeshInstance3D = m.box(Vector3(0.34, 0.2, 0.34), m.mat_color(cols[i]))
+		g.add_child(body)
+		var stud: MeshInstance3D = m.box(Vector3(0.1, 0.08, 0.1), m.mat_color(Color("#f2ead8")))
+		stud.position = Vector3(0.2, 0.1, 0) # sits on the +x face; the block's yaw points it
+		g.add_child(stud)
+		m.add_child(g)
+		turn_blocks.append({"node": g, "dir": TURN_START[i], "hurt": 0.0})
+		g.rotation.y = -TURN_START[i] * PI / 2.0
+	turn_flower = Node3D.new()
+	turn_flower.position = Vector3(VILLAGE_X + TURN_AT.x, 0.0, TURN_AT.y)
+	var stem: MeshInstance3D = m.box(Vector3(0.04, 0.4, 0.04), m.mat_color(Color("#3f8a3a")))
+	stem.position = Vector3(0, 0.2, 0)
+	turn_flower.add_child(stem)
+	for k in 5:
+		var petal: MeshInstance3D = m.box(Vector3(0.12, 0.03, 0.08), m.mat_color(Color("#f2a0c0")))
+		var arm := Node3D.new()
+		arm.position = Vector3(0, 0.42, 0)
+		arm.rotation.y = k * TAU / 5.0
+		petal.position = Vector3(0.1, 0, 0)
+		arm.add_child(petal)
+		turn_flower.add_child(arm)
+	var eye: MeshInstance3D = m.box(Vector3(0.07, 0.04, 0.07), m.mat_color(Color("#f2c23a")))
+	eye.position = Vector3(0, 0.43, 0)
+	turn_flower.add_child(eye)
+	turn_flower.scale = Vector3(1, 0.01, 1)
+	turn_flower.visible = false
+	m.add_child(turn_flower)
+
+func turn_all_same() -> bool:
+	for b in turn_blocks:
+		if b.dir != turn_blocks[0].dir:
+			return false
+	return not turn_blocks.is_empty()
+
+func turn_blocks_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: bool) -> void:
+	var me := Vector2(m.player.x, m.player.z)
+	var b: Dictionary = {}
+	var best := reach + 0.4
+	for c in turn_blocks:
+		var d := Vector2(c.node.global_position.x, c.node.global_position.z) - me
+		if c.hurt > 0.0 or d.length() >= best or not (all_round or d.normalized().dot(f) > cone - 0.2):
+			continue
+		best = d.length()
+		b = c
+	if b.is_empty():
+		return
+	b.hurt = 0.3
+	var q := 0 # 0 east, 1 south, 2 west, 3 north (+z is south)
+	if absf(f.x) >= absf(f.y):
+		q = 0 if f.x >= 0.0 else 2
+	else:
+		q = 1 if f.y >= 0.0 else 3
+	if q == b.dir: # already that way: it only clicks
+		m.sfx(300.0, 0.04, "triangle", 0.08)
+	else:
+		b.dir = q
+		turn_hits += 1
+		var nd: Node3D = b.node
+		var tw := nd.create_tween()
+		tw.tween_property(nd, "rotation:y", -q * PI / 2.0, 0.15).set_trans(Tween.TRANS_SINE)
+		m.sfx(420.0 + q * 40.0, 0.05, "triangle", 0.1)
+	var same := turn_all_same()
+	if same != turn_up:
+		turn_up = same
+		turn_flower.visible = true
+		var tw2 := turn_flower.create_tween()
+		tw2.tween_property(turn_flower, "scale:y", 1.0 if same else 0.01, 0.8 if same else 0.4).set_trans(Tween.TRANS_BACK if same else Tween.TRANS_SINE)
+		if not same:
+			tw2.tween_callback(func(): turn_flower.visible = false)
+		else:
+			m.sfx(880.0, 0.2, "sine", 0.1, 300.0)
 
 func toy_tap(m: Node, n: int) -> void:
 	toy_taps += 1

@@ -323,6 +323,8 @@ func attack() -> void:
 		m.village.fountain_hit(m, reach, f, cone, spin or slam)
 		m.village.bricks_hit(m, reach, f, cone, spin or slam)
 		m.village.pinwheels_hit(m, reach, f, cone, spin or slam)
+		m.village.bells_hit(m, reach, f, cone, spin or slam)
+		m.village.turn_blocks_hit(m, reach, f, cone, spin or slam)
 		m.football.hit(reach, f, cone, spin or slam)
 		m.market.can_hit(reach, f, cone, spin or slam, hit_any)
 	var me := Vector2(m.player.x, m.player.z)
@@ -575,6 +577,10 @@ func rest_heal(dt: float) -> void:
 		rest_glow_t = 0.0
 		m.burst(Vector3(m.player.x, m.ground_y + 0.1, m.player.z), Color("#9fe07a"), 4, 0.6)
 
+# what one potion would mend right now, from her HP and the keepsakes (the shop shows it before buying, delight idea 83)
+func heal_preview() -> float:
+	return minf(m.player.max_hp - m.player.hp, (75.0 if m.has_sprout else (65.0 if m.has_acorn else 45.0)) * (1.3 if m.player.lv >= 25 else 1.0))
+
 var potion_kept := 0 # drinks refused at full strength (autoplay potion_kept)
 
 func drink_potion() -> void:
@@ -591,7 +597,7 @@ func drink_potion() -> void:
 		return
 	m.player.pots -= 1
 	m.player.cds[3] = 2.0
-	var h := minf(m.player.max_hp - m.player.hp, (75.0 if m.has_sprout else (65.0 if m.has_acorn else 45.0)) * (1.3 if m.player.lv >= 25 else 1.0))
+	var h := heal_preview()
 	m.player.hp += h
 	if m.has_oil:
 		m.player.mp = minf(m.player.max_mp, m.player.mp + 20.0)

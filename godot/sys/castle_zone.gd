@@ -247,8 +247,11 @@ func castle_key() -> bool:
 		if i == near_i:
 			var first: bool = not bk.read
 			bk.read = true
+			var kept_page: int = int(bk.get("page", 0))
+			m.story.fold_page = 0 if first else (kept_page if kept_page > 0 else Main.STORY.BOOKS[i].size()) # a re-read shows the corner folded where she stopped (an older save has none: the last page)
 			m.show_story("", Main.STORY.BOOKS[i])
 			if first:
+				bk.page = Main.STORY.BOOKS[i].size() # the page she is on when she shuts it, kept with the save
 				m.sfx(523, 0.15, "triangle", 0.18)
 				var n: int = m.castle.books.filter(func(b): return b.read).size()
 				if n == m.castle.books.size():

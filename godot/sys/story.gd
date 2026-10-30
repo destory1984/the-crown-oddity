@@ -165,6 +165,19 @@ func close_sheets() -> void:
 	if m.shop_open:
 		m.toggle_shop(false)
 
+# A plain talk closed by mistake (the last line left within CP_QUICK seconds of showing, no follow-up waiting) and opened
+# again within CP_KEEP seconds starts from the sentence she was reading (delight idea 85). Session only, keyed by the
+# talk's lines; it only skips ahead in the box, so no callback runs twice and nothing is given again.
+const CP_QUICK := 2.0
+const CP_KEEP := 6.0
+const CP_MIN_LINES := 3
+var cp_key := 0
+var cp_at := -100.0
+var story_resumes := 0 # talks that began at the sentence she left (autoplay d85_resume)
+var story_hash := 0 # the open story's lines as a key
+var story_total := 0 # lines of the open story, counting a skipped start
+var fold_page := 0 # a book's page (the line number, from 1) that wears a folded corner (delight idea 75)
+
 func show_story(path: String, lines: Array, small := false) -> void:
 	close_sheets()
 	if fade_tw != null and fade_tw.is_valid():
@@ -173,6 +186,12 @@ func show_story(path: String, lines: Array, small := false) -> void:
 	small_pic = small
 	fit_story()
 	m.story_lines = lines.duplicate()
+	story_total = lines.size()
+	story_hash = lines.hash()
+	if (path == "" or small) and story_total >= CP_MIN_LINES and cp_key == lines.hash() and opened_at - cp_at < CP_KEEP:
+		m.story_lines = lines.slice(story_total - 1) # back at the sentence she was on
+		story_resumes += 1
+	cp_key = 0
 	var tex: Texture2D = load(path) if path != "" else null
 	m.ui.story_img.texture = tex
 	m.ui.story_frame.visible = tex != null
@@ -190,6 +209,10 @@ func show_story(path: String, lines: Array, small := false) -> void:
 
 func show_line(line: String) -> void:
 	line_at = Time.get_ticks_msec() / 1000.0
+	var fold: Node2D = m.ui.get("story_fold")
+	if fold != null:
+		fold.visible = fold_page > 0 and story_total - m.story_lines.size() == fold_page
+		fold.position = Vector2((m.ui.story_cap.size.x if m.ui.story_cap.size.x > 0.0 else 940.0) - 44.0, 8.0)
 	if line.begins_with("@"): # "@res://art/story/x.jpg": the picture changes here, then the next line shows
 		m.ui.story_img.texture = load(line.substr(1))
 		show_line(m.story_lines.pop_front())
@@ -249,6 +272,10 @@ func next_story() -> void:
 	close_story()
 
 func close_story() -> void:
+	if m.story_open and m.talk_mode and m.story_lines.is_empty() and story_total >= CP_MIN_LINES and not m.after_story.is_valid() 			and not m.intro and Time.get_ticks_msec() / 1000.0 - line_at < CP_QUICK:
+		cp_key = story_hash
+		cp_at = Time.get_ticks_msec() / 1000.0
+	fold_page = 0
 	m.story_open = false
 	if m.after_story.is_valid():
 		var f := m.after_story

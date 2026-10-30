@@ -110,8 +110,14 @@ func toggle_shop(open: bool) -> void:
 func shop_price(i: int) -> int:
 	return Main.SHOP[i].price + (40 * m.shop_bought[i] if i >= 2 else 0)
 
+func potion_preview_text() -> String: # the line under the potion card: what one drink mends at this HP
+	var h := int(m.combat.heal_preview())
+	return tr("지금 마시면 체력 +%d") % h if h > 0 else tr("체력이 가득하다")
+
 func refresh_shop() -> void:
 	m.ui.shop_gold.text = "◆ %d" % m.player.gold
+	if m.ui.has("shop_preview"):
+		m.ui.shop_preview.text = potion_preview_text()
 	for i in Main.SHOP.size():
 		m.ui.shop_btns[i].disabled = m.player.gold < shop_price(i)
 		m.ui.shop_btns[i].text = tr("◆ %d  사기") % shop_price(i)

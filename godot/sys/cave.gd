@@ -469,12 +469,34 @@ func build_crystal_chest() -> void:
 	m.crystal_chest.visible = m.crystal_done and not m.has_ring
 	m.add_child(m.crystal_chest)
 
+# a ringing crystal shows its rank as dots above it (1 for the lowest note → 4), so the order can be read with the sound off
+# (delight idea 88). Drawn on the same hit as the note; the puzzle rules do not look at them.
+const DOT_STAY := 0.9
+var dot_cues: Array = [] # ranks shown, in order (autoplay d88_dots)
+
+func dot_cue(e: Dictionary, rank: int) -> void:
+	var old = e.get("dots") # may be an instance already freed
+	if is_instance_valid(old):
+		old.queue_free()
+	var row := Node3D.new()
+	var mat: StandardMaterial3D = m.glow_mat(Color("#d8f4ff"), 1.0)
+	for k in rank + 1:
+		var d := m.box(Vector3(0.1, 0.1, 0.1), mat)
+		d.position = Vector3((k - rank * 0.5) * 0.2, 0, 0)
+		row.add_child(d)
+	row.position = Vector3(e.x, 2.15, e.z)
+	m.add_child(row)
+	e["dots"] = row
+	dot_cues.append(rank)
+	m.get_tree().create_timer(DOT_STAY).timeout.connect(func(): if is_instance_valid(row): row.queue_free())
+
 func crystal_hit(e: Dictionary) -> void:
 	if e.hurt > 0.0:
 		return # one sword swing rings it once
 	e.hurt = 0.25
 	var rank: int = Main.CRYSTAL_NOTE[int(e.crystal)]
 	m.sfx(NOTES[rank], 0.5, "sine", 0.3)
+	dot_cue(e, rank)
 	m.burst(Vector3(e.x, 1.0, e.z), Color("#9fe0ff"), 8, 1.5)
 	(e.node.get_meta("body") as Node3D).scale = Vector3.ONE * 1.12
 	m.get_tree().create_timer(0.15).timeout.connect(func(): if is_instance_valid(e.node): (e.node.get_meta("body") as Node3D).scale = Vector3.ONE)

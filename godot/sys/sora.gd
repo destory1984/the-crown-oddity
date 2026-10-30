@@ -168,6 +168,11 @@ func idle_pick() -> String:
 	var spot := spot_pick()
 	if spot != "":
 		return spot
+	if map_due and not m.story_open and junction_near(Vector2(m.player.x, m.player.z), JUNCTION_R * 1.5) >= 0:
+		map_due = false # the third return to the same crossing: she opens the map and reads where she is (idea 65)
+		map_acts += 1
+		idle_cause = "map"
+		return "rest-map"
 	if m.market.inn_fresh and not m.story_open: # the first rest after the inn is a stretch (idea 69)
 		m.market.inn_fresh = false
 		idle_cause = "inn"
@@ -201,6 +206,41 @@ func track_run(running: bool, dt: float) -> void:
 		run_thirst = true
 		run_thirst_t = m.t
 	run_t = 0.0
+
+# The crossings of the village lanes (tagged cells of village.gd's map: the road meets the plaza lane and the west lane). The
+# third time she comes back to one after leaving it (6 tiles away), her next safe rest is the map act and a toast names only
+# the region she is in (delight idea 65). Nothing about unexplored routes is said.
+const JUNCTION_CELLS := [Vector2(25, 10), Vector2(15, 5)] # village map columns and rows
+const JUNCTION_R := 2.0
+const JUNCTION_AWAY := 6.0
+const JUNCTION_TIMES := 3
+var junction_at := -1 # the crossing she stands at, kept until she is JUNCTION_AWAY from it
+var junction_count: Array = [0, 0]
+var map_due := false
+var map_acts := 0 # map rests chosen this way (autoplay d65_map_back)
+
+func junction_near(me: Vector2, r: float) -> int:
+	if not m.in_village or m.in_house >= 0:
+		return -1
+	for i in JUNCTION_CELLS.size():
+		if me.distance_to(JUNCTION_CELLS[i] + Vector2(Main.VILLAGE.VILLAGE_X, 0)) < r:
+			return i
+	return -1
+
+func track_junction() -> void:
+	var me := Vector2(m.player.x, m.player.z)
+	if junction_at >= 0:
+		if not m.in_village or me.distance_to(JUNCTION_CELLS[junction_at] + Vector2(Main.VILLAGE.VILLAGE_X, 0)) > JUNCTION_AWAY:
+			junction_at = -1
+		return
+	var i := junction_near(me, JUNCTION_R)
+	if i < 0:
+		return
+	junction_at = i
+	junction_count[i] += 1
+	if junction_count[i] >= JUNCTION_TIMES:
+		junction_count[i] = 0
+		map_due = true
 
 func near_spot(me: Vector2, spots: Array) -> int: # the index of the spot she stands at, -1 for none
 	for i in spots.size():
@@ -275,6 +315,8 @@ func idle_begin() -> void:
 			m.effects.moon_ring()
 		"run":
 			m.sound.bottle_cap()
+		"map":
+			m.toast(m.ui.zone_name.text) # only the name of the region she is in
 		"shelter":
 			m.idle_left = SHELTER_PEEK
 

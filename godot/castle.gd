@@ -244,7 +244,7 @@ func build(m: Node) -> void:
 					g.add_child(bk)
 				g.position = Vector3(CASTLE_X + x, 0, z)
 				m.add_child(g)
-				books.append({"pos": Vector2(CASTLE_X + x, z), "read": false})
+				books.append({"pos": Vector2(CASTLE_X + x, z), "read": false, "page": 0})
 	build_quarters(m)
 
 # ---- 달지기 숙소 (DESIGN.md): boxes only, colours from GPT's notes; light only from self-lit glass

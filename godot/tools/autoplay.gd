@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -1831,6 +1831,8 @@ func run() -> void:
 		if boss.is_empty():
 			check("boss_opens_cave", false, "no boss")
 		else:
+			main.close_story()
+			main.story_step = 4 # an earlier test can leave the story further on, and open_cave never winds it back
 			boss[0].hp = 1.0
 			boss[0].roar = 0.0
 			boss[0].phase = 2
@@ -12118,12 +12120,14 @@ func run() -> void:
 		calm_enemies(true)
 		hz16.scenic_seen.clear()
 		hz16.scenic_at = -1
+		main.mate_job = {} # an earlier test can leave him on a job or a quirk walk
+		main.mates.end_quirk()
 		var view: Dictionary = hz16.SCENIC[0]
 		reset_to(view.at + Vector2(0.0, 0.5))
 		main.snap_mates()
-		await wait(2.0)
-		var took: bool = hz16.scenic_at == 0 and main.mates.scenic_dir == view.look
 		var left16: bool = main.screen_left(view.look)
+		await wait_for(func(): return main.mate2.get_child(0).flip_h == left16 and main.mate.get_child(0).flip_h == (not left16), 4.0)
+		var took: bool = hz16.scenic_at == 0 and main.mates.scenic_dir == view.look
 		var n_face: bool = main.mate2.get_child(0).flip_h == left16
 		var m_face: bool = main.mate.get_child(0).flip_h == (not left16)
 		reset_to(view.at + Vector2(4.0, 0.0))
@@ -13599,8 +13603,8 @@ func run() -> void:
 		main.close_story()
 		main.intro = false
 		calm_enemies(true)
-		main.forest.freed[0] = true
-		main.forest.freed[1] = false
+		for i77 in main.forest.freed.size(): # earlier tests may have freed others
+			main.forest.freed[i77] = i77 == 0
 		fz77.husk_t = -10.0
 		var gold77: int = main.player.gold
 		var pots77: int = main.player.pots
@@ -13625,17 +13629,11 @@ func run() -> void:
 		var story77: bool = not fz77.husk_key()
 		main.story_open = false
 		calm_enemies(false)
-		var foe77: bool = false
-		for e in main.enemies:
-			if not e.dead and not e.get("prop", false):
-				var keep_x: float = e.x
-				var keep_z: float = e.z
-				e.x = cage77.x + 2.0
-				e.z = cage77.y
-				foe77 = not fz77.husk_key()
-				e.x = keep_x
-				e.z = keep_z
-				break
+		main.spawn_enemy(cage77 + Vector2(2.0, 0.0)) # late in a full run every foe may be down
+		var foe_e77: Dictionary = main.enemies[main.enemies.size() - 1]
+		var foe77: bool = not fz77.husk_key()
+		foe_e77.node.queue_free()
+		main.enemies.erase(foe_e77)
 		main.forest.freed = freed0
 		main.has_acorn = acorn0
 		calm_enemies(true)
@@ -14976,6 +14974,459 @@ func run() -> void:
 		main.in_village = false
 		check("d53_door_stick", wall53 and made53 and faces53 and shiver53 and down53 and gone53 and spent53 and far53 and out53 and in53 and pool53 and hidden53,
 			"the wall stops a shot at the door=%s one stick, no damage=%s it points along the shot=%s it shivers=%s it drops=%s and goes=%s a spent shot: none=%s far from a door: none=%s outside the village: none=%s indoors: none=%s four sticks reused=%s all hidden again=%s" % [wall53, made53, faces53, shiver53, down53, gone53, spent53, far53, out53, in53, pool53, hidden53])
+
+	if want.call("d65_map_back"):
+		# the third return to the same crossing (after leaving it 6 tiles) makes her next safe rest the map act and names only the region (idea 65)
+		var was65: Array = fb_start()
+		var s65: Object = main.sora
+		var vx65: float = main.village.VILLAGE_X
+		var j65 := Vector2(vx65 + 25.0, 10.0)
+		s65.junction_at = -1
+		s65.junction_count = [0, 0]
+		s65.map_due = false
+		var acts65: int = s65.map_acts
+		reset_to(j65)
+		s65.track_junction()
+		var first65: bool = s65.junction_count[0] == 1 and not s65.map_due
+		reset_to(j65 + Vector2(4.0, 0.0)) # a short step away is not a leaving
+		s65.track_junction()
+		reset_to(j65)
+		s65.track_junction()
+		var jitter65: bool = s65.junction_count[0] == 1
+		reset_to(j65 + Vector2(8.0, 0.0))
+		s65.track_junction()
+		reset_to(j65)
+		s65.track_junction()
+		var second65: bool = s65.junction_count[0] == 2 and not s65.map_due
+		reset_to(j65 + Vector2(8.0, 0.0))
+		s65.track_junction()
+		reset_to(j65)
+		s65.track_junction()
+		var third65: bool = s65.map_due and s65.junction_count[0] == 0
+		reset_to(j65 + Vector2(8.0, 0.0)) # resting away from the crossing: not yet
+		s65.idle_pick()
+		var away65: bool = s65.map_acts == acts65 and s65.map_due
+		reset_to(j65)
+		main.story_open = true
+		s65.idle_pick()
+		var story65: bool = s65.map_acts == acts65 and s65.map_due
+		main.story_open = false
+		main.ui.zone_name.text = "등불 마을"
+		var pick65: String = s65.idle_pick()
+		s65.idle_begin()
+		var map65: bool = pick65 == "rest-map" and s65.map_acts == acts65 + 1 and s65.idle_cause == "map" and not s65.map_due
+		var named65: bool = main.ui.toast.text.contains("등불 마을")
+		s65.idle_pick()
+		var once65: bool = s65.map_acts == acts65 + 1
+		s65.idle_cause = ""
+		fb_end(was65)
+		check("d65_map_back", first65 and jitter65 and second65 and third65 and away65 and story65 and map65 and named65 and once65,
+			"first visit counted=%s a short step is no leaving=%s second=%s third arms the map=%s away: not yet=%s a story open: not yet=%s the map act=%s names the region=%s once=%s" % [first65, jitter65, second65, third65, away65, story65, map65, named65, once65])
+	if want.call("d73_bell_answer"):
+		# three bells struck lowest note first (post 2, post 1, post 3), the far bell rings the three notes back 0.7 s later; a wrong order or a slow one is not answered; nothing is given (idea 73)
+		var was73: Array = fb_start()
+		var v73: Object = main.village
+		var gold73: int = main.player.gold
+		var pots73: int = main.player.pots
+		var xp73: int = main.player.xp
+		var pips73: int = main.crown_pips
+		var strike73 := func(i: int):
+			var pv: Node3D = v73.bells[i].pivot
+			fb_put(Vector2(20.0, 15.0), Vector2(pv.global_position.x - v73.VILLAGE_X, pv.global_position.z + 1.0), Vector2(0, -1))
+			v73.bells_update(main, 1.0)
+			main.attack()
+		var far73: bool = v73.bell_far != null and v73.bell_far.global_position.distance_to(v73.bells[0].pivot.global_position) > 25.0 and v73.bells.size() == 3
+		var order73: bool = v73.bells[1].note < v73.bells[0].note and v73.bells[0].note < v73.bells[2].note # the lowest note is post 2
+		var h0: int = v73.bell_hits
+		strike73.call(0) # a wrong order: middle, highest
+		strike73.call(2)
+		strike73.call(1)
+		var wrong73: bool = v73.bell_hits == h0 + 3 and v73.bell_answers == 0
+		await wait(1.2)
+		var silent73: bool = v73.bell_far_rings == 0
+		strike73.call(1) # right: lowest, middle, highest
+		strike73.call(0)
+		var gap73: bool = v73.bell_answers == 0
+		strike73.call(2)
+		var asked73: bool = v73.bell_answers == 1 and v73.bell_far_rings == 0 # not before the beat
+		var peak73 := 0.0
+		for i in 40:
+			await wait(0.05)
+			peak73 = maxf(peak73, absf(v73.bell_far.rotation.z))
+		var rang73: bool = v73.bell_far_rings >= 1 and peak73 > 0.05
+		await wait(0.6)
+		var three73: bool = v73.bell_far_rings == 3
+		var notes73: bool = main.sfx_log.size() >= 3 and main.sfx_log.slice(main.sfx_log.size() - 3) == ["sine:523", "sine:659", "sine:784"]
+		strike73.call(1) # too slow: the next bell comes after the gap
+		v73.bell_last = main.t - 10.0
+		strike73.call(0)
+		strike73.call(2)
+		await wait(1.6)
+		var slow73: bool = v73.bell_answers == 1 and v73.bell_far_rings == 3
+		var plain73: bool = main.player.gold == gold73 and main.player.pots == pots73 and main.player.xp == xp73 and main.crown_pips == pips73
+		fb_end(was73)
+		check("d73_bell_answer", far73 and order73 and wrong73 and silent73 and gap73 and asked73 and rang73 and three73 and notes73 and slow73 and plain73,
+			"a far bell, three posts=%s post 2 is lowest=%s wrong order=%s unanswered=%s two right bells=%s the third asks=%s (none before the beat) the far bell swings=%s three notes=%s low, mid, high=%s a slow try=%s nothing given=%s" % [far73, order73, wrong73, silent73, gap73, asked73, rang73, three73, notes73, slow73, plain73])
+	if want.call("d75_fold"):
+		# a re-read book wears a folded corner on the page where she stopped (its last, the page she shut it on); the first reading and other talks show none; the page is saved (idea 75)
+		main.story_step = maxi(main.story_step, 10)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		main.in_village = false
+		main.in_hill = true
+		var bk75: Dictionary = main.castle.books[0]
+		var read75: bool = bk75.read
+		var other_bk: Dictionary = main.castle.books[1] # one more shelf unread, so this is not the last one (no bookmark scene)
+		var other_read: bool = other_bk.read
+		other_bk.read = false
+		bk75.read = false
+		bk75.page = 0
+		var stand75: Vector2 = bk75.pos + (Vector2(0, 1.0) if bk75.pos.y < 4 else Vector2(0.0, -0.9))
+		reset_to(stand75)
+		tap(KEY_E)
+		await wait(0.2)
+		var pages75: int = main.STORY.BOOKS[0].size()
+		var first75: bool = main.story_open and not main.ui.story_fold.visible and main.story.fold_page == 0 and bk75.page == pages75
+		for i in 8:
+			if main.story_lines.is_empty():
+				break
+			main.story.next_story()
+			main.story.next_story()
+		var firstlast75: bool = not main.ui.story_fold.visible
+		main.close_story()
+		await wait(0.3)
+		tap(KEY_E) # again
+		await wait(0.2)
+		var again75: bool = main.story_open and main.story.fold_page == pages75
+		var early75: bool = pages75 < 2 or not main.ui.story_fold.visible # the first page of a longer book: no corner yet
+		for i in 8:
+			if main.story_lines.is_empty():
+				break
+			main.story.next_story()
+			main.story.next_story()
+		var folded75: bool = main.ui.story_fold.visible
+		main.close_story()
+		await wait(0.3)
+		var other75: bool = true
+		main.show_story("", ["||하나.", "||둘."])
+		other75 = not main.ui.story_fold.visible and main.story.fold_page == 0
+		main.close_story()
+		main.save_game()
+		var d75 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var saved75: bool = typeof(d75) == TYPE_DICTIONARY and d75.get("book_pages", [0])[0] == pages75
+		bk75.read = read75
+		other_bk.read = other_read
+		main.in_hill = false
+		check("d75_fold", first75 and firstlast75 and again75 and early75 and folded75 and other75 and saved75,
+			"the first reading has no corner and keeps the page=%s still none on its last page=%s a re-read marks page %d=%s the first page of a longer book is clean=%s folded corner on the page=%s another talk has none=%s saved=%s" % [first75, firstlast75, pages75, again75, early75, folded75, other75, saved75])
+	if want.call("d79_four_blocks"):
+		# a blow turns the nearest of four blocks to the way she faces; all four alike and a flower rises from the gap, one turned away and it sinks; nothing is given (idea 79)
+		var was79: Array = fb_start()
+		var v79: Object = main.village
+		var gold79: int = main.player.gold
+		var pots79: int = main.player.pots
+		var dirs79 := func() -> Array: return v79.turn_blocks.map(func(b): return b.dir)
+		var start79: bool = dirs79.call() == [0, 1, 2, 3] and not v79.turn_up and not v79.turn_flower.visible
+		var strike79 := func(i: int, q: int):
+			var f: Vector2 = [Vector2(1, 0), Vector2(0, 1), Vector2(-1, 0), Vector2(0, -1)][q]
+			var nd: Node3D = v79.turn_blocks[i].node
+			var at := Vector2(nd.global_position.x, nd.global_position.z) - f * 0.8
+			fb_put(Vector2(20.0, 15.0), at - Vector2(v79.VILLAGE_X, 0), f)
+			v79.bells_update(main, 1.0)
+			main.attack()
+		var far79: bool = true
+		fb_put(Vector2(20.0, 15.0), Vector2(5.0, 5.0), Vector2(1, 0)) # a swing far from the blocks
+		main.attack()
+		far79 = dirs79.call() == [0, 1, 2, 3]
+		var t0_79: int = v79.turn_hits
+		strike79.call(1, 0)
+		var one79: bool = dirs79.call() == [0, 0, 2, 3] and v79.turn_hits == t0_79 + 1 # one block for one blow
+		strike79.call(1, 0)
+		var same79: bool = v79.turn_hits == t0_79 + 1
+		strike79.call(2, 0)
+		var three79: bool = dirs79.call() == [0, 0, 0, 3] and not v79.turn_up
+		strike79.call(3, 0)
+		var all79: bool = dirs79.call() == [0, 0, 0, 0] and v79.turn_up
+		await wait(1.0)
+		var rose79: bool = v79.turn_flower.visible and v79.turn_flower.scale.y > 0.95
+		strike79.call(0, 2) # one turned away
+		var away79: bool = dirs79.call() == [2, 0, 0, 0] and not v79.turn_up
+		await wait(0.6)
+		var sank79: bool = not v79.turn_flower.visible
+		var plain79: bool = main.player.gold == gold79 and main.player.pots == pots79 and v79.blocked(v79.VILLAGE_X + v79.TURN_AT.x, v79.TURN_AT.y) == false
+		for i in 4: # back as built
+			v79.turn_blocks[i].dir = [0, 1, 2, 3][i]
+			v79.turn_blocks[i].node.rotation.y = -[0, 1, 2, 3][i] * PI / 2.0
+		fb_end(was79)
+		check("d79_four_blocks", start79 and far79 and one79 and same79 and three79 and all79 and rose79 and away79 and sank79 and plain79,
+			"built unlike=%s a far swing turns none=%s one blow one block=%s the same way again is quiet=%s three alike no flower=%s four alike=%s the flower is up=%s one turned away=%s it sinks=%s nothing given, no wall=%s" % [start79, far79, one79, same79, three79, all79, rose79, away79, sank79, plain79])
+	if want.call("d81_recap"):
+		# after a break of 3 days or more the first journal shows only the last deed finished and the place to go, the next opening shows everything (idea 81)
+		var m81: Object = main.menus
+		var b81 := [main.marsh.chest_open, main.tokens[1], main.has_tea, main.fly_q, main.mail_q, main.fest_gift, main.fish_kinds.duplicate(), main.grotto_q,
+			main.forest.chest_open, main.mill_q, main.cloud_q, main.stairs.door_open, main.tokens[5], main.castle.vault_open, main.ui.quest.text]
+		main.marsh.chest_open = false
+		main.tokens[1] = false
+		main.has_tea = false
+		main.fly_q = 0
+		main.mail_q = 0
+		main.fest_gift = false
+		main.fish_kinds = [false, false, false, false, false]
+		main.grotto_q = 0
+		main.forest.chest_open = false
+		main.mill_q = 0
+		main.cloud_q = 0
+		main.stairs.door_open = false
+		main.tokens[5] = false
+		main.castle.vault_open = false
+		main.ui.quest.text = "시험 길로 가자"
+		var none81: bool = m81.last_deed() == "" and plain(m81.recap_lines()[1]).contains("아직 없다")
+		main.tokens[1] = true
+		var one81: bool = m81.last_deed() == "울림 수정"
+		main.has_tea = true
+		main.marsh.chest_open = true # an earlier deed done later does not move the mark back
+		var far81: bool = m81.last_deed() == "늪의 달꽃"
+		var lines81: Array = m81.recap_lines()
+		var text81: bool = plain(lines81[1]).contains("늪의 달꽃") and plain(lines81[2]).contains("시험 길로 가자") and lines81.size() <= 5
+		var now81: float = Time.get_unix_time_from_system()
+		m81.recap_from_save(now81 - 86400.0)
+		var short81: bool = not m81.recap_due
+		m81.recap_from_save(0.0)
+		var nosave81: bool = not m81.recap_due
+		m81.recap_from_save(now81 - 4.0 * 86400.0)
+		var long81: bool = m81.recap_due
+		var r0: int = m81.recaps
+		m81.toggle_journal(true)
+		var recap81: bool = plain(main.ui.journal_text.text).contains("마지막으로 끝낸 일") and plain(main.ui.journal_text.text).contains("늪의 달꽃") and not plain(main.ui.journal_text.text).contains("곁이야기") and main.ui.journal_text2.text == "" and not m81.recap_due and m81.recaps == r0 + 1
+		m81.toggle_journal(false)
+		m81.toggle_journal(true)
+		var full81: bool = plain(main.ui.journal_text.text).contains("곁이야기") and m81.recaps == r0 + 1
+		m81.toggle_journal(false)
+		main.marsh.chest_open = b81[0]
+		main.tokens[1] = b81[1]
+		main.has_tea = b81[2]
+		main.fly_q = b81[3]
+		main.mail_q = b81[4]
+		main.fest_gift = b81[5]
+		main.fish_kinds = b81[6]
+		main.grotto_q = b81[7]
+		main.forest.chest_open = b81[8]
+		main.mill_q = b81[9]
+		main.cloud_q = b81[10]
+		main.stairs.door_open = b81[11]
+		main.tokens[5] = b81[12]
+		main.castle.vault_open = b81[13]
+		main.ui.quest.text = b81[14]
+		check("d81_recap", none81 and one81 and far81 and text81 and short81 and nosave81 and long81 and recap81 and full81,
+			"no deed yet=%s one deed=%s the furthest deed wins=%s the two lines=%s one day away: none=%s no save time: none=%s four days: recap=%s the first journal is only the recap=%s the second is whole=%s" % [none81, one81, far81, text81, short81, nosave81, long81, recap81, full81])
+	if want.call("d83_potion_preview"):
+		# the shop shows what one potion would mend at her HP, with the keepsakes and level counted, and the drink mends exactly that; buying nothing consumes nothing (idea 83)
+		var p83: Dictionary = main.player
+		var b83 := [p83.hp, p83.max_hp, p83.lv, p83.pots, main.has_sprout, main.has_acorn, p83.cds[3]]
+		main.close_story()
+		p83.max_hp = 100
+		p83.lv = 1
+		main.has_sprout = false
+		main.has_acorn = false
+		p83.cds[3] = 0.0
+		p83.hp = 70.0
+		var cb83: Object = main.combat
+		var pots83: int = p83.pots
+		var near83: bool = absf(cb83.heal_preview() - 30.0) < 0.01 and p83.pots == pots83 and p83.hp == 70.0
+		main.shop.refresh_shop()
+		var line83: bool = main.ui.shop_preview.text.contains("+30")
+		p83.hp = 20.0
+		var base83: bool = absf(cb83.heal_preview() - 45.0) < 0.01
+		main.has_acorn = true
+		var acorn83: bool = absf(cb83.heal_preview() - 65.0) < 0.01
+		main.has_sprout = true
+		var sprout83: bool = absf(cb83.heal_preview() - 75.0) < 0.01
+		main.has_sprout = false
+		main.has_acorn = false
+		p83.lv = 25
+		var lv83: bool = absf(cb83.heal_preview() - 58.5) < 0.01
+		p83.lv = 1
+		main.shop.refresh_shop()
+		var line2_83: bool = main.ui.shop_preview.text.contains("+45")
+		p83.pots = 2
+		var said83: float = cb83.heal_preview()
+		main.drink_potion()
+		var drank83: bool = absf(p83.hp - (20.0 + said83)) < 0.01 and p83.pots == 1
+		p83.hp = float(p83.max_hp)
+		main.shop.refresh_shop()
+		var full83: bool = cb83.heal_preview() == 0.0 and main.ui.shop_preview.text.contains("가득")
+		p83.hp = b83[0]
+		p83.max_hp = b83[1]
+		p83.lv = b83[2]
+		p83.pots = b83[3]
+		main.has_sprout = b83[4]
+		main.has_acorn = b83[5]
+		p83.cds[3] = b83[6]
+		check("d83_potion_preview", near83 and line83 and base83 and acorn83 and sprout83 and lv83 and line2_83 and drank83 and full83,
+			"30 mended from 70 of 100 and nothing used=%s the shop line=%s base 45=%s acorn 65=%s sprout 75=%s Lv25 58.5=%s line follows=%s the drink mends what was said=%s at full strength: none=%s" % [near83, line83, base83, acorn83, sprout83, lv83, line2_83, drank83, full83])
+	if want.call("d84_folk_detail"):
+		# a villager's name in the journal's list opens her house and when she can be met, a second tap closes it; unmet ones are not listed (idea 84)
+		var m84: Object = main.menus
+		var met84: Dictionary = main.met.duplicate()
+		var fs84: Dictionary = main.folk_state.duplicate()
+		var mate84 = main.mate
+		main.met = {"doran": true, "kongal": true, "tori": true}
+		main.mate = null
+		m84.recap_due = false
+		m84.journal_folk = ""
+		main.folk_state["doran"] = "out"
+		m84.toggle_journal(true)
+		var t84: String = plain(main.ui.journal_text2.text)
+		var list84: bool = t84.contains("마을 사람") and t84.contains("[url=doran]") and t84.contains("[url=tori]") and not t84.contains("[url=yeoul]") and not t84.contains("집:")
+		var n0: int = m84.folk_picks
+		m84.journal_pick("doran")
+		t84 = plain(main.ui.journal_text2.text)
+		var open84: bool = m84.folk_picks == n0 + 1 and m84.journal_folk == "doran" and t84.contains("번 집") and t84.contains("낮:") and t84.contains("밤:") and not t84.contains("지금: 집에서")
+		main.folk_state["doran"] = "in"
+		m84.journal_pick("kongal")
+		m84.journal_pick("doran")
+		t84 = plain(main.ui.journal_text2.text)
+		var asleep84: bool = t84.contains("지금: 집에서 자고 있다") and t84.contains("▸ 도란")
+		m84.journal_pick("doran") # a second tap closes it
+		t84 = plain(main.ui.journal_text2.text)
+		var shut84: bool = m84.journal_folk == "" and not t84.contains("낮:")
+		m84.toggle_journal(false)
+		var n1: int = m84.folk_picks
+		m84.journal_pick("doran") # the journal is shut: nothing happens
+		var closed84: bool = m84.folk_picks == n1 and m84.journal_folk == ""
+		main.met = met84
+		main.folk_state = fs84
+		main.mate = mate84
+		check("d84_folk_detail", list84 and open84 and asleep84 and shut84 and closed84,
+			"met names are links, unmet are not=%s the details show house, day, night=%s a sleeper says so=%s a second tap closes=%s a shut journal ignores=%s" % [list84, open84, asleep84, shut84, closed84])
+	if want.call("d85_resume"):
+		# a plain talk of three lines or more closed on its last line within 2 s and opened again within 6 s begins at that last line; slower, other, short or follow-up talks start over (idea 85)
+		var st85: Object = main.story
+		main.close_story()
+		main.after_story = Callable()
+		var talk85: Array = ["||하나.", "||둘.", "||셋.", "||넷."]
+		var read85 := func():
+			for i in 12:
+				if main.story_lines.is_empty() and main.ui.story_text.visible_characters == -1:
+					break
+				st85.next_story()
+		var r0_85: int = st85.story_resumes
+		main.show_story("", talk85)
+		read85.call()
+		var onlast85: bool = main.story_lines.is_empty() and plain(main.ui.story_text.text) == "넷."
+		main.close_story()
+		var kept85: bool = st85.cp_key == talk85.hash()
+		main.show_story("", talk85)
+		var resumed85: bool = main.story_lines.is_empty() and plain(main.ui.story_text.text) == "넷." and st85.story_resumes == r0_85 + 1 and st85.cp_key == 0
+		main.close_story()
+		main.show_story("", ["||다른.", "||이야기.", "||입니다."]) # another talk starts at its first line
+		var other85: bool = main.story_lines.size() == 2 and st85.story_resumes == r0_85 + 1
+		main.close_story()
+		main.show_story("", talk85) # nothing was kept for it any more
+		var fresh85: bool = main.story_lines.size() == 3
+		read85.call()
+		await wait(2.4) # closed too slowly: not a slip
+		main.close_story()
+		main.show_story("", talk85)
+		var slow85: bool = main.story_lines.size() == 3 and st85.story_resumes == r0_85 + 1
+		read85.call()
+		main.close_story()
+		st85.cp_at -= 10.0 # opened again too late
+		main.show_story("", talk85)
+		var late85: bool = main.story_lines.size() == 3 and st85.story_resumes == r0_85 + 1
+		read85.call()
+		main.after_story = func(): pass # a talk with a follow-up waiting is never kept
+		main.close_story()
+		main.after_story = Callable()
+		main.show_story("", talk85)
+		var reward85: bool = main.story_lines.size() == 3 and st85.cp_key == 0
+		main.close_story()
+		var short85: Array = ["||하나.", "||둘."]
+		main.show_story("", short85)
+		read85.call()
+		main.close_story()
+		main.show_story("", short85)
+		var short_ok85: bool = main.story_lines.size() == 1 and st85.story_resumes == r0_85 + 1
+		main.close_story()
+		main.after_story = Callable()
+		check("d85_resume", onlast85 and kept85 and resumed85 and other85 and fresh85 and slow85 and late85 and reward85 and short_ok85,
+			"read to the last line=%s kept=%s opened again: only the last line=%s another talk from its start=%s used once=%s slow close=%s late reopen=%s a follow-up waiting=%s a two-line talk=%s" % [onlast85, kept85, resumed85, other85, fresh85, slow85, late85, reward85, short_ok85])
+	if want.call("d87_save_gear"):
+		# the gear turns once only after a write that ended without an error and the time is kept for the journal; a failed write shows a plain message and no gear (idea 87)
+		var sv87: Object = main.save
+		main.close_story()
+		var intro87: bool = main.intro
+		main.intro = false
+		main.down_t = 0.0
+		main.player.hp = maxf(main.player.hp, 10.0)
+		var gear87: Control = main.ui.save_gear
+		var saved_t87: float = main.save_t
+		main.save_t = -1000.0 # the 5 s autosave would turn the gear again
+		gear87.modulate.a = 0.0
+		var n87: int = sv87.save_turns
+		var f87: int = sv87.save_fails
+		main.save_game()
+		var turned87: bool = sv87.save_turns == n87 + 1 and sv87.save_fails == f87 and gear87.modulate.a > 0.5
+		var time87: bool = sv87.last_save_text.length() == 5 and sv87.last_save_text[2] == ":"
+		await wait(0.4)
+		var spins87: bool = gear87.rotation > 0.5
+		var d87 = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var stamp87: bool = typeof(d87) == TYPE_DICTIONARY and absf(float(d87.get("saved_at", 0.0)) - Time.get_unix_time_from_system()) < 30.0
+		var line87: bool = main.menus.journal_lines().any(func(l): return String(l).contains(sv87.last_save_text) and String(l).contains("마지막 저장"))
+		await wait(3.2)
+		var faded87: bool = gear87.modulate.a < 0.01
+		var t87: String = sv87.last_save_text
+		sv87.save_done(false)
+		var failed87: bool = sv87.save_fails == f87 + 1 and sv87.save_turns == n87 + 1 and gear87.modulate.a < 0.01 and sv87.last_save_text == t87 and main.ui.toast.text.contains("저장하지 못했다")
+		main.intro = true # no save before the game starts, so no gear
+		main.save_game()
+		var quiet87: bool = sv87.save_turns == n87 + 1
+		main.intro = intro87
+		main.save_t = saved_t87
+		check("d87_save_gear", turned87 and time87 and spins87 and stamp87 and line87 and faded87 and failed87 and quiet87,
+			"a good write turns the gear=%s time kept=%s it spins=%s saved_at stamped=%s journal line=%s fades=%s a failed write: message, no gear=%s no save at the title=%s" % [turned87, time87, spins87, stamp87, line87, faded87, failed87, quiet87])
+	if want.call("d88_dots"):
+		# a ringing crystal shows its rank (1 for the lowest note to 4) as that many dots above it at the same hit, then they go; the puzzle's rules are unchanged (idea 88)
+		var cv88: Object = main.cave
+		var run88: int = main.crystal_run
+		var done88: bool = main.crystal_done
+		var told88: bool = main.crystal_told
+		main.crystal_told = true
+		main.crystal_done = false # an earlier test may have solved them
+		var rings: Array = main.crystals.filter(func(c): return not c.has("set"))
+		var counts88 := true
+		var c0: int = cv88.dot_cues.size()
+		var order88 := []
+		for e in rings:
+			e.hurt = 0.0
+			main.crystal_run = 0
+			cv88.crystal_hit(e)
+			var rank: int = main.CRYSTAL_NOTE[int(e.crystal)]
+			order88.append(rank)
+			var row = e.get("dots")
+			counts88 = counts88 and is_instance_valid(row) and row.get_child_count() == rank + 1 and absf(row.position.y - 2.15) < 0.01 and absf(row.position.x - e.x) < 0.01
+		var seen88: bool = rings.size() == 4 and cv88.dot_cues.size() == c0 + 4 and cv88.dot_cues.slice(c0) == order88
+		var twice88: bool = true
+		var e0: Dictionary = rings[0]
+		e0.hurt = 0.0
+		cv88.crystal_hit(e0)
+		var n_a: int = cv88.dot_cues.size()
+		cv88.crystal_hit(e0) # one swing rings it once
+		twice88 = cv88.dot_cues.size() == n_a
+		var low88: Dictionary = rings.filter(func(c): return main.CRYSTAL_NOTE[int(c.crystal)] == 0)[0]
+		low88.hurt = 0.0
+		main.crystal_run = 0
+		var done0: bool = main.crystal_done
+		cv88.crystal_hit(low88)
+		var rules88: bool = main.crystal_run == 1 and main.crystal_done == done0
+		await wait(cv88.DOT_STAY + 0.3)
+		var gone88: bool = rings.all(func(c): return not is_instance_valid(c.get("dots")) or not c.get("dots").is_inside_tree())
+		main.crystal_run = run88
+		main.crystal_done = done88
+		main.crystal_told = told88
+		check("d88_dots", counts88 and seen88 and twice88 and rules88 and gone88,
+			"dots = rank + 1 above each crystal=%s cues in ring order=%s one swing once=%s the order rule still counts=%s dots go=%s" % [counts88, seen88, twice88, rules88, gone88])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

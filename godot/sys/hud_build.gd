@@ -629,6 +629,9 @@ func build_hud() -> void:
 		dsc.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED # translated here, before the words are joined
 		dsc.size = Vector2(140, 40)
 		dsc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		if i == 0: # what one potion would mend now (delight idea 83), set by shop.gd refresh_shop
+			m.ui.shop_preview = label(card, "", Vector2(118, 88), 12, Color("#8dff9a"))
+			m.ui.shop_preview.size = Vector2(146, 18)
 		var b := Button.new()
 		b.text = tr("◆ %d  사기") % it.price
 		b.add_theme_font_override("font", m.ui_font)
@@ -662,6 +665,28 @@ func build_hud() -> void:
 	m.ui.shop_back.visible = false
 	shop.visible = false
 	m.ui.shop = shop
+	var gear := Control.new() # the save gear (delight idea 87): a square and a turned square make eight teeth, a dark hole in the middle
+	gear.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for k in 2:
+		var tooth := ColorRect.new()
+		tooth.color = Color("#d9a93a")
+		tooth.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tooth.size = Vector2(12, 12)
+		tooth.position = Vector2(2, 2)
+		tooth.pivot_offset = Vector2(6, 6)
+		tooth.rotation = k * PI / 4.0
+		gear.add_child(tooth)
+	var hole := ColorRect.new()
+	hole.color = Color("#091627")
+	hole.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hole.size = Vector2(4, 4)
+	hole.position = Vector2(6, 6)
+	gear.add_child(hole)
+	root.add_child(gear)
+	place(gear, Control.PRESET_BOTTOM_LEFT, Vector2(12, -30), Vector2(16, 16))
+	gear.pivot_offset = Vector2(8, 8)
+	gear.modulate.a = 0.0
+	m.ui.save_gear = gear
 	m.ui.shop_hint = label(root, "E  보리 할머니의 상점", Vector2.ZERO, 16, Color("#fff1c8"))
 	place(m.ui.shop_hint, Control.PRESET_CENTER_BOTTOM, Vector2(-200, -260), Vector2(400, 24))
 	m.ui.shop_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -959,6 +984,18 @@ func build_hud() -> void:
 	cap_hint.visible = false
 	cap_hint.pressed.connect(func(): m.story.next_button())
 	cap.add_child(cap_hint)
+	var fold := Node2D.new() # a book page's folded corner (delight idea 75), shown by story.gd show_line
+	var fold_back := Polygon2D.new()
+	fold_back.polygon = PackedVector2Array([Vector2(0, 0), Vector2(34, 0), Vector2(34, 34)])
+	fold_back.color = Color("#6b5530")
+	fold.add_child(fold_back)
+	var flap := Polygon2D.new()
+	flap.polygon = PackedVector2Array([Vector2(0, 0), Vector2(34, 34), Vector2(0, 34)])
+	flap.color = Color("#efe3bc")
+	fold.add_child(flap)
+	fold.visible = false
+	cap.add_child(fold)
+	m.ui.story_fold = fold
 	m.ui.story_tab = tab
 	m.ui.story_frame = pic_frame
 	m.ui.story_cap = cap

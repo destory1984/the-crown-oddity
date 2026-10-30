@@ -22,7 +22,7 @@ const ICON_SVG := {
 	"music_off": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 17V6.5l9-2V15"/><path d="M9.5 9.5l9-2"/><circle cx="7" cy="17.4" r="2.5"/><circle cx="16" cy="15.4" r="2.5"/><path d="M4 4l16 16"/></svg>',
 	"back": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(0.25 -2.25)"><path d="M9 7L4.5 11.5 9 16"/><path d="M5 11.5h9a5 5 0 0 1 0 10h-2"/></g></svg>',
 }
-const JOURNAL_HEADS := ["지금 할 일", "곁이야기", "도전 과제", "지닌 것", "익힌 기술"]
+const JOURNAL_HEADS := ["지금 할 일", "곁이야기", "도전 과제", "지닌 것", "익힌 기술", "마을 사람", "다시 이어 하기"]
 
 func _init(main: Main) -> void:
 	m = main
@@ -624,6 +624,7 @@ func journal_column(parent: Control, pos: Vector2, size: Vector2) -> RichTextLab
 	r.add_theme_font_override("normal_font", m.ui_font)
 	r.add_theme_font_size_override("normal_font_size", 15)
 	r.add_theme_color_override("default_color", Color("#e9dfc4"))
+	r.meta_clicked.connect(func(meta): journal_pick(String(meta))) # a villager's name in the list (delight idea 84)
 	parent.add_child(r)
 	return r
 
@@ -631,6 +632,9 @@ func journal_bbcode(lines: Array) -> String:
 	var heads := JOURNAL_HEADS.map(func(h): return tr(h))
 	var out: Array = []
 	for l in lines:
+		if String(l).begins_with(RAW_MARK): # a line already made of bbcode (the villagers' names are links)
+			out.append(String(l).substr(1))
+			continue
 		var line: String = Main.Ko.keep_words(m.touch_words(String(l))).replace("[", "[lb]") # wraps only at spaces
 		if l in heads:
 			out.append("[color=#f6d27a][font_size=17]%s[/font_size][/color]" % line)
@@ -640,17 +644,97 @@ func journal_bbcode(lines: Array) -> String:
 			out.append(line)
 	return "\n".join(out)
 
-func toggle_journal(show: bool) -> void:
+# A first journal after a break of RECAP_DAYS days or more shows only the last deed finished and the place to go now, then
+# the usual pages come back the next time it opens (delight idea 81). The deed is the furthest one done in the order below;
+# the place is the current quest line, the same one the quest marks lead to.
+const RECAP_DAYS := 3.0
+var recap_due := false
+var recaps := 0 # recap pages shown (autoplay d81_recap)
+
+func recap_from_save(saved_at: float) -> void:
+	recap_due = saved_at > 0.0 and Time.get_unix_time_from_system() - saved_at >= RECAP_DAYS * 86400.0
+
+func deeds_done() -> Array: # [name, done] in the order the story reaches them
+	return [["늪의 옛 지도 조각", m.marsh.chest_open], ["울림 수정", m.tokens[1]], ["늪의 달꽃", m.has_tea],
+		["꼬마의 반딧불 병", m.fly_q >= 3], ["도란의 편지 세 통", m.mail_q >= 2], ["등불 축제", m.fest_gift],
+		["호숫가 낚시", m.fish_kinds.count(true) == 5], ["섬 밑 물빛 동굴", m.grotto_q >= 4], ["숲의 달 순서 돌", m.forest.chest_open],
+		["참새 방앗간", m.mill_q >= 5], ["구름 둔덕", m.cloud_q >= 3], ["달의 계단", m.stairs.door_open],
+		["서재의 달지기 책", m.tokens[5]], ["성의 보물고", m.castle.vault_open]]
+
+func last_deed() -> String:
+	var name := ""
+	for d in deeds_done():
+		if d[1]:
+			name = d[0]
+	return name
+
+func recap_lines() -> Array:
+	var deed := last_deed()
+	var go: String = tr(Main.Ko.plain(m.ui.quest.text)) if m.ui.quest.text != "" else tr("마음 가는 대로 둘러보자")
+	return [tr("다시 이어 하기"), "  " + tr("마지막으로 끝낸 일  —  %s") % (tr(deed) if deed != "" else tr("아직 없다")), "  " + tr("지금 갈 곳  —  %s") % go, "", tr("일지를 다시 열면 모두 보인다")]
+
+# ---- the villagers' list at the end of the journal: tap a name for her house and when she can be met (delight idea 84)
+const RAW_MARK := "\u0001"
+var journal_folk := "" # the villager whose details are open
+var folk_picks := 0 # names picked (autoplay d84_folk_detail)
+
+func folk_detail(id: String) -> Array:
+	var out: Array = []
+	var asleep: bool = m.folk_state.get(id, "out") == "in" and m.folk.folk_awake_here(id)
+	if id in Main.SLEEP_IDS:
+		out.append("      " + tr("집: %d번 집") % (m.folk.folk_home(id) + 1))
+	if id == "mulgyeol" and m.mate != null:
+		out.append("      " + tr("지금: 소라와 함께 다닌다"))
+		return out
+	out.append("      " + (tr("낮: 마을 길을 돌며 만날 수 있다") if Main.FOLK_ROUTES.has(id) else tr("낮: 늘 서 있는 자리에서 만날 수 있다")))
+	out.append("      " + (tr("밤: 집에서 잔다 (집 안에서 깨울 수 있다)") if id in Main.SLEEP_IDS else tr("밤: 밖에 있다")))
+	if asleep:
+		out.append("      " + tr("지금: 집에서 자고 있다")) # the same fact the sleeping hint tells at the village spot
+	return out
+
+func folk_journal() -> Array:
+	var ids: Array = Main.SLEEP_IDS.filter(func(id): return m.met.has(id))
+	if ids.is_empty():
+		return []
+	var out: Array = [tr("마을 사람")]
+	var names: Array = ids.map(func(id): return "[url=%s]%s%s[/url]" % [id, "▸ " if id == journal_folk else "", tr(m.folk.FOLK_NAME[id])])
+	out.append(RAW_MARK + "  " + "  ·  ".join(names))
+	if journal_folk != "" and journal_folk in ids:
+		out.append_array(folk_detail(journal_folk))
+	out.append(tr("  이름을 누르면 집과 만날 때가 보인다"))
+	out.append("")
+	return out
+
+func journal_pick(id: String) -> void:
+	if not m.ui.journal.visible or id not in Main.SLEEP_IDS:
+		return
+	folk_picks += 1
+	journal_folk = "" if journal_folk == id else id
+	toggle_journal(true, true)
+
+func toggle_journal(show: bool, keep_scroll := false) -> void:
 	if show:
 		m.ui.help.visible = false
 		m.ui.bag.visible = false
 		m.hud_build.fit_journal()
-		var lines: Array = journal_lines()
-		var cut: int = lines.find(tr("도전 과제"))
-		m.ui.journal_text.text = journal_bbcode(lines.slice(0, cut))
-		m.ui.journal_text2.text = journal_bbcode(lines.slice(cut))
-		m.ui.journal_text.scroll_to_line(0)
-		m.ui.journal_text2.scroll_to_line(0)
+		var sv1: float = m.ui.journal_text.get_v_scroll_bar().value
+		var sv2: float = m.ui.journal_text2.get_v_scroll_bar().value
+		if recap_due and not keep_scroll:
+			recap_due = false
+			recaps += 1
+			m.ui.journal_text.text = journal_bbcode(recap_lines())
+			m.ui.journal_text2.text = ""
+		else:
+			var lines: Array = journal_lines()
+			var cut: int = lines.find(tr("도전 과제"))
+			m.ui.journal_text.text = journal_bbcode(lines.slice(0, cut))
+			m.ui.journal_text2.text = journal_bbcode(lines.slice(cut))
+		if keep_scroll:
+			m.ui.journal_text.get_v_scroll_bar().value = sv1
+			m.ui.journal_text2.get_v_scroll_bar().value = sv2
+		else:
+			m.ui.journal_text.scroll_to_line(0)
+			m.ui.journal_text2.scroll_to_line(0)
 		m.ui.ending_btn.visible = m.garden_zone.ending_seen()
 	m.ui.journal.visible = show
 	if show:
@@ -747,7 +831,10 @@ func journal_lines() -> Array:
 		var v := mini(m.errands.feat_value(Main.FEATS[i][1]), Main.FEATS[i][2])
 		out.append("  · " + tr(Main.FEATS[i][0]) + "  —  " + (tr("완료") if m.feats_done[i] else "%d/%d" % [v, Main.FEATS[i][2]]))
 	out.append("")
+	out.append_array(folk_journal())
 	out.append(tr("놀이 시간 %s · 물리친 괴물 %d마리") % [m.errands.play_time_text(), m.stats.kills])
+	if m.save.last_save_text != "":
+		out.append(tr("마지막 저장 %s") % m.save.last_save_text)
 	out.append("")
 	out.append(tr("지닌 것"))
 	var keep: Array = keepsakes().map(func(k): return k[0])
