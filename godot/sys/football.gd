@@ -36,6 +36,7 @@ const HOME_AFTER := 10.0   # seconds away from Sora, off its spot, before it rol
 const HOME_FAR := 7.0      # "away" is this far
 const HOME_TIME := 0.9
 const QUIET_FOE := 8.0     # a foe this near (tiles) and the ball sits still
+const CHEER_NEAR := 12.0   # companions this near Sora cheer a goal
 
 var ball: Node3D            # at ground level; the mesh child carries the roll
 var ball_mesh: MeshInstance3D
@@ -60,6 +61,7 @@ var away_t := 0.0
 var home_t := 0.0
 var home_from := Vector2.ZERO
 var flashes := 0            # screen pulses shown (autoplay football_goal)
+var cheers := 0             # companions who cheered the last goal (autoplay football_cheer)
 var flash: ColorRect
 var banner: Label
 var flash_tw: Tween
@@ -383,7 +385,7 @@ func goal_fx() -> void:
 	banner_tw.tween_callback(func(): banner.visible = false)
 	if bool(m.cfg.get("shake", true)):
 		m.shake = maxf(m.shake, 0.3)
-	var net_at := Vector3(p.x, 0.5, goal_z - GOAL_DEPTH * 0.6)
+	var net_at := Vector3(p.x, 0.5, goal_z + GOAL_DEPTH * 0.6)
 	m.burst(net_at, Color("#ffd24a"), 30, 3.5)
 	m.burst(net_at + Vector3(0, 0.3, 0), Color("#fff1a0"), 20, 2.5)
 	var notes := [523.0, 659.0, 784.0, 1047.0] # a short rising arpeggio
@@ -393,6 +395,24 @@ func goal_fx() -> void:
 			m.sfx(hz, 0.14, "triangle", 0.22)
 		else:
 			m.get_tree().create_timer(0.08 * i).timeout.connect(func(): m.sfx(hz, 0.14 if i < 3 else 0.3, "triangle", 0.22))
+	cheer()
+
+# Noeul and Mulgyeol, when they are with her and near, jump twice and shout (the owner, 14:17: "골인하면, 노을/물결이 환호해주는거 넣어줘")
+func cheer() -> void:
+	cheers = 0
+	var me := Vector2(m.player.x, m.player.z)
+	var who := [[m.mate2, "noeul", tr("골! 잘 찼어!"), 0.0], [m.mate, "mulgyeol", tr("우와, 들어갔다!"), 0.35]]
+	for w in who:
+		var node: Node3D = w[0]
+		if node == null or not node.visible or Vector2(node.position.x, node.position.z).distance_to(me) > CHEER_NEAR:
+			continue
+		cheers += 1
+		m.folk.cheer_t[w[1]] = m.folk.CHEER_T
+		var line: String = w[2]
+		if w[3] > 0.0: # one after the other, so the two balloons do not land at once
+			m.get_tree().create_timer(w[3]).timeout.connect(func(): m.say_bubble(node, line, 2.2))
+		else:
+			m.say_bubble(node, line, 2.2)
 
 func ensure_fx() -> void:
 	if flash != null:

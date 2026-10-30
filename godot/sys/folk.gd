@@ -35,6 +35,9 @@ var hops := {} # key -> {last, p, base, scale, squash, n}
 var nod_t := {} # key -> seconds left of a nod (delight idea 29)
 var folk_nods := 0 # nods given (autoplay folk_nod)
 const NOD_T := 0.45
+var cheer_t := {} # key -> seconds left of a cheer: two little jumps when a goal goes in (football.gd)
+const CHEER_T := 1.0
+const CHEER_H := 0.35
 
 func hop(key: String, spr: Sprite3D, dt: float, base_y := 0.0, height := HOP_H, alt := false, step := HOP_STEP) -> void:
 	var g := Vector2(spr.global_position.x, spr.global_position.z)
@@ -72,6 +75,10 @@ func hop(key: String, spr: Sprite3D, dt: float, base_y := 0.0, height := HOP_H, 
 		var dip := sin(PI * (1.0 - nt / NOD_T))
 		spr.position.y -= dip * 0.08
 		spr.scale.y *= 1.0 - dip * 0.07
+	var ct: float = cheer_t.get(key, 0.0)
+	if ct > 0.0:
+		cheer_t[key] = ct - dt
+		spr.position.y += absf(sin(TAU * (1.0 - ct / CHEER_T))) * CHEER_H
 
 func house_char(x: float, z: float) -> String:
 	var tx := int(round(x)) - Main.HOUSE_X
