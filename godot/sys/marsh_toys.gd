@@ -76,6 +76,7 @@ var pipe_plays := 0
 # Bori's mat
 var mat_at := Vector2(-1, -1)
 var mat_node: Node3D
+var mat_shoes: Node3D # Sora's pair, on the mat from the ending on (the owner's plan 5, 2026-10-30: home has to be a place)
 
 func _init(main: Main) -> void:
 	m = main
@@ -303,6 +304,12 @@ func build_mat() -> void:
 	var needle := part(mat_node, Vector3(0.018, 0.018, 0.26), Vector3(-0.05, 0.05, 0.3), "#cfd3d8")
 	needle.rotation = Vector3(0.0, 0.6, 0.12)
 	part(mat_node, Vector3(0.05, 0.02, 0.02), Vector3(-0.12, 0.045, 0.2), "#c8562e") # a bit of red thread
+	mat_shoes = Node3D.new()
+	mat_node.add_child(mat_shoes)
+	for s in [-1.0, 1.0]:
+		part(mat_shoes, Vector3(0.09, 0.03, 0.2), Vector3(0.07 * s, 0.04, -0.08), "#f0e8d8") # sole
+		part(mat_shoes, Vector3(0.08, 0.06, 0.17), Vector3(0.07 * s, 0.08, -0.08), "#2f55b0")
+	mat_shoes.visible = false
 	mat_node.rotation.y = COTTAGE_YAW
 	put(mat_node, mat_at, 0.8)
 
@@ -372,6 +379,10 @@ func usable() -> bool:
 func near(at: Vector2) -> bool:
 	return at.x >= 0.0 and Vector2(m.player.x, m.player.z).distance_to(at) < USE_R
 
+# the garden is wound: she has a place here, in this round and every new one
+func home_done() -> bool:
+	return m.story_step >= 12 or m.ng > 0
+
 # a toy under the hand? true takes the key; a wound duck or a pipe that is still sounding answers nothing but is not skipped over
 func key() -> bool:
 	if not usable():
@@ -379,7 +390,7 @@ func key() -> bool:
 	if m.shop.cup_key():
 		return true
 	if m.story_step >= 3 and mat_node != null and near(mat_at):
-		m.show_story("", Main.STORY.MARSH_MAT)
+		m.show_story("", Main.STORY.MARSH_MAT + Main.STORY.MARSH_MAT_HOME if home_done() else Main.STORY.MARSH_MAT)
 		return true
 	if m.story_step < 2:
 		return false
@@ -424,6 +435,8 @@ func play_pipe() -> void:
 
 # ---------------------------------------------------------------- every frame (in the marsh)
 func update(dt: float) -> void:
+	if mat_shoes != null:
+		mat_shoes.visible = home_done()
 	update_duck(dt)
 	update_frogs(dt)
 	update_cattails(dt)

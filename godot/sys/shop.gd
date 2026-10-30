@@ -50,10 +50,12 @@ func cup_key() -> bool:
 		cup_steams += 1
 		m.toast(tr("마지막 잔에서만 김이 난다"))
 	else:
-		m.toast(tr("빈 찻잔이다"))
+		m.toast(tr("찻잔 셋 곁에 넷째 잔이 놓였다. 소라의 잔이다") if m.marsh_toys.home_done() else tr("빈 찻잔이다"))
 	return true
 
 func update_cups(dt: float) -> void:
+	if m.world_build.tea_fourth != null:
+		m.world_build.tea_fourth.visible = m.marsh_toys.home_done()
 	var steam: Array = m.world_build.tea_steam
 	if steam.is_empty():
 		return

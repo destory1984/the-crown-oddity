@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -1384,7 +1384,7 @@ func run() -> void:
 		# a swing sends the ball along her facing at 7 tiles/s, it slows to a stop in about 1.5 s and turns as it goes; walking into it nudges it at 2.5
 		var was_k: Array = fb_start()
 		var fk: Object = main.football
-		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
+		fb_put(Vector2(19.0, 23.0), Vector2(17.7, 23.0), Vector2(1, 0))
 		var k0: int = fk.kicks
 		var r0k: float = fk.rolled
 		var x0k: float = fk.p.x
@@ -1399,7 +1399,7 @@ func run() -> void:
 		var went: float = fk.p.x - x0k
 		var turned: float = fk.rolled - r0k
 		var spun: bool = absf(turned - went) < 0.3 and fk.ball_mesh.basis.get_euler().length() > 0.01
-		fb_put(Vector2(20.0, 22.0), Vector2(19.5, 22.0), Vector2(1, 0))
+		fb_put(Vector2(20.0, 23.0), Vector2(19.5, 23.0), Vector2(1, 0))
 		main.player.vx = 3.6
 		main.player.vz = 0.0
 		fk.update(0.016)
@@ -1414,7 +1414,7 @@ func run() -> void:
 		var was_b: Array = fb_start()
 		var fbn: Object = main.football
 		var vxb: float = main.village.VILLAGE_X
-		fb_put(Vector2(24.6, 22.0), Vector2(40.0, 20.0), Vector2(1, 0))
+		fb_put(Vector2(24.6, 23.0), Vector2(40.0, 20.0), Vector2(1, 0))
 		fbn.vel = Vector2(7.0, 0)
 		var b0: int = fbn.bounces
 		var inside := true
@@ -1432,10 +1432,10 @@ func run() -> void:
 		await wait(0.9)
 		var post_ok: bool = fbn.bounces > b1 and fbn.vel.y <= 0.0 and fbn.p.y < fbn.goal_z and fbn.goals == g_b and fbn.state == "play"
 		var b2: int = fbn.bounces
-		fb_put(Vector2(23.7, 22.4), Vector2(40.0, 20.0), Vector2(0, 1))
-		fbn.vel = Vector2(0, 6.0)
+		fb_put(Vector2(25.0, 22.8), Vector2(40.0, 20.0), Vector2(0, -1)) # up the line into the corner flag
+		fbn.vel = Vector2(0, -6.0)
 		await wait(0.9)
-		var basin_ok: bool = fbn.bounces > b2 and fbn.p.distance_to(Vector2(vxb + 23.7, 24.0)) >= 0.3 and fbn.vel.y <= 0.0
+		var basin_ok: bool = fbn.bounces > b2 and fbn.p.distance_to(Vector2(vxb + 25.0, 21.8)) >= 0.25 and fbn.vel.y >= 0.0
 		fb_put(Vector2(17.2, 28.0), Vector2(40.0, 20.0), Vector2(1, 0))
 		fbn.away_t = fbn.HOME_AFTER - 0.5
 		await wait(0.9)
@@ -1548,32 +1548,86 @@ func run() -> void:
 		fs.goals = g_s
 		check("football_save", saved1 and loaded and old_ok and round_ok, "saved %s, loaded back %s, an old save reads 0 %s, a new round keeps it %s" % [saved1, loaded, old_ok, round_ok])
 		fb_end(was_s)
+	if want.call("football_north"):
+		# the second goal: a ball over the north line scores just as the south one does, and the board keeps count
+		var wn: Array = fb_start()
+		var fn: Object = main.football
+		var gn: int = fn.goals
+		fb_put(Vector2(21.0, 22.6), Vector2(21.0, 23.8), Vector2(0, -1))
+		main.attack()
+		var in_n: bool = await wait_for(func(): return fn.state == "net", 3.0)
+		var over: bool = fn.p.y < fn.goal_n and fn.goals == gn + 1
+		var told: bool = str(gn + 1) in fn.board.text
+		await wait_for(func(): return fn.state == "play", 3.0)
+		var at_spot: bool = fn.p.distance_to(fn.spot) < 0.05
+		# wide of the post: a bounce, not a goal
+		var gb: int = fn.goals
+		fb_put(Vector2(19.0, 22.2), Vector2(19.0, 23.4), Vector2(0, -1))
+		main.attack()
+		await wait(0.8)
+		var wide: bool = fn.goals == gb
+		fb_end(wn)
+		check("football_north", in_n and over and told and at_spot and wide, "in the north net %s, counted %s, board '%s' %s, back on the centre spot %s, wide of the post no goal %s" % [in_n, over, fn.board.text, told, at_spot, wide])
+	if want.call("pitch_marks"):
+		# two goals face each other across the centre spot, the ball lies midway, the goals stay on the lawn
+		var fp: Object = main.football
+		var mid_z: float = (fp.goal_z + fp.goal_n) / 2.0
+		var centred: bool = absf(fp.spot.y - mid_z) < 0.01 and absf(fp.spot.x - (fp.goal_x0 + fp.goal_x1) / 2.0) < 0.01
+		var inside: bool = fp.goal_n - fp.GOAL_DEPTH >= fp.bounds.position.y and fp.goal_z + fp.GOAL_DEPTH <= fp.bounds.end.y
+		check("pitch_marks", centred and inside and fp.board != null, "ball on the centre %s, goals inside the lawn %s, board %s" % [centred, inside, fp.board != null])
+	if want.call("ending_home"):
+		# from the ending on Sora's shoes are on Bori's mat, a fourth cup on the plank, and the mat says so
+		marsh_world()
+		var mt2: Object = main.marsh_toys
+		var wb2: Object = main.world_build
+		var s0h: int = main.story_step
+		var n0h: int = main.ng
+		main.story_step = 5
+		main.ng = 0
+		await wait(0.2)
+		var before_home: bool = not mt2.mat_shoes.visible and not wb2.tea_fourth.visible
+		main.story_step = 12
+		await wait(0.2)
+		var after_home: bool = mt2.mat_shoes.visible and wb2.tea_fourth.visible
+		reset_to(mt2.mat_at + Vector2(0.3, 0.3))
+		main.crown_key()
+		var mat_says: bool = main.story_open and "소라의 신" in "\n".join(PackedStringArray(main.story_lines))
+		main.close_story()
+		var e_lines: Array = main.STORY.ENDING
+		var ends: bool = "소라|laugh|……네. 여기요." in e_lines and e_lines.any(func(l): return "처음 온 날에도" in String(l))
+		main.story_step = 0
+		main.ng = 1
+		await wait(0.2)
+		var new_round: bool = mt2.mat_shoes.visible
+		main.story_step = s0h
+		main.ng = n0h
+		check("ending_home", before_home and after_home and mat_says and ends and new_round, "nothing before the ending %s, shoes and cup after %s, the mat says so %s, ending lines %s, kept in a new round %s" % [before_home, after_home, mat_says, ends, new_round])
 	if want.call("football_quiet"):
 		# no kick, nudge or push during a story, with the bag open or with a foe within 8 tiles; the same swing kicks it otherwise
 		var was_q: Array = fb_start()
 		var fq: Object = main.football
-		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
+		fb_put(Vector2(19.0, 23.0), Vector2(17.7, 23.0), Vector2(1, 0))
 		var kq: int = fq.kicks
 		main.story_open = true
 		main.attack()
 		var story_still: bool = fq.kicks == kq and fq.vel.length() < 0.01
 		main.story_open = false
-		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
+		fb_put(Vector2(19.0, 23.0), Vector2(17.7, 23.0), Vector2(1, 0))
 		main.ui.bag.visible = true
 		main.attack()
 		var bag_still: bool = fq.kicks == kq and fq.vel.length() < 0.01
 		main.ui.bag.visible = false
-		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
+		fb_put(Vector2(19.0, 23.0), Vector2(17.7, 23.0), Vector2(1, 0))
 		var vq: float = main.village.VILLAGE_X
-		var foe := marsh_foe(Vector2(vq + 17.7, 14.7)) # 7.3 tiles north of her
+		var foe := marsh_foe(Vector2(vq + 17.7, 15.7)) # 7.3 tiles north of her
 		main.attack()
 		var foe_still: bool = foe and fq.kicks == kq and fq.vel.length() < 0.01
 		main.player.vx = 3.6
-		fq.p = Vector2(vq + 18.2, 22.0) # touching her, but a foe is near
+		fq.p = Vector2(vq + 18.2, 23.0) # touching her, but a foe is near
 		fq.update(0.016)
 		foe_still = foe_still and fq.vel.length() < 0.01
 		calm_enemies(true)
-		fb_put(Vector2(19.0, 22.0), Vector2(17.7, 22.0), Vector2(1, 0))
+		fb_put(Vector2(19.0, 23.0), Vector2(17.7, 23.0), Vector2(1, 0))
 		main.attack()
 		var control: bool = fq.kicks == kq + 1 and fq.vel.length() > 6.0
 		check("football_quiet", story_still and bag_still and foe_still and control, "still in a story %s, with the bag open %s, with a foe 7.3 tiles off %s (foe placed %s); the same swing kicks it when all is calm %s" % [story_still, bag_still, foe_still, foe, control])
@@ -2171,8 +2225,7 @@ func run() -> void:
 			m0.stun = 0.0
 			m0.wind = 0.0
 			calm_enemies(true)
-			await wait(0.4)
-			var winding: bool = m0.wind > 0.0
+			var winding: bool = await wait_for(func(): return m0.wind > 0.0, 2.0)
 			var hp_wind: float = main.player.hp
 			await wait_for(func(): return main.player.hp < 200.0, 4.0) # the charge, however slow the game clock runs late in a full run
 			check("mole_charge", winding and hp_wind == 200.0 and main.player.hp < 200.0,
@@ -8489,6 +8542,7 @@ func run() -> void:
 		calm_enemies(true)
 	if want.call("bug_boss_tick"):
 		# one 0.1 s step of the enemy loop takes 0.1 s off each clock, for the kinds with their own update
+		# (a common foe's wait falls at monsters.FOE_PACE, since v0.1.125; the king keeps his own clock)
 		# (king, wolf, bat) as for those that lean on the shared one (hedgehog)
 		var kings: Array = main.enemies.filter(func(e): return e.get("boss", false) and not e.dead)
 		var made: Array = []
@@ -8511,7 +8565,8 @@ func run() -> void:
 		var bad_tick: Array = []
 		for e in who:
 			var kind: String = "king" if e.get("boss", false) else ("wolf" if e.get("wolf", false) else ("bat" if e.get("bat", false) else "hog"))
-			if absf(e.atk_cd - 1.9) > 0.001 or absf(e.hurt - 0.4) > 0.001:
+			var want_cd: float = 1.9 if e.get("boss", false) else 2.0 - 0.1 * main.monsters.FOE_PACE
+			if absf(e.atk_cd - want_cd) > 0.001 or absf(e.hurt - 0.4) > 0.001:
 				bad_tick.append("%s atk_cd=%.2f hurt=%.2f" % [kind, e.atk_cd, e.hurt])
 		check("bug_boss_tick", bad_tick.is_empty(), "each clock down 0.1 after one 0.1 s step" if bad_tick.is_empty() else "; ".join(bad_tick))
 		for e in made:
@@ -9451,7 +9506,7 @@ func run() -> void:
 		var spots: Array = hud.token_spots()
 		var under: bool = (spots[0] as Vector2).y > (hud.pip_spots()[0] as Vector2).y and (spots[5] as Vector2).x + 6.0 <= hud.bars_end()
 		var jl: String = "\n".join(PackedStringArray(main.journal_lines()))
-		var jour: bool = "달지기 표식 2/6" in jl
+		var jour: bool = "달지기 보석 2/6" in jl
 		for nm in main.moon_tokens.NAMES:
 			jour = jour and plain(nm) in jl
 		main.tokens[0] = false
@@ -9464,7 +9519,7 @@ func run() -> void:
 		var once: bool = main.moon_tokens.count() == n0 + 1
 		await wait(0.3)
 		var hud2: bool = hud.tokens_lit == 1
-		var jour2: bool = "달지기 표식 1/6" in "\n".join(PackedStringArray(main.journal_lines()))
+		var jour2: bool = "달지기 보석 1/6" in "\n".join(PackedStringArray(main.journal_lines()))
 		check("token_ui", hud_ok and under and jour and toast and once and hud2 and jour2,
 			"HUD six gems, two lit=%s under the moon gauge inside the bars=%s, journal 2/6 with the six names=%s, earning toasts (1/6)=%s counts once=%s, HUD lit 1=%s, journal 1/6=%s" % [hud_ok, under, jour, toast, once, hud2, jour2])
 		main.tokens = [false, false, false, false, false, false]
@@ -12740,6 +12795,8 @@ func run() -> void:
 		var needles := 0
 		if mt.mat_node != null:
 			for b in mt.mat_node.get_children():
+				if b == mt.mat_shoes: # Sora's pair, shown from the ending on
+					continue
 				var bs: Vector3 = (b.mesh as BoxMesh).size
 				if is_equal_approx(bs.x, 0.7) and is_equal_approx(bs.z, 0.12):
 					strips += 1

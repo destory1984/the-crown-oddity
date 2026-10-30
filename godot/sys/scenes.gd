@@ -36,7 +36,7 @@ const SCENES := {
 	"inn": {"play": true, "village": true, "vat": Vector2(8, 30), "hour": 14.0},
 	"fountain": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0}, # the square's fountain, dry
 	"small_things": {"play": true, "village": true, "vat": Vector2(13.0, 10.0), "hour": 14.0, "small": true}, # Kongal's chalk figures and the turning pinwheels (v0.1.104)
-	"football": {"play": true, "village": true, "vat": Vector2(21.0, 23.2), "hour": 14.0, "football": true}, # Sora facing the goal with the ball in front (v0.1.109)
+	"football": {"play": true, "village": true, "vat": Vector2(21.0, 25.4), "hour": 14.0, "football": true}, # Sora facing the goal with the ball in front (v0.1.109)
 	"small_wheels": {"play": true, "village": true, "vat": Vector2(14.0, 5.0), "hour": 14.0, "small": true},
 	"fountain_wet": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "wound": true}, # after the ending
 	"phone_hud": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "touch": true}, # the touch layout

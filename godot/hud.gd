@@ -272,7 +272,7 @@ func _draw() -> void:
 	if grow >= 0.5 and main.crown_pips < main.pip_max: # the next pip glows in while resting (too small a diamond cannot be drawn)
 		diamond(Vector2(pip_x() + main.crown_pips * 16, 124), grow, Color("#9fd4ff"))
 	# the moonkeeper tokens: six gems, gold when earned (the owner, 2026-10-28)
-	text(Vector2(x0 - 45, 152), "표식", 16, DIM)
+	text(Vector2(x0 - 45, 152), "보석", 16, DIM)
 	var tspots := token_spots()
 	tokens_drawn = tspots.size()
 	tokens_lit = 0

@@ -139,7 +139,7 @@ func line_target(raw: String) -> Vector3:
 		at = road_way(road_goal(raw))
 	if at == Vector3.INF and here() == "":
 		at = back_way()
-	if at == Vector3.INF and led(raw, "정원 문 앞에서: 달지기 표식 %d/4를 밝히자 (일지 Q)"):
+	if at == Vector3.INF and led(raw, "정원 문 앞에서: 달지기 보석 %d/4를 밝히자 (일지 Q)"):
 		at = token_target()
 	return at
 

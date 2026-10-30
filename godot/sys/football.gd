@@ -4,6 +4,8 @@
 # walking into it nudges it. It lies on the south lawn (moved there from the square, 05:31: "골대와 축구공은 마을 남쪽으로
 # 옮기자"); the goal stands at the lawn's south end, its mouth to the north. A ball whose centre
 # crosses the goal line between the posts flashes the screen, shows "골! N" and cheers; the count (goals) is kept in the save.
+# Two goals facing each other and a marked pitch since v0.1.129 (the owner, 21:00: "맞은 편에 하나 더 만들어서, 축구장처럼 꾸며줘"):
+# either goal counts, the ball lies on the centre spot.
 # Moved by update(dt), so a story, the bag and the settings stop it too. Boxes, a sphere, generated textures and code-made sounds.
 extends RefCounted
 
@@ -13,10 +15,15 @@ var m: Main
 
 # village tiles; the world position adds village.VILLAGE_X
 const PITCH := Rect2(16.6, 20.6, 8.8, 8.0) # the south lawn (17 to 25, rows 21 to 28) between the inn street and the pond: the ball never leaves it
-const SPOT := Vector2(21.0, 23.0)           # where the ball lies, the pitch's north half
+const SPOT := Vector2(21.0, 24.6)           # where the ball lies: the centre spot
 const GOAL_X := 21.0                        # the middle of the mouth
-const GOAL_LINE := 27.4                     # the goal line (z); the mouth faces north, the net runs back to GOAL_LINE + GOAL_DEPTH
-const LAMP := Vector2(24.0, 24.0)           # the lawn's lantern tile (its post stands 0.3 west)
+const GOAL_LINE := 27.4                     # the south goal line (z); the mouth faces north, the net runs back to GOAL_LINE + GOAL_DEPTH
+const GOAL_LINE_N := 21.8                   # the north goal line, its net runs back to GOAL_LINE_N - GOAL_DEPTH
+const TOUCH_X := Vector2(17.0, 25.0)        # the painted side lines
+const CIRCLE_R := 1.1
+const BOX := Vector2(4.2, 1.3)              # the box before each goal: wide, deep
+const LINE_W := 0.07
+const FLAG_H := 0.85
 const GOAL_W := 2.2
 const GOAL_DEPTH := 0.8
 const GOAL_H := 1.1
@@ -48,6 +55,8 @@ var bounds := Rect2()
 var goal_x0 := 0.0          # the posts' x
 var goal_x1 := 0.0
 var goal_z := 0.0
+var goal_n := 0.0           # the north goal line
+var board: Label3D          # the goals on the side of the pitch
 var circles: Array = []     # [Vector3(x, z, r)] the lamp, the posts
 var segs: Array = []        # [Vector4(ax, az, bx, bz)] the net's sides and back
 
@@ -87,23 +96,94 @@ func build() -> void:
 	goal_x0 = gx - GOAL_W / 2.0
 	goal_x1 = gx + GOAL_W / 2.0
 	goal_z = GOAL_LINE
-	var back := GOAL_LINE + GOAL_DEPTH
-	var lamp := tile(LAMP)
-	circles.append(Vector3(lamp.x - 0.3, lamp.y, 0.1)) # the lawn's lantern post
-	circles.append(Vector3(goal_x0, goal_z, POST_R))
-	circles.append(Vector3(goal_x1, goal_z, POST_R))
-	segs.append(Vector4(goal_x0, goal_z, goal_x0, back))
-	segs.append(Vector4(goal_x1, goal_z, goal_x1, back))
-	segs.append(Vector4(goal_x0, back, goal_x1, back))
-	for r in [Vector3(goal_x0, goal_z, 0.12), Vector3(goal_x1, goal_z, 0.12), Vector3(gx, back - 0.1, 0.5)]: # Sora walks round it
-		m.rocks.append({"x": r.x, "z": r.y, "r": r.z})
-	build_goal(gx)
+	goal_n = GOAL_LINE_N
+	for at in [[goal_z, 1.0], [goal_n, -1.0]]: # each goal: its line, and which way its net runs
+		var z: float = at[0]
+		var s: float = at[1]
+		var back: float = z + GOAL_DEPTH * s
+		circles.append(Vector3(goal_x0, z, POST_R))
+		circles.append(Vector3(goal_x1, z, POST_R))
+		segs.append(Vector4(goal_x0, z, goal_x0, back))
+		segs.append(Vector4(goal_x1, z, goal_x1, back))
+		segs.append(Vector4(goal_x0, back, goal_x1, back))
+		for r in [Vector3(goal_x0, z, 0.12), Vector3(goal_x1, z, 0.12), Vector3(gx, back - 0.1 * s, 0.5)]: # Sora walks round it
+			m.rocks.append({"x": r.x, "z": r.y, "r": r.z})
+		build_goal(gx, z, PI if s > 0.0 else 0.0)
+	build_marks()
 	build_ball()
 
-func build_goal(gx: float) -> void:
+# the painted lines, the corner flags and a board with the goals; thin boxes just above the lawn
+func build_marks() -> void:
+	var white: Material = m.mat_color(Color("#f6f3ea"), 0.6)
+	var line := func(at: Vector2, w: float, d: float, yaw := 0.0) -> void:
+		var b: MeshInstance3D = m.box(Vector3(w, 0.012, d), white)
+		b.position = Vector3(at.x, 0.03, at.y)
+		b.rotation.y = yaw
+		b.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		m.add_child(b)
+	var x0: float = vx() + TOUCH_X.x
+	var x1: float = vx() + TOUCH_X.y
+	var mx: float = vx() + GOAL_X
+	var mz := (goal_z + goal_n) / 2.0
+	var long := goal_z - goal_n
+	for x in [x0, x1]:
+		line.call(Vector2(x, mz), LINE_W, long + LINE_W)
+	for z in [goal_z, goal_n, mz]:
+		line.call(Vector2(mx, z), x1 - x0, LINE_W)
+	for k in 32: # the centre circle
+		var a := TAU * k / 32.0
+		line.call(Vector2(mx + cos(a) * CIRCLE_R, mz + sin(a) * CIRCLE_R), LINE_W, TAU * CIRCLE_R / 32.0 + 0.01, -a)
+	line.call(Vector2(mx, mz), 0.16, 0.16)
+	for at in [[goal_z, -1.0], [goal_n, 1.0]]: # the box before each goal
+		var z: float = at[0] + BOX.y * at[1]
+		line.call(Vector2(mx, z), BOX.x, LINE_W)
+		for s in [-1.0, 1.0]:
+			line.call(Vector2(mx + s * BOX.x / 2.0, at[0] + BOX.y * at[1] / 2.0), LINE_W, BOX.y)
+	var pole: Material = m.mat_color(Color("#f6f3ea"), 0.6)
+	var cloth: Material = m.mat_color(Color("#e0452e"), 0.7)
+	for x in [x0, x1]:
+		for z in [goal_z, goal_n]:
+			var f: MeshInstance3D = m.box(Vector3(0.05, FLAG_H, 0.05), pole)
+			f.position = Vector3(x, FLAG_H / 2.0, z)
+			m.add_child(f)
+			var c: MeshInstance3D = m.box(Vector3(0.26, 0.17, 0.02), cloth)
+			c.position = Vector3(x + (0.15 if x < mx else -0.15), FLAG_H - 0.1, z)
+			m.add_child(c)
+			circles.append(Vector3(x, z, 0.04))
+			m.rocks.append({"x": x, "z": z, "r": 0.08})
+	build_board(Vector2(x1 + 0.36, mz))
+
+func build_board(at: Vector2) -> void:
 	var g := Node3D.new()
-	g.position = Vector3(gx, 0, goal_z)
-	g.rotation.y = PI # built with the net behind (-z), turned so the mouth faces north
+	g.position = Vector3(at.x, 0, at.y)
+	m.add_child(g)
+	var wood: Material = m.mat_color(Color("#6a4a2e"))
+	for s in [-1.0, 1.0]:
+		var leg: MeshInstance3D = m.box(Vector3(0.06, 0.8, 0.06), wood)
+		leg.position = Vector3(s * 0.3, 0.4, 0)
+		g.add_child(leg)
+	var plate: MeshInstance3D = m.box(Vector3(0.74, 0.42, 0.05), m.mat_color(Color("#c8a46a")))
+	plate.position = Vector3(0, 0.82, 0)
+	g.add_child(plate)
+	board = Label3D.new()
+	board.font = m.ui_font
+	board.font_size = 40
+	board.pixel_size = 0.0065
+	board.modulate = Color("#3a2414")
+	board.outline_size = 0
+	board.position = Vector3(0, 0.82, 0.03)
+	g.add_child(board)
+	update_board()
+	m.rocks.append({"x": at.x, "z": at.y, "r": 0.2})
+
+func update_board() -> void:
+	if board != null:
+		board.text = tr("골") + " " + str(goals)
+
+func build_goal(gx: float, z: float, yaw: float) -> void:
+	var g := Node3D.new()
+	g.position = Vector3(gx, 0, z)
+	g.rotation.y = yaw # built with the net behind (-z); PI turns the mouth north
 	m.add_child(g)
 	var white: Material = m.mat_color(Color("#f6f3ea"), 0.6)
 	var add := func(size: Vector3, pos: Vector3, mat: Material, rot_x := 0.0) -> MeshInstance3D:
@@ -116,11 +196,12 @@ func build_goal(gx: float) -> void:
 	for s in [-1.0, 1.0]:
 		add.call(Vector3(0.12, GOAL_H, 0.12), Vector3(s * GOAL_W / 2.0, GOAL_H / 2.0, 0), white)
 	add.call(Vector3(GOAL_W + 0.12, 0.1, 0.1), Vector3(0, GOAL_H - 0.05, 0), white)
-	net_tex = m.make_tex(16, 16, func(img: Image):
-		for i in 16:
-			for j in 16:
-				var line: bool = i == 0 or j == 0
-				img.set_pixel(i, j, Color(1, 1, 1, 0.85) if line else Color(1, 1, 1, 0.06)))
+	if net_tex == null:
+		net_tex = m.make_tex(16, 16, func(img: Image):
+			for i in 16:
+				for j in 16:
+					var line: bool = i == 0 or j == 0
+					img.set_pixel(i, j, Color(1, 1, 1, 0.85) if line else Color(1, 1, 1, 0.06)))
 	var slope := Vector2(GOAL_DEPTH, NET_DROP).length()
 	var top := GOAL_H - 0.05 # the crossbar's middle
 	add.call(Vector3(GOAL_W, 0.01, slope), Vector3(0, top - NET_DROP / 2.0, -GOAL_DEPTH / 2.0), net_mat(GOAL_W, slope), -atan2(NET_DROP, GOAL_DEPTH))
@@ -296,7 +377,7 @@ func step(h: float) -> void:
 	var before := p
 	p += vel * h
 	collide()
-	if state == "play" and before.y < goal_z and p.y >= goal_z and p.x > goal_x0 and p.x < goal_x1:
+	if state == "play" and p.x > goal_x0 and p.x < goal_x1 and ((before.y < goal_z and p.y >= goal_z) or (before.y > goal_n and p.y <= goal_n)):
 		score()
 	var moved := p - before
 	if moved.length() > 0.0001:
@@ -357,6 +438,7 @@ func score() -> void:
 	state = "net"
 	net_t = 0.0
 	goals += 1
+	update_board()
 	m.save_game()
 	goal_fx()
 
@@ -385,7 +467,7 @@ func goal_fx() -> void:
 	banner_tw.tween_callback(func(): banner.visible = false)
 	if bool(m.cfg.get("shake", true)):
 		m.shake = maxf(m.shake, 0.3)
-	var net_at := Vector3(p.x, 0.5, goal_z + GOAL_DEPTH * 0.6)
+	var net_at := Vector3(p.x, 0.5, goal_z + GOAL_DEPTH * 0.6 if p.y > spot.y else goal_n - GOAL_DEPTH * 0.6)
 	m.burst(net_at, Color("#ffd24a"), 30, 3.5)
 	m.burst(net_at + Vector3(0, 0.3, 0), Color("#fff1a0"), 20, 2.5)
 	var notes := [523.0, 659.0, 784.0, 1047.0] # a short rising arpeggio
@@ -481,3 +563,4 @@ func save_data() -> Dictionary:
 
 func load_data(d: Dictionary) -> void:
 	goals = int(d.get("goals", 0))
+	update_board()

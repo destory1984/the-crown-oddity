@@ -933,6 +933,8 @@ var tea_at: Array = []     # Vector2 of each cup, left to right in the cottage's
 var tea_steam: Array = []  # [MeshInstance3D, phase] two puffs over the last cup, shown while it steams
 const TEA_TOP := 0.36
 
+var tea_fourth: Node3D
+
 func build_tea_cups() -> void:
 	var mt: Object = m.marsh_toys
 	var at: Vector2 = mt.find_spot([mt.cot(Vector2(0.0, -2.3)), mt.cot(Vector2(0.0, -2.8)), mt.cot(Vector2(2.4, -2.0)), mt.cot(Vector2(-2.4, -2.0))], 0.8, 1.2)
@@ -948,6 +950,11 @@ func build_tea_cups() -> void:
 		mt.part(g, Vector3(0.05, 0.05, 0.03), Vector3(x + 0.08, 0.285, 0), "#f0e8d8")
 		mt.part(g, Vector3(0.1, 0.01, 0.1), Vector3(x, 0.337, 0), "#3a2a1c")     # dark inside
 		tea_at.append(at + Vector2(x * cos(mt.COTTAGE_YAW), -x * sin(mt.COTTAGE_YAW)))
+	tea_fourth = Node3D.new() # Sora's, set beside Bori's three from the ending on
+	g.add_child(tea_fourth)
+	mt.part(tea_fourth, Vector3(0.14, 0.11, 0.14), Vector3(TEA_GAP / 2.0, 0.28, 0.12), "#7fa8e0")
+	mt.part(tea_fourth, Vector3(0.1, 0.01, 0.1), Vector3(TEA_GAP / 2.0, 0.337, 0.12), "#3a2a1c")
+	tea_fourth.visible = false
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA

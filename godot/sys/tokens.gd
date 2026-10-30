@@ -1,4 +1,4 @@
-# Moonkeeper tokens (달지기 표식): six side deeds that open the way, counted per round (the owner, 2026-10-28: the story
+# Moonkeeper tokens (달지기 보석): six side deeds that open the way, counted per round (the owner, 2026-10-28: the story
 # took 30 minutes, the aim is 3 hours; "side quests become gates on the main path, collecting tokens opens the way").
 # Moved out of main.gd; `m` is the main node (main.gd), its state and helpers are reached as m.x.
 #
@@ -67,7 +67,7 @@ func earn(i: int) -> void:
 	m.tokens[i] = true
 	m.burst(Vector3(m.player.x, 1.6, m.player.z), Color("#ffd84a"), 30, 3.0)
 	m.sfx(988, 0.3, "triangle", 0.22)
-	m.toast(tr("달지기 표식을 얻었다 (%d/6)") % count())
+	m.toast(tr("달지기 보석을 얻었다 (%d/6)") % count())
 	refresh_quest()
 	m.save_game()
 
@@ -191,7 +191,7 @@ func stairs_need_line() -> String:
 	return "달의 계단을 오르기 전에: 숙소의 깡통 문지기를 침방까지 모시자"
 
 func garden_need_line() -> String:
-	return tr("정원 문 앞에서: 달지기 표식 %d/4를 밝히자 (일지 Q)") % mini(count(), STAIRS_NEED)
+	return tr("정원 문 앞에서: 달지기 보석 %d/4를 밝히자 (일지 Q)") % mini(count(), STAIRS_NEED)
 
 # the line that names what a held gate wants
 func need_line(area: String) -> String:
@@ -243,7 +243,7 @@ func gate_lines() -> Array:
 # ---- the journal and the HUD
 
 func journal_lines() -> Array:
-	var out: Array = [tr("달지기 표식 %d/6") % count()]
+	var out: Array = [tr("달지기 보석 %d/6") % count()]
 	for i in NAMES.size():
 		out.append("  · " + tr(NAMES[i]) + "  —  " + (tr("끝") if m.tokens[i] else tr(HOW[i])))
 	var gates := gate_lines()

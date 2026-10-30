@@ -975,7 +975,7 @@ func bag_sections() -> Array:
 	var toks: Array = []
 	for i in m.tokens.size():
 		toks.append({"name": tr(m.moon_tokens.NAMES[i]), "effect": tr("얻었다") if m.tokens[i] else tr(m.moon_tokens.HOW[i]), "dim": not m.tokens[i]})
-	return [[tr("장비"), gear], [tr("지닌 물건"), items], [tr("쓰는 것"), use], [tr("달지기 표식") + " %d/6" % m.moon_tokens.count(), toks]]
+	return [[tr("장비"), gear], [tr("지닌 물건"), items], [tr("쓰는 것"), use], [tr("달지기 보석") + " %d/6" % m.moon_tokens.count(), toks]]
 
 func bag_fill() -> void:
 	var box: VBoxContainer = m.ui.bag_box
