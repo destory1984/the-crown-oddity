@@ -136,10 +136,12 @@ func load_settings() -> void:
 	var d = JSON.parse_string(FileAccess.get_file_as_string(SETTINGS_PATH))
 	if typeof(d) != TYPE_DICTIONARY:
 		return
-	for k in ["text", "sora_px", "voice"]: # shake, tilt and nums are no longer options: an old "off" in the file is ignored
+	for k in ["text", "sora_px", "voice", "read", "hold", "lefty", "keysize"]: # shake, tilt and nums are no longer options: an old "off" in the file is ignored
 		if d.has(k):
 			m.cfg[k] = d[k]
 	m.cfg.text = clampi(int(m.cfg.text), 0, Main.TEXT_SIZES.size() - 1)
+	m.cfg.read = clampi(int(m.cfg.read), 0, 2)
+	m.cfg.keysize = clampi(int(m.cfg.keysize), 0, 2)
 	m.muted = bool(d.get("muted", m.muted))
 	m.music_on = bool(d.get("music", true))
 
@@ -165,10 +167,11 @@ func apply_settings() -> void:
 	if m.ui.has("set_stacks"):
 		layout_settings()
 	if m.ui.has("set_rows"):
+		var steps := {"read": [tr("보통"), tr("느리게"), tr("아주 느리게")], "keysize": [tr("보통"), tr("크게"), tr("더 크게")]} # rows with more than on and off
 		for key in m.ui.set_rows:
 			var b: Button = m.ui.set_rows[key]
 			var on: bool = (not m.muted) if key == "sound" else bool(m.cfg[key])
-			b.text = tr("켜짐") if on else tr("꺼짐")
+			b.text = (steps[key][clampi(int(m.cfg[key]), 0, 2)] as String) if steps.has(key) else (tr("켜짐") if on else tr("꺼짐"))
 			# Space Oddity: a pressed button gets a gold rim and gold text
 			b.add_theme_stylebox_override("normal", glass_chosen() if on else glass_normal())
 			b.add_theme_color_override("font_color", MENU_GOLD if on else ODD_INK)
@@ -377,7 +380,11 @@ func build_settings(root: Control) -> void:
 	# shake, the miniature blur and the damage numbers stay on), and the tune that plays, in a box the mouse can copy
 	# no sound row: the speaker key sits at the popup's top right (the owner, 2026-10-28)
 	var rows := [["sora_px", "도트 소라", "시험: 소라를 96px 도트 그림으로 그린다(Aseprite로 줄임). 끄면 예전 매끈한 그림이다."],
-		["voice", "말소리", "이야기 글자가 찍히는 동안 말하는 사람마다 다른 높이의 짧은 말소리를 낸다."]]
+		["voice", "말소리", "이야기 글자가 찍히는 동안 말하는 사람마다 다른 높이의 짧은 말소리를 낸다."],
+		["read", "읽기 속도", "말풍선이 떠 있는 시간. 느리게는 1.5배, 아주 느리게는 2배이고, 글이 길수록 더 오래 떠 있다. 다음 잡담은 말풍선이 사라진 뒤에 나온다.", true],
+		["hold", "한 손 조작", "휴대전화용. 켜면 막기와 달리기를 한 번 눌러 켜고 다시 눌러 끈다. 켜 둔 동안은 단추 곁에 글자가 남는다."],
+		["lefty", "왼손잡이 배치", "휴대전화용. 이동 막대와 전투 단추가 서로 자리를 바꾼다. 일지와 메뉴 단추는 그대로 있다."],
+		["keysize", "전투 단추 크기", "휴대전화용. 전투 단추를 한 단계 또는 두 단계 키운다. 커지면 단추 사이도 벌어진다.", true]]
 	for i in rows.size():
 		var r: Array = rows[i]
 		var y := i * 92
@@ -388,9 +395,12 @@ func build_settings(root: Control) -> void:
 		scale_text(dsc)
 		scale_text(t)
 		var key: String = r[0]
-		m.ui.set_rows[key] = set_button(m.ui.set_pages[0], "켜짐", Vector2(122, y + 42), Vector2(74, 34), func():
+		var stepped: bool = r.size() > 3 # a row of three settings instead of on and off
+		m.ui.set_rows[key] = set_button(m.ui.set_pages[0], "켜짐", Vector2(122, y + 42), Vector2(116 if stepped else 74, 34), func():
 			if key == "sound":
 				toggle_sound()
+			elif stepped:
+				m.cfg[key] = (int(m.cfg[key]) + 1) % 3
 			else:
 				m.cfg[key] = not bool(m.cfg[key])
 				if key == "sora_px":

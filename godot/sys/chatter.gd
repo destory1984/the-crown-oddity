@@ -11,9 +11,34 @@ const FOLK_CHAT_R := 4.0
 func _init(main: Main) -> void:
 	m = main
 
-func balloon_tex(w: int) -> ImageTexture:
-	if m.balloon_cache.has(w):
-		return m.balloon_cache[w]
+# Reading pace (delight idea 89): 0 as before, 1 and 2 keep a balloon up longer, the more it says the longer, and keep the next
+# chat (the companions', a villager's, the next line of a talk) until it has gone. The default changes nothing.
+const READ_MULT := [1.0, 1.5, 2.0]
+const PIXEL := 0.0065   # a balloon's world size per texture pixel (before its own scale)
+const EDGE := 8.0       # a balloon keeps this far from the screen's edge (idea 98)
+var bubble_until := 0.0 # m.t when the last balloon is gone, with a breath (kept only on a slower pace)
+var edge_bubbles: Array = [] # {"b": balloon, "card": Sprite3D, "l": Label3D, "w": width, "tx": tail shift in texture px}
+
+func read_level() -> int:
+	return clampi(int(m.cfg.get("read", 0)), 0, READ_MULT.size() - 1)
+
+func bubble_life(text: String, dur: float) -> float:
+	var lv := read_level()
+	if lv == 0:
+		return dur
+	return maxf(dur, 0.9 + 0.1 * text.length()) * READ_MULT[lv]
+
+# the wait before the next line of a talk: the old fixed gap, or on a slower pace until the line before has been read
+func line_gap(text: String, dur: float, base := 2.4) -> float:
+	if read_level() == 0:
+		return base
+	return maxf(base, bubble_life(text, dur) + 0.5)
+
+# tail_dx: the tail stands this many texture pixels from the middle (a balloon pushed in from the screen's edge; idea 98)
+func balloon_tex(w: int, tail_dx := 0) -> ImageTexture:
+	var key: int = w if tail_dx == 0 else w * 1000 + tail_dx + 500
+	if m.balloon_cache.has(key):
+		return m.balloon_cache[key]
 	var h := 52
 	var tail := 14
 	var img := Image.create(w, h + tail, false, Image.FORMAT_RGBA8)
@@ -28,13 +53,14 @@ func balloon_tex(w: int) -> ImageTexture:
 			var d := Vector2(x - cx, y - cy).length()
 			if d <= r:
 				img.set_pixel(x, y, rim if d > r - 3 else fill)
-	for k in tail: # the tail: a small triangle under the middle
+	var cx := clampi(w / 2 + tail_dx, r + 12, w - r - 12)
+	for k in tail: # the tail: a small triangle under the middle (or under the speaker, when the balloon was pushed aside)
 		var half := int((tail - k) * 0.8)
-		for x in range(w / 2 - half, w / 2 + half + 1):
-			var edge := x <= w / 2 - half + 2 or x >= w / 2 + half - 2 or k == tail - 1
+		for x in range(cx - half, cx + half + 1):
+			var edge := x <= cx - half + 2 or x >= cx + half - 2 or k == tail - 1
 			img.set_pixel(x, h - 3 + k, rim if edge else fill)
 	var tex := ImageTexture.create_from_image(img)
-	m.balloon_cache[w] = tex
+	m.balloon_cache[key] = tex
 	return tex
 
 # E beside the same sign three times within 45 s: Noeul offers to memorise it, once for each sign (delight idea 12)
@@ -115,12 +141,56 @@ func say_bubble(who: Node3D, text: String, dur := 3.5) -> void:
 	var big := 1.4 if m.touch_ui else 1.0 # phones: bigger text, and a second longer to read it
 	b.scale = Vector3.ONE * 0.2 * big
 	who.add_child(b)
+	var life := bubble_life(text, dur) + (1.0 if m.touch_ui else 0.0)
+	if read_level() > 0:
+		bubble_until = maxf(bubble_until, m.t + 0.18 + life + 0.3 + 0.6)
+	edge_bubbles.append({"b": b, "card": card, "l": l, "w": w, "tx": 0})
 	var tw := b.create_tween() # pops up, then fades away
 	tw.tween_property(b, "scale", Vector3.ONE * big, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(dur + (1.0 if m.touch_ui else 0.0))
+	tw.tween_interval(life)
 	tw.tween_property(card, "modulate:a", 0.0, 0.3)
 	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.3)
 	tw.tween_callback(b.queue_free)
+
+# A balloon that would run off the screen's side slides along the screen inside it, and its tail is redrawn under the speaker
+# (idea 98). The card and its text move; the balloon's own spot, over the speaker, stays.
+func edge_update() -> void:
+	if edge_bubbles.is_empty() or m.camera == null:
+		return
+	var vs := m.get_viewport().get_visible_rect().size
+	for e in edge_bubbles.duplicate():
+		if not is_instance_valid(e.b) or not (e.b as Node).is_inside_tree():
+			edge_bubbles.erase(e)
+			continue
+		edge_fit(e, vs)
+
+func edge_fit(e: Dictionary, vs: Vector2) -> void:
+	var b: Node3D = e.b
+	var cam: Camera3D = m.camera
+	var c := b.global_position
+	if cam.is_position_behind(c):
+		return
+	var right := cam.global_transform.basis.x
+	var p0 := cam.unproject_position(c)
+	var spw := cam.unproject_position(c + right).x - p0.x # screen px per world unit across
+	if spw < 0.01:
+		return
+	var tex_px := PIXEL * b.scale.x * spw # screen px per texture px
+	var half := float(e.w) * 0.5 * tex_px
+	var shift := 0.0
+	if p0.x - half < EDGE:
+		shift = EDGE - (p0.x - half)
+	elif p0.x + half > vs.x - EDGE:
+		shift = (vs.x - EDGE) - (p0.x + half)
+	var lim := (float(e.w) * 0.5 - 28.0) * tex_px # the tail has to stay under the card
+	shift = clampf(shift, -lim, lim)
+	var tail_dx := int(round(-shift / tex_px / 8.0)) * 8
+	var off := b.to_local(c + right * (shift / spw))
+	(e.card as Sprite3D).position = off
+	(e.l as Label3D).position = off + Vector3(0, 0.045, 0)
+	if int(e.tx) != tail_dx:
+		e.tx = tail_dx
+		(e.card as Sprite3D).texture = balloon_tex(int(e.w), tail_dx)
 
 func chat_lines(id: String) -> Array:
 	var lines: Array = Main.STORY.MATE_CHAT[id].duplicate()
@@ -141,12 +211,13 @@ func chat_lines(id: String) -> Array:
 	return lines
 
 func update_chat(dt: float) -> void:
+	edge_update()
 	m.chat_cd -= dt
 	if not m.talk_bubbles.is_empty() and m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 8.0):
 		hush_talk()
 	var still: bool = Vector2(m.player.vx, m.player.vz).length() < 0.3 and not m.story_open and not m.intro and m.in_house < 0
 	m.chat_t = m.chat_t + dt if still else 0.0
-	if m.chat_t < 9.0 or m.chat_cd > 0.0:
+	if m.chat_t < 9.0 or m.chat_cd > 0.0 or (read_level() > 0 and m.t < bubble_until):
 		return
 	if m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 8.0):
 		return
@@ -184,7 +255,7 @@ func update_chat(dt: float) -> void:
 		var first: Node3D = m.mate if pair[0] == "mulgyeol" else m.mate2
 		var second: Node3D = m.mate2 if pair[0] == "mulgyeol" else m.mate
 		say_bubble(first, tr(pair[1]))
-		m.get_tree().create_timer(2.2).timeout.connect(func(): if is_instance_valid(second): say_bubble(second, tr(pair[2])))
+		m.get_tree().create_timer(line_gap(tr(pair[1]), 3.5, 2.2)).timeout.connect(func(): if is_instance_valid(second): say_bubble(second, tr(pair[2])))
 		return
 	var pick: Array = who[m.rng.randi() % who.size()]
 	var lines := chat_lines(pick[0])
@@ -233,12 +304,17 @@ var listen_last := -1000.0
 var listen_thanks := 0 # thanks said (autoplay d19_listened)
 
 func rest_talk(talk: Array, light := false) -> void:
-	m.chat_cd = maxf(m.chat_cd, talk.size() * 2.4 + 10.0)
+	var starts: Array = [] # when each line comes: 2.4 s apart, or after the line before has been read
+	var total := 0.0
+	for ln in talk:
+		starts.append(total + 0.01)
+		total += line_gap(tr(ln[1]), 2.2)
+	m.chat_cd = maxf(m.chat_cd, total + 10.0)
 	m.talk_id += 1
 	var my_id := m.talk_id
 	if light and m.mate != null:
 		var still_since: float = m.t - m.chat_t # when this stillness began; moving and stopping again changes it
-		m.get_tree().create_timer(talk.size() * 2.4 + 0.4).timeout.connect(func():
+		m.get_tree().create_timer(total + 0.4).timeout.connect(func():
 			if my_id != m.talk_id or m.story_open or m.intro or m.mate == null or not is_instance_valid(m.mate) or not m.mate.visible:
 				return
 			if absf((m.t - m.chat_t) - still_since) > 0.05 or m.t - listen_last < LISTEN_GAP:
@@ -250,7 +326,7 @@ func rest_talk(talk: Array, light := false) -> void:
 			say_bubble(m.mate, tr("들어 줬네."), 2.2))
 	for i in talk.size():
 		var ln: Array = talk[i]
-		m.get_tree().create_timer(i * 2.4 + 0.01).timeout.connect(func():
+		m.get_tree().create_timer(starts[i]).timeout.connect(func():
 			if m.story_open or my_id != m.talk_id:
 				return
 			var node: Node3D = null
@@ -355,7 +431,8 @@ func update_folk_chat(dt: float) -> void:
 	m.folk_chat_gap -= dt
 	for id in m.folk_chat_cd:
 		m.folk_chat_cd[id] -= dt
-	if m.folk_chat_off or m.intro or m.story_open or m.shop_open or m.way_open or m.settings_open or m.ui.journal.visible or m.in_house >= 0 or m.folk_chat_gap > 0.0:
+	if m.folk_chat_off or m.intro or m.story_open or m.shop_open or m.way_open or m.settings_open or m.ui.journal.visible or m.in_house >= 0 or m.folk_chat_gap > 0.0 \
+			or (read_level() > 0 and m.t < bubble_until):
 		return
 	if not m.in_village and not m.in_marsh():
 		return
@@ -379,7 +456,10 @@ func update_folk_chat(dt: float) -> void:
 	if lines.is_empty():
 		return
 	m.folk_chat_gap = 4.0
-	folk_say(id, lines[m.rng.randi() % lines.size()])
+	var line: String = lines[m.rng.randi() % lines.size()]
+	if read_level() > 0:
+		m.folk_chat_gap = maxf(4.0, bubble_life(m.touch_words(tr(line)), 3.0) + 1.0)
+	folk_say(id, line)
 
 func folk_say(id: String, line: String) -> void:
 	var at := folk_chat_at(id)
@@ -392,4 +472,4 @@ func folk_say(id: String, line: String) -> void:
 	(anchor.get_child(0) as Node3D).position.y = m.folk_bubble_y(id)
 	m.folk_chat_last[id] = line
 	m.folk_said.append([id, line])
-	m.folk_bubbles.append({"anchor": anchor, "id": id, "t": 3.6 + (1.0 if m.touch_ui else 0.0)})
+	m.folk_bubbles.append({"anchor": anchor, "id": id, "t": bubble_life(m.touch_words(tr(line)), 3.0) + 0.6 + (1.0 if m.touch_ui else 0.0)})

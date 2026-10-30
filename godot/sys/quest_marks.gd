@@ -450,3 +450,37 @@ func side_target() -> Vector3:
 		var p: Vector3 = m.marsh.float_node.position
 		return over(Vector2(p.x, p.z), 1.6)
 	return Vector3.INF
+
+# what the bracelet key would do right here, as a short word, without doing it (delight idea 92). touch.gd shows it over the
+# key a finger covers. It looks only at the plain cases (a dark lantern, a door, a villager, Bori's shop, a chest, a lamp post,
+# a sign); the zone devices answer to the key with their own lines and have no word here. "" when none of those is close.
+func crown_label() -> String:
+	if m.intro or m.story_open or m.shop_open or m.way_open:
+		return ""
+	var me := Vector2(m.player.x, m.player.z)
+	if m.in_village and m.in_house >= 0:
+		return tr("나가기") if me.distance_to(Main.HOUSE_EXIT) < 0.95 else ""
+	if m.in_village:
+		if m.errand == 1:
+			for d in m.village.dark:
+				if not d.lit and me.distance_to(d.pos) < 1.6:
+					return tr("등불 켜기")
+		if m.folk.house_door_near() >= 0:
+			return tr("들어가기")
+		for fid in m.village.folk_pos:
+			if me.distance_to(m.folk_talk_at(fid)) < 1.6:
+				return tr("말 걸기")
+	if m.shop.near_shop():
+		return tr("가게 열기")
+	for c in m.chests:
+		if not c.open and Vector2(c.x - me.x, c.z - me.y).length() < 1.5:
+			return tr("상자 열기")
+	for l in m.lanterns:
+		if l == m.dark_lamp or not l.has_meta("glass") or (l.get_meta("dark", false) and not l.get_meta("sora_off", false)):
+			continue
+		if Vector2(l.position.x - 0.3 - me.x, l.position.z - me.y).length() < 1.5:
+			return tr("등불 켜기") if l.get_meta("sora_off", false) else tr("등불 끄기")
+	for s in m.sign_spots:
+		if me.distance_to(s) < 1.9:
+			return tr("표지판 읽기")
+	return ""

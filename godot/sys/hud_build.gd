@@ -313,7 +313,7 @@ func layout_top() -> void:
 		if b.visible:
 			cands.append([status_rect().end.x + 8.0, vs.x - 202.0, boss_end + 16.0, true])
 	var band_r := vs.x - 202.0 # the band's right edge: the minimap column; on touch also the shield key's left edge
-	if m.touch_layer != null:
+	if m.touch_layer != null and not m.touch_layer.lefty():
 		band_r = minf(band_r, (m.touch_layer.keys().guard[0] as Vector2).x - (m.touch_layer.keys().guard[1] as float) - 8.0)
 	cands.append([x0, band_r, STATUS_H + 12.0, false]) # its ornaments reach 12 px up: clear of the gem row's box
 	if b.visible:

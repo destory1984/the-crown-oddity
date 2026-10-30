@@ -184,7 +184,10 @@ func skill_size() -> float:
 func skill_spot(i: int) -> Vector2:
 	var vs := get_viewport_rect().size
 	var sz := skill_size()
-	return Vector2(vs.x - 8.0 - sz / 2.0 - (3 - i) * (sz + 8.0), vs.y - 59.0)
+	var x := vs.x - 8.0 - sz / 2.0 - (3 - i) * (sz + 8.0)
+	if main.touch_ui and bool(main.cfg.get("lefty", false)): # the mirrored layout (delight idea 91) puts the skills in the left corner
+		x = vs.x - x
+	return Vector2(x, vs.y - 59.0)
 
 var pips_drawn := 0 # diamonds in the moon gauge at the last draw (autoplay pips)
 var tokens_lit := 0 # lit gems in the token row at the last draw, and how many it drew (autoplay tokens)

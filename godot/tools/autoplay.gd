@@ -13,13 +13,22 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
 
 func wait(sec: float) -> void:
 	await get_tree().create_timer(sec).timeout
+
+# a test that presses a settings row writes user://settings.json; the file as it was goes back afterwards, so the next run starts the same
+func settings_keep() -> String:
+	return FileAccess.get_file_as_string("user://settings.json") if FileAccess.file_exists("user://settings.json") else ""
+
+func settings_back(kept: String) -> void:
+	if kept != "":
+		var f := FileAccess.open("user://settings.json", FileAccess.WRITE)
+		f.store_string(kept)
 
 # a shown line without the word joiners Ko.keep_words puts in (story box, journal, quest line)
 func plain(s: String) -> String:
@@ -5258,7 +5267,7 @@ func run() -> void:
 		var h0: float = main.hour
 		await wait(0.5)
 		var paused: bool = main.hour == h0
-		var tilt_off: bool = main.ui.set_rows.keys() == ["sora_px", "voice"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
+		var tilt_off: bool = main.ui.set_rows.keys().slice(0, 2) == ["sora_px", "voice"] and main.cfg.tilt and main.cfg.shake and main.cfg.nums \
 			and main.ui.now_tune.text.begins_with("♪") and not main.ui.now_tune.editable
 		main.ui.set_plus.emit_signal("pressed")
 		var bigger: bool = main.ui.story_text.get_theme_font_size("font_size") > 20
@@ -15427,6 +15436,524 @@ func run() -> void:
 		main.crystal_told = told88
 		check("d88_dots", counts88 and seen88 and twice88 and rules88 and gone88,
 			"dots = rank + 1 above each crystal=%s cues in ring order=%s one swing once=%s the order rule still counts=%s dots go=%s" % [counts88, seen88, twice88, rules88, gone88])
+
+	if want.call("d89_read_pace"):
+		# a slower reading pace keeps a long balloon up longer (and the next talk line / chat waits for it); the default changes nothing (idea 89)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		var ch89: Object = main.chatter
+		var read89: int = main.cfg.read
+		var kept89 := settings_keep()
+		var long89 := "이 길은 달빛이 닿는 곳까지 이어진다고 들었어. 끝까지 가 보자."
+		var need89: float = 0.9 + 0.1 * long89.length()
+		main.cfg.read = 0
+		var life0: float = ch89.bubble_life(long89, 3.0)
+		var gap0: float = ch89.line_gap(long89, 2.2)
+		main.cfg.read = 1
+		var life1: float = ch89.bubble_life(long89, 3.0)
+		var short1: float = ch89.bubble_life("응", 3.0)
+		var gap1: float = ch89.line_gap(long89, 2.2)
+		main.cfg.read = 2
+		var life2: float = ch89.bubble_life(long89, 3.0)
+		var nums89: bool = is_equal_approx(life0, 3.0) and is_equal_approx(gap0, 2.4) and is_equal_approx(life1, maxf(3.0, need89) * 1.5) \
+			and is_equal_approx(short1, 4.5) and is_equal_approx(gap1, maxf(2.4, life1 + 0.5)) and is_equal_approx(life2, maxf(3.0, need89) * 2.0) and life2 > life1 and life1 > life0
+		var anchor89 := Node3D.new()
+		main.add_child(anchor89)
+		anchor89.position = Vector3(main.player.x, main.ground_y, main.player.z)
+		main.cfg.read = 0
+		var until0: float = ch89.bubble_until
+		ch89.say_bubble(anchor89, long89, 3.0)
+		var plain89: bool = ch89.bubble_until == until0 # the default pace keeps no waiting time
+		main.cfg.read = 2
+		ch89.say_bubble(anchor89, long89, 3.0)
+		var keeps89: bool = ch89.bubble_until - main.t >= life2
+		# the next chat waits for the balloon; once it is gone the chat may start
+		if main.mate == null:
+			main.join_mate()
+		calm_enemies(true)
+		main.snap_mates()
+		var risers89: Array = main.enemies.filter(func(e): return e.dead and not e.get("cave", false) and not e.get("boss", false))
+		for e in risers89:
+			e.respawn = 9999.0
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		main.chat_t = 20.0
+		main.chat_cd = 0.0
+		ch89.bubble_until = main.t + 100.0
+		ch89.update_chat(0.0)
+		var waits89: bool = main.chat_cd == 0.0
+		ch89.bubble_until = main.t - 1.0
+		main.chat_t = 20.0
+		ch89.update_chat(0.0)
+		var goes89: bool = main.chat_cd > 0.0
+		# the settings row cycles normal → slow → very slow → normal and saves
+		main.cfg.read = 0
+		var row89: Button = main.ui.set_rows.read
+		row89.emit_signal("pressed")
+		var one89: bool = main.cfg.read == 1
+		row89.emit_signal("pressed")
+		row89.emit_signal("pressed")
+		var cycle89: bool = one89 and main.cfg.read == 0
+		main.cfg.read = read89
+		settings_back(kept89)
+		anchor89.queue_free()
+		main.chat_cd = 30.0
+		check("d89_read_pace", nums89 and plain89 and keeps89 and waits89 and goes89 and cycle89,
+			"life normal/slow/very slow %.2f/%.2f/%.2f (long line %d chars), short slow %.2f, line gap %.2f/%.2f, numbers=%s default keeps no wait=%s slow balloon waits %.1f s=%s chat held back while a balloon is up=%s starts after=%s row cycles=%s" % [life0, life1, life2, long89.length(), short1, gap0, gap1, nums89, plain89, ch89.bubble_until - main.t, keeps89, waits89, goes89, cycle89])
+	if want.call("d90_one_hand"):
+		# with the one-hand setting a tap on the shield key and on the run key hold them until the next tap; the words stay on the screen;
+		# a sheet, the loss of focus or a fall lets them go; without the setting the shield is held only while the finger is down (idea 90)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
+		var hold90: bool = main.cfg.hold
+		main.cfg.hold = true
+		await main.enable_touch()
+		await wait(0.2)
+		var tl90: Control = main.touch_layer
+		var tap90 := func(n: String):
+			var d := InputEventScreenTouch.new()
+			d.index = 4
+			d.pressed = true
+			d.position = tl90.keys()[n][0]
+			Input.parse_input_event(d)
+			await wait(0.1)
+			var u := d.duplicate()
+			u.pressed = false
+			Input.parse_input_event(u)
+			await wait(0.1)
+		var has_run90: bool = tl90.keys().has("run")
+		await tap90.call("run")
+		var run_on90: bool = tl90.run_latch and main.key_down(KEY_SHIFT) and tl90.latch_text().contains(tr("달리기 켜짐"))
+		await wait(0.2)
+		var run_kept90: bool = main.key_down(KEY_SHIFT)
+		await tap90.call("guard")
+		var both90: bool = tl90.guard_latch and main.key_down(KEY_L) and tl90.held.is_empty() and tl90.latch_text().contains(tr("막기 켜짐"))
+		await tap90.call("run")
+		var run_off90: bool = not tl90.run_latch and not main.key_down(KEY_SHIFT) and tl90.guard_latch and main.key_down(KEY_L)
+		await tap90.call("guard")
+		var guard_off90: bool = not tl90.guard_latch and not main.key_down(KEY_L) and tl90.latch_text() == ""
+		# let go on a sheet, on lost focus, on a fall
+		await tap90.call("run")
+		await tap90.call("guard")
+		main.story_open = true
+		await wait(0.15)
+		var sheet90: bool = not tl90.run_latch and not tl90.guard_latch and not main.key_down(KEY_SHIFT) and not main.key_down(KEY_L)
+		main.story_open = false
+		await wait(0.1)
+		await tap90.call("run")
+		tl90._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+		var focus90: bool = not tl90.run_latch and not main.key_down(KEY_SHIFT)
+		await tap90.call("guard")
+		main.down_t = 1.0
+		await wait(0.15)
+		var fall90: bool = not tl90.guard_latch and not main.key_down(KEY_L)
+		main.down_t = 0.0
+		# the setting off: no run key, the shield is held only while the finger is down
+		main.cfg.hold = false
+		await wait(0.1)
+		var no_run90: bool = not tl90.keys().has("run")
+		var d90 := InputEventScreenTouch.new()
+		d90.index = 4
+		d90.pressed = true
+		d90.position = tl90.keys()["guard"][0]
+		Input.parse_input_event(d90)
+		await wait(0.1)
+		var down90: bool = main.key_down(KEY_L) and not tl90.guard_latch
+		var u90 := d90.duplicate()
+		u90.pressed = false
+		Input.parse_input_event(u90)
+		await wait(0.1)
+		var up90: bool = not main.key_down(KEY_L)
+		main.cfg.hold = hold90
+		main.disable_touch()
+		calm_enemies(false)
+		check("d90_one_hand", has_run90 and run_on90 and run_kept90 and both90 and run_off90 and guard_off90 and sheet90 and focus90 and fall90 and no_run90 and down90 and up90,
+			"run key there=%s run on+word=%s kept=%s shield on beside it=%s run off=%s shield off, words gone=%s sheet lets go=%s focus lost=%s fall=%s setting off: no run key=%s held while down=%s let go after=%s" % [has_run90, run_on90, run_kept90, both90, run_off90, guard_off90, sheet90, focus90, fall90, no_run90, down90, up90])
+	if want.call("d91_lefty"):
+		# the mirrored layout: the stick, the play keys and the skill coins swap sides; the menu keys, zoom coins stay (idea 91)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
+		var root91 := get_tree().root # a phone's canvas, 960 x 540, as the layout tests
+		var scale91 := [root91.content_scale_mode, root91.content_scale_aspect, root91.content_scale_size]
+		root91.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root91.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root91.content_scale_size = Vector2i(960, 540)
+		var lefty91: bool = main.cfg.lefty
+		main.cfg.lefty = false
+		await main.enable_touch()
+		await wait(0.2)
+		var tl91: Control = main.touch_layer
+		var vs91: Vector2 = main.get_viewport().get_visible_rect().size
+		var right91: Dictionary = tl91.keys().duplicate(true)
+		var skill_r91: Vector2 = main.ui.hud.skill_spot(0)
+		var menu91: Array = [main.ui.journal_btn.position, main.ui.hint.position, main.ui.settings_btn.position, main.ui.sound_btn.position]
+		var rt91: Array = main.hud_build.touch_rects() # the first one is the bracelet or the attack key's box on the right
+		main.cfg.lefty = true
+		await wait(0.1)
+		var left91: Dictionary = tl91.keys()
+		var mirrored91 := true
+		for n in ["attack", "dodge", "guard", "crown"]:
+			mirrored91 = mirrored91 and is_equal_approx(left91[n][0].x, vs91.x - right91[n][0].x) and is_equal_approx(left91[n][0].y, right91[n][0].y) and left91[n][1] == right91[n][1]
+		var stayed91: bool = left91.zoom_in[0] == right91.zoom_in[0] and left91.zoom_out[0] == right91.zoom_out[0]
+		var skills91: bool = is_equal_approx(main.ui.hud.skill_spot(0).x, vs91.x - skill_r91.x) and main.ui.hud.skill_spot(0).y == skill_r91.y
+		var menu_same91: bool = menu91 == [main.ui.journal_btn.position, main.ui.hint.position, main.ui.settings_btn.position, main.ui.sound_btn.position]
+		var rects91: bool = main.hud_build.touch_rects().has(Rect2(left91.attack[0] - Vector2.ONE * left91.attack[1], Vector2.ONE * left91.attack[1] * 2.0)) and not main.hud_build.touch_rects().has(rt91[0])
+		# the stick: a finger on the right side grabs it now, one on the left side does not; the keys answer where they are drawn now
+		var f91 := InputEventScreenTouch.new()
+		f91.index = 2
+		f91.pressed = true
+		f91.position = Vector2(vs91.x * 0.1, vs91.y * 0.8)
+		tl91._input(f91) # straight to the layer: the window is smaller than the canvas, so a parsed event would be scaled
+		await wait(0.1)
+		var left_no91: bool = tl91.pad_idx < 0
+		var g91 := f91.duplicate()
+		g91.pressed = false
+		tl91._input(g91) # straight to the layer: the window is smaller than the canvas, so a parsed event would be scaled
+		await wait(0.1)
+		var h91 := f91.duplicate()
+		h91.position = Vector2(vs91.x * 0.9, vs91.y * 0.8)
+		tl91._input(h91) # straight to the layer: the window is smaller than the canvas, so a parsed event would be scaled
+		await wait(0.1)
+		var right_yes91: bool = tl91.pad_idx == 2
+		var drag91 := InputEventScreenDrag.new()
+		drag91.index = 2
+		drag91.position = h91.position - Vector2(0, 60)
+		tl91._input(drag91) # straight to the layer: the window is smaller than the canvas, so a parsed event would be scaled
+		await wait(0.1)
+		var walks91: bool = main.touch_move.y < -0.5
+		var l91 := h91.duplicate()
+		l91.pressed = false
+		tl91._input(l91) # straight to the layer: the window is smaller than the canvas, so a parsed event would be scaled
+		await wait(0.1)
+		var sw91 := InputEventScreenTouch.new()
+		sw91.index = 3
+		sw91.pressed = true
+		sw91.position = left91.attack[0]
+		main.player.atk_cd = 0.0
+		var combo91: int = main.player.combo
+		tl91._input(sw91) # straight to the layer: the window is smaller than the canvas, so a parsed event would be scaled
+		await wait(0.1)
+		var swing91: bool = main.player.combo != combo91 or main.player.atk_cd > 0.0
+		var su91 := sw91.duplicate()
+		su91.pressed = false
+		tl91._input(su91) # straight to the layer: the window is smaller than the canvas, so a parsed event would be scaled
+		await wait(0.1)
+		main.cfg.lefty = lefty91
+		main.disable_touch()
+		root91.content_scale_mode = scale91[0]
+		root91.content_scale_aspect = scale91[1]
+		root91.content_scale_size = scale91[2]
+		calm_enemies(false)
+		check("d91_lefty", mirrored91 and stayed91 and skills91 and menu_same91 and rects91 and left_no91 and right_yes91 and walks91 and swing91,
+			"play keys mirrored=%s zoom coins stay=%s skills mirrored=%s menu keys stay=%s avoid list follows=%s left finger no stick=%s right finger grabs it=%s walks=%s sword key where drawn=%s" % [mirrored91, stayed91, skills91, menu_same91, rects91, left_no91, right_yes91, walks91, swing91])
+	if want.call("d92_crown_word"):
+		# a press on the bracelet key shows what it is about to do over the key; the question changes nothing and the key acts once (idea 92)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
+		await main.enable_touch()
+		await wait(0.2)
+		var tl92: Control = main.touch_layer
+		var lamp92: OmniLight3D = main.dark_lamp # the opening beat takes the key before a chest does
+		main.dark_lamp = null
+		var chest92: Dictionary = {}
+		for c in main.chests:
+			if not c.open:
+				chest92 = c
+				break
+		var got92 := not chest92.is_empty()
+		var label92 := ""
+		var gold92: int = main.player.gold
+		var pots92: int = main.player.pots
+		var quiet92 := false
+		var acted92 := false
+		var once92 := false
+		var shown92 := false
+		var gone92 := false
+		var blank92 := false
+		if got92:
+			reset_to(Vector2(chest92.x, chest92.z))
+			label92 = main.crown_label()
+			main.crown_label()
+			main.crown_label()
+			quiet92 = not chest92.open and main.player.gold == gold92 and main.player.pots == pots92 # asking does nothing
+			var cd92 := InputEventScreenTouch.new()
+			cd92.index = 5
+			cd92.pressed = true
+			cd92.position = tl92.keys().crown[0]
+			Input.parse_input_event(cd92)
+			await wait(0.1)
+			var cu92 := cd92.duplicate()
+			cu92.pressed = false
+			Input.parse_input_event(cu92)
+			shown92 = tl92.crown_say == label92 and tl92.crown_say_t > 0.5 and label92 == tr("상자 열기")
+			acted92 = chest92.open
+			once92 = main.player.gold > gold92 and main.player.gold <= gold92 + 29 and main.player.pots == pots92 + 1
+			await wait(1.5)
+			gone92 = tl92.crown_say_t == 0.0
+			for gx in range(5, 45, 5):
+				for gz in range(5, 45, 5):
+					if not blank92:
+						reset_to(Vector2(gx, gz))
+						blank92 = main.crown_label() == ""
+			if blank92:
+				tl92.crown_say = "x"
+				cd92.pressed = true
+				cd92.position = tl92.keys().crown[0]
+				Input.parse_input_event(cd92)
+				await wait(0.1)
+				cu92.position = cd92.position
+				Input.parse_input_event(cu92)
+				blank92 = tl92.crown_say == "" and tl92.crown_say_t == 0.0
+		main.dark_lamp = lamp92
+		main.disable_touch()
+		calm_enemies(false)
+		check("d92_crown_word", got92 and label92 == tr("상자 열기") and quiet92 and shown92 and acted92 and once92 and gone92 and blank92,
+			"a closed chest found=%s the word '%s' asking changes nothing=%s shown over the key=%s the chest opened=%s once (gold +%d, pots +%d)=%s word fades=%s no word where it does nothing=%s" % [got92, label92, quiet92, shown92, acted92, main.player.gold - gold92, main.player.pots - pots92, once92, gone92, blank92])
+	if want.call("d94_guard_slip"):
+		# a thumb that drifts off the shield key keeps it inside the rim plus 36 px and has let go past that; held and latched look different (idea 94)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
+		main.cfg.hold = false
+		await main.enable_touch()
+		await wait(0.2)
+		var tl94: Control = main.touch_layer
+		var c94: Vector2 = tl94.keys().guard[0]
+		var r94: float = tl94.keys().guard[1]
+		var d94 := InputEventScreenTouch.new()
+		d94.index = 6
+		d94.pressed = true
+		d94.position = c94
+		Input.parse_input_event(d94)
+		await wait(0.1)
+		var held94: bool = main.key_down(KEY_L) and tl94.held.values().has("guard")
+		var s94 := InputEventScreenDrag.new()
+		s94.index = 6
+		s94.position = c94 + Vector2(r94 + 20.0, 0.0) # past the rim, inside the slack
+		Input.parse_input_event(s94)
+		await wait(0.1)
+		var kept94: bool = main.key_down(KEY_L) and tl94.held.values().has("guard")
+		s94.position = c94 + Vector2(r94 + 20.0 + 30.0, 0.0) # 50 px past: let go
+		Input.parse_input_event(s94)
+		await wait(0.1)
+		var let94: bool = not main.key_down(KEY_L) and tl94.held.is_empty()
+		var u94 := d94.duplicate()
+		u94.pressed = false
+		Input.parse_input_event(u94)
+		await wait(0.1)
+		var after94: bool = not main.key_down(KEY_L)
+		# held (a finger on it) is not latched (one-hand): different state, so they are drawn differently
+		d94.position = c94
+		Input.parse_input_event(d94)
+		await wait(0.1)
+		var held_look94: bool = tl94.held.values().has("guard") and not tl94.guard_latch and tl94.latch_text() == ""
+		Input.parse_input_event(u94)
+		await wait(0.1)
+		main.cfg.hold = true
+		await wait(0.1)
+		Input.parse_input_event(d94)
+		await wait(0.1)
+		Input.parse_input_event(u94)
+		await wait(0.1)
+		var latch_look94: bool = tl94.guard_latch and tl94.held.is_empty() and tl94.latch_text() != ""
+		main.cfg.hold = false
+		await wait(0.1)
+		main.disable_touch()
+		calm_enemies(false)
+		check("d94_guard_slip", held94 and kept94 and let94 and after94 and held_look94 and latch_look94,
+			"held on touch=%s 20 px past the rim still held=%s 50 px past let go=%s lift after=%s held look (finger, no word)=%s latched look (word, no finger)=%s" % [held94, kept94, let94, after94, held_look94, latch_look94])
+	if want.call("d97_key_size"):
+		# three sizes of the play keys from one table: the radii grow by 10% and 24%, the gaps stay at 10 px or more, nothing meets a skill coin
+		# or the minimap; the hit radius and the avoid list follow (idea 97)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
+		var root97 := get_tree().root # a phone's canvas, 960 x 540, as the layout tests
+		var scale97 := [root97.content_scale_mode, root97.content_scale_aspect, root97.content_scale_size]
+		root97.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root97.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root97.content_scale_size = Vector2i(960, 540)
+		var size97: int = main.cfg.keysize
+		var text97: int = main.cfg.text # a phone layout raises it a size; the settings file must not keep that
+		var kept97 := settings_keep()
+		var hold97: bool = main.cfg.hold
+		var lefty97: bool = main.cfg.lefty
+		main.cfg.hold = true
+		main.cfg.lefty = false
+		await main.enable_touch()
+		await wait(0.2)
+		var tl97: Control = main.touch_layer
+		var vs97: Vector2 = main.get_viewport().get_visible_rect().size
+		var radii97: Array = []
+		var gaps97: Array = []
+		var fits97 := true
+		var hits97 := true
+		var rects97 := true
+		var old97 := true
+		for lv in 3:
+			for lf in [false, true]:
+				main.cfg.keysize = lv
+				main.cfg.lefty = lf
+				await wait(0.05)
+				var k: Dictionary = tl97.keys()
+				var names: Array = ["attack", "dodge", "guard", "crown", "run", "skill0", "skill1", "skill2", "skill3"]
+				var gap_min := 1000.0
+				for i in 5: # the play keys against each other and against the skill coins (the coins' own 4 px gap is the HUD's)
+					for j in range(i + 1, names.size()):
+						gap_min = minf(gap_min, (k[names[i]][0] as Vector2).distance_to(k[names[j]][0]) - float(k[names[i]][1]) - float(k[names[j]][1]))
+				for n in ["attack", "dodge", "guard", "crown", "run"]:
+					var c: Vector2 = k[n][0]
+					var r: float = k[n][1]
+					fits97 = fits97 and c.x - r >= 0.0 and c.x + r <= vs97.x and c.y - r >= vs97.y - 346.0 and c.y + r <= vs97.y
+					hits97 = hits97 and tl97.key_at(c) == n and tl97.key_at(c + Vector2(r - 1.0, 0.0)) == n
+					rects97 = rects97 and main.hud_build.touch_rects().has(Rect2(c - Vector2.ONE * r, Vector2.ONE * r * 2.0))
+				if not lf:
+					radii97.append(k.attack[1])
+					gaps97.append(gap_min)
+					if lv == 0: # the first size is the old layout, number for number
+						old97 = old97 and k.attack[0] == Vector2(vs97.x - 80.0, vs97.y - 196.0) and k.dodge[0] == Vector2(vs97.x - 196.0, vs97.y - 158.0) \
+							and k.guard[0] == Vector2(vs97.x - 176.0, vs97.y - 270.0) and k.crown[0] == Vector2(vs97.x - 64.0, vs97.y - 300.0) and k.crown[1] == 42.0 and k.attack[1] == 58.0
+				else:
+					gaps97.append(gap_min)
+		var bigger97: bool = radii97[1] >= radii97[0] * 1.09 and radii97[2] >= radii97[0] * 1.23
+		var gap_ok97: bool = gaps97[2] >= 10.0 and gaps97[4] >= 10.0 and gaps97[3] >= 10.0 and gaps97[5] >= 10.0 and gaps97[2] > gaps97[0] and gaps97[4] > gaps97[0] # [lv0, lv0 left, lv1, lv1 left, lv2, lv2 left]
+		# the settings row cycles
+		main.cfg.keysize = 0
+		var row97: Button = main.ui.set_rows.keysize
+		row97.emit_signal("pressed")
+		var cyc97: bool = main.cfg.keysize == 1
+		main.cfg.keysize = size97
+		main.cfg.text = text97
+		main.cfg.hold = hold97
+		root97.content_scale_mode = scale97[0]
+		root97.content_scale_aspect = scale97[1]
+		root97.content_scale_size = scale97[2]
+		main.cfg.lefty = lefty97
+		settings_back(kept97)
+		main.disable_touch()
+		calm_enemies(false)
+		check("d97_key_size", bigger97 and gap_ok97 and fits97 and hits97 and rects97 and old97 and cyc97,
+			"attack radius %s bigger by 10/24%%=%s smallest gaps %s (10 px at the two bigger sizes, 12 px off the skill coins)=%s all inside the screen and under the minimap=%s hit radius=%s avoid list=%s first size is the old layout=%s row cycles=%s" % [radii97, bigger97, gaps97, gap_ok97, fits97, hits97, rects97, old97, cyc97])
+	if want.call("d98_edge_bubble"):
+		# a balloon at the screen's side slides in and its tail still points at the speaker; one in the middle is as before (idea 98)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		var root98 := get_tree().root # a phone's canvas, 960 x 540, as the layout tests
+		var scale98 := [root98.content_scale_mode, root98.content_scale_aspect, root98.content_scale_size]
+		root98.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root98.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root98.content_scale_size = Vector2i(960, 540)
+		await wait(0.1)
+		var ch98: Object = main.chatter
+		var vs98: Vector2 = main.get_viewport().get_visible_rect().size
+		var cam98: Camera3D = main.camera
+		var out98 := {}
+		for side in ["left", "mid", "right"]:
+			var sx: float = 100.0 if side == "left" else (vs98.x * 0.5 if side == "mid" else vs98.x - 100.0) # the balloon sits above the speaker, nearer the camera, so its x lands a little further out
+			var anchor := Node3D.new()
+			main.add_child(anchor)
+			anchor.global_position = cam98.project_position(Vector2(sx, vs98.y * 0.55), 14.0)
+			ch98.say_bubble(anchor, "달빛이 닿는 데까지 가 보자!", 3.0)
+			var e: Dictionary = ch98.edge_bubbles.back()
+			var b: Node3D = e.b
+			b.scale = Vector3.ONE # full size at once, and fitted in this very frame while the camera stands where the speaker was placed
+			ch98.edge_fit(e, vs98)
+			var p0 := cam98.unproject_position(b.global_position)
+			var spw: float = cam98.unproject_position(b.global_position + cam98.global_transform.basis.x).x - p0.x
+			var tex_px: float = ch98.PIXEL * b.scale.x * spw
+			var cx: float = cam98.unproject_position((e.card as Sprite3D).global_position).x
+			var half: float = float(e.w) * 0.5 * tex_px
+			var tail_x: float = cx + float(e.tx) * tex_px
+			out98[side] = {"left": cx - half, "right": cx + half, "tx": int(e.tx), "tail": tail_x, "anchor": p0.x, "pos": (e.card as Sprite3D).position, "plain": (e.card as Sprite3D).texture == ch98.balloon_tex(int(e.w))}
+			anchor.queue_free()
+		root98.content_scale_mode = scale98[0]
+		root98.content_scale_aspect = scale98[1]
+		root98.content_scale_size = scale98[2]
+		var l98: Dictionary = out98.left
+		var m98: Dictionary = out98.mid
+		var r98: Dictionary = out98.right
+		var inside98: bool = l98.left >= 7.0 and r98.right <= vs98.x - 7.0 and m98.left >= 0.0 and m98.right <= vs98.x
+		var tails98: bool = l98.tx < 0 and r98.tx > 0 and absf(l98.tail - l98.anchor) <= 10.0 and absf(r98.tail - r98.anchor) <= 10.0 and not l98.plain and not r98.plain
+		var mid98: bool = m98.tx == 0 and m98.plain and (m98.pos as Vector3).length() < 0.001
+		check("d98_edge_bubble", inside98 and tails98 and mid98,
+			"left balloon spans %.0f to %.0f, right %.0f to %.0f of %.0f px=%s tail shifts %d/%d px, tail ends %.0f vs speaker %.0f, %.0f vs %.0f=%s middle one untouched=%s" % [l98.left, l98.right, r98.left, r98.right, vs98.x, inside98, l98.tx, r98.tx, l98.tail, l98.anchor, r98.tail, r98.anchor, tails98, mid98])
+	if want.call("d100_fade_keys"):
+		# after 8 s with no finger down and no foe within 10 tiles the combat keys fade to 30%; the hit areas stay, the first touch acts at once and
+		# brings them back; the bracelet key and the zoom coins keep their look (idea 100)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
+		await main.enable_touch()
+		await wait(0.2)
+		var tl100: Control = main.touch_layer
+		reset_to(main.START)
+		tl100.idle_t = 0.0
+		tl100.dim = 0.0
+		tl100._process(tl100.FADE_AFTER - 1.0)
+		var early100: bool = tl100.dim == 0.0
+		tl100._process(1.2)
+		tl100._process(1.3)
+		var faint100: bool = tl100.dim == 1.0 and is_equal_approx(1.0 - tl100.dim * (1.0 - tl100.FADE_TO), 0.3)
+		var hit100: bool = tl100.key_at(tl100.keys().attack[0]) == "attack" and tl100.key_at(tl100.keys().guard[0]) == "guard"
+		# a finger down, a sheet or a foe near keeps them full
+		tl100.idle_t = 0.0
+		tl100.dim = 0.0
+		tl100.pad_idx = 7
+		tl100._process(10.0)
+		var finger100: bool = tl100.idle_t == 0.0 and tl100.dim == 0.0
+		tl100.pad_idx = -1
+		main.story_open = true
+		tl100._process(10.0)
+		var sheet100: bool = tl100.idle_t == 0.0 and tl100.dim == 0.0
+		main.story_open = false
+		var foe100: Dictionary = {}
+		for e in main.enemies:
+			if not e.get("boss", false) and not e.get("mole", false) and not e.get("prop", false) and is_instance_valid(e.node):
+				foe100 = e
+				break
+		var foe_ok100 := true
+		if not foe100.is_empty():
+			var was100 := [foe100.x, foe100.z, foe100.dead]
+			foe100.dead = false
+			foe100.x = main.player.x + 4.0
+			foe100.z = main.player.z
+			tl100._process(10.0)
+			foe_ok100 = tl100.idle_t == 0.0 and tl100.dim == 0.0
+			foe100.x = was100[0]
+			foe100.z = was100[1]
+			foe100.dead = was100[2]
+		# faint again, then a first touch on the sword key swings at once and the keys are back
+		tl100.idle_t = 20.0
+		tl100.dim = 1.0
+		var sw100 := InputEventScreenTouch.new()
+		sw100.index = 8
+		sw100.pressed = true
+		sw100.position = tl100.keys().attack[0]
+		main.player.atk_cd = 0.0
+		var combo100: int = main.player.combo
+		Input.parse_input_event(sw100)
+		await wait(0.05)
+		var swung100: bool = main.player.combo != combo100 or main.player.atk_cd > 0.0
+		var back100: bool = tl100.dim == 0.0 and tl100.idle_t < 0.5
+		var su100 := sw100.duplicate()
+		su100.pressed = false
+		Input.parse_input_event(su100)
+		await wait(0.1)
+		main.disable_touch()
+		calm_enemies(false)
+		check("d100_fade_keys", early100 and faint100 and hit100 and finger100 and sheet100 and foe_ok100 and swung100 and back100,
+			"not faint after 7 s=%s faint after 8 s (30%%)=%s hit areas stay=%s a finger down keeps them=%s a sheet=%s a foe near=%s first touch swings=%s keys back at once=%s" % [early100, faint100, hit100, finger100, sheet100, foe_ok100, swung100, back100])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])
