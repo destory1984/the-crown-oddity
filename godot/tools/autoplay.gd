@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_fountain_quiet", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -2229,7 +2229,7 @@ func run() -> void:
 			var hp_wind: float = main.player.hp
 			await wait_for(func(): return main.player.hp < 200.0, 4.0) # the charge, however slow the game clock runs late in a full run
 			check("mole_charge", winding and hp_wind == 200.0 and main.player.hp < 200.0,
-				"winds up=%s, no damage during wind-up=%s, charge hit for %d" % [winding, hp_wind == 200.0, int(200.0 - main.player.hp)])
+				"winds up=%s, no damage during wind-up=%s, charge hit for %d (mole %.1f,%.1f wind %.2f dash %.2f stun %.2f next %s; Sora %.1f,%.1f; B %s; time_scale %.2f)" % [winding, hp_wind == 200.0, int(200.0 - main.player.hp), m0.x, m0.z, m0.wind, m0.dash, m0.stun, m0.next, main.player.x, main.player.z, main.cave_marks.B, Engine.time_scale])
 	if want.call("mole_grants_skip"):
 		var mo = main.enemies.filter(func(e): return e.get("mole", false) and not e.dead)
 		if not mo.is_empty():
@@ -15720,61 +15720,24 @@ func run() -> void:
 		main.enemies = keep_en
 		check("d43_room_echo", tags43 and heard43 and once43 and left43 and newer43 and open43 and foe43 and live43 and story43 and land43,
 			"three rooms tagged, the hall not=%s a step in a room echoes once, quietly=%s only once=%s stepping out first: none=%s a newer step takes the wait=%s outside a room: none=%s a live foe in the room: none=%s a dead foe or a prop: still echoes=%s a story open: none=%s out of the castle: none=%s" % [tags43, heard43, once43, left43, newer43, open43, foe43, live43, story43, land43])
-	if want.call("d46_water_loop"):
-		# the fountain's water is one local loop: full strength within 2.5 tiles, easing out to nothing by 16 (no step over 0.15 a tile), a low jet 0.45 as loud; indoors, outside the village or in the title none; leaving fades it at 1.2 a second, not at once; the sound switch silences it (idea 46)
+	if want.call("d46_fountain_quiet"):
+		# the fountain makes no sound of its own (the owner, 2026-10-31: "광장 분수대 소리는 없애"): beside the full basin, running, no loop plays; a blow still slaps the water (fountain_splash)
 		var am46: Object = main.ambience
 		main.in_village = true
 		main.in_house = -1
 		main.intro = false
 		main.close_story()
-		var fa46: Vector2 = main.village.fountain_at()
-		var keep46 := {"wet": main.village.fountain_wet, "muted": main.muted, "x": main.player.x, "z": main.player.z}
+		var keep46 := {"wet": main.village.fountain_wet, "x": main.player.x, "z": main.player.z}
 		main.village.fountain_wet = true
-		am46.duck = 1.0
-		am46.duck_hold = 0.0
-		var gains46: Array = []
-		for d in range(0, 19):
-			reset_to(fa46 + Vector2(float(d), 0.0))
-			gains46.append(am46.water_target())
-		var near46: bool = is_equal_approx(gains46[1], 1.0) and is_equal_approx(gains46[2], 1.0)
-		var far46: bool = gains46[16] == 0.0 and gains46[18] == 0.0
-		var steps_ok := true
-		for i in range(1, 19):
-			steps_ok = steps_ok and gains46[i] <= gains46[i - 1] + 0.0001 and gains46[i - 1] - gains46[i] < 0.15
-		var mid46: bool = gains46[9] > 0.25 and gains46[9] < 0.75
-		reset_to(fa46 + Vector2(1.0, 0.0))
-		main.village.fountain_wet = false
-		var low46: bool = is_equal_approx(am46.water_target(), am46.WATER_LOW)
-		main.village.fountain_wet = true
-		main.in_house = 0
-		var house46: bool = am46.water_target() == 0.0
-		main.in_house = -1
-		main.intro = true
-		var title46: bool = am46.water_target() == 0.0
-		main.intro = false
-		# at the basin the loop plays; stepping out of the village fades it over ~0.8 s rather than cutting it
-		am46.gains["water"] = 1.0
-		am46.update(0.0)
-		var plays46: bool = am46.players.has("water") and am46.players["water"].playing and is_equal_approx(am46.players["water"].volume_db, am46.BASE_DB)
-		main.in_village = false
-		am46.update(0.1)
-		var eased46: bool = am46.gains["water"] > 0.85 and am46.gains["water"] < 1.0 and am46.players["water"].playing
+		reset_to(main.village.fountain_at() + Vector2(1.0, 0.0))
+		var before46: int = am46.players.size()
 		for i in 12:
 			am46.update(0.1)
-		var off46: bool = am46.gains["water"] == 0.0 and not am46.players["water"].playing
-		main.in_village = true
-		am46.gains["water"] = 1.0
-		main.muted = true
-		am46.update(0.0)
-		var muted46: bool = not am46.players["water"].playing
-		main.muted = keep46.muted
+		var none46: bool = not am46.gains.has("water") and not am46.players.has("water") and am46.players.size() == before46
 		main.village.fountain_wet = keep46.wet
-		am46.gains["water"] = 0.0
-		am46.update(0.0)
 		reset_to(Vector2(keep46.x, keep46.z))
 		main.in_village = false
-		check("d46_water_loop", near46 and far46 and steps_ok and mid46 and low46 and house46 and title46 and plays46 and eased46 and off46 and muted46,
-			"full within 2.5 tiles=%s none from 16=%s no step over 0.15 and never up=%s halfway at 9 tiles=%s a low jet 0.45=%s indoors none=%s title none=%s it plays at the basin=%s leaving eases (not a cut)=%s then off=%s the sound switch silences it=%s" % [near46, far46, steps_ok, mid46, low46, house46, title46, plays46, eased46, off46, muted46])
+		check("d46_fountain_quiet", none46, "at the running basin no loop plays: %s" % none46)
 	if want.call("d48_story_hush"):
 		# a picture scene (not a talk) shuts the ambience loops fast (4 a second); after it closes they stay shut 0.5 s, then come back over 1.5 s without a jump (step under 0.1 per 0.1 s); a talk does nothing; the music and the sound switch are not touched (idea 48)
 		var am48: Object = main.ambience

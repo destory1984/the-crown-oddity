@@ -1,5 +1,5 @@
-# Ambience: three quiet loops made in code (the fountain's water, the rain in the open, the rain on the eaves) and the gain each one
-# has (delight ideas 46, 48, 50). They play on the Sfx bus, so the sound switch silences them; the music is never touched.
+# Ambience: two quiet loops made in code (the rain in the open, the rain on the eaves) and the gain each one
+# has (delight ideas 48, 50; the fountain's water loop went on the owner's word, 2026-10-31: "광장 분수대 소리는 없애"). They play on the Sfx bus, so the sound switch silences them; the music is never touched.
 # `m` is the main node (main.gd), its state and helpers are reached as m.x.
 extends RefCounted
 
@@ -12,10 +12,6 @@ const LOOP_SECS := 2.0
 const FOLD := 2205 # the 0.1 s the loop's end is folded over its start, so the seam makes no click
 const BASE_DB := -16.0 # a loop at full gain sits this far under the effects
 const SLEW := 1.2 # a gain moves at most this much a second, so no change is a jump
-# 46: the water is full strength within WATER_NEAR tiles of the fountain, fades out smoothly by WATER_FAR; a low jet is WATER_LOW as loud
-const WATER_NEAR := 2.5
-const WATER_FAR := 16.0
-const WATER_LOW := 0.45
 # 50: indoors the open rain stays as a murmur and the eave's round taps carry it
 const RAIN_IN := 0.2
 const EAVE_IN := 0.8
@@ -25,7 +21,7 @@ const STORY_GAP := 0.5
 const STORY_RAMP := 1.5
 
 var players := {} # name -> AudioStreamPlayer, made the first time the loop is wanted
-var gains := {"water": 0.0, "rain": 0.0, "eave": 0.0}
+var gains := {"rain": 0.0, "eave": 0.0}
 var duck := 1.0 # 1 open, 0 shut by a picture scene
 var duck_hold := 0.0
 
@@ -38,13 +34,6 @@ func shutdown() -> void:
 		(p as AudioStreamPlayer).stream = null
 	players.clear()
 
-# where the fountain's water loop is heading: loud beside the basin, softer with every step away, none outside the village or indoors
-func water_target() -> float:
-	if m.intro or not m.in_village or m.in_house >= 0 or m.village == null:
-		return 0.0
-	var d := Vector2(m.player.x, m.player.z).distance_to(m.village.fountain_at())
-	return (1.0 - smoothstep(WATER_NEAR, WATER_FAR, d)) * (1.0 if m.village.fountain_wet else WATER_LOW)
-
 func rain_target() -> float:
 	if not m.raining:
 		return 0.0
@@ -54,10 +43,7 @@ func eave_target() -> float:
 	return EAVE_IN if m.raining and m.in_house >= 0 else 0.0
 
 func target_of(name: String) -> float:
-	match name:
-		"water": return water_target()
-		"rain": return rain_target()
-	return eave_target()
+	return rain_target() if name == "rain" else eave_target()
 
 # the picture-scene duck: shut quickly while one is open, still for STORY_GAP s after it, then open over STORY_RAMP s
 func update_duck(dt: float) -> void:
@@ -95,7 +81,7 @@ func apply(name: String, g: float) -> void:
 	if not p.playing:
 		p.play()
 
-# a two second loop of filtered noise ("water", "rain") or of soft round taps ("eave")
+# a two second loop of soft hiss ("rain") or of soft round taps ("eave")
 func make_loop(kind: String) -> AudioStreamWAV:
 	var n := int(RATE * LOOP_SECS)
 	var rng := RandomNumberGenerator.new()
@@ -117,17 +103,10 @@ func make_loop(kind: String) -> AudioStreamWAV:
 				buf[(at + j) % n] += v
 	else:
 		var lo := 0.0
-		var hi := 0.0
 		for i in n + FOLD:
-			var w := rng.randf_range(-1.0, 1.0)
-			if kind == "water": # a band of noise that burbles: swelling twice and five times a loop
-				lo = lerpf(lo, w, 0.25)
-				hi = lerpf(hi, w, 0.04)
-				buf[i] = (lo - hi) * 1.8 * (0.7 + 0.2 * sin(TAU * 5.0 * i / n) + 0.1 * sin(TAU * 2.0 * i / n))
-			else: # rain: a soft hiss
-				lo = lerpf(lo, w, 0.6)
-				buf[i] = lo * 0.7
-		amp = 0.5 if kind == "water" else 0.35
+			lo = lerpf(lo, rng.randf_range(-1.0, 1.0), 0.6)
+			buf[i] = lo * 0.7
+		amp = 0.35
 	var data := PackedByteArray()
 	data.resize(n * 2)
 	for i in n:

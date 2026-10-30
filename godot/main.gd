@@ -42,7 +42,7 @@
 #   sys/football.gd       The village square's football and goal (v0.1.109): kicks, bounces, the goal flash and score banner, the goals count.
 #   sys/safe_area.gd      The phone's home bar and camera hole (v0.1.119): the safe area in canvas pixels, feeding touch.gd, hud.gd and hud_build.gd.
 #   sys/away.gd           Coming back (v0.1.119): focus lost on a phone pauses the game behind a centred 돌아왔다 key.
-#   sys/ambience.gd       Quiet loops made in code (v0.1.116): the fountain's water, rain in the open and on the eaves, a picture scene's hush.
+#   sys/ambience.gd       Quiet loops made in code (v0.1.116): rain in the open and on the eaves, a picture scene's hush.
 extends Node3D
 
 # The systems: one object per sys/*.gd file (see the file map above), each holding this node as `m`.
@@ -674,11 +674,11 @@ const FOLK_ROUTES := {
 		[Vector2(33, 9), false], [Vector2(33, 19), false]], # field, pond edge, field, market
 	"yeoul": [[Vector2(32, 24), true], [Vector2(32, 23), false], [Vector2(25, 23), false], [Vector2(24, 28), true],
 		[Vector2(25, 23), false], [Vector2(32, 23), false]], # pond edge and the pier's foot
-	"darae": [[Vector2(36, 7), true], [Vector2(36, 9), false], [Vector2(25, 9), false], [Vector2(25, 22), false],
+	"darae": [[Vector2(36, 7), true], [Vector2(36, 9), false], [Vector2(25, 9), false], [Vector2(24.7, 22), false],
 		[Vector2(16, 22), false], [Vector2(16, 28), false], [Vector2(7, 28), true], [Vector2(16, 28), false],
-		[Vector2(16, 22), false], [Vector2(25, 22), false], [Vector2(25, 9), false], [Vector2(36, 9), false]], # stall and the inn door
+		[Vector2(16, 22), false], [Vector2(24.7, 22), false], [Vector2(25, 9), false], [Vector2(36, 9), false]], # stall and the inn door
 	"tori": [[Vector2(41, 7), true], [Vector2(39, 9), false], [Vector2(20, 9), false], [Vector2(19, 8), true],
-		[Vector2(20, 9), false], [Vector2(25, 9), false], [Vector2(25, 22), false], [Vector2(31, 22), true],
+		[Vector2(20, 9), false], [Vector2(25, 9), false], [Vector2(24.7, 22), false], [Vector2(31, 22), true],
 		[Vector2(33, 19), false], [Vector2(33, 9), false], [Vector2(39, 9), false]], # market, square, the field
 }
 var routine_off := false    # the autoplay tests keep everyone on his spot (all but folk_routine)
@@ -746,6 +746,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.130: 광장 분수대의 물소리를 없앴다. 곁에 서 있어도 소리가 나지 않고, 칼로 쳤을 때 물이 찰싹이는 소리만 남았다. 다래와 토리가 다니는 길이 축구장 모퉁이 깃발(25, 21.8)에 걸리던 것도 꺾임점을 0.3칸 옮겨 고쳤다.",
 	"· v0.1.129: 남쪽 풀밭이 축구장이 되었다. 맞은편 북쪽 끝에 같은 골대를 세워 어느 쪽에 넣어도 골이다. 공은 가운데 점(가로 8칸, 세로 5.6칸의 한복판)에 놓인다. 흰 테두리, 중앙선, 반지름 1.1칸의 중앙 원, 골 앞 네모 둘을 긋고 네 귀퉁이에 빨간 깃발을, 동쪽 줄가에 골 수를 적는 점수판을 세웠다. 풀밭 등불은 줄 밖으로 두 칸 옮겼다.",
 	"· v0.1.128: 끝 장면이 달라졌다. 소라는 어디서 왔는지 아직 모른다고 말하고, 보리 할머니는 문 앞 깔개에 소라의 신도 놓으라고 한다. 끝낸 뒤에는 그 깔개에 소라의 신 한 켤레가, 뒤꼍 판자에 푸른 넷째 찻잔이 놓이고 새 바퀴에도 남는다.",
 	"· v0.1.127: 곁일을 마치면 켜지는 달지기 표식의 이름을 달지기 보석으로 바꿨다. 왕관을 뜻하는 달지기의 표식과 말이 겹쳐 헷갈렸다. 상태창, 소지품 창, 일지, 할 일 줄, 알림, 달의 계단 대사가 함께 바뀌었다.",
@@ -2189,7 +2190,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(dt: float) -> void:
 	dt = minf(dt, 1.0 / 20.0)
 	music.update(dt) # before the world waits for a sheet, a story or the shop: the tune plays on
-	ambience.update(dt) # and the fountain and rain loops with it
+	ambience.update(dt) # and the rain loops with it
 	if hitstop > 0.0:
 		hitstop -= dt
 		return
