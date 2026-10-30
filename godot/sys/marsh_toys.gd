@@ -51,6 +51,12 @@ var frog_me := Vector2(-99, -99)
 var frog_still := 0.0
 var frog_flees := 0
 var frog_returns := 0
+# the owner, 2026-10-30: no sound, so nobody could tell they were frogs. A sitting frog croaks twice ("gae-gul") and puffs up
+# every 5 to 9 s by day, 3 to 5 s at night, within 12 tiles of the pond, softer with distance; the first time it also says so
+const FROG_CALL_D := 12.0
+var frog_call_t := 0.0 # the next croak (m.t); from the clock, so the shared random draws stay as they were
+var frog_calls := 0
+var frog_named := false
 
 # the cattails and their fluff
 var cattails: Array = []    # {pos, node, top, fuzz, ready, reset_t, sway}
@@ -455,6 +461,33 @@ func frog_pose(f: Dictionary, from: Vector2, to: Vector2, k: float, to_water: bo
 	var y := lerpf(ground if to_water else WATER_Y, WATER_Y if to_water else ground, k) + sin(PI * k) * 0.3
 	f.node.position = Vector3(p.x, y, p.y)
 
+func update_frog_calls(me: Vector2) -> void:
+	if m.t < frog_call_t or me.distance_to(POND) > FROG_CALL_D:
+		return
+	var base := 3.0 if m.is_night() else 5.0
+	var span := 2.0 if m.is_night() else 4.0
+	frog_call_t = m.t + base + fmod(m.t * 1.7, span)
+	var best = null
+	for f in frogs:
+		if f.state == "sit" and (best == null or me.distance_to(f.perch) < me.distance_to(best.perch)):
+			best = f
+	if best != null:
+		frog_croak(best, me)
+
+func frog_croak(f: Dictionary, me: Vector2) -> void:
+	frog_calls += 1
+	var vol := snappedf(lerpf(0.24, 0.08, clampf(me.distance_to(f.perch) / FROG_CALL_D, 0.0, 1.0)), 0.02)
+	m.sfx(165.0, 0.12, "square", vol, 70.0)
+	m.get_tree().create_timer(0.17).timeout.connect(func(): m.sfx(215.0, 0.15, "square", vol, -80.0))
+	var tw: Tween = f.node.create_tween()
+	tw.tween_property(f.node, "scale", Vector3(1.15, 1.25, 1.15), 0.1)
+	tw.tween_property(f.node, "scale", Vector3.ONE, 0.1)
+	tw.tween_property(f.node, "scale", Vector3(1.15, 1.25, 1.15), 0.1)
+	tw.tween_property(f.node, "scale", Vector3.ONE, 0.12)
+	if not frog_named:
+		frog_named = true
+		m.chatter.say_bubble(f.node, tr("개굴!"), 1.6)
+
 func update_frogs(dt: float) -> void:
 	if frogs.is_empty():
 		return
@@ -467,7 +500,9 @@ func update_frogs(dt: float) -> void:
 			f.node.visible = true
 			frog_pose(f, f.perch, f.perch, 0.0, true)
 			f.node.rotation.y = f.yaw
+		frog_call_t = m.t + 1.0
 		return
+	update_frog_calls(me)
 	var started := 0
 	for f in frogs:
 		match f.state:

@@ -9,6 +9,10 @@ var m: Main
 func _init(main: Main) -> void:
 	m = main
 
+# the owner, 2026-10-30: field foes were too slow to feel dangerous, so the waits between their blows run at twice the
+# clock. Bosses tick their own clocks and keep their patterns; the wind-up warnings keep their length.
+const FOE_PACE := 2.0
+
 # ---------------------------------------------------------------- mob behaviour: roles, telegraphs
 # The plain goblins and the wolves list themselves while the loop runs; the next frame's roles are worked out from
 # that list (e.role, e.spot, e.spot_ok for goblins; wolf_att and wolf_circler for wolves).
@@ -82,8 +86,8 @@ func wolf_ready(e: Dictionary) -> bool:
 
 # once a frame, before the foes move: who swings, who flanks, who hangs back; which wolf goes and which circles
 func pack_prepare(dt: float) -> void:
-	pack_cd -= dt
-	wolf_gap -= dt
+	pack_cd -= dt * FOE_PACE
+	wolf_gap -= dt * FOE_PACE
 	var p := Vector2(m.player.x, m.player.z)
 	# goblins: one attacker within 6 tiles, up to two flankers 2.2 tiles from Sora at +-70 degrees, the rest 3.5 tiles out
 	pack = pack_next.filter(func(e): return not e.dead and is_instance_valid(e.node))
@@ -304,7 +308,7 @@ func update_wolf(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	gid_of(e)
 	wolf_next.append(e)
 	e.t += dt
-	e.atk_cd -= dt
+	e.atk_cd -= dt * FOE_PACE
 	e.hurt -= dt
 	e.rest -= dt
 	e.stun = e.get("stun", 0.0) - dt
@@ -424,7 +428,7 @@ func bat_wind(e: Dictionary, dirn: Vector2) -> void:
 # After the last: 0.7 s of rest and 2.4 s before it starts again.
 func update_bat(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	e.t += dt
-	e.atk_cd -= dt
+	e.atk_cd -= dt * FOE_PACE
 	e.hurt -= dt
 	e.rest -= dt
 	e.stun = e.get("stun", 0.0) - dt
@@ -794,7 +798,7 @@ func update_enemies(dt: float, gy: float) -> void:
 			continue
 		# the kinds above tick their own clocks; ticking here too ran them at double speed
 		e.t += dt
-		e.atk_cd -= dt
+		e.atk_cd -= dt * FOE_PACE
 		e.hurt -= dt
 		if e.get("hog", false):
 			update_hog(e, dt, d, to)

@@ -44,6 +44,13 @@ func village_sign() -> void:
 	m.rocks.append({"x": 43.6, "z": 18.6, "r": 0.25})
 	m.sign_spots.append(Vector2(43.6, 18.6))
 
+# E beside the east signpost: what it points to (the owner, 2026-10-30)
+func sign_key() -> bool:
+	if not m.in_marsh() or Vector2(m.player.x, m.player.z).distance_to(SIGN_AT) > 1.9:
+		return false
+	m.toast("등불 마을로 가는 표지판이다. 다리를 건너 동쪽으로.")
+	return true
+
 # the board's sway: wind, eased down to a fifth while Sora stands still before it facing it, so it can be read
 func sign_reading() -> bool:
 	var to: Vector2 = SIGN_AT - Vector2(m.player.x, m.player.z)

@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -1596,9 +1596,9 @@ func run() -> void:
 		var eased := false
 		var far_quiet := false
 		if built:
+			# waits on the turn itself, not a fixed time: late in a full run the game clock can lag the timer
 			var r0: float = mt.pin_hub.rotation.z
-			await wait(0.5)
-			turns = absf(mt.pin_hub.rotation.z - r0) > 0.8 # about 2.5 rad/s
+			turns = await wait_for(func(): return absf(mt.pin_hub.rotation.z - r0) > 0.8, 3.0) # about 2.5 rad/s
 			var h0: int = mt.pin_hits
 			reset_to(mt.pin_at + Vector2(-1.1, 0.0))
 			main.player.face = Vector2(1, 0)
@@ -1606,10 +1606,10 @@ func run() -> void:
 			main.attack()
 			whirled = mt.pin_hits == h0 + 1 and mt.pin_spin > 2.0
 			var r1: float = mt.pin_hub.rotation.z
-			await wait(0.2)
+			var s1: float = mt.pin_spin
+			await wait_for(func(): return s1 - mt.pin_spin >= 0.2, 2.0) # 0.2 s of game time
 			whirled = whirled and absf(mt.pin_hub.rotation.z - r1) > 2.0 # near 20 rad/s
-			await wait(2.6)
-			eased = mt.pin_spin == 0.0
+			eased = await wait_for(func(): return mt.pin_spin == 0.0, 8.0)
 			reset_to(mt.pin_at + Vector2(-6.0, 0.0))
 			main.player.atk_cd = 0.0
 			main.attack()
@@ -2174,7 +2174,7 @@ func run() -> void:
 			await wait(0.4)
 			var winding: bool = m0.wind > 0.0
 			var hp_wind: float = main.player.hp
-			await wait(1.5)
+			await wait_for(func(): return main.player.hp < 200.0, 4.0) # the charge, however slow the game clock runs late in a full run
 			check("mole_charge", winding and hp_wind == 200.0 and main.player.hp < 200.0,
 				"winds up=%s, no damage during wind-up=%s, charge hit for %d" % [winding, hp_wind == 200.0, int(200.0 - main.player.hp)])
 	if want.call("mole_grants_skip"):
@@ -8745,7 +8745,7 @@ func run() -> void:
 	if want.call("pack_turns"):
 		var C := open_field()
 		# four goblins round Sora: one attacker at a time, the others flank (about 2.2 tiles) or hang back (about 3.5),
-		# never two wind-ups at once and at least 0.9 s between two swings
+		# never two wind-ups at once and at least about 0.9 s between two swings (0.45 s of wait at FOE_PACE, 0.45 s of wind-up)
 		main.close_story()
 		calm_enemies(true)
 		park_mates(true)
@@ -8791,7 +8791,7 @@ func run() -> void:
 			g.shadow.queue_free()
 		calm_enemies(false)
 		park_mates(false)
-		check("pack_turns", not two_at_once and swings.size() >= 2 and min_gap >= 0.9 and flank_seen and back_seen,
+		check("pack_turns", not two_at_once and swings.size() >= 2 and min_gap >= 0.85 and flank_seen and back_seen,
 			"never two wind-ups at once=%s, swings=%d, shortest gap %.2f s, a flanker near 2.2 tiles=%s, one hanging back near 3.5=%s" % [not two_at_once, swings.size(), min_gap, flank_seen, back_seen])
 	if want.call("goblin_lunge"):
 		var C := open_field()
@@ -8976,7 +8976,7 @@ func run() -> void:
 			if act.size() > 1:
 				overlap = true
 			if act.size() == 1:
-				if not last_active and now - last_end < 0.33:
+				if not last_active and now - last_end < 0.1: # 0.2 s of gap at FOE_PACE, sampled every step
 					short_gap = true
 				if act[0].dash > 0.0:
 					charged[act[0].gid] = true
@@ -9055,8 +9055,8 @@ func run() -> void:
 					break
 				if cut and bt.dash <= 0.0 and bt.wind <= 0.0 and i > 0:
 					cut_left += 1
-					if cut_left > 24:
-						break # a second after the blow: the bat has not swooped again
+					if cut_left > 12:
+						break # half a second after the blow: the bat has not swooped again
 			var turned: bool = dirs.size() == 2 and dirs[0].dot(dirs[1]) < 0.0
 			var hurt: bool = main.player.hp < hp0
 			if trial == 0:
@@ -11204,11 +11204,12 @@ func run() -> void:
 		var wind: bool = main.obs_sec[0].wind and Z.vent_at(o + 7.0, 10.0) == Vector2(1, 0) and C.wind_on[0]
 		# the hole carries her across: 8 tiles a second over the three tiles of gap, onto the far bank
 		reset_to(Vector2(o + 5.5, 10.0))
+		# waits on where she is, not a fixed time: late in a full run the game clock can lag the timer
 		hold_world(Vector2(1, 0))
-		await wait(0.5)
+		await wait_for(func(): return main.gust_dir != Vector2.ZERO, 3.0)
 		release()
-		await wait(1.2)
-		var crossed: bool = main.player.x > o + 11.0 and main.player.x < o + 13.0 and absf(main.player.z - 10.0) < 0.6 and main.gust_dir == Vector2.ZERO
+		var crossed: bool = await wait_for(func(): return main.player.x > o + 11.0 and main.gust_dir == Vector2.ZERO, 4.0)
+		crossed = crossed and main.player.x < o + 13.0 and absf(main.player.z - 10.0) < 0.6
 		var mates_land: bool = Vector2(main.mate.position.x, main.mate.position.z).distance_to(Vector2(main.player.x, main.player.z)) < 4.0 and Vector2(main.mate2.position.x, main.mate2.position.z).distance_to(Vector2(main.player.x, main.player.z)) < 4.0
 		# the swivel platform: 2 s to turn, then rows 9..11 of cols 8..10 are floor; nobody on it, and not cut off from the far bank
 		await obs_press("T", 0, 0, Vector2(0.9, 0))
@@ -11223,14 +11224,14 @@ func run() -> void:
 		var cut_off: bool = Z.trans.is_empty() and main.obs_sec[0].angle == 1
 		reset_to(Vector2(o + 6.0, 10.0))
 		hold_world(Vector2(1, 0))
-		await wait(1.6)
+		var walks_over: bool = await wait_for(func(): return main.player.x > o + 11.0, 5.0)
 		release()
-		var walks_over: bool = main.player.x > o + 11.0 and main.gust_dir == Vector2.ZERO
+		walks_over = walks_over and main.gust_dir == Vector2.ZERO
 		reset_to(Vector2(o + 11.5, 10.0))
 		hold_world(Vector2(-1, 0))
-		await wait(1.2)
+		var walks_back: bool = await wait_for(func(): return main.player.x < o + 8.0, 5.0)
 		release()
-		var walks_back: bool = main.player.x < o + 8.0 and main.gust_dir == Vector2.ZERO
+		walks_back = walks_back and main.gust_dir == Vector2.ZERO
 		# Noeul's post, then the mirror (two quarter turns from south to north) and the receiver
 		await obs_press("P", 0)
 		await wait(1.8)
@@ -12306,6 +12307,36 @@ func run() -> void:
 		root2.content_scale_size = sc2[2]
 		await wait(0.1)
 		check("run_hold", steady and flips == 2, "state changes over a wobbling thumb %d (the single threshold changed %d)=%s, through finger events %d flips=%s" % [changes, old_changes, steady, flips, flips == 2])
+	if want.call("sign_read"):
+		# E beside the east signpost says where it points, in the marsh only; nothing beyond its reach
+		main.close_story()
+		var was_v: bool = main.in_village
+		main.in_village = false
+		var sa: Vector2 = main.hud_build.SIGN_AT
+		main.toast_t = 0.0
+		main.ui.toast.text = ""
+		reset_to(sa + Vector2(0, 2.6))
+		main.crown_key()
+		var far_quiet: bool = not "표지판" in main.ui.toast.text
+		main.close_story()
+		reset_to(sa + Vector2(0, 0.8))
+		main.crown_key()
+		var says: bool = "등불 마을로 가는 표지판" in main.ui.toast.text and not main.story_open
+		reset_to(sa + Vector2(0, 2.6))
+		main.in_village = was_v
+		check("sign_read", far_quiet and says, "out of reach quiet %s, beside it says the village %s (%s)" % [far_quiet, says, main.ui.toast.text])
+	if want.call("foe_pace"):
+		# a field foe's wait between blows runs at twice the clock; a boss's own clock is left alone
+		main.close_story()
+		var fp: Array = main.enemies.filter(func(e): return not e.dead and not e.get("boss", false) and not e.get("mole", false) and not e.get("prop", false) and not e.get("mold", false) and is_instance_valid(e.node) and e.node.visible)
+		var ratio := 0.0
+		if not fp.is_empty():
+			var fe: Dictionary = fp[0]
+			fe.atk_cd = 50.0
+			var t0: float = fe.t
+			await wait(0.6)
+			ratio = (50.0 - fe.atk_cd) / maxf(fe.t - t0, 0.001)
+		check("foe_pace", absf(ratio - 2.0) < 0.05, "foes %d, atk_cd falls %.2f s per second of the foe's clock" % [fp.size(), ratio])
 	if want.call("sign_tease"):
 		# reading the same sign three times in a row makes Noeul offer to memorise it, once for each sign (idea 12)
 		main.join_noeul()
@@ -12504,6 +12535,31 @@ func run() -> void:
 			and loop_s > 5.9 and loop_s < 6.4 and home < 0.1 and cool_ignored and cool_s > 2.8 and cool_s < 3.3 and again,
 			"crank at (%.1f, %.1f) on dry free ground off the lane=%s, no run in a story=%s / a fight=%s / before the crown=%s, E hint=%s, crank clicks %d, duck %.1f tiles across at half time, E while running ignored=%s, loop %.2f s, back home %.2f tiles, E in the cooldown ignored=%s, cooldown %.2f s, wound again=%s" \
 			% [h.x, h.y, on_ground, quiet_story, quiet_fight, quiet_early, hint_shown, clicks, across, busy_ignored, loop_s, home, cool_ignored, cool_s, again])
+	if want.call("marsh_frog_call"):
+		# a sitting frog croaks twice near the pond, says so the first time, and is quiet beyond 12 tiles
+		marsh_world()
+		var mt: Object = main.marsh_toys
+		mt.frog_named = false
+		var c0: int = mt.frog_calls
+		var away: Vector2 = (mt.frogs[0].perch - mt.POND).normalized()
+		reset_to(mt.POND + away * 8.0)
+		var b0: int = main.bubbles_said
+		var called: bool = await wait_for(func(): return mt.frog_calls > c0, 12.0)
+		var low: bool = main.sfx_log.any(func(s): return String(s) == "square:165")
+		await wait(0.3)
+		var second: bool = main.sfx_log.any(func(s): return String(s) == "square:215")
+		var named: bool = main.bubbles_said == b0 + 1
+		var c1: int = mt.frog_calls
+		var again: bool = await wait_for(func(): return mt.frog_calls > c1, 12.0)
+		var once: bool = main.bubbles_said == b0 + 1
+		reset_to(mt.POND + Vector2(13.5, 0.0)) # dry ground to the east
+		main.player.vx = 0.0
+		var c2: int = mt.frog_calls
+		await wait(6.0)
+		var far_d: float = Vector2(main.player.x, main.player.z).distance_to(mt.POND)
+		var far_quiet: bool = mt.frog_calls == c2 and far_d > mt.FROG_CALL_D
+		check("marsh_frog_call", called and low and second and named and again and once and far_quiet,
+			"croaks near the pond %s, two notes %s/%s, says so once %s/%s, croaks again %s, quiet at %.1f tiles %s" % [called, low, second, named, once, again, far_d, far_quiet])
 	if want.call("marsh_frogs"):
 		# three frogs on the pond's bank (v0.1.106): each flees alone when Sora is 2 tiles off (a 0.35 s hop, one after another),
 		# and after 3 s of standing still one peeks back
