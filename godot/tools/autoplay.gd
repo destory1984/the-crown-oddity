@@ -12600,9 +12600,17 @@ func run() -> void:
 		reset_to(mt.POND + away * 8.0)
 		var b0: int = main.bubbles_said
 		var called: bool = await wait_for(func(): return mt.frog_calls > c0, 12.0)
-		var low: bool = main.sfx_log.any(func(s): return String(s) == "square:165")
+		var low: bool = main.sfx_log.any(func(s): return String(s) == "croak:165")
 		await wait(0.3)
-		var second: bool = main.sfx_log.any(func(s): return String(s) == "square:215")
+		var second: bool = main.sfx_log.any(func(s): return String(s) == "croak:130")
+		# the rasp: the call is broken by silent gaps, about 36 a second, not one steady tone
+		var pcm: PackedByteArray = main.sound.sfx_stream(165.0, 0.2, "croak", 0.24, 60.0).data
+		var gaps := 0
+		var quiet_run := 0
+		for i in pcm.size() / 2:
+			quiet_run = quiet_run + 1 if absi(pcm.decode_s16(i * 2)) < 60 else 0
+			gaps += 1 if quiet_run == 40 else 0
+		var rasp: bool = gaps >= 5 and gaps <= 8
 		var named: bool = main.bubbles_said == b0 + 1
 		var c1: int = mt.frog_calls
 		var again: bool = await wait_for(func(): return mt.frog_calls > c1, 12.0)
@@ -12613,8 +12621,8 @@ func run() -> void:
 		await wait(6.0)
 		var far_d: float = Vector2(main.player.x, main.player.z).distance_to(mt.POND)
 		var far_quiet: bool = mt.frog_calls == c2 and far_d > mt.FROG_CALL_D
-		check("marsh_frog_call", called and low and second and named and again and once and far_quiet,
-			"croaks near the pond %s, two notes %s/%s, says so once %s/%s, croaks again %s, quiet at %.1f tiles %s" % [called, low, second, named, once, again, far_d, far_quiet])
+		check("marsh_frog_call", called and low and second and rasp and named and again and once and far_quiet,
+			"croaks near the pond %s, two notes %s/%s, %d gaps in the rasp %s, says so once %s/%s, croaks again %s, quiet at %.1f tiles %s" % [called, low, second, gaps, rasp, named, once, again, far_d, far_quiet])
 	if want.call("marsh_frogs"):
 		# three frogs on the pond's bank (v0.1.106): each flees alone when Sora is 2 tiles off (a 0.35 s hop, one after another),
 		# and after 3 s of standing still one peeks back

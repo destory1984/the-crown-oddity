@@ -68,11 +68,14 @@ func sfx_stream(freq: float, dur := 0.1, wave := "square", vol := 0.25, slide :=
 					if wave == "babble_old": # and a little breath
 						lp = lerpf(lp, randf_range(-1.0, 1.0), 0.3)
 						v += lp * 0.12
+				"croak": # a frog: a low voice chopped into 36 bursts a second, the rasp, with a nasal ring over it
+					var burst := pow(maxf(0.0, sin(TAU * 36.0 * i / rate)), 2.0)
+					v = burst * 1.8 * (0.6 * sin(phase * TAU) + 0.5 * sin(phase * TAU * 3.0) + 0.3 * sin(phase * TAU * 6.0)) * minf(1.0, k * 8.0)
 				"noise":
 					lp = lerpf(lp, randf_range(-1.0, 1.0), 0.18) # one-pole low-pass takes the hiss off
 					v = lp * 2.2 * (0.6 + 0.4 * sin(phase * TAU))
 				_: v = sin(phase * TAU)
-			v *= vol * pow(0.0001 if not (wave == "step" or wave.begins_with("babble")) else (0.01 if wave == "step" else 0.08), k) # exponential fade like the web version; a syllable keeps its body
+			v *= vol * pow(0.0001 if not (wave == "step" or wave == "croak" or wave.begins_with("babble")) else (0.01 if wave == "step" else 0.08), k) # exponential fade like the web version; a syllable keeps its body
 			data.encode_s16(i * 2, int(clampf(v, -1.0, 1.0) * 32767.0))
 		stream = AudioStreamWAV.new()
 		stream.format = AudioStreamWAV.FORMAT_16_BITS

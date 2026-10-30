@@ -490,13 +490,13 @@ func update_frog_calls(me: Vector2) -> void:
 func frog_croak(f: Dictionary, me: Vector2) -> void:
 	frog_calls += 1
 	var vol := snappedf(lerpf(0.24, 0.08, clampf(me.distance_to(f.perch) / FROG_CALL_D, 0.0, 1.0)), 0.02)
-	m.sfx(165.0, 0.12, "square", vol, 70.0)
-	m.get_tree().create_timer(0.17).timeout.connect(func(): m.sfx(215.0, 0.15, "square", vol, -80.0))
+	m.sfx(165.0, 0.2, "croak", vol, 60.0) # "gae", rising (the owner, 2026-10-31: the two square beeps did not sound like a frog)
+	m.get_tree().create_timer(0.23).timeout.connect(func(): m.sfx(130.0, 0.28, "croak", vol, -35.0)) # "gul", falling
 	var tw: Tween = f.node.create_tween()
-	tw.tween_property(f.node, "scale", Vector3(1.15, 1.25, 1.15), 0.1)
-	tw.tween_property(f.node, "scale", Vector3.ONE, 0.1)
-	tw.tween_property(f.node, "scale", Vector3(1.15, 1.25, 1.15), 0.1)
+	tw.tween_property(f.node, "scale", Vector3(1.15, 1.25, 1.15), 0.11)
 	tw.tween_property(f.node, "scale", Vector3.ONE, 0.12)
+	tw.tween_property(f.node, "scale", Vector3(1.15, 1.25, 1.15), 0.13)
+	tw.tween_property(f.node, "scale", Vector3.ONE, 0.15)
 	if not frog_named:
 		frog_named = true
 		m.chatter.say_bubble(f.node, tr("개굴!"), 1.6)
