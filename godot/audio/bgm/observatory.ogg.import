@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/observatory.ogg-542ec47500006f5947400dd8ba764
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0
