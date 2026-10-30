@@ -124,6 +124,7 @@ func footstep() -> void:
 	if wet_steps > 0: # the first steps after a water skip still drip, each one quieter (delight idea 41)
 		sfx(WET_FREQ[wet_steps], 0.07, "splash", WET_VOL[wet_steps])
 		wet_steps -= 1
+	m.effects.wet_print()
 
 # water skipped across and left behind: the next three footsteps carry a drop of it
 const WET_FREQ := [0.0, 760.0, 880.0, 1000.0]
@@ -135,6 +136,9 @@ var skip_was := false
 func skip_track(on_skip_water: bool) -> void:
 	if skip_was and not on_skip_water:
 		wet_steps = 3
+		m.effects.wet_landed()
+	elif on_skip_water:
+		m.effects.print_left = 0
 	skip_was = on_skip_water
 
 # the wood answers a chest's lid by what is in it: a deep knock for loot, a higher hollow one for the little that is left (delight idea 42)

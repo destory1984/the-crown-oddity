@@ -411,3 +411,30 @@ func marsh_backdrop() -> void:
 		var win: MeshInstance3D = m.box(Vector3(0.06, 0.4, 0.4), glass)
 		win.position = w
 		m.add_child(win)
+
+# loose leaves lying on the village streets: up to `n` flat boxes, 3 tiles apart, on street tiles (`tiles` are world Vector2) none of which
+# is within 1 tile of a used spot (`keep` in local tiles). Nothing registers them as a rock or a hit; the run that pushes them is
+# effects.update_street_leaves (delight idea 6)
+const LEAF_COLORS := [Color("#b86a2c"), Color("#c89a38"), Color("#8a5a2c"), Color("#a8582a")]
+var street_leaves: Array = [] # [{"node": MeshInstance3D, "home": Vector2, "moving": bool}]
+
+func scatter_street_leaves(tiles: Array, keep: Array, origin_x: int, n := 8) -> void:
+	var list := tiles.duplicate()
+	for i in range(list.size() - 1, 0, -1): # a shuffle that repeats from the seed
+		var j := int(rng.randf() * (i + 1))
+		var tmp = list[i]
+		list[i] = list[j]
+		list[j] = tmp
+	for t in list:
+		if street_leaves.size() >= n:
+			break
+		if keep.any(func(k): return absi(k.x - (int(t.x) - origin_x)) <= 1 and absi(k.y - int(t.y)) <= 1):
+			continue
+		if street_leaves.any(func(l): return l.home.distance_to(t) < 3.0):
+			continue
+		var at := Vector2(t.x + rnd(-0.25, 0.25), t.y + rnd(-0.25, 0.25))
+		var leaf: MeshInstance3D = m.box(Vector3(0.18, 0.012, 0.11), m.mat_color(LEAF_COLORS[street_leaves.size() % LEAF_COLORS.size()]))
+		leaf.position = Vector3(at.x, 0.012, at.y)
+		leaf.rotation.y = rnd(0.0, PI)
+		m.add_child(leaf)
+		street_leaves.append({"node": leaf, "home": at, "moving": false})

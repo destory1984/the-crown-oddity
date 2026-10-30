@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -13750,6 +13750,677 @@ func run() -> void:
 		hud99.rim_t = [0.0, 0.0, 0.0, 0.0]
 		check("d99_ready_rim", waiting and lit and notches and held and gone99 and never,
 			"no rim while waiting=%s the wait ends: 2 s on that coin only=%s 16 notches drawn=%s steady at 1 s=%s gone after 2.5 s=%s others never=%s" % [waiting, lit, notches, held, gone99, never])
+
+	if want.call("d2_wet_prints"):
+		# the first six footsteps after a water skip leave a flat dark print on dry ground, each fainter than the last, each drying away; none without a landing, on water, or in a story; skipping again clears the count (idea 2)
+		var ef2: Object = main.effects
+		var sd2: Object = main.sound
+		marsh_world()
+		main.intro = false
+		main.in_house = -1
+		var spot2: Vector2 = open_field()
+		reset_to(spot2)
+		main.player.face = Vector2(1, 0)
+		ef2.print_left = 0
+		sd2.skip_was = false
+		sd2.skip_track(false)
+		var made0: int = ef2.prints_made
+		for i in 2:
+			main.last_step = -10.0
+			sd2.footstep()
+		var quiet2: bool = ef2.prints_made == made0
+		sd2.skip_track(true)
+		sd2.skip_track(true)
+		sd2.skip_track(false) # onto the bank
+		var armed2: bool = ef2.print_left == 6
+		var alphas: Array = []
+		var firsts: Array = []
+		for i in 8:
+			reset_to(spot2 + Vector2(0.4 * i, 0.0))
+			main.last_step = -10.0
+			var n0: int = ef2.prints_made
+			sd2.footstep()
+			if ef2.prints_made > n0:
+				alphas.append(ef2.last_print_alpha)
+				firsts.append(ef2.last_print)
+		var six2: bool = alphas.size() == 6 and ef2.print_left == 0
+		var fading2: bool = true
+		for i in range(1, alphas.size()):
+			fading2 = fading2 and alphas[i] < alphas[i - 1]
+		var strong2: bool = alphas.size() > 0 and alphas[0] > 0.5 and alphas[alphas.size() - 1] > 0.0
+		var flat2: bool = firsts.size() > 0 and is_instance_valid(firsts[0]) and (firsts[0].mesh as BoxMesh).size.y < 0.02 and firsts[0].get_parent() != null
+		var dries2: bool = false
+		for e in main.fx:
+			if e.node == firsts[0]:
+				var a_before: float = (firsts[0].material_override as StandardMaterial3D).albedo_color.a
+				e.update.call(e.node, 0.9, 0.0)
+				dries2 = (firsts[0].material_override as StandardMaterial3D).albedo_color.a < a_before * 0.5
+		var pond2 := Vector2(2, 2)
+		for gz in range(3, 44):
+			for gx in range(3, 44):
+				if pond2 == Vector2(2, 2) and main.tile_at(gx, gz) == main.WATER:
+					pond2 = Vector2(gx, gz)
+		reset_to(pond2)
+		ef2.print_left = 3
+		var w0: int = ef2.prints_made
+		main.last_step = -10.0
+		sd2.footstep()
+		var water2: bool = ef2.prints_made == w0 and ef2.print_left == 3
+		reset_to(spot2)
+		main.show_story("", ["x"])
+		main.last_step = -10.0
+		sd2.footstep()
+		var story2: bool = ef2.prints_made == w0 and ef2.print_left == 3
+		main.close_story()
+		sd2.skip_track(true) # skipping again: the count is cleared
+		var cleared2: bool = ef2.print_left == 0
+		sd2.skip_track(false)
+		sd2.wet_steps = 0
+		ef2.print_left = 0
+		check("d2_wet_prints", quiet2 and armed2 and six2 and fading2 and strong2 and flat2 and dries2 and water2 and story2 and cleared2,
+			"no landing, no print=%s a landing arms six=%s exactly six prints=%s each fainter=%s the first strong, the last still there=%s flat box=%s they dry away=%s none on water=%s none in a story=%s skipping again clears=%s" % [quiet2, armed2, six2, fading2, strong2, flat2, dries2, water2, story2, cleared2])
+	if want.call("d5_reed_drops"):
+		# a reed clump on the lake shore arms when she brushes past it moving, and three drops fall (1320, 1180, 1050 Hz, 0.5 s apart) once she is 2 tiles off; resting 20 s, a story, standing still or the 6-drop cap: none (idea 5)
+		var lz5: Object = main.lake_zone
+		main.close_story()
+		main.intro = false
+		var lake5: bool = main.in_lake
+		main.in_lake = true
+		var built5: bool = lz5.reeds.size() >= 3 and lz5.reeds.size() <= 6 and lz5.reeds.all(func(r): return main.lake.char_at(r.at.x, r.at.y) in ".igas")
+		var r5: Dictionary = lz5.reeds[0]
+		r5.armed = false
+		r5.used = -100.0
+		reset_to(r5.at + Vector2(0.5, 0.0))
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		lz5.update_reed_tips()
+		var still5: bool = not r5.armed # standing still brushes nothing
+		main.player.vx = 3.0
+		main.show_story("", ["x"])
+		lz5.update_reed_tips()
+		var story5: bool = not r5.armed
+		main.close_story()
+		lz5.update_reed_tips()
+		var armed5: bool = r5.armed
+		var d0: int = lz5.reed_drops
+		reset_to(r5.at + Vector2(1.5, 0.0)) # not yet 2 tiles off
+		lz5.update_reed_tips()
+		var holds5: bool = r5.armed and lz5.reed_drops == d0
+		main.sfx_log.clear()
+		reset_to(r5.at + Vector2(0.0, 3.0))
+		main.player.vx = 0.0
+		lz5.update_reed_tips()
+		var let_go: bool = not r5.armed and is_equal_approx(r5.used, main.t)
+		await wait(0.65)
+		var first5: bool = lz5.reed_drops == d0 + 1
+		await wait(1.65)
+		var plinks: Array = main.sfx_log.filter(func(s): return s in ["sine:1320", "sine:1180", "sine:1050"])
+		var three5: bool = lz5.reed_drops == d0 + 3 and plinks == ["sine:1320", "sine:1180", "sine:1050"] and lz5.reed_live == 0
+		reset_to(r5.at + Vector2(0.5, 0.0)) # brushing it again at once: it rests
+		main.player.vx = 3.0
+		lz5.update_reed_tips()
+		var rests5: bool = not r5.armed
+		main.player.vx = 0.0
+		lz5.reed_live = lz5.REED_CAP
+		var d1: int = lz5.reed_drops
+		lz5.reed_drop(r5.tip, 0)
+		var capped5: bool = lz5.reed_drops == d1
+		lz5.reed_live = 0
+		r5.used = -100.0
+		main.in_lake = lake5
+		check("d5_reed_drops", built5 and still5 and story5 and armed5 and holds5 and let_go and first5 and three5 and rests5 and capped5,
+			"3 to 6 clumps on the shore=%s standing still arms none=%s a story none=%s brushing past arms=%s held until 2 tiles=%s armed one lets go=%s first drop by 0.65 s=%s three plinks in order=%s rests 20 s=%s the cap of 6 holds=%s" % [built5, still5, story5, armed5, holds5, let_go, first5, three5, rests5, capped5])
+	if want.call("d6_street_leaves"):
+		# up to eight leaves lie on the village's stone streets 3 tiles apart; a run (5+ tiles a second) past one shoves it along her way for at most 1.4 tiles and never off the stones; a walk, a story or indoors: nothing (idea 6)
+		var dr6: Object = main.dressing
+		var ef6: Object = main.effects
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var ls6: Array = dr6.street_leaves
+		var built6: bool = ls6.size() >= 4 and ls6.size() <= 8
+		var apart6: bool = true
+		var onstone6: bool = true
+		for i in ls6.size():
+			onstone6 = onstone6 and main.village.char_at(ls6[i].home.x, ls6[i].home.y) == "="
+			for j in range(i + 1, ls6.size()):
+				apart6 = apart6 and ls6[i].home.distance_to(ls6[j].home) >= 3.0
+		var stones6: bool = true # whatever the way, the end of a shove lies on the stones and within 1.4 tiles
+		var pick: Array = []
+		var clipped6: bool = false
+		for lf in ls6:
+			var at6: Vector2 = Vector2(lf.node.position.x, lf.node.position.z)
+			for dir in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				var to6: Vector2 = ef6.leaf_slide_end(at6, dir)
+				stones6 = stones6 and ef6.leaf_ground_ok(to6) and to6.distance_to(at6) <= 1.41
+				clipped6 = clipped6 or to6.distance_to(at6) < 1.3
+				if pick.is_empty() and to6.distance_to(at6) > 0.8:
+					pick = [lf, at6, dir, to6]
+		var found6: bool = not pick.is_empty()
+		var lf6: Dictionary = pick[0] if found6 else ls6[0]
+		var at0: Vector2 = pick[1] if found6 else Vector2.ZERO
+		var dir6: Vector2 = pick[2] if found6 else Vector2(1, 0)
+		var to0: Vector2 = pick[3] if found6 else Vector2.ZERO
+		var others: Array = ls6.map(func(l): return l.node.position)
+		reset_to(at0 - dir6 * 0.3)
+		var p0: int = ef6.leaf_pushes
+		main.player.vx = dir6.x * 3.6
+		main.player.vz = dir6.y * 3.6
+		ef6.update_street_leaves()
+		var walk6: bool = ef6.leaf_pushes == p0
+		main.player.vx = dir6.x * 6.2
+		main.player.vz = dir6.y * 6.2
+		main.show_story("", ["x"])
+		ef6.update_street_leaves()
+		var story6: bool = ef6.leaf_pushes == p0
+		main.close_story()
+		main.in_house = 0
+		ef6.update_street_leaves()
+		var indoors6: bool = ef6.leaf_pushes == p0
+		main.in_house = -1
+		ef6.update_street_leaves()
+		var pushed6: bool = ef6.leaf_pushes == p0 + 1 and lf6.moving
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		await wait(0.7)
+		var end6: Vector2 = Vector2(lf6.node.position.x, lf6.node.position.z)
+		var slid6: bool = found6 and end6.distance_to(to0) < 0.05 and not lf6.moving
+		var others_still: bool = true
+		for i in ls6.size():
+			if ls6[i] != lf6 and not (ls6[i].node.position as Vector3).is_equal_approx(others[i]):
+				others_still = false
+		lf6.node.position = Vector3(lf6.home.x, 0.012, lf6.home.y)
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		main.in_village = false
+		check("d6_street_leaves", built6 and apart6 and onstone6 and stones6 and clipped6 and found6 and walk6 and story6 and indoors6 and pushed6 and slid6 and others_still,
+			"4 to 8 leaves=%s 3 tiles apart=%s on the stones=%s every shove ends on stone within 1.4=%s a street end cuts one short=%s walking, a story, indoors: none=%s/%s/%s a run shoves it=%s it slid to the computed end=%s the rest stay=%s" % [built6, apart6, onstone6, stones6, clipped6, walk6, story6, indoors6, pushed6, slid6, others_still])
+	if want.call("d11_fountain_step"):
+		# her blow on the fountain makes Mulgyeol, if he is within 3 tiles of her, step 1 tile back from the water and hold 1.2 s; far from her, in a story, near a foe, while she walks, or within 6 s of the last: nothing (idea 11)
+		var ma11: Object = main.mates
+		main.join_mate()
+		main.close_story()
+		main.intro = false
+		main.in_house = -1
+		main.in_village = true
+		calm_enemies(true)
+		var keep11: Array = main.enemies.duplicate()
+		main.enemies = []
+		var f11: Vector2 = main.village.fountain_at()
+		var spot11 := Vector2(f11.x, f11.y + 2.0)
+		reset_to(spot11)
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		main.mate_job = {}
+		ma11.end_quirk()
+		ma11.quirk_t = -100.0
+		main.mate.position = Vector3(f11.x + 0.6, 0, f11.y + 2.4)
+		var s0: int = ma11.fountain_steps
+		var d_start: float = Vector2(main.mate.position.x, main.mate.position.z).distance_to(f11)
+		main.village.fountain_hit(main, 3.0, Vector2(0, -1), 0.3, true)
+		var begun: bool = ma11.fountain_steps == s0 + 1 and ma11.quirk.get("kind", "") == "fountain"
+		for i in 20:
+			ma11.update_quirk(0.05)
+		var d_now: float = Vector2(main.mate.position.x, main.mate.position.z).distance_to(f11)
+		var stepped: bool = d_now > d_start + 0.9 and d_now < d_start + 1.1
+		var holding: bool = not ma11.quirk.is_empty()
+		for i in 30:
+			ma11.update_quirk(0.05)
+		var ended: bool = ma11.quirk.is_empty()
+		var soon: bool = not ma11.fountain_back(f11) # within the 6 s
+		ma11.quirk_t = -100.0
+		main.mate.position = Vector3(f11.x + 0.6, 0, f11.y + 2.4)
+		main.player.x = f11.x + 7.0 # far from him
+		var far11: bool = not ma11.fountain_back(f11)
+		reset_to(spot11)
+		main.show_story("", ["x"])
+		var story11: bool = not ma11.fountain_back(f11)
+		main.close_story()
+		main.enemies = [{"x": spot11.x + 3.0, "z": spot11.y, "dead": false}]
+		var foe11: bool = not ma11.fountain_back(f11)
+		main.enemies = []
+		var walk_ok: bool = ma11.fountain_back(f11)
+		main.player.vx = 3.0
+		ma11.update_quirk(0.05) # she steps off: it ends at once
+		var walked11: bool = walk_ok and ma11.quirk.is_empty()
+		main.player.vx = 0.0
+		ma11.end_quirk()
+		main.enemies = keep11
+		calm_enemies(false)
+		main.in_village = false
+		check("d11_fountain_step", begun and stepped and holding and ended and soon and far11 and story11 and foe11 and walked11,
+			"a blow starts it=%s he ends 1 tile farther from the water=%s he holds there=%s it ends after 1.2 s=%s inside 6 s: none=%s far from her: none=%s story: none=%s foe near: none=%s her step ends it=%s" % [begun, stepped, holding, ended, soon, far11, story11, foe11, walked11])
+	if want.call("d13_loop_dizzy"):
+		# three turns of a small circle by the water send Mulgyeol once round the same circle (13 points, 1.5 tiles out) and leave him with a turning ring for 1.6 s; two turns, a dry place, a wide circle, standing still or a story: none; walking away ends it (idea 13)
+		var ma13: Object = main.mates
+		marsh_world()
+		main.join_mate()
+		main.intro = false
+		main.in_house = -1
+		var keep13: Array = main.enemies.duplicate()
+		main.enemies = []
+		var c13 := Vector2(-1, -1)
+		for gz in range(5, 44):
+			for gx in range(5, 44):
+				var cc := Vector2(gx, gz)
+				if c13.x >= 0.0 or not ma13.near_water(cc) or not main.walkable(cc.x, cc.y):
+					continue
+				var okp := 0
+				for k in 12:
+					var a13 := TAU * k / 12.0
+					if main.walkable(cc.x + cos(a13) * 1.5, cc.y + sin(a13) * 1.5) and main.walkable(cc.x + cos(a13) * 1.2, cc.y + sin(a13) * 1.2):
+						okp += 1
+				if okp == 12 and ma13.mate_way(Vector3(cc.x + 1.5, 0, cc.y), Vector3(cc.x, 0, cc.y)):
+					c13 = cc
+		var found13: bool = c13.x >= 0.0
+		if not found13:
+			c13 = open_field()
+		var wet13: bool = ma13.near_water(c13)
+		var dry13: Vector2 = open_field()
+		main.mate_job = {}
+		ma13.end_quirk()
+		ma13.quirk_t = -100.0
+		var circle := func(c: Vector2, r: float, laps: float, from_a := 0.0) -> void:
+			var steps: int = int(laps * 36.0)
+			for i in steps:
+				var a: float = from_a + TAU * i / 36.0
+				main.player.x = c.x + cos(a) * r
+				main.player.z = c.y + sin(a) * r
+				ma13.track_loop(0.11)
+		main.mate.position = Vector3(c13.x + 1.5, 0, c13.y)
+		main.player.vx = 3.0
+		ma13.loop_reset()
+		ma13.loop_last = Vector2(c13.x + 1.2, c13.y)
+		circle.call(c13, 1.2, 2.0)
+		var two13: bool = ma13.quirk.is_empty()
+		circle.call(c13, 1.2, 1.4)
+		var started: bool = wet13 and ma13.quirk.get("kind", "") == "loop" and ma13.quirk.path.size() >= 8
+		var q13: int = int(ma13.quirks_made.get("loop", 0))
+		var far_ring: bool = true
+		var rings: int = 0
+		for i in 120:
+			ma13.update_quirk(0.05)
+			var him13 := Vector2(main.mate.position.x, main.mate.position.z)
+			if not ma13.quirk.is_empty() and ma13.quirk.i >= 3:
+				far_ring = far_ring and absf(him13.distance_to(c13) - 1.5) < 0.35
+			if not ma13.quirk.is_empty() and ma13.quirk.ring != null:
+				rings += 1
+		var dizzy13: bool = rings > 5 and ma13.quirk.is_empty()
+		# a second round straight away is too soon, a dry shore does not count, a wide circle does not count
+		ma13.loop_reset()
+		circle.call(c13, 1.2, 3.4)
+		var soon13: bool = ma13.quirk.is_empty()
+		ma13.quirk_t = -100.0
+		ma13.loop_reset()
+		circle.call(dry13, 1.2, 3.4)
+		var dry_none: bool = ma13.quirk.is_empty() and not ma13.near_water(dry13)
+		ma13.loop_reset()
+		circle.call(c13, 4.5, 3.4)
+		var wide13: bool = ma13.quirk.is_empty()
+		ma13.loop_reset()
+		main.show_story("", ["x"])
+		circle.call(c13, 1.2, 3.4)
+		var story13: bool = ma13.quirk.is_empty()
+		main.close_story()
+		ma13.loop_reset()
+		main.player.x = c13.x + 1.2
+		main.player.z = c13.y
+		for i in 40: # standing still
+			ma13.track_loop(0.11)
+		var still13: bool = ma13.quirk.is_empty() and absf(ma13.loop_turn) < 0.01
+		# walking off the spot ends a started one
+		ma13.loop_reset()
+		circle.call(c13, 1.2, 3.4)
+		var again13: bool = not ma13.quirk.is_empty() and found13
+		main.player.x = c13.x + 12.0
+		ma13.update_quirk(0.05)
+		var left13: bool = ma13.quirk.is_empty()
+		ma13.end_quirk()
+		ma13.loop_reset()
+		main.player.vx = 0.0
+		main.enemies = keep13
+		check("d13_loop_dizzy", found13 and two13 and started and q13 >= 1 and far_ring and dizzy13 and soon13 and dry_none and wide13 and story13 and still13 and again13 and left13,
+			"a ring spot by the water found=%s two turns: none=%s three turns start it=%s round the circle, 1.5 out=%s dizzy ring held then gone=%s a second round at once: none=%s dry shore: none=%s wide circle: none=%s story: none=%s still: none=%s a later round starts again=%s leaving ends it=%s" % [found13, two13, started, far_ring, dizzy13, soon13, dry_none, wide13, story13, still13, again13, left13])
+	if want.call("d15_look_back"):
+		# after a water skip lands her on the bank, turning to face the last water tile within 3 s makes one ring there (and a soft plink); facing away, nobody to see it, too late, or too close: none; no second ring (idea 15)
+		var ma15: Object = main.mates
+		marsh_world()
+		main.join_mate()
+		main.intro = false
+		main.in_house = -1
+		var w15 := Vector2(-1, -1)
+		var l15 := Vector2.ZERO
+		for gz in range(6, 42):
+			for gx in range(6, 38):
+				if w15.x < 0.0 and main.tile_at(gx, gz) == main.WATER and main.walkable(gx + 3.0, gz) and main.walkable(gx + 2.0, gz) and main.tile_at(gx + 1.0, gz) != main.WATER:
+					w15 = Vector2(gx, gz)
+					l15 = Vector2(gx + 3.0, gz)
+		var found15: bool = w15.x >= 0.0
+		var r0: int = ma15.water_rings
+		reset_to(w15 if found15 else Vector2(2, 2))
+		ma15.skip_watch(true, 0.1)
+		reset_to(l15)
+		ma15.skip_watch(false, 0.1)
+		var armed15: bool = ma15.look_t > 2.5 and ma15.look_at == Vector2(roundf(w15.x), roundf(w15.y))
+		main.player.face = Vector2(1, 0) # facing away
+		ma15.skip_watch(false, 0.1)
+		var away15: bool = ma15.water_rings == r0
+		main.sfx_log.clear()
+		main.player.face = Vector2(-1, 0) # turned back to the water
+		ma15.skip_watch(false, 0.1)
+		var ring15: bool = ma15.water_rings == r0 + 1 and ma15.last_water_ring != null and absf(ma15.last_water_ring.position.x - ma15.look_at.x) < 0.01 and ma15.last_water_ring.position.y < 0.0 and main.sfx_log.has("splash:520")
+		ma15.skip_watch(false, 0.1)
+		var once15: bool = ma15.water_rings == r0 + 1 and ma15.look_t == 0.0
+		# too late
+		reset_to(w15 if found15 else Vector2(2, 2))
+		ma15.skip_watch(true, 0.1)
+		reset_to(l15)
+		ma15.skip_watch(false, 0.1)
+		ma15.look_t = 0.05
+		ma15.skip_watch(false, 0.1)
+		main.player.face = Vector2(-1, 0)
+		ma15.skip_watch(false, 0.1)
+		var late15: bool = ma15.water_rings == r0 + 1
+		# no companion
+		var mate15: Node3D = main.mate
+		reset_to(w15 if found15 else Vector2(2, 2))
+		ma15.skip_watch(true, 0.1)
+		reset_to(l15)
+		ma15.skip_watch(false, 0.1)
+		main.mate = null
+		ma15.skip_watch(false, 0.1)
+		var alone15: bool = ma15.water_rings == r0 + 1
+		main.mate = mate15
+		# too close to the water: standing on its edge
+		reset_to(w15 + Vector2(0.6, 0.0) if found15 else Vector2(2, 2))
+		main.player.face = Vector2(-1, 0)
+		ma15.skip_watch(false, 0.1)
+		var close15: bool = ma15.water_rings == r0 + 1
+		ma15.look_t = 0.0
+		check("d15_look_back", found15 and armed15 and away15 and ring15 and once15 and late15 and alone15 and close15,
+			"a bank with water 3 tiles off found=%s the landing opens a 3 s look back=%s facing away: none=%s turning back makes one ring on the last water tile=%s only once=%s too late: none=%s no companion: none=%s on the edge: none=%s" % [found15, armed15, away15, ring15, once15, late15, alone15, close15])
+	if want.call("d17_chest_look"):
+		# E at a chest she has already opened sends Mulgyeol up to its side (0.9 tiles from it) for 1 s and then the ordinary following takes him back; a shut chest, him busy or her walking: none; the chest stays open and nothing is taken (idea 17)
+		var ma17: Object = main.mates
+		var wb17: Object = main.world_build
+		marsh_world()
+		main.join_mate()
+		main.intro = false
+		main.in_house = -1
+		var keep17: Array = main.enemies.duplicate()
+		main.enemies = []
+		var c17: Dictionary = main.chests[0]
+		var open17: bool = c17.open
+		c17.open = true
+		var gold17: int = main.player.gold
+		var pots17: int = main.player.pots
+		var at17 := Vector2(c17.x, c17.z)
+		reset_to(at17)
+		main.player.vx = 0.0
+		main.player.vz = 0.0
+		main.mate_job = {}
+		var started17: bool = false
+		var used17 := Vector3(2.2, 0, 0)
+		for dir in [Vector3(2.2, 0, 0), Vector3(-2.2, 0, 0), Vector3(0, 0, 2.2), Vector3(0, 0, -2.2)]:
+			ma17.end_quirk()
+			ma17.quirk_t = -100.0
+			main.mate.position = Vector3(at17.x, 0, at17.y) + dir
+			wb17.chest_peek_t = -10.0
+			var l0: int = ma17.chest_looks
+			if wb17.chest_peek():
+				started17 = ma17.chest_looks == l0 + 1 and ma17.quirk.get("kind", "") == "chest"
+				if started17:
+					used17 = dir
+					break
+		for i in 60:
+			ma17.update_quirk(0.05)
+			if ma17.quirk.get("wait", 0.0) > 0.2:
+				break
+		var him17 := Vector2(main.mate.position.x, main.mate.position.z)
+		var beside17: bool = started17 and absf(him17.distance_to(at17) - 0.9) < 0.1
+		var empty17: bool = main.player.gold == gold17 and main.player.pots == pots17 and c17.open
+		for i in 30:
+			ma17.update_quirk(0.05)
+		var done17: bool = ma17.quirk.is_empty()
+		# a shut chest is no look, her walking ends one, a busy companion does none
+		ma17.quirk_t = -100.0
+		c17.open = false
+		wb17.chest_peek_t = -10.0
+		var shut17: bool = not wb17.chest_peek() and ma17.quirk.is_empty()
+		c17.open = true
+		main.mate.position = Vector3(at17.x, 0, at17.y) + used17
+		wb17.chest_peek_t = -10.0
+		ma17.quirk_t = -100.0
+		var l1: int = ma17.chest_looks
+		wb17.chest_peek()
+		var restart17: bool = ma17.chest_looks == l1 + 1 or not started17
+		main.player.vx = 3.0
+		ma17.update_quirk(0.05)
+		var stepped17: bool = ma17.quirk.is_empty()
+		main.player.vx = 0.0
+		ma17.quirk_t = -100.0
+		main.mate_job = {"kind": "work", "home": Vector2.ZERO}
+		var busy17: bool = not ma17.chest_look(at17)
+		main.mate_job = {}
+		c17.open = open17
+		if not open17:
+			c17.node.texture = main.chest_shut_tex
+		main.enemies = keep17
+		ma17.end_quirk()
+		check("d17_chest_look", started17 and beside17 and empty17 and done17 and shut17 and restart17 and stepped17 and busy17,
+			"E at an opened chest starts a look=%s he stands 0.9 tiles from it=%s nothing taken, chest stays open=%s it ends after 1 s=%s shut chest: none=%s a later look starts again=%s her step ends it=%s busy: none=%s" % [started17, beside17, empty17, done17, shut17, restart17, stepped17, busy17])
+	if want.call("d22_letter"):
+		# Doran reads a letter at each stop of his round (a paper before his chest); when she comes within 3.2 tiles, or a story opens, the paper hides and he turns to her; it comes back when she is 3.6+ tiles off and the story is shut; walking, a pass-through point or asleep: no paper (idea 22)
+		var fk22: Object = main.folk
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var dspr: Sprite3D = main.village.folk_node.doran
+		var home22: Vector2 = main.village.folk_pos.doran
+		var keep_state: String = main.folk_state.get("doran", "out")
+		var keep_route = main.folk_route.get("doran")
+		var keep_vis: bool = dspr.visible
+		var keep_pos: Vector3 = dspr.position
+		var keep_flip: bool = dspr.flip_h
+		main.folk_state["doran"] = "out"
+		main.folk_route.erase("doran")
+		dspr.visible = true
+		dspr.position = Vector3(home22.x, 0, home22.y)
+		fk22.letter_folded = false
+		reset_to(home22 + Vector2(9.0, 0.0))
+		fk22.update_letter()
+		var built22: bool = fk22.letter != null and fk22.letter.get_parent() == dspr
+		var reading22: bool = built22 and fk22.letter.visible
+		var t0: int = fk22.letter_turns
+		reset_to(home22 + Vector2(2.0, 0.0))
+		fk22.update_letter()
+		var folded22: bool = not fk22.letter.visible and fk22.letter_turns == t0 + 1
+		var faces22: bool = dspr.flip_h == main.screen_left(Vector2(2.0, 0.0))
+		fk22.update_letter()
+		var once22: bool = fk22.letter_turns == t0 + 1
+		main.show_story("", ["x"])
+		reset_to(home22 + Vector2(3.4, 0.0)) # past the near line, but a story is open
+		fk22.update_letter()
+		var story22: bool = not fk22.letter.visible
+		main.close_story()
+		fk22.update_letter()
+		var holds22: bool = not fk22.letter.visible # 3.4 is inside the 3.6 hysteresis
+		reset_to(home22 + Vector2(5.0, 0.0))
+		fk22.update_letter()
+		var back22: bool = fk22.letter.visible
+		# walking between stops, and a point he only passes
+		main.folk_route["doran"] = {"i": 0, "wait": 5.0, "pos": home22 + Vector2(0.5, 0.0), "back": false, "dir": 1}
+		fk22.update_letter()
+		var walking22: bool = not fk22.letter.visible
+		main.folk_route["doran"] = {"i": 1, "wait": 0.0, "pos": main.folk.route_at("doran", 1), "back": false, "dir": 1}
+		fk22.update_letter()
+		var passing22: bool = not fk22.letter.visible
+		main.folk_route["doran"] = {"i": 0, "wait": 5.0, "pos": home22, "back": false, "dir": 1}
+		fk22.update_letter()
+		var stop22: bool = fk22.letter.visible
+		main.folk_state["doran"] = "in"
+		fk22.update_letter()
+		var asleep22: bool = not fk22.letter.visible
+		main.folk_state["doran"] = keep_state
+		if keep_route == null:
+			main.folk_route.erase("doran")
+		else:
+			main.folk_route["doran"] = keep_route
+		dspr.visible = keep_vis
+		dspr.position = keep_pos
+		dspr.flip_h = keep_flip
+		fk22.letter_folded = false
+		main.in_village = false
+		check("d22_letter", built22 and reading22 and folded22 and faces22 and once22 and story22 and holds22 and back22 and walking22 and passing22 and stop22 and asleep22,
+			"a paper on his sprite=%s shown while he reads=%s she comes close: folded, one turn=%s he faces her=%s one turn only=%s story: folded=%s holds inside 3.6=%s she steps back: it returns=%s walking: none=%s pass-through point: none=%s at a stop: shown=%s asleep: none=%s" % [built22, reading22, folded22, faces22, once22, story22, holds22, back22, walking22, passing22, stop22, asleep22])
+	if want.call("d23_twirl"):
+		# once Kongal and the kid are home on their spots, one lap round them within 3.2 tiles makes them face opposite ways five times in turn (0.35 s each) and then as before; half a lap, a wide lap, a foe, a story, or one of them walking: none; 20 s between (idea 23)
+		var vl23: Object = main.village_life
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var keep_kq: int = main.kid_q
+		main.kid_q = 3
+		main.place_kid()
+		var kspr: Sprite3D = main.village.folk_node.kongal
+		var home23: Vector2 = main.village.folk_pos.kongal
+		var keep_state23: String = main.folk_state.get("kongal", "out")
+		var keep_route23 = main.folk_route.get("kongal")
+		var keep_vis23: bool = kspr.visible
+		var keep_pos23: Vector3 = kspr.position
+		var keep_flip23: bool = kspr.flip_h
+		main.folk_state["kongal"] = "out"
+		main.folk_route.erase("kongal")
+		kspr.visible = true
+		kspr.position = Vector3(home23.x, 0, home23.y)
+		main.kid_node.visible = true
+		main.kid_node.position = Vector3(home23.x + 0.7, 0, home23.y + 0.3)
+		var kid_spr: Sprite3D = main.kid_node.get_meta("spr")
+		var keep_kid_flip: bool = kid_spr.flip_h
+		kspr.flip_h = false
+		kid_spr.flip_h = false
+		var keep_e23: Array = main.enemies.duplicate()
+		main.enemies = []
+		var mid23 := Vector2(home23.x + 0.35, home23.y + 0.15)
+		var lap := func(r: float, laps: float) -> int:
+			var n: int = int(laps * 40.0)
+			for i in n:
+				var a: float = TAU * i / 40.0
+				main.player.x = mid23.x + cos(a) * r
+				main.player.z = mid23.y + sin(a) * r
+				vl23.update_twirl(0.1)
+				if not vl23.twirl.is_empty():
+					return i
+			return -1
+		vl23.twirl = {}
+		vl23.twirl_acc = 0.0
+		vl23.twirl_prev = INF
+		vl23.twirl_age = 0.0
+		vl23.twirl_done = -100.0
+		var t23: int = vl23.twirls
+		var half23: bool = lap.call(1.6, 0.5) == -1
+		vl23.twirl_acc = 0.0
+		vl23.twirl_prev = INF
+		var wide23: bool = lap.call(5.0, 1.5) == -1
+		main.show_story("", ["x"])
+		var story23: bool = lap.call(1.6, 1.5) == -1
+		main.close_story()
+		main.enemies = [{"x": mid23.x + 3.0, "z": mid23.y, "dead": false}]
+		var foe23: bool = lap.call(1.6, 1.5) == -1
+		main.enemies = []
+		main.folk_route["kongal"] = {"i": 0, "wait": 5.0, "pos": home23 + Vector2(0.4, 0.0), "back": false, "dir": 1}
+		var walking23: bool = lap.call(1.6, 1.5) == -1
+		main.folk_route.erase("kongal")
+		vl23.twirl_acc = 0.0
+		vl23.twirl_prev = INF
+		var at_step: int = lap.call(1.6, 1.5)
+		var began23: bool = at_step >= 25 and vl23.twirls == t23 + 1 and vl23.twirl.step == 0
+		var opposite := true
+		var seen: Array = []
+		for k in vl23.TWIRL_TURNS:
+			if k > 0:
+				vl23.update_twirl(vl23.TWIRL_STEP + 0.01)
+			if not vl23.twirl.is_empty():
+				opposite = opposite and kspr.flip_h != kid_spr.flip_h
+				seen.append(kspr.flip_h)
+		var alternates: bool = seen == [true, false, true, false, true]
+		vl23.update_twirl(vl23.TWIRL_STEP + 0.01)
+		var restored23: bool = vl23.twirl.is_empty() and not kspr.flip_h and not kid_spr.flip_h
+		var again23: int = lap.call(1.6, 1.5) # 20 s between
+		var gap23: bool = again23 == -1 and vl23.twirls == t23 + 1
+		main.enemies = keep_e23
+		main.folk_state["kongal"] = keep_state23
+		if keep_route23 != null:
+			main.folk_route["kongal"] = keep_route23
+		kspr.visible = keep_vis23
+		kspr.position = keep_pos23
+		kspr.flip_h = keep_flip23
+		kid_spr.flip_h = keep_kid_flip
+		main.kid_q = keep_kq
+		main.in_village = false
+		check("d23_twirl", half23 and wide23 and story23 and foe23 and walking23 and began23 and opposite and alternates and restored23 and gap23,
+			"half a lap: none=%s wide lap: none=%s story: none=%s foe near: none=%s Kongal walking: none=%s a lap starts it (after %d steps)=%s they face opposite ways=%s five turns alternate=%s facing restored=%s 20 s between=%s" % [half23, wide23, story23, foe23, walking23, at_step, began23, opposite, alternates, restored23, gap23])
+	if want.call("d24_can"):
+		# in the target game a cut that strikes no target but reaches a can on the bench behind rattles it (four rocks, two clinks 1480 and 1180 Hz) and the keeper laughs once a round; the score does not move; a hit target, a closed game, facing away, too far or within 0.6 s: nothing (idea 24)
+		var mk24: Object = main.market
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		calm_enemies(true)
+		var built24: bool = mk24.cans.size() == 3 and mk24.can_anchor != null
+		var can24: Dictionary = mk24.cans[1]
+		var at24: Vector2 = can24.at
+		reset_to(at24 + Vector2(0.0, 1.2))
+		var keep_on: bool = main.target_on
+		var keep_hits: int = main.target_hits
+		main.target_on = false
+		mk24.can_laughed = false
+		var h0: int = mk24.can_hits
+		mk24.can_hit(1.5, Vector2(0, -1), 0.3, false, false)
+		var closed24: bool = mk24.can_hits == h0
+		main.target_on = true
+		mk24.can_hit(1.5, Vector2(0, -1), 0.3, false, true)
+		var hit_target: bool = mk24.can_hits == h0
+		mk24.can_hit(1.5, Vector2(0, 1), 0.3, false, false)
+		var away24: bool = mk24.can_hits == h0
+		reset_to(at24 + Vector2(0.0, 4.0))
+		mk24.can_hit(1.5, Vector2(0, -1), 0.3, false, false)
+		var far24: bool = mk24.can_hits == h0
+		reset_to(at24 + Vector2(0.0, 1.2))
+		main.sfx_log.clear()
+		var n_bub: int = main.bubbles_said
+		var kids0: int = mk24.can_anchor.get_child_count()
+		mk24.can_t = -10.0
+		mk24.can_hit(1.5, Vector2(0, -1), 0.3, false, false)
+		var rattled: bool = mk24.can_hits == h0 + 1 and mk24.can_laughs >= 1 and main.sfx_log.has("triangle:1480") and mk24.can_anchor.get_child_count() == kids0 + 1 and main.bubbles_said == n_bub
+		var score_same: bool = main.target_hits == keep_hits
+		mk24.can_hit(1.5, Vector2(0, -1), 0.3, false, false) # within 0.6 s of the last one
+		var quick24: bool = mk24.can_hits == h0 + 1
+		main.target_on = false # no frames of the game run with the game on: it would stand targets up
+		await wait(0.15)
+		var rocking: bool = absf(can24.node.rotation.z) > 0.01 and main.sfx_log.has("triangle:1180")
+		await wait(0.7)
+		var settled: bool = absf(can24.node.rotation.z) < 0.01 and is_equal_approx(can24.node.position.y, 0.56)
+		main.target_on = true
+		var laughs: int = mk24.can_laughs
+		mk24.can_hit(1.5, Vector2(0, -1), 0.3, false, false) # a second cut, same round: rattles, no second laugh
+		var again24: bool = mk24.can_hits == h0 + 2 and mk24.can_laughs == laughs
+		mk24.start_targets() # a new round laughs again
+		main.target_on = true
+		mk24.can_t = -10.0
+		mk24.can_hit(1.5, Vector2(0, -1), 0.3, false, false)
+		var next_round: bool = mk24.can_laughs == laughs + 1
+		main.target_on = keep_on
+		main.target_hits = keep_hits
+		main.target_left = 0.0
+		calm_enemies(false)
+		main.in_village = false
+		check("d24_can", built24 and closed24 and hit_target and away24 and far24 and rattled and rocking and score_same and quick24 and settled and again24 and next_round,
+			"3 cans and a keeper's spot=%s game closed: none=%s a hit target: none=%s facing away: none=%s too far: none=%s a miss reaching a can rattles it, clinks, one bubble=%s it rocks=%s score unchanged=%s within 0.6 s: none=%s it settles=%s second cut rattles without a second laugh=%s a new round laughs again=%s" % [built24, closed24, hit_target, away24, far24, rattled, rocking, score_same, quick24, settled, again24, next_round])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

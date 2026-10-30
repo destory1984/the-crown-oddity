@@ -351,6 +351,99 @@ func update_kid(dt: float) -> void:
 		m.kid_node.position.y = absf(sin(m.t * 12.0)) * 0.08 if trot else 0.0
 		m.kid_node.get_meta("spr").frame = (1 if sin(m.t * 12.0) > 0.0 else 0) if trot else 0
 
+# 23: Kongal and her kid goblin, home again (kid_q 3), stand in the street; when Sora goes once round them within 3.2 tiles they turn
+# one after the other, Kongal one way while the kid looks the other, five turns of 0.35 s, then both face as they did. It only
+# happens while both stand on their spots (neither walking), nothing hostile is near and no story is open; if one of those stops
+# being true the turns end and each gets his own facing back. The count of her circling is her angle round the pair, in
+# steps of under 0.6 rad; a pause of 10 s or a wander off the ring starts it again.
+const TWIRL_NEAR := 3.2
+const TWIRL_STEP := 0.35
+const TWIRL_TURNS := 5
+const TWIRL_GAP := 20.0
+var twirl := {}   # step, t, keep_k, keep_kid, kongal_at, kid_at
+var twirl_acc := 0.0
+var twirl_prev := INF
+var twirl_age := 0.0
+var twirl_done := -100.0
+var twirls := 0 # sequences started (autoplay d23_twirl)
+
+func twirl_pair() -> Array: # [Kongal's sprite, the kid's sprite], or [] when they are not both out and still
+	if m.kid_q != 3 or m.kid_node == null or not m.kid_node.visible or not m.in_village or m.in_house >= 0 or m.village == null:
+		return []
+	if not m.village.folk_node.has("kongal") or m.folk_state.get("kongal", "out") != "out" or not m.folk.folk_on_point("kongal"):
+		return []
+	var k: Sprite3D = m.village.folk_node.kongal
+	if not k.visible:
+		return []
+	return [k, m.kid_node.get_meta("spr")]
+
+func twirl_calm() -> bool:
+	return not m.story_open and not m.intro and not m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - m.player.x, e.z - m.player.z).length() < 8.0)
+
+func end_twirl() -> void:
+	if twirl.is_empty():
+		return
+	var pair := twirl_pair()
+	if not pair.is_empty():
+		(pair[0] as Sprite3D).flip_h = twirl.keep_k
+		(pair[1] as Sprite3D).flip_h = twirl.keep_kid
+	twirl = {}
+
+func update_twirl(dt: float) -> void:
+	var pair := twirl_pair()
+	if not twirl.is_empty():
+		var kn: Vector3 = pair[0].position if not pair.is_empty() else Vector3.ZERO
+		var still: bool = not pair.is_empty() and Vector2(kn.x, kn.z).distance_to(twirl.kongal_at) < 0.05 and Vector2(m.kid_node.position.x, m.kid_node.position.z).distance_to(twirl.kid_at) < 0.05
+		if not still or not twirl_calm():
+			end_twirl()
+			return
+		twirl.t += dt
+		if twirl.t >= TWIRL_STEP:
+			twirl.t = 0.0
+			twirl.step += 1
+			if twirl.step >= TWIRL_TURNS:
+				end_twirl()
+				return
+			twirl_face(pair)
+		return
+	if pair.is_empty() or not twirl_calm() or m.t - twirl_done < TWIRL_GAP:
+		twirl_acc = 0.0
+		twirl_prev = INF
+		return
+	var kp: Vector3 = pair[0].position
+	var centre := (Vector2(kp.x, kp.z) + Vector2(m.kid_node.position.x, m.kid_node.position.z)) / 2.0
+	var rel := Vector2(m.player.x, m.player.z) - centre
+	if rel.length() < 0.6 or rel.length() > TWIRL_NEAR:
+		twirl_acc = 0.0
+		twirl_prev = INF
+		return
+	twirl_age += dt
+	var ang := rel.angle()
+	if twirl_prev != INF:
+		var dl := angle_difference(twirl_prev, ang)
+		if absf(dl) < 0.6:
+			twirl_acc += dl
+	twirl_prev = ang
+	if twirl_age > 10.0:
+		twirl_acc = 0.0
+		twirl_age = 0.0
+	if absf(twirl_acc) >= TAU - 0.6:
+		twirl_acc = 0.0
+		twirl_age = 0.0
+		twirl_prev = INF
+		twirl_done = m.t
+		twirls += 1
+		twirl = {"step": 0, "t": 0.0, "keep_k": (pair[0] as Sprite3D).flip_h, "keep_kid": (pair[1] as Sprite3D).flip_h,
+			"kongal_at": Vector2(kp.x, kp.z), "kid_at": Vector2(m.kid_node.position.x, m.kid_node.position.z)}
+		twirl_face(pair)
+
+# turn n: Kongal faces one way and the kid the other, and they swap on every turn
+func twirl_face(pair: Array) -> void:
+	var even: bool = twirl.step % 2 == 0
+	(pair[0] as Sprite3D).flip_h = even
+	(pair[1] as Sprite3D).flip_h = not even
+	m.sfx(660 + 110 * twirl.step, 0.05, "triangle", 0.06)
+
 func light_village_lamp(d: Dictionary) -> void:
 	d.lit = true
 	d.light.set_meta("dark", false)

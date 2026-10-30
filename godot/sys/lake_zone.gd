@@ -131,6 +131,82 @@ func update_moon_plaque() -> void:
 				if img.get_pixel(px, py).a > 0.0:
 					plaque_lit += 1
 
+# a few reed clumps at the water's edge hold a bead of water on their tips; once she has brushed past one and gone on, it lets go three drops
+# one after another, 0.5 s apart, each with its own small plink. A clump rests REED_GAP s between; at most REED_CAP drops are in the air
+# (delight idea 5). Sword blows have nothing to do with it.
+const REED_NEAR := 1.3
+const REED_LEAVE := 2.0
+const REED_GAP := 20.0
+const REED_CAP := 6
+const REED_ANCHORS := 6
+var reeds: Array = [] # [{"at": Vector2, "tip": Vector3, "armed": bool, "used": float}]
+var reed_drops := 0 # drops let go (autoplay d5_reed_drops)
+var reed_live := 0
+var last_reed_drop: Node3D
+
+func build_reed_tips() -> void:
+	var tiles: Array = m.lake.weed_tiles
+	for t in tiles:
+		if reeds.size() >= REED_ANCHORS:
+			break
+		if reeds.any(func(r): return r.at.distance_to(t) < 5.0):
+			continue
+		var toward := Vector2.ZERO # the unit step to the open water, so the clump leans out over it
+		for st in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+			if m.lake.char_at(t.x + st.x, t.y + st.y) == "X":
+				toward = st
+		if toward == Vector2.ZERO:
+			continue
+		var base: Vector2 = t + toward * 0.3
+		var stem: Material = m.mat_color(Color("#4c7a48"))
+		var tip_top := Vector3(base.x, 0.0, base.y)
+		for k in 3:
+			var h := 0.8 + 0.12 * k
+			var blade: MeshInstance3D = m.box(Vector3(0.035, h, 0.035), stem)
+			var lean := Vector3(toward.x, 0, toward.y) * (0.05 * k)
+			blade.position = Vector3(base.x - toward.y * 0.1 * (k - 1), h / 2.0, base.y + toward.x * 0.1 * (k - 1)) + lean
+			m.add_child(blade)
+			if k == 2:
+				tip_top = Vector3(blade.position.x, h, blade.position.z)
+		reeds.append({"at": t, "tip": tip_top, "armed": false, "used": -100.0})
+
+func update_reed_tips() -> void:
+	if reeds.is_empty() or m.story_open or m.intro:
+		return
+	var me := Vector2(m.player.x, m.player.z)
+	var moving: bool = Vector2(m.player.vx, m.player.vz).length() > 0.8
+	for r in reeds:
+		var d: float = r.at.distance_to(me)
+		if not r.armed:
+			if moving and d < REED_NEAR and m.t - r.used >= REED_GAP:
+				r.armed = true # brushed past
+		elif d > REED_LEAVE:
+			r.armed = false
+			r.used = m.t
+			var tip: Vector3 = r.tip
+			for k in REED_DROPS_N:
+				m.get_tree().create_timer(0.4 + 0.5 * k).timeout.connect(func(): reed_drop(tip, k))
+
+const REED_DROPS_N := 3
+const REED_PLINK := [1320.0, 1180.0, 1050.0] # each a little lower than the one before
+
+func reed_drop(tip: Vector3, k: int) -> void:
+	if reed_live >= REED_CAP or not m.in_lake:
+		return
+	reed_live += 1
+	reed_drops += 1
+	var drop: MeshInstance3D = m.box(Vector3(0.035, 0.08, 0.035), m.glow_mat(Color("#bfe6ff"), 1.4))
+	drop.position = tip
+	last_reed_drop = drop
+	m.add_child(drop)
+	var tw := drop.create_tween()
+	tw.tween_property(drop, "position:y", 0.04, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		m.burst(Vector3(tip.x, 0.08, tip.z), Color("#bfe6ff"), 3, 0.8)
+		m.sfx(REED_PLINK[k], 0.06, "sine", 0.03)
+		reed_live -= 1
+		drop.queue_free())
+
 func enter_lake() -> void:
 	m.in_village = false
 	m.in_lake = true
@@ -560,6 +636,7 @@ func update_lake_south(dt: float) -> void:
 	var me := Vector2(m.player.x, m.player.z)
 	update_moon_plaque()
 	update_height_ruler(dt)
+	update_reed_tips()
 	m.lake.tick(dt, m.t)
 	if me.y > Main.LAKE.SOUTH_Z + 0.5:
 		m.ui.zone_sub.text = "아랫못"

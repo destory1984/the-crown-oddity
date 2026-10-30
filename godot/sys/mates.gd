@@ -44,6 +44,7 @@ func leave_mate() -> void:
 	if m.mate == null:
 		return
 	mulgyeol_sit(false)
+	end_quirk()
 	m.mate.queue_free()
 	m.mate = null
 	m.mate_spot.erase("mulgyeol")
@@ -184,6 +185,246 @@ func mate_goal(id: String) -> Vector3:
 		goal = back_at if back_at != null else open_spot(id, avoid)
 	m.mate_aim[id] = goal
 	return goal
+
+# ---- Mulgyeol's small doings (delight ideas 11, 13, 15, 17): a short walk along points checked walkable, a hold, then the
+# ordinary following takes him back. Only while it is calm (no job, no fight, no story, not down) and no sooner than QUIRK_GAP
+# after the last one; her stepping off ends it at once. The loop of idea 13 is her own walking, so that one ends when she leaves
+# the ground she circled instead. Nothing here touches a gate, a hit or a reward.
+const QUIRK_GAP := 6.0
+const QUIRK_SPEED := 4.0
+var quirk := {} # kind, path (Array of Vector3), i, hold, wait, free, stay (Vector2), ring
+var quirk_t := -100.0
+var quirks_made := {} # kind -> times started (autoplay d11, d13, d17)
+
+func quirk_calm() -> bool:
+	if m.mate == null or not m.mate.visible or m.mate_down["mulgyeol"] > 0.0 or not m.mate_job.is_empty() or m.story_open or m.intro or m.in_house >= 0:
+		return false
+	if m.garden_zone.clock_hold():
+		return false
+	var me := Vector2(m.player.x, m.player.z)
+	var him := Vector2(m.mate.position.x, m.mate.position.z)
+	return not m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and (Vector2(e.x, e.z).distance_to(me) < 7.0 or Vector2(e.x, e.z).distance_to(him) < 8.0))
+
+# `path` keeps only the points he can walk to in a straight line from the one before; false when none is left or he is busy
+func start_quirk(kind: String, path: Array, hold: float, free := false, centre := Vector2.ZERO) -> bool:
+	if not quirk.is_empty() or m.t - quirk_t < QUIRK_GAP or not quirk_calm():
+		return false
+	var ok: Array = []
+	var from: Vector3 = m.mate.position
+	for p in path:
+		if m.walkable(p.x, p.z) and mate_way(from, p):
+			ok.append(p)
+			from = p
+	if ok.is_empty() or (kind == "loop" and ok.size() < 8):
+		return false
+	quirk_t = m.t
+	quirks_made[kind] = int(quirks_made.get(kind, 0)) + 1
+	mulgyeol_sit(false)
+	quirk = {"kind": kind, "path": ok, "i": 0, "hold": hold, "wait": 0.0, "free": free, "stay": centre, "ring": null}
+	return true
+
+func end_quirk() -> void:
+	if quirk.get("ring") != null and is_instance_valid(quirk.ring):
+		quirk.ring.queue_free()
+	quirk = {}
+
+# true while the quirk drives him this frame
+func update_quirk(dt: float) -> bool:
+	if quirk.is_empty():
+		return false
+	var moving: bool = Vector2(m.player.vx, m.player.vz).length() > 0.4
+	var away: bool = quirk.free and Vector2(m.player.x, m.player.z).distance_to(quirk.stay) > 4.5
+	var far: bool = m.mate.position.distance_to(Vector3(m.player.x, 0, m.player.z)) > 8.0
+	if (moving and not quirk.free) or away or far or not quirk_calm():
+		end_quirk()
+		return false
+	var spr: Sprite3D = m.mate.get_child(0)
+	var to: Vector3 = (quirk.path[quirk.i] as Vector3) - m.mate.position
+	to.y = 0.0
+	if to.length() > 0.08:
+		m.mate.position = mate_step(m.mate.position, to.normalized() * minf(to.length(), dt * QUIRK_SPEED))
+		m.mate.position.y = 0.0
+		spr.flip_h = not m.screen_left(Vector2(to.x, to.z))
+		breathe("mulgyeol", spr, false)
+		spr.frame = 1
+		return true
+	if quirk.i < quirk.path.size() - 1:
+		quirk.i += 1
+		return true
+	quirk.wait += dt
+	breathe("mulgyeol", spr, true)
+	if quirk.kind == "loop":
+		if quirk.ring == null:
+			var ring := MeshInstance3D.new() # dizzy: a thin ring over his head, turning
+			ring.mesh = m.effects.ring_mesh(0.22, 0.3, 0.0, TAU, 16)
+			ring.material_override = m.glow_mat(Color("#ffe8a0"), 1.6)
+			m.mate.add_child(ring)
+			quirk.ring = ring
+		quirk.ring.position = Vector3(0, 1.75, 0)
+		quirk.ring.rotation = Vector3(0.35, quirk.wait * 6.0, 0)
+	if quirk.wait >= quirk.hold:
+		end_quirk()
+	return true
+
+# 11: Sora's blow reached the fountain; if he stands within 3 tiles of her he steps a tile back from the water, a beat before the drops fall
+var fountain_steps := 0
+func fountain_back(fountain: Vector2) -> bool:
+	if m.mate == null:
+		return false
+	var him := Vector2(m.mate.position.x, m.mate.position.z)
+	if him.distance_to(Vector2(m.player.x, m.player.z)) > 3.0 or him.distance_to(fountain) > 4.5:
+		return false
+	var away := (him - fountain).normalized() if him.distance_to(fountain) > 0.1 else Vector2(0, 1)
+	var back := him + away * 1.0
+	if start_quirk("fountain", [Vector3(back.x, 0, back.y)], 1.2):
+		fountain_steps += 1
+		return true
+	return false
+
+# 17: she looked into an opened chest again; he comes up beside it, looks in, and goes back with nothing
+var chest_looks := 0
+func chest_look(chest: Vector2) -> bool:
+	if m.mate == null:
+		return false
+	var him := Vector2(m.mate.position.x, m.mate.position.z)
+	var side := chest + (him - chest).normalized() * 0.9 if him.distance_to(chest) > 0.1 else chest + Vector2(0, 0.9)
+	if start_quirk("chest", [Vector3(side.x, 0, side.y)], 1.0):
+		chest_looks += 1
+		return true
+	return false
+
+# 13: three turns of a small circle by the water; he runs one round of it and stops dizzy. A turn is counted from the changes of her
+# heading every 0.1 s; standing still for 0.8 s, wandering off the spot or taking over 16 s starts the count again
+const LOOP_TURNS := 3
+const LOOP_FAR := 3.2
+var loop_turn := 0.0
+var loop_pts: Array = []
+var loop_last := Vector2.ZERO
+var loop_head := 0.0
+var loop_has_head := false
+var loop_clock := 0.0
+var loop_idle := 0.0
+var loop_age := 0.0
+
+func loop_reset() -> void:
+	loop_turn = 0.0
+	loop_pts.clear()
+	loop_has_head = false
+	loop_idle = 0.0
+	loop_age = 0.0
+
+func loop_centre() -> Vector2:
+	var c := Vector2.ZERO
+	for p in loop_pts:
+		c += p
+	return c / maxf(loop_pts.size(), 1)
+
+# open water, not a fence or a wall (which the tile map also calls water): the marsh's, the lake's, the village pond
+func is_water(x: float, z: float) -> bool:
+	if m.tile_at(x, z) != Main.WATER:
+		return false
+	if x < Main.CAVE_X - 0.5:
+		return true
+	if x >= Main.VILLAGE.VILLAGE_X - 0.5 and x < Main.VILLAGE.VILLAGE_X + Main.VILLAGE.W:
+		return m.village.char_at(x, z) in "~B"
+	if x >= Main.LAKE.LAKE_X - 0.5 and x < Main.LAKE.LAKE_X + Main.LAKE.W:
+		return m.lake.char_at(x, z) in "X-o"
+	return false
+
+func near_water(c: Vector2) -> bool:
+	for r in [1.5, 2.5, 3.5]:
+		for k in 8:
+			var a := TAU * k / 8.0
+			if is_water(c.x + cos(a) * r, c.y + sin(a) * r):
+				return true
+	return false
+
+func track_loop(dt: float) -> void:
+	loop_clock += dt
+	if loop_clock < 0.1:
+		return
+	var span := loop_clock
+	loop_clock = 0.0
+	var p := Vector2(m.player.x, m.player.z)
+	if m.mate == null or not quirk.is_empty():
+		loop_reset()
+		loop_last = p
+		return
+	var d := p - loop_last
+	if d.length() < 0.1:
+		loop_idle += span
+		if loop_idle > 0.8:
+			loop_reset()
+		return
+	loop_idle = 0.0
+	loop_last = p
+	var head := d.angle()
+	if loop_has_head:
+		loop_turn += angle_difference(loop_head, head)
+	loop_head = head
+	loop_has_head = true
+	loop_age += span
+	loop_pts.append(p)
+	if loop_pts.size() > 160:
+		loop_pts.pop_front()
+	var c := loop_centre()
+	if loop_age > 16.0 or p.distance_to(c) > LOOP_FAR:
+		loop_reset()
+		return
+	if absf(loop_turn) < LOOP_TURNS * TAU - 0.6 or not near_water(c):
+		return
+	var dir := 1.0 if loop_turn > 0.0 else -1.0
+	loop_reset()
+	var him := Vector2(m.mate.position.x, m.mate.position.z)
+	var a0 := (him - c).angle() if him.distance_to(c) > 0.3 else 0.0
+	var path: Array = []
+	for k in 13:
+		var a := a0 + dir * TAU * k / 12.0
+		path.append(Vector3(c.x + cos(a) * 1.5, 0, c.y + sin(a) * 1.5))
+	start_quirk("loop", path, 1.6, true, c)
+
+# 15: she skipped over the water and is on the bank; within 3 s of the landing, once she turns to face back along her way, he makes one
+# more ring on the last water tile she crossed. Only a mark on the water: how far she may skip does not change.
+const LOOK_BACK_T := 3.0
+var skip_on := false
+var skip_last := Vector2.ZERO
+var look_t := 0.0
+var look_at := Vector2.ZERO
+var water_rings := 0
+var last_water_ring: Node3D
+
+func skip_watch(on_skip_water: bool, dt: float) -> void:
+	var me := Vector2(m.player.x, m.player.z)
+	if on_skip_water:
+		skip_on = true
+		skip_last = Vector2(roundf(me.x), roundf(me.y)) # the middle of the tile
+		look_t = 0.0
+		return
+	if skip_on:
+		skip_on = false
+		look_t = LOOK_BACK_T
+		look_at = skip_last
+		return
+	if look_t <= 0.0:
+		return
+	look_t -= dt
+	if look_t <= 0.0 or m.mate == null or not m.mate.visible or m.story_open or m.tile_at(me.x, me.y) == Main.WATER:
+		return
+	var to := look_at - me
+	if to.length() < 1.0 or to.length() > 9.0 or to.normalized().dot(m.player.face) < 0.8:
+		return
+	look_t = 0.0
+	water_rings += 1
+	var mat := m.glow_mat(Color("#bfe6ff"), 1.2)
+	var ring := MeshInstance3D.new()
+	ring.mesh = m.effects.ring_mesh(0.1, 0.16, 0.0, TAU, 16)
+	ring.material_override = mat
+	ring.position = Vector3(look_at.x, -0.2, look_at.y)
+	last_water_ring = ring
+	m.effects.add_fx(ring, 1.4, func(n: Node3D, k: float, _dt: float):
+		n.scale = Vector3.ONE * (1.0 + 4.0 * k)
+		mat.albedo_color.a = (1.0 - k) * 0.8)
+	m.sfx(520, 0.1, "splash", 0.05, -200.0)
 
 func join_noeul() -> void:
 	if m.mate2 != null:
@@ -407,6 +648,9 @@ func update_mate(dt: float) -> void:
 		snap_mate()
 	var spr: Sprite3D = m.mate.get_child(0)
 	if mate_tick("mulgyeol", dt):
+		end_quirk()
+		return
+	if update_quirk(dt):
 		return
 	m.mate_cd -= dt
 	var target = null

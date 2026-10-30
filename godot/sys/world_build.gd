@@ -1126,6 +1126,7 @@ func chest_peek() -> bool:
 			m.burst(Vector3(c.x, m.height_at(c.x, c.z) + 0.5, c.z), Color("#c8b898"), 6, 0.6)
 			m.sfx(196, 0.08, "triangle", 0.05, -40.0)
 			m.toast(tr("뚜껑 안은 비었고 먼지만 날린다"))
+			m.mates.chest_look(Vector2(c.x, c.z))
 			return true
 	return false
 

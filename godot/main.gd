@@ -454,6 +454,7 @@ func _ready() -> void:
 	lake_zone.grotto_steps()
 	lake_zone.build_moon_plaque()
 	lake_zone.build_height_ruler()
+	lake_zone.build_reed_tips()
 	hill_zone.build_bridge_ribbons()
 	corridor.build(self)
 	corridor_zone.lake_steps()
@@ -491,6 +492,7 @@ func _ready() -> void:
 	workshop_zone.build()
 	market.build_magpie()
 	market.build_rain_decor()
+	market.build_cans()
 	effects.build_drip_anchors()
 	apply_settings()
 	daynight.update_daylight(0.0)
@@ -720,6 +722,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.115: 작은 정성 열 가지를 더했다. 물수제비로 물에서 나온 소라는 마른 땅에 젖은 발자국 여섯 개를 남기고 하나씩 옅어진다. 호숫가 갈대 끝에서 소라가 스쳐 간 뒤 물방울이 0.5초 간격으로 세 번 떨어진다. 마을 돌길의 낙엽 여덟 장이 달리는 소라 쪽으로 최대 1.4칸 밀려나 길 끝에서 멈춘다. 분수를 치면 3칸 안의 물결이 한 칸 물러서 1.2초 서 있는다. 물가에서 작은 원을 세 바퀴 돌면 물결이 한 바퀴 따라 돌고 머리 위 고리를 돌리며 어지러워한다. 물수제비로 건넌 뒤 3초 안에 뒤돌아보면 물결이 마지막 물 칸에 물고리를 하나 만든다. 빈 상자를 또 살피면 물결이 상자 곁 0.9칸까지 와서 1초 들여다보고 돌아간다. 도란은 걸음을 멈출 때마다 편지를 읽다가 3.2칸 안으로 소라가 오면 편지를 접고 돌아선다. 콩알과 꼬마 고블린 둘레를 한 바퀴 돌면 둘이 0.35초씩 다섯 번 반대쪽을 본다. 과녁을 빗맞혀도 뒤 선반의 빈 깡통 셋 중 가까운 하나가 덜컹하고 주인이 한 번 웃는다.",
 	"· v0.1.114: 작은 정성 여덟 가지를 더했다. 보리 할머니 오두막 뒤 찻잔 셋을 차례로 살피면 마지막 잔에서만 6초 동안 김이 오르고, 물결과 섬 오두막에 돌아오면 문옆 자에 장대 높이의 금빛 눈금이 1초에 걸쳐 나타나고, 열린 벽돌 벽에 다시 오면 모서리에 벽돌 둘이 의자처럼 포개져 있고, 풀어 준 다람쥐 우리를 다시 살피면 도토리 껍질이 0.7칸 굴러 나온다. 처음 깨어난 자리에는 소라 모양으로 눌린 갈대 아홉 줄이 있다가 보리를 만나면 8초에 걸쳐 일어서고, 달빛이 모자라 거절당하면 필요한 칸과 가진 칸이 나란히 보이고, 회복약이 하나 남으면 병 윤곽이 숫자 옆에 보이고, 기술이 다시 준비되면 단추에 톱니 테두리가 2초 동안 보인다.",
 	"· v0.1.113: 작은 정성 열 가지를 더했다. 섬광 막기에 성공하면 벽돌 적의 이음새에서 나사 하나가 튀어 0.9초 만에 몸으로 돌아간다, 쓰러졌던 동료가 6칸 안의 소라 쪽으로 0.45초 고개를 숙이며 일어난다, 싸움이 끝난 뒤 처음 말을 건 마을 사람이 먼저 숨부터 돌려라고 한 번 말한다, 비 오는 가판대 차양 밑에서 쉬면 우산을 펴려다 1초 만에 접고 다시 숨을 쉰다, 바람 언덕 전망 두 곳과 구름 둔덕에서 쉬면 사진을 찍는 몸짓과 셔터 소리가 나온다, 잠든 마을 사람 침대 2칸 안에서 쉬면 조용히 하자는 몸짓을 한다, 마을 나루터에서 물을 마시면 다 마신 뒤 물방울 하나가 발치에 떨어진다, 달의 계단 쉼터에서 쉬면 하늘을 보고 머리 위에 3.6초 동안 달 고리가 뜬다, 여관에서 나온 뒤 첫 휴식은 기지개다, 3초 넘게 달리고 체력이 가득 찬 채 멈추면 다음 휴식에 물을 마시고 병뚜껑 소리가 난다.",
 	"· v0.1.112: 작은 정성 열 가지를 더했다. 밤에 사람들이 집에 들어오면 그 집 창의 불빛이 2.6 → 5.0초에 걸쳐 집마다 다른 빠르기로 낮아지고 낮에는 다시 밝아진다, 물수제비로 건넌 뒤 첫 세 발소리에 물방울 소리가 점점 작게 섞인다, 궤짝 뚜껑은 물건이 든 궤에서 낮은 나무 소리(147 → 220Hz), 남은 것이 적은 궤에서 높은 소리(262 → 392Hz)가 난다, 방금 멈춘 풍차의 축이 삐걱 한 번 운다, 같은 벽돌을 연타해도 막는 소리가 620, 740, 880Hz로 돌아가며 기관총처럼 겹치지 않는다, 방패로 막으면 벽돌 조각 하나가 앞에 떨어져 팽이처럼 돌다 멎는다, 고블린의 돌진이 벽에 막히면 벽에서 먼지 세 알이 떨어진다, 모아 베기를 놓으면 발치 먼지가 먼저 퍼지고 0.06초 뒤 칼빛이 따른다, 마지막 적을 쓰러뜨리면 떠 있던 먼지가 3초 동안 가라앉는다, 닿지 않는 높은 적에게 두 번째 헛손질을 하면 짧은 안내가 뜬다.",
@@ -2196,6 +2199,7 @@ func _process(dt: float) -> void:
 	skip_grace = 0.6 if has_skip and running else skip_grace - dt
 	skipping = has_skip and (running or (on_water and skip_grace > 0.0))
 	sound.skip_track(skipping and on_water)
+	mates.skip_watch(skipping and on_water, dt)
 	if has_skip and not running and mv.length() > 0 and not on_water and toast_t <= 0.0:
 		var ahead := Vector2(player.x, player.z) + mv.normalized() * 0.7
 		if skip_water(ahead.x, ahead.y):
@@ -2438,8 +2442,10 @@ func _process(dt: float) -> void:
 	mates.update_mate(dt)
 	mates.update_mate2(dt)
 	mates.update_arrival()
+	mates.track_loop(dt)
 	hud_build.update_pips(dt)
 	village_life.update_kid(dt)
+	village_life.update_twirl(dt)
 	errands.update_oar()
 	if in_marsh() and not intro:
 		marsh.update(self)

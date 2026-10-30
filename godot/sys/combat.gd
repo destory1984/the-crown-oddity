@@ -324,6 +324,7 @@ func attack() -> void:
 		m.village.bricks_hit(m, reach, f, cone, spin or slam)
 		m.village.pinwheels_hit(m, reach, f, cone, spin or slam)
 		m.football.hit(reach, f, cone, spin or slam)
+		m.market.can_hit(reach, f, cone, spin or slam, hit_any)
 	var me := Vector2(m.player.x, m.player.z)
 	plants_hit(me if spin or slam else me + f * reach * 0.6, reach + 0.4 if spin or slam else reach * 0.9)
 	if slam:

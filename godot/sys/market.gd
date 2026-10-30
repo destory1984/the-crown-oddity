@@ -76,6 +76,7 @@ func start_targets() -> void:
 	m.target_left = TARGET_TIME
 	m.target_hits = 0
 	m.target_next = 0.6
+	can_laughed = false
 	m.sfx(660, 0.2, "triangle", 0.2)
 	m.toast(tr("과녁 맞히기! %d초 동안 일어서는 과녁을 베자") % int(TARGET_TIME))
 
@@ -123,6 +124,82 @@ func build_rain_decor() -> void:
 	var paper: MeshInstance3D = m.box(Vector3(0.22, 0.3, 0.012), m.mat_color(Color("#f4ecd6")))
 	paper.position = Vector3(0, -0.15, 0)
 	tag.add_child(paper)
+
+# 24: a bench of three empty cans stands against the yard's back wall, behind the targets. While the target game runs, a cut that
+# strikes no target but reaches a standing can rattles it (the can only rocks and hops: the score, the time and the medal stay as
+# they are, the swing counts as the miss it was) and once per round the stall keeper laughs about it in a bubble.
+const CAN_GAP := 0.6
+const CAN_REACH := 0.6 # past her blade's reach, since the cans stand back by the wall
+var cans: Array = [] # [{"node": MeshInstance3D, "at": Vector2, "tween": Tween}]
+var can_t := -10.0 # when a can last rattled
+var can_hits := 0 # cans rattled (autoplay d24_can)
+var can_laughs := 0
+var can_laughed := false
+var can_anchor: Node3D
+
+func build_cans() -> void:
+	var q: Vector2 = m.village.marks.Q
+	var wood := m.mat_color(Color("#8a6a42"))
+	var bench: MeshInstance3D = m.box(Vector3(3.0, 0.1, 0.3), wood)
+	bench.position = Vector3(q.x, 0.4, q.y - 2.15)
+	m.add_child(bench)
+	for k in 2: # two legs
+		var leg: MeshInstance3D = m.box(Vector3(0.1, 0.4, 0.2), wood)
+		leg.position = Vector3(q.x + (k - 0.5) * 2.6, 0.2, q.y - 2.15)
+		m.add_child(leg)
+	can_anchor = Node3D.new()
+	can_anchor.position = Vector3(q.x, 0.0, q.y - 2.15)
+	m.add_child(can_anchor)
+	var tin := m.mat_color(Color("#a9b2ba"), 0.5)
+	for k in 3:
+		var c: MeshInstance3D = m.box(Vector3(0.16, 0.22, 0.16), tin)
+		c.position = Vector3(q.x + (k - 1) * 0.9, 0.56, q.y - 2.15)
+		m.add_child(c)
+		cans.append({"node": c, "at": Vector2(c.position.x, c.position.z), "tween": null})
+
+# her cut (combat.attack, in the village): `hit_any` says it struck a foe or a target
+func can_hit(reach: float, f: Vector2, cone: float, all_round: bool, hit_any: bool) -> void:
+	if not m.target_on or hit_any or m.story_open:
+		return
+	if m.t - can_t < CAN_GAP:
+		return
+	var me := Vector2(m.player.x, m.player.z)
+	var best = null
+	for c in cans:
+		var d: Vector2 = c.at - me
+		if d.length() > reach + CAN_REACH or not (all_round or d.normalized().dot(f) > cone):
+			continue
+		if best == null or d.length() < (best.at - me).length():
+			best = c
+	if best != null:
+		rattle(best) # one can a swing: the nearest
+
+func rattle(c: Dictionary) -> void:
+	can_t = m.t
+	can_hits += 1
+	var n: MeshInstance3D = c.node
+	if c.tween != null and c.tween.is_valid():
+		c.tween.kill()
+	n.rotation = Vector3.ZERO
+	n.position.y = 0.56
+	var tw := n.create_tween()
+	c.tween = tw
+	for k in 4: # four rocks, each smaller, and a small hop on the first
+		var amp := 0.5 * (1.0 - k / 4.0)
+		tw.tween_property(n, "rotation:z", amp * (1.0 if k % 2 == 0 else -1.0), 0.07)
+	tw.tween_property(n, "rotation:z", 0.0, 0.06)
+	var hop := n.create_tween()
+	hop.tween_property(n, "position:y", 0.7, 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	hop.tween_property(n, "position:y", 0.56, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	m.sfx(1480, 0.05, "triangle", 0.12)
+	m.get_tree().create_timer(0.08).timeout.connect(func(): m.sfx(1180, 0.06, "triangle", 0.1))
+	if not can_laughed:
+		can_laughed = true
+		can_laughs += 1
+		var n0: int = m.bubbles_said
+		m.chatter.say_bubble(can_anchor, tr("하하, 과녁보다 깡통이 먼저 맞았네!"), 2.6)
+		m.bubbles_said = n0
+		(can_anchor.get_child(can_anchor.get_child_count() - 1) as Node3D).position.y = 1.5
 
 func update_rain_decor() -> void:
 	var me := Vector2(m.player.x, m.player.z)

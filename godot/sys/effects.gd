@@ -523,3 +523,83 @@ func moon_ring() -> void:
 		n.position = Vector3(m.player.x, m.ground_y + 2.1 + 0.03 * sin(k * 9.0), m.player.z)
 		mat.albedo_color.a = clampf(k * 6.0, 0.0, 1.0) * (1.0 - maxf(0.0, k - 0.8) / 0.2) * 0.85
 		n.rotation.y = k * 2.0)
+
+# the six steps after she climbs out of skipped water leave a dark wet print each on dry ground, every one fainter than the last, each
+# drying away in 5 s (delight idea 2). Flat boxes only: none on water, a bridge, indoors, or in a story.
+const PRINT_STEPS := 6
+const PRINT_LIFE := 5.0
+var print_left := 0
+var prints_made := 0
+var last_print: MeshInstance3D
+var last_print_alpha := 0.0
+
+func wet_landed() -> void:
+	print_left = PRINT_STEPS
+
+func wet_print() -> void:
+	if print_left <= 0:
+		return
+	var at := Vector2(m.player.x, m.player.z)
+	var tile: int = m.tile_at(at.x, at.y)
+	if tile == Main.WATER or tile == Main.BRIDGE or m.in_house >= 0 or m.story_open:
+		return
+	var nth := PRINT_STEPS - print_left # 0 for the first
+	print_left -= 1
+	prints_made += 1
+	var alpha := 0.62 * (1.0 - nth / float(PRINT_STEPS))
+	var side := 1.0 if nth % 2 == 0 else -1.0 # left foot, right foot
+	var face: Vector2 = m.player.face
+	var pos := Vector3(at.x - face.y * 0.12 * side, m.height_at(at.x, at.y) + 0.02, at.y + face.x * 0.12 * side)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(0.1, 0.09, 0.08, alpha)
+	var pr: MeshInstance3D = m.box(Vector3(0.14, 0.01, 0.24), mat)
+	pr.position = pos
+	pr.rotation.y = atan2(face.x, face.y)
+	last_print = pr
+	last_print_alpha = alpha
+	add_fx(pr, PRINT_LIFE, func(_n: Node3D, k: float, _dt: float):
+		mat.albedo_color.a = alpha * (1.0 - maxf(0.0, k - 0.4) / 0.6))
+
+# a run past a street leaf pushes it on the way she runs, up to LEAF_PUSH tiles in 0.5 s, and it stops where the stone path ends
+# (a street or square tile it would leave, or a wall); a walk does nothing (delight idea 6)
+const LEAF_RUN := 5.0
+const LEAF_PUSH := 1.4
+const LEAF_TOUCH := 0.8
+var leaf_pushes := 0
+
+func leaf_ground_ok(p: Vector2) -> bool:
+	return m.village.char_at(p.x, p.y) in "=o" and not m.village.blocked(p.x, p.y)
+
+# where a leaf at `from` ends up when shoved along `dir`: 0.1 tile steps, as far as the stone goes
+func leaf_slide_end(from: Vector2, dir: Vector2) -> Vector2:
+	var p := from
+	for i in int(LEAF_PUSH / 0.1):
+		var n := p + dir * 0.1
+		if not leaf_ground_ok(n):
+			break
+		p = n
+	return p
+
+func update_street_leaves() -> void:
+	if not m.in_village or m.in_house >= 0 or m.story_open:
+		return
+	var v := Vector2(m.player.vx, m.player.vz)
+	if v.length() < LEAF_RUN:
+		return
+	var me := Vector2(m.player.x, m.player.z)
+	for lf in m.dressing.street_leaves:
+		var at := Vector2(lf.node.position.x, lf.node.position.z)
+		if lf.moving or at.distance_to(me) > LEAF_TOUCH:
+			continue
+		var to := leaf_slide_end(at, v.normalized())
+		if to.distance_to(at) < 0.05:
+			continue
+		lf.moving = true
+		leaf_pushes += 1
+		var node: MeshInstance3D = lf.node
+		var tw := node.create_tween()
+		tw.tween_property(node, "position", Vector3(to.x, 0.012, to.y), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(node, "rotation:y", node.rotation.y + v.x * 0.4, 0.5)
+		tw.tween_callback(func(): lf.moving = false)

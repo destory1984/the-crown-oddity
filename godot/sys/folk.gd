@@ -324,6 +324,40 @@ func route_update(id: String, dt: float, home_only: bool, speed: float) -> bool:
 			r.wait = randf_range(6.0, 14.0)
 	return true
 
+# Doran reads a letter at each stop of his round: a small paper held before his chest. When she comes within LETTER_NEAR tiles, or a
+# story is open, he folds it away (the paper hides) and turns to face her; once she is back out past LETTER_NEAR + 0.4 and the story
+# is shut the paper comes out again. Only a picture: his round, his lines and the letter errand are not touched (delight idea 22).
+const LETTER_NEAR := 3.2
+var letter: MeshInstance3D
+var letter_folded := false
+var letter_turns := 0 # times he turned to her (autoplay d22_letter)
+
+func letter_reading() -> bool:
+	if m.village == null or not m.village.folk_node.has("doran") or m.folk_state.get("doran", "out") != "out":
+		return false
+	var spr: Sprite3D = m.village.folk_node.doran
+	if m.folk_route.has("doran") and not bool(Main.FOLK_ROUTES.doran[m.folk_route.doran.i][1]):
+		return false # a point he only passes
+	return spr.visible and folk_on_point("doran") and m.in_village and m.in_house < 0
+
+func update_letter() -> void:
+	if m.village == null or not m.village.folk_node.has("doran"):
+		return
+	var spr: Sprite3D = m.village.folk_node.doran
+	if letter == null:
+		letter = m.box(Vector3(0.2, 0.26, 0.012), m.mat_color(Color("#f2ead8")))
+		letter.position = Vector3(0.0, 0.55, 0.08)
+		spr.add_child(letter)
+	var reading := letter_reading()
+	var d: float = Vector2(m.player.x, m.player.z).distance_to(Vector2(spr.position.x, spr.position.z))
+	if reading and d < LETTER_NEAR and not letter_folded:
+		letter_folded = true
+		letter_turns += 1
+		spr.flip_h = m.screen_left(Vector2(m.player.x - spr.position.x, m.player.z - spr.position.z))
+	elif letter_folded and (not reading or (d > LETTER_NEAR + 0.4 and not m.story_open)):
+		letter_folded = false
+	letter.visible = reading and not letter_folded and not m.story_open
+
 # stopping after a run in front of a sleeper's house, the little z over its door bobs more slowly for a moment (delight idea 27);
 # nobody wakes and nothing about the sleepers changes
 const Z_SLOW_TIME := 2.5
@@ -357,6 +391,7 @@ func update_folk_sleep(dt: float) -> void:
 	if m.village == null or m.village.doors.is_empty():
 		return
 	update_z_slow(dt)
+	update_letter()
 	var night := folk_should_sleep()
 	var watching := m.in_village and m.in_house < 0 # walking home is only worth showing when she is on the street
 	var rolls := {} # bedroll spots taken in the room she is in

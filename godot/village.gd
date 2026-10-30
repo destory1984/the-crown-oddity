@@ -188,6 +188,10 @@ func dress(m: Node, ground: Array, path: Array) -> void:
 	for i in 3:
 		cosmos_spots += spots[i].size()
 		dress_meshes.append(d.grass(texs[i], 0.9, 1.1, spots[i], 0.2, false))
+	var street_tiles: Array = []
+	for xf in path:
+		street_tiles.append(Vector2(xf.origin.x, xf.origin.z))
+	d.scatter_street_leaves(street_tiles, keep, VILLAGE_X)
 	d.end()
 
 func build(m: Node) -> void:
@@ -901,6 +905,7 @@ func fountain_hit(m: Node, reach: float, f: Vector2, cone: float, all_round: boo
 	if d.length() > reach + 1.0 or not (all_round or d.normalized().dot(f) > cone - 0.2):
 		return
 	fountain_hits += 1
+	m.mates.fountain_back(fountain_at())
 	var side := -d.normalized() * 0.55 # the near edge of the basin
 	fountain_splash.position = Vector3(side.x, fountain_splash.position.y, side.y)
 	fountain_splash.restart()
@@ -1127,6 +1132,7 @@ func leaves_update(m: Node, dt: float) -> void:
 
 func life_update(m: Node, dt: float) -> void:
 	leaves_update(m, dt)
+	m.effects.update_street_leaves()
 	if doodle_crown != null:
 		doodle_crown.visible = m.kid_q >= 3
 		doodle_otter.visible = m.mul_q >= 1 or m.mate != null
