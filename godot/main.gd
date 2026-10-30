@@ -39,6 +39,8 @@
 #   sys/corridor_zone.gd  Water corridor (v0.1.84): four rooms under the lake island, levers, carts, Mulgyeol's posts, the sluice-keeper.
 #   sys/marsh_toys.gd     Reed-marsh toys (v0.1.106): the wind-up duck, three frogs, cattail fluff, the reed pipe rack, Bori's mat.
 #   sys/football.gd       The village square's football and goal (v0.1.109): kicks, bounces, the goal flash and score banner, the goals count.
+#   sys/safe_area.gd      The phone's home bar and camera hole (v0.1.119): the safe area in canvas pixels, feeding touch.gd, hud.gd and hud_build.gd.
+#   sys/away.gd           Coming back (v0.1.119): focus lost on a phone pauses the game behind a centred 돌아왔다 key.
 #   sys/ambience.gd       Quiet loops made in code (v0.1.116): the fountain's water, rain in the open and on the eaves, a picture scene's hush.
 extends Node3D
 
@@ -81,6 +83,8 @@ var moon_tokens := preload("res://sys/tokens.gd").new(self)
 var marsh_toys := preload("res://sys/marsh_toys.gd").new(self)
 var football := preload("res://sys/football.gd").new(self)
 var ambience := preload("res://sys/ambience.gd").new(self)
+var safe_area := preload("res://sys/safe_area.gd").new(self)
+var away_ui := preload("res://sys/away.gd").new(self)
 
 const N := 48
 const WATER := 0
@@ -128,6 +132,8 @@ var touch_ui := false
 var touch_move := Vector2.ZERO # the stick, x right and y down on screen, length 0 to 1
 var touch_keys := {}          # keys held through the touch keys (guard, run)
 var touch_layer: Control
+var safe := Vector4.ZERO      # the phone's unsafe margins in canvas px: left, top, right, bottom (zero off a phone; sys/safe_area.gd)
+var away := false             # focus was lost: the game is paused behind the 돌아왔다 key (sys/away.gd)
 
 func key_down(k: int) -> bool:
 	return fake_keys.has(k) or touch_keys.has(k) or Input.is_key_pressed(k)
@@ -392,6 +398,9 @@ func glow_mat(c: Color, energy := 3.0) -> StandardMaterial3D:
 func _exit_tree() -> void:
 	music.shutdown()
 	ambience.shutdown()
+
+func _notification(what: int) -> void:
+	away_ui.notify(what)
 
 func _ready() -> void:
 	music.setup()
@@ -729,6 +738,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.119: v0.1.119: 화면 가장자리 배려 두 가지를 더했다. 전화기의 홈 막대와 카메라 구멍이 가리는 가장자리를 화면 안전 구역으로 읽어, 터치 단추, 기술 단추, 작은 지도, 메뉴 단추, 왼쪽 위 상태 칸, 할 일 줄이 그만큼 안쪽에 선다(안전 구역이 화면 전체거나 컴퓨터 창이면 한 칸도 움직이지 않는다). 또 전화나 다른 창으로 갔다 오면 게임이 멈추고 한가운데 돌아왔다 단추가 뜨며, 막대와 막기를 놓은 것으로 치고 그 단추를 누른 뒤에만 다시 움직인다. 열려 있던 이야기는 그 줄 그대로 남는다.",
 	"· v0.1.118: v0.1.118: 작은 정성 여덟 가지를 더했다. 설정에 읽기 속도(보통, 1.5배, 2배)가 생겨 긴 말풍선이 더 오래 떠 있고 다음 잡담은 그 말풍선이 사라진 뒤에 나온다. 한 손 조작을 켜면 막기와 달리기 단추를 한 번 눌러 켜고 다시 눌러 끄며 켜 둔 동안 단추 곁에 글자가 남는다. 왼손잡이 배치는 이동 막대와 전투 단추, 기술 단추 넷의 자리를 맞바꾼다. 팔찌 단추를 누르면 위에 상자 열기나 말 걸기 같은 할 일이 1.3초 뜬다. 막기 단추는 누른 엄지가 테두리에서 36px 안쪽으로 미끄러져도 유지된다. 전투 단추를 1.1배와 1.24배로 키울 수 있고 커져도 단추 사이는 10px 이상 벌어진다. 화면 가장자리의 말풍선은 안쪽으로 밀리고 꼬리는 말하는 이를 가리킨다. 8초 동안 손을 떼고 10칸 안에 적이 없으면 전투 단추가 30퍼센트 밝기로 옅어지고 첫 터치는 기다림 없이 먹힌다.",
 	"· v0.1.117: 작은 정성 열 가지를 더했다. 마을 갈림길에 세 번째로 돌아와 쉬면 소라가 지도를 펼쳐 지역 이름만 읽는다. 마을 남쪽의 작은 종 셋을 낮은 소리부터 치면 0.7초 뒤 먼 종이 세 음으로 답한다. 서재 책을 다시 읽으면 처음 덮은 쪽 모서리가 접혀 있다. 바닥의 네 벽돌을 칼 방향으로 돌려 모두 같은 쪽을 보게 하면 틈에서 꽃이 올라온다. 3일 이상 쉬었다 이어 하면 일지가 마지막으로 끝낸 일과 지금 갈 곳 두 줄만 먼저 보여 준다. 상점 약병 카드에 지금 마시면 오를 체력이 나온다. 일지의 마을 사람 이름을 누르면 집 번호와 낮과 밤에 만날 수 있는지 보인다. 실수로 닫은 세 줄 이상의 대화를 2초 안에 닫고 6초 안에 다시 열면 마지막 문장부터 이어진다. 저장이 오류 없이 끝나면 왼쪽 아래 태엽이 0.7초에 한 바퀴 돌고 일지에 마지막 저장 시각이 남으며 실패하면 글만 뜬다. 울림 수정을 칠 때 낮은 소리부터 1개에서 4개까지 점이 머리 위에 0.9초 뜬다.",
 	"· v0.1.116: 작은 정성 열 가지를 더했다. 분수 물소리가 2.5칸 안에서는 가득하고 16칸까지 서서히 잦아든다. 그림 이야기가 닫히면 소리가 0.5초 쉬었다가 1.5초에 걸쳐 돌아온다. 비 오는 날 집에 들어가면 바깥 빗소리가 1.0 → 0.2로 낮아지고 처마 두드리는 소리가 0.8로 올라온다. 비는 지붕 아래 소라 위에서만 멎고 다리 덮개 물에는 빗방울 고리가 생기지 않는다. 마을 사람이 켜진 등불 곁에 서면 분필 점이 하나씩 생겨 날이 바뀌면 지워진다. 여관에 같은 쪽에서 두 번 묵으면 그쪽에 찻잔이 놓인다. 저녁에는 나방 그림자 셋이 켜진 등불로 모이고 새벽에 흩어진다. 성의 작은 방 셋에서는 발소리가 0.3초 뒤 한 번 되돌아온다. 집 문에 막힌 화살은 짧은 막대가 되어 떨다 떨어진다.",

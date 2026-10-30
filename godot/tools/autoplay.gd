@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -289,6 +289,7 @@ func run() -> void:
 	main.sleep_off = true # the villagers stay out at night here; folk_sleep turns their sleep back on
 	main.routine_off = true # and on their spots by day; folk_routine turns their rounds on
 	main.folk_chat_off = true # and quiet; folk_chat lets them talk
+	main.away_ui.off = true # a window that loses focus under a test does not pause it; d96_back_button calls leave() itself
 	main.shore_q = 1 # the shore hint does not open over tests that wake Sora at the start; shore sets it itself
 	if only == "title_space": # the user's web save, then Space at the title, twice
 		var f := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
@@ -12135,7 +12136,7 @@ func run() -> void:
 		reset_to(view.at + Vector2(0.0, 0.5))
 		main.snap_mates()
 		var left16: bool = main.screen_left(view.look)
-		await wait_for(func(): return main.mate2.get_child(0).flip_h == left16 and main.mate.get_child(0).flip_h == (not left16), 4.0)
+		await wait_for(func(): return hz16.scenic_at == 0 and main.mate2.get_child(0).flip_h == left16 and main.mate.get_child(0).flip_h == (not left16), 4.0) # the faces can already match before the view is taken
 		var took: bool = hz16.scenic_at == 0 and main.mates.scenic_dir == view.look
 		var n_face: bool = main.mate2.get_child(0).flip_h == left16
 		var m_face: bool = main.mate.get_child(0).flip_h == (not left16)
@@ -15954,6 +15955,165 @@ func run() -> void:
 		calm_enemies(false)
 		check("d100_fade_keys", early100 and faint100 and hit100 and finger100 and sheet100 and foe_ok100 and swung100 and back100,
 			"not faint after 7 s=%s faint after 8 s (30%%)=%s hit areas stay=%s a finger down keeps them=%s a sheet=%s a foe near=%s first touch swings=%s keys back at once=%s" % [early100, faint100, hit100, finger100, sheet100, foe_ok100, swung100, back100])
+
+	if want.call("d95_safe_area"):
+		# the phone's home bar and camera hole: the safe area in canvas px keeps the touch keys, the skills, the minimap, the menu keys, the
+		# status block and the quest line inside it; with no unsafe edge (a desktop window, a whole-screen safe area) not one number moves (idea 95)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
+		var root95 := get_tree().root # a phone's canvas, 960 x 540 (the headless window is 64 px)
+		var scale95 := [root95.content_scale_mode, root95.content_scale_aspect, root95.content_scale_size]
+		root95.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root95.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root95.content_scale_size = Vector2i(960, 540)
+		var SA95 = load("res://sys/safe_area.gd")
+		var conv95: Vector4 = SA95.canvas_insets(Vector2i(2400, 1080), Rect2i(100, 0, 2200, 1050), Vector2i(2400, 1080), Vector2(960, 540))
+		var conv_ok95: bool = conv95 == Vector4(40, 0, 40, 12)
+		var whole95: bool = SA95.canvas_insets(Vector2i(2400, 1080), Rect2i(0, 0, 2400, 1080), Vector2i(2400, 1080), Vector2(960, 540)) == Vector4.ZERO
+		var window95: bool = SA95.canvas_insets(Vector2i(2400, 1080), Rect2i(100, 0, 2200, 1050), Vector2i(1280, 720), Vector2(960, 540)) == Vector4.ZERO
+		var big95: Vector4 = SA95.canvas_insets(Vector2i(2400, 1080), Rect2i(1200, 0, 1200, 1080), Vector2i(2400, 1080), Vector2(960, 540))
+		var clamp95: bool = big95.x == SA95.MAX_INSET
+		# the desktop: no touch keys, the real display read leaves the margins at zero
+		main.safe_area.held = false
+		main.safe_area.refresh()
+		var desk95: bool = main.safe == Vector4.ZERO
+		var spot_d95: Vector2 = main.ui.hud.skill_spot(0)
+		var status_d95: Rect2 = main.hud_build.status_rect()
+		await main.enable_touch()
+		await wait(0.2)
+		var tl95: Control = main.touch_layer
+		var vs95: Vector2 = get_viewport().get_visible_rect().size
+		var base95: Dictionary = tl95.keys().duplicate(true)
+		var skill_b95: Vector2 = main.ui.hud.skill_spot(3)
+		var mini_b95: Rect2 = main.ui.mini.get_parent().get_global_rect()
+		var menu_b95: Rect2 = main.ui.journal_btn.get_global_rect()
+		var status_b95: Rect2 = main.hud_build.status_rect()
+		var zero95: bool = main.safe == Vector4.ZERO
+		main.safe_area.held = true
+		main.safe_area.apply(Vector4(40, 10, 40, 12))
+		main.quest_raw = "달빛이 닿는 데까지 가 보자"
+		main.ui.quest.text = main.quest_shown(main.quest_raw)
+		main.ui.quest.visible = true
+		main.hud_build.layout_top()
+		await wait(0.2)
+		var safe95 := Rect2(40, 10, vs95.x - 80.0, vs95.y - 22.0)
+		var keys95: Dictionary = tl95.keys()
+		var moved95: bool = is_equal_approx(keys95.attack[0].x, base95.attack[0].x - 40.0) and is_equal_approx(keys95.attack[0].y, base95.attack[0].y - 12.0) \
+			and is_equal_approx(keys95.zoom_in[0].y, base95.zoom_in[0].y + 10.0) and is_equal_approx(keys95.zoom_in[0].x, base95.zoom_in[0].x - 40.0) \
+			and is_equal_approx(keys95.skill3[0].x, base95.skill3[0].x - 40.0) and is_equal_approx(keys95.skill3[0].y, base95.skill3[0].y - 12.0) \
+			and is_equal_approx(main.ui.hud.skill_spot(3).x, skill_b95.x - 40.0) and is_equal_approx(main.ui.hud.skill_spot(3).y, skill_b95.y - 12.0)
+		var inside95 := true
+		for n in keys95:
+			var rc95 := Rect2(keys95[n][0] - Vector2.ONE * keys95[n][1], Vector2.ONE * keys95[n][1] * 2.0)
+			if not safe95.encloses(rc95):
+				inside95 = false
+		var corner95: bool = safe95.encloses(main.ui.mini.get_parent().get_global_rect()) and safe95.encloses(main.ui.journal_btn.get_global_rect()) \
+			and safe95.encloses(main.ui.bag_btn.get_global_rect()) and is_equal_approx(main.ui.mini.get_parent().get_global_rect().end.x, mini_b95.end.x - 40.0) \
+			and is_equal_approx(main.ui.journal_btn.get_global_rect().position.y, menu_b95.position.y + 10.0)
+		var status95: Rect2 = main.hud_build.status_rect()
+		var block95: bool = status95.position == Vector2(40, 10) and status95.size == status_b95.size
+		var quest95: Rect2 = main.hud_build.quest_deco
+		var line95: bool = quest95.size != Vector2.ZERO and quest95.position.x >= 40.0 and quest95.end.x <= vs95.x - 40.0
+		# a finger on a key at its new place hits it
+		var hit95: bool = tl95.key_at(keys95.attack[0]) == "attack" and tl95.key_at(keys95.attack[0] + Vector2(0, 150)) != "attack"
+		# the mirrored layout reads the left margin
+		main.cfg.lefty = true
+		var left95: Dictionary = tl95.keys()
+		main.cfg.lefty = false
+		var mirror95: bool = left95.attack[0].x >= 40.0 + left95.attack[1] and is_equal_approx(left95.attack[0].x, tl95.GEOM[tl95.size_level()].attack[0] + 40.0)
+		# the margins go: every number is back where it was
+		main.safe_area.apply(Vector4.ZERO)
+		main.hud_build.layout_top()
+		await wait(0.1)
+		var back_keys95: Dictionary = tl95.keys()
+		var back95: bool = true
+		for n in base95:
+			if back_keys95[n][0] != base95[n][0] or back_keys95[n][1] != base95[n][1]:
+				back95 = false
+		back95 = back95 and main.ui.hud.skill_spot(3) == skill_b95 and main.ui.mini.get_parent().get_global_rect() == mini_b95 \
+			and main.ui.journal_btn.get_global_rect() == menu_b95 and main.hud_build.status_rect() == status_b95
+		main.safe_area.held = false
+		main.disable_touch()
+		calm_enemies(false)
+		var desk_back95: bool = main.safe == Vector4.ZERO and main.ui.hud.skill_spot(0) == spot_d95 and main.hud_build.status_rect() == status_d95
+		root95.content_scale_mode = scale95[0]
+		root95.content_scale_aspect = scale95[1]
+		root95.content_scale_size = scale95[2]
+		check("d95_safe_area", conv_ok95 and whole95 and window95 and clamp95 and desk95 and zero95 and moved95 and inside95 and corner95 and block95 and line95 and hit95 and mirror95 and back95 and desk_back95,
+			"converts %s (40 0 40 12)=%s whole-screen safe area gives zero=%s a smaller window gives zero=%s clamp %d=%s desktop zero=%s phone zero first=%s keys, skills and zoom move in=%s all inside the safe box=%s minimap and menu keys=%s status block=%s quest line %s=%s key hit at the new place=%s mirrored reads the left margin=%s margins gone, nothing moved=%s desktop unchanged=%s" % [conv95, conv_ok95, whole95, window95, int(big95.x), clamp95, desk95, zero95, moved95, inside95, corner95, block95, quest95, line95, hit95, mirror95, back95, desk_back95])
+	if want.call("d96_back_button"):
+		# losing the window's focus on a phone (or with the touch keys on) pauses the game under a centred 돌아왔다 key; the stick and held keys let go,
+		# the world and the clock wait, an open story keeps its line, and play goes on only after the key is pressed (idea 96)
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
+		var root96 := get_tree().root # a phone's canvas, 960 x 540 (the headless window is 64 px)
+		var scale96 := [root96.content_scale_mode, root96.content_scale_aspect, root96.content_scale_size]
+		root96.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+		root96.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+		root96.content_scale_size = Vector2i(960, 540)
+		var au96 = main.away_ui
+		# the tests keep it off, and a desktop without touch keys never fires
+		au96.notify(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+		var off96: bool = not main.away and not main.get_tree().paused
+		au96.off = false
+		au96.notify(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+		var desk96: bool = not main.away and not main.get_tree().paused
+		await main.enable_touch()
+		await wait(0.2)
+		var tl96: Control = main.touch_layer
+		reset_to(main.START)
+		main.show_story("", ["||첫째 줄", "||둘째 줄"])
+		await wait(0.3)
+		var line96: String = main.ui.story_text.text
+		tl96.pad_idx = 5
+		tl96.held[6] = "guard"
+		main.touch_keys[KEY_L] = true
+		main.touch_move = Vector2(1, 0)
+		var t0: float = main.t
+		au96.notify(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+		await wait(0.4)
+		var paused96: bool = main.away and main.get_tree().paused and au96.layer.visible
+		var still96: bool = is_equal_approx(main.t, t0)
+		var let_go96: bool = tl96.pad_idx == -1 and tl96.held.is_empty() and main.touch_keys.is_empty() and main.touch_move == Vector2.ZERO
+		var vs96: Vector2 = get_viewport().get_visible_rect().size
+		var bc96: Vector2 = au96.button.get_global_rect().get_center()
+		var centred96: bool = bc96.distance_to(vs96 / 2.0) < 2.0 and au96.button.text == tr("돌아왔다")
+		var story_kept96: bool = main.story_open and main.ui.story_text.text == line96
+		# a key press or a tap beside the key does not bring play back
+		tap(KEY_W)
+		var beside := InputEventMouseButton.new()
+		beside.button_index = MOUSE_BUTTON_LEFT
+		beside.position = Vector2(3, 3)
+		beside.pressed = true
+		Input.parse_input_event(beside)
+		var beside_up := beside.duplicate()
+		beside_up.pressed = false
+		Input.parse_input_event(beside_up)
+		await wait(0.3)
+		var waits96: bool = main.away and main.get_tree().paused and is_equal_approx(main.t, t0) and main.story_open
+		# the key itself, pressed like a finger would
+		au96.button.pressed.emit() # the key as a finger presses it
+		await wait(0.5)
+		var back96: bool = not main.away and not main.get_tree().paused and not au96.layer.visible and main.t > t0 + 0.2
+		var story_back96: bool = main.story_open and main.ui.story_text.text == line96
+		main.close_story()
+		# a second loss of focus works again; the paused call is the phone's
+		au96.notify(Node.NOTIFICATION_APPLICATION_PAUSED)
+		var again96: bool = main.away and main.get_tree().paused
+		au96.back()
+		var done96: bool = not main.away and not main.get_tree().paused
+		au96.off = true
+		main.disable_touch()
+		root96.content_scale_mode = scale96[0]
+		root96.content_scale_aspect = scale96[1]
+		root96.content_scale_size = scale96[2]
+		calm_enemies(false)
+		check("d96_back_button", off96 and desk96 and paused96 and still96 and let_go96 and centred96 and story_kept96 and waits96 and back96 and story_back96 and again96 and done96,
+			"tests keep it off=%s desktop without touch keys=%s paused=%s clock stands=%s stick and keys let go=%s key centred=%s story line kept=%s a key press and a tap beside do nothing=%s the key brings play back=%s story still on its line=%s paused call works=%s ends=%s" % [off96, desk96, paused96, still96, let_go96, centred96, story_kept96, waits96, back96, story_back96, again96, done96])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

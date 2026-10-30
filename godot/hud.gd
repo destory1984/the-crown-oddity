@@ -185,9 +185,12 @@ func skill_spot(i: int) -> Vector2:
 	var vs := get_viewport_rect().size
 	var sz := skill_size()
 	var x := vs.x - 8.0 - sz / 2.0 - (3 - i) * (sz + 8.0)
+	var sf: Vector4 = main.safe # the home bar and the camera hole (idea 95)
 	if main.touch_ui and bool(main.cfg.get("lefty", false)): # the mirrored layout (delight idea 91) puts the skills in the left corner
-		x = vs.x - x
-	return Vector2(x, vs.y - 59.0)
+		x = vs.x - x + sf.x
+	else:
+		x -= sf.z
+	return Vector2(x, vs.y - 59.0 - sf.w)
 
 var pips_drawn := 0 # diamonds in the moon gauge at the last draw (autoplay pips)
 var tokens_lit := 0 # lit gems in the token row at the last draw, and how many it drew (autoplay tokens)
@@ -217,6 +220,7 @@ func _draw() -> void:
 		draw_pip_hint()
 	var p: Dictionary = main.player
 	var vs := get_viewport_rect().size
+	draw_set_transform(Vector2(main.safe.x, main.safe.y)) # the top left cluster keeps clear of the camera hole (idea 95)
 	# ---- portrait and level
 	# on a wide screen the ring is as big as the minimap's 186 px bezel (r 63 -> 93, the owner, 2026-10-27) and level with
 	# it, 8 px from the top like the minimap (the owner, 2026-10-28), the crown point sitting on the ring's top instead of
@@ -308,6 +312,7 @@ func _draw() -> void:
 	text(Vector2(10, 276 + low), main.ui.zone_sub.text, 15, DIM)
 	if main.ng > 0: # the round and how much tougher than the first the monsters are
 		text(Vector2(10, 299 + low), main.errands.round_badge(), 15, GOLD)
+	draw_set_transform(Vector2.ZERO)
 	# ---- quest ornaments: from the box hud_build laid the quest text out in, so no line crosses the text
 	if main.ui.quest.visible and main.hud_build.quest_deco.size != Vector2.ZERO:
 		var d: Rect2 = main.hud_build.quest_deco

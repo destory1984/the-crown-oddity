@@ -113,6 +113,24 @@ func update_mate_hud() -> void:
 
 # ---- phones: the touch layer over the HUD, and the four menu keys two by two left of the minimap (the stick takes
 # the bottom left); the zoom keys stand in a column left of them, clear of the boss bar and the quest line
+func place_menu_keys() -> void:
+	var sf: Vector4 = m.safe
+	var col := [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn] # two by two, 60 px like the zoom coins and the skills, 8 px apart, left of the minimap
+	for i in col.size():
+		place(col[i], Control.PRESET_TOP_RIGHT, Vector2(-194 - 8 - 60 - (1 - i % 2) * 68 - sf.z, 8 + (i / 2) * 68 + sf.y), Vector2(60, 60))
+	place(m.ui.bag_btn, Control.PRESET_TOP_RIGHT, Vector2(-466 - sf.z, 8 + sf.y), Vector2(60, 60)) # the bag key: left of the zoom coins' column (x -368 +- 30), 8 px off them, level with the first row; a third row under the journal key met the quest line
+
+# the phone's unsafe margins changed (m.safe): the minimap, the menu keys and the companions' rows move in from the edges; the
+# status block and the skills read m.safe themselves (hud.gd)
+func apply_safe() -> void:
+	var sf: Vector4 = m.safe
+	if m.ui.get("mini") != null:
+		place(m.ui.mini.get_parent(), Control.PRESET_TOP_RIGHT, Vector2(-194 - sf.z, 8 + sf.y), Vector2(186, 186))
+	if m.touch_ui and m.ui.get("bag_btn") != null:
+		place_menu_keys()
+	for i in m.ui.mate_rows.size():
+		m.ui.mate_rows[i].row.position.y = MATES_TOP + i * 34 + sf.y
+
 func enable_touch() -> void:
 	m.touch_ui = true
 	m.keys_last = false
@@ -121,10 +139,8 @@ func enable_touch() -> void:
 		m.touch_layer.set_script(load("res://touch.gd"))
 		m.touch_layer.main = m
 		m.ui.root.add_child(m.touch_layer)
-	var col := [m.ui.hint, m.ui.sound_btn, m.ui.journal_btn, m.ui.settings_btn] # two by two, 60 px like the zoom coins and the skills, 8 px apart, left of the minimap
-	for i in col.size():
-		place(col[i], Control.PRESET_TOP_RIGHT, Vector2(-194 - 8 - 60 - (1 - i % 2) * 68, 8 + (i / 2) * 68), Vector2(60, 60))
-	place(m.ui.bag_btn, Control.PRESET_TOP_RIGHT, Vector2(-466, 8), Vector2(60, 60)) # the bag key: left of the zoom coins' column (x -368 +- 30), 8 px off them, level with the first row; a third row under the journal key met the quest line
+	m.safe_area.refresh() # the home bar and the camera hole (idea 95)
+	place_menu_keys()
 	m.ui.bag_btn.visible = not m.intro
 	use_touch_help(true)
 	m.cfg.text = maxi(int(m.cfg.text), 2) # text a size up on a small screen
@@ -170,11 +186,12 @@ func big_portrait() -> bool:
 # the four bars with their numbers and the moon gauge
 func status_rect() -> Rect2:
 	var half := 109.0 if m.touch_ui else 0.0 # phones draw the bars half as long (hud.gd bar_w)
-	return Rect2(0, 0, 548 - half, STATUS_H) if big_portrait() else Rect2(0, 0, 472 - half, STATUS_H)
+	var at := Vector2(m.safe.x, m.safe.y)
+	return Rect2(at, Vector2(548 - half, STATUS_H)) if big_portrait() else Rect2(at, Vector2(472 - half, STATUS_H))
 
 # sun and moon dial, zone name and sub-line, 60 px lower under the big ring
 func dial_rect() -> Rect2:
-	return Rect2(0, 228, 240, 112) if big_portrait() else Rect2(0, 168, 240, 112)
+	return Rect2(m.safe.x, 228 + m.safe.y, 240, 112) if big_portrait() else Rect2(m.safe.x, 168 + m.safe.y, 240, 112)
 const QUEST_PAD := 14.0 # the gold ornaments reach this far past the text sideways, 12 px up and down
 var quest_deco := Rect2() # the ornaments' box around the quest text, drawn by hud.gd
 var side_label: Label = null # the running side step, a small dim line under the quest
@@ -262,11 +279,13 @@ func update_side() -> void:
 
 func layout_top() -> void:
 	var vs := m.get_viewport().get_visible_rect().size
+	var sv: Vector4 = m.safe # the phone's unsafe margins (idea 95); all zero elsewhere, so no number below moves
+	var rx := vs.x - sv.z # the right edge of the safe area
 	var wide: bool = vs.x >= 1180.0 and not m.touch_ui
 	for i in m.ui.mate_rows.size():
-		m.ui.mate_rows[i].row.position.x = 206.0 if big_portrait() else 140.0
+		m.ui.mate_rows[i].row.position.x = (206.0 if big_portrait() else 140.0) + sv.x
 	var mates := mates_rect()
-	var x0 := maxf(296.0, mates.end.x + 8.0) if m.touch_ui else (mates.end.x + 8.0 if mates.size != Vector2.ZERO else (210.0 if big_portrait() else 244.0)) # right of the left column
+	var x0 := maxf(296.0 + sv.x, mates.end.x + 8.0) if m.touch_ui else (mates.end.x + 8.0 if mates.size != Vector2.ZERO else (210.0 if big_portrait() else 244.0)) # right of the left column
 	# boss bar: top centre on a wide screen; else in the free band between the left column and the minimap, or under the
 	# minimap and shrunk when that band is too narrow for its 440 px
 	var b: Control = m.ui.boss
@@ -277,17 +296,17 @@ func layout_top() -> void:
 	if wide:
 		bx = maxf(vs.x / 2.0 - 220.0, status_rect().end.x + 8.0) # clear of the bars' numbers on a screen only just wide
 		by = 14.0
-	elif vs.x - 202.0 - x0 >= 440.0:
-		bx = (x0 + vs.x - 202.0) / 2.0 - 220.0
-		by = STATUS_H + 2.0 # under the gem row
-	elif m.touch_ui and vs.x - 202.0 - x0 >= 220.0: # a phone: shrunk in the band beside the minimap, so the quest line keeps the rows under it clear of the shield and dodge keys
+	elif rx - 202.0 - x0 >= 440.0:
+		bx = (x0 + rx - 202.0) / 2.0 - 220.0
+		by = STATUS_H + 2.0 + sv.y # under the gem row
+	elif m.touch_ui and rx - 202.0 - x0 >= 220.0: # a phone: shrunk in the band beside the minimap, so the quest line keeps the rows under it clear of the shield and dodge keys
 		bx = x0
-		by = STATUS_H + 2.0
-		bs = minf(1.0, (vs.x - 202.0 - x0) / 440.0)
+		by = STATUS_H + 2.0 + sv.y
+		bs = minf(1.0, (rx - 202.0 - x0) / 440.0)
 	else:
 		bx = x0
-		by = 202.0
-		bs = minf(1.0, (vs.x - 8.0 - x0) / 440.0)
+		by = 202.0 + sv.y
+		bs = minf(1.0, (rx - 8.0 - x0) / 440.0)
 	b.scale = Vector2.ONE * bs
 	b.offset_left = bx - vs.x / 2.0
 	b.offset_right = b.offset_left + 440.0
@@ -312,21 +331,21 @@ func layout_top() -> void:
 		cands.append([status_rect().end.x + 8.0, vs.x - 202.0, 62.0, true])
 		if b.visible:
 			cands.append([status_rect().end.x + 8.0, vs.x - 202.0, boss_end + 16.0, true])
-	var band_r := vs.x - 202.0 # the band's right edge: the minimap column; on touch also the shield key's left edge
+	var band_r := rx - 202.0 # the band's right edge: the minimap column; on touch also the shield key's left edge
 	if m.touch_layer != null and not m.touch_layer.lefty():
 		band_r = minf(band_r, (m.touch_layer.keys().guard[0] as Vector2).x - (m.touch_layer.keys().guard[1] as float) - 8.0)
-	cands.append([x0, band_r, STATUS_H + 12.0, false]) # its ornaments reach 12 px up: clear of the gem row's box
+	cands.append([x0, band_r, STATUS_H + 12.0 + sv.y, false]) # its ornaments reach 12 px up: clear of the gem row's box
 	if b.visible:
 		cands.append([x0, band_r, boss_end + 12.0, false])
 	var low := maxf(maxf(mates.end.y, boss_end), 194.0) + 14.0
-	cands.append([dial_rect().end.x + 4.0, vs.x - 8.0, low, false])
-	cands.append([8.0, vs.x - 8.0, dial_rect().end.y + 14.0, false])
+	cands.append([dial_rect().end.x + 4.0, rx - 8.0, low, false])
+	cands.append([8.0 + sv.x, rx - 8.0, dial_rect().end.y + 14.0, false])
 	# a narrow screen has no free band at the top: the line goes under Sora, between her and the keys and skills
 	var pr := player_rect()
-	var gold_left := vs.x - 92.0 if not m.touch_ui else vs.x - 8.0
+	var gold_left := vs.x - 92.0 if not m.touch_ui else rx - 8.0
 	if pr.size != Vector2.ZERO:
-		cands.append([8.0, gold_left, pr.end.y + 14.0, true])
-		cands.append([8.0, gold_left, pr.end.y + 2.0, true])
+		cands.append([8.0 + sv.x, gold_left, pr.end.y + 14.0, true])
+		cands.append([8.0 + sv.x, gold_left, pr.end.y + 2.0, true])
 	# first with Sora's middle kept clear (and the side line shown; a screen with no room for the extra line shows the quest
 	# alone), then the old way when a long text finds no such place (her middle may be crossed)
 	var best: Dictionary = {}
@@ -422,6 +441,7 @@ func fit_journal() -> void:
 # the autoplay test turns the touch layer off again, and the menu keys go back to the bottom left
 func disable_touch() -> void:
 	m.touch_ui = false
+	m.safe_area.apply(Vector4.ZERO) # off the phone the margins go too
 	m.touch_move = Vector2.ZERO
 	m.touch_keys.clear()
 	if m.touch_layer != null:

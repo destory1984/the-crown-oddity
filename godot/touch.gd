@@ -87,14 +87,15 @@ func keys() -> Dictionary:
 	var vs := get_viewport_rect().size
 	var k := {}
 	var g: Dictionary = GEOM[size_level()]
+	var sf: Vector4 = main.safe # the home bar and the camera hole (idea 95): zero on a screen with none
 	# guard, dodge and the bracelet one size (the owner, 2026-10-28: "이 3개 아이콘도 크기 통일"; the bracelet was 38)
 	for n in ["attack", "dodge", "guard", "crown"] + (["run"] if one_hand() else []):
 		var a: Array = g[n]
-		k[n] = [Vector2(a[0] if lefty() else vs.x - a[0], vs.y - a[1]), a[2]]
+		k[n] = [Vector2(a[0] + sf.x if lefty() else vs.x - a[0] - sf.z, vs.y - a[1] - sf.w), a[2]]
 	# round coins like the menu keys, 60 px, a column left of them level with their two rows: clear of the boss bar
 	# and the quest line under them
-	k["zoom_in"] = [Vector2(vs.x - 368, 38), 30.0]
-	k["zoom_out"] = [Vector2(vs.x - 368, 106), 30.0]
+	k["zoom_in"] = [Vector2(vs.x - 368 - sf.z, 38 + sf.y), 30.0]
+	k["zoom_out"] = [Vector2(vs.x - 368 - sf.z, 106 + sf.y), 30.0]
 	for i in 4: # the skill icons hud.gd draws (U I O and the potion)
 		k["skill%d" % i] = [main.ui.hud.skill_spot(i), main.ui.hud.skill_size() / 2.0 + 2.0]
 	return k
@@ -102,7 +103,7 @@ func keys() -> Dictionary:
 # the keys are for play only: a story, the shop, a sheet or the settings take taps as clicks
 func playing() -> bool:
 	return not main.intro and not main.story_open and not main.shop_open and not main.settings_open \
-		and not main.ui.journal.visible and not main.ui.help.visible and not main.ui.bag.visible and not main.way_open and main.down_t <= 0.0
+		and not main.ui.journal.visible and not main.ui.help.visible and not main.ui.bag.visible and not main.way_open and main.down_t <= 0.0 and not main.away
 
 func key_at(p: Vector2) -> String:
 	var k := keys()
@@ -196,6 +197,7 @@ func step_aside() -> void:
 		c.visible = not up
 
 func _process(dt: float) -> void:
+	main.safe_area.update(dt)
 	step_aside()
 	if not playing():
 		if pad_idx >= 0: # a story or a sheet opened under the thumb: let go of everything
@@ -231,7 +233,8 @@ func _draw() -> void:
 		return
 	# the stick: under the thumb while held, a faint one at rest where the left thumb usually lies
 	var fade := 1.0 - dim * (1.0 - FADE_TO) # the combat keys and the resting stick only
-	var base := pad_origin if pad_idx >= 0 else Vector2(vs.x - 150 if lefty() else 150, vs.y - 160)
+	var sf: Vector4 = main.safe
+	var base := pad_origin if pad_idx >= 0 else Vector2(vs.x - 150 - sf.z if lefty() else 150 + sf.x, vs.y - 160 - sf.w)
 	var knob := pad_at if pad_idx >= 0 else base
 	var a := 0.95 if pad_idx >= 0 else 0.45 * fade
 	draw_texture_rect(tex.stick_base, Rect2(base - Vector2(96, 96), Vector2(192, 192)), false, Color(1, 1, 1, a))
@@ -266,11 +269,11 @@ func _draw() -> void:
 		var lw := f.get_string_size(lt, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x
 		var lc: Vector2 = k["attack"][0]
 		var ly: float = lc.y + (k["attack"][1] as float) + 20.0
-		draw_string(f, Vector2(clampf(lc.x - lw / 2.0, 6.0, vs.x - lw - 6.0), ly), lt, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#ffd86a"))
+		draw_string(f, Vector2(clampf(lc.x - lw / 2.0, 6.0 + sf.x, vs.x - lw - 6.0 - sf.z), ly), lt, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#ffd86a"))
 	if crown_say_t > 0.0 and crown_say != "": # what the bracelet key is about to do, above the key the finger hides (idea 92)
 		var cc: Vector2 = k["crown"][0]
 		var cw := f.get_string_size(crown_say, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
-		var bx := clampf(cc.x - cw / 2.0 - 8.0, 4.0, vs.x - cw - 20.0)
+		var bx := clampf(cc.x - cw / 2.0 - 8.0, 4.0 + sf.x, vs.x - cw - 20.0 - sf.z)
 		var by: float = cc.y - (k["crown"][1] as float) * 1.1 - 38.0
 		var ca := clampf(crown_say_t / 0.4, 0.0, 1.0)
 		draw_rect(Rect2(bx, by, cw + 16.0, 32.0), Color(0.02, 0.04, 0.09, 0.82 * ca))
