@@ -84,6 +84,7 @@ func update_daylight(dt: float) -> void:
 	var k := smoothstep(0.0, 1.0, (m.hour - a.h) / (b.h - a.h))
 	m.sun.light_color = Color(a.sun).lerp(Color(b.sun), k)
 	m.night = lerpf(a.night, b.night, k)
+	m.world_build.update_lamp_moths(dt)
 	# night is brighter than it was (the user asked twice): more moonlight and about 3.8x the ambient at full night (asked three times)
 	m.sun.light_energy = lerpf(a.si, b.si, k) * 1.1 * lerpf(1.0, 1.4 + 1.0 * moon_phase().x, m.night) # fuller moon, brighter night
 	m.env.ambient_light_color = Color(a.amb).lerp(Color(b.amb), k)

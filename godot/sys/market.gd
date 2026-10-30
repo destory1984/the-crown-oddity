@@ -300,6 +300,44 @@ func end_targets() -> void:
 func crit_mult() -> float:
 	return 2.0 if m.has_medal else 1.8
 
+# 28: the inn remembers which side of its door she stood on (-1 left, 0 in front, 1 right on the screen's x axis). Stay twice running
+# from the same side and a cup of tea is set out on that side of the step, until she stays from another side. Only a picture.
+const INN_SIDE_GAP := 0.15
+const INN_CUP_SIDE := 0.9
+var inn_side := 0
+var inn_streak := 0 # stays in a row from inn_side
+var inn_cup: Node3D
+
+func inn_side_of(x: float) -> int:
+	var dx: float = x - m.village.marks.N.x
+	return 0 if absf(dx) <= INN_SIDE_GAP else (1 if dx > 0.0 else -1)
+
+func inn_stayed(side: int) -> void:
+	inn_streak = inn_streak + 1 if inn_streak > 0 and side == inn_side else 1
+	inn_side = side
+	inn_cup_show()
+
+func build_inn_cup() -> void:
+	inn_cup = Node3D.new()
+	var saucer: MeshInstance3D = m.box(Vector3(0.18, 0.02, 0.18), m.mat_color(Color("#f2ead8")))
+	saucer.position.y = 0.01
+	inn_cup.add_child(saucer)
+	var cup: MeshInstance3D = m.box(Vector3(0.1, 0.09, 0.1), m.mat_color(Color("#e8dcc4")))
+	cup.position.y = 0.065
+	inn_cup.add_child(cup)
+	var tea: MeshInstance3D = m.box(Vector3(0.08, 0.01, 0.08), m.mat_color(Color("#9a6a3a")))
+	tea.position.y = 0.112
+	inn_cup.add_child(tea)
+	m.add_child(inn_cup)
+	inn_cup_show()
+
+func inn_cup_show() -> void:
+	if inn_cup == null:
+		return
+	inn_cup.visible = inn_streak >= 2
+	var n: Vector2 = m.village.marks.N
+	inn_cup.position = Vector3(n.x + inn_side * INN_CUP_SIDE, m.height_at(n.x, n.y) + 0.01, n.y - 0.4)
+
 var inn_fresh := false # she has just come out of the inn and has not rested yet (sora.idle_pick)
 
 # the inn: 10 gold for a night. Everyone is healed, and she wakes at 7 the next morning (the first night, a short talk)
@@ -309,6 +347,7 @@ func stay_inn() -> void:
 		return
 	m.player.gold -= 10
 	m.inn_nights += 1
+	var side := inn_side_of(m.player.x)
 	m.fade_then(func():
 		m.player.hp = float(m.player.max_hp)
 		m.player.sp = 100.0
@@ -319,6 +358,7 @@ func stay_inn() -> void:
 			m.day += 1
 		m.hour = 7.0
 		inn_fresh = true # her first rest after this ends in a stretch (delight idea 69)
+		inn_stayed(side)
 		m.player.x = m.village.marks.N.x
 		m.player.z = m.village.marks.N.y + 0.8
 		m.snap_mates()

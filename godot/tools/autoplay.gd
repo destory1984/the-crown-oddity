@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -14421,6 +14421,561 @@ func run() -> void:
 		main.in_village = false
 		check("d24_can", built24 and closed24 and hit_target and away24 and far24 and rattled and rocking and score_same and quick24 and settled and again24 and next_round,
 			"3 cans and a keeper's spot=%s game closed: none=%s a hit target: none=%s facing away: none=%s too far: none=%s a miss reaching a can rattles it, clinks, one bubble=%s it rocks=%s score unchanged=%s within 0.6 s: none=%s it settles=%s second cut rattles without a second laugh=%s a new round laughs again=%s" % [built24, closed24, hit_target, away24, far24, rattled, rocking, score_same, quick24, settled, again24, next_round])
+
+	if want.call("d25_chalk"):
+		# a villager who settles at a stop beside a lit lamp scratches one chalk dot at the lamp's foot (up to 5 a lamp), none beside a dark lamp, far from any lamp or out of the village; a new game day rubs them out; the lamps are not touched (idea 25)
+		var fk25: Object = main.folk
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var lamps25: Array = main.village_life.village_lamps().filter(func(l): return not l.get_meta("dark", false) and l != main.dark_lamp)
+		var built25: bool = lamps25.size() >= 2
+		var lamp25: OmniLight3D = lamps25[0]
+		var post25 := Vector2(lamp25.position.x - 0.3, lamp25.position.z)
+		var count25: int = main.lanterns.size()
+		var keep_day25: int = main.day
+		main.day = 40
+		fk25.update_chalk()
+		var clean25: bool = fk25.chalk.is_empty() and fk25.chalk_day == 40
+		var n0: int = fk25.chalk_made
+		fk25.chalk_stop("dusol", post25 + Vector2(1.5, 0.0))
+		var one25: bool = fk25.chalk_made == n0 + 1 and fk25.chalk.get(lamp25, []).size() == 1
+		var dot25: MeshInstance3D = fk25.last_chalk
+		var foot25: bool = Vector2(dot25.position.x, dot25.position.z).distance_to(post25) < 0.4 and dot25.position.y < 0.2
+		await wait(0.4)
+		var grown25: bool = dot25.scale.x > 0.95
+		for i in 8:
+			fk25.chalk_stop("dusol", post25 + Vector2(1.0, 0.5))
+		var capped25: bool = fk25.chalk.get(lamp25, []).size() == fk25.CHALK_MAX
+		var made_far: int = fk25.chalk_made
+		fk25.chalk_stop("dusol", post25 + Vector2(30.0, 30.0))
+		var far25: bool = fk25.chalk_made == made_far
+		var other25: OmniLight3D = lamps25[1]
+		var post_o := Vector2(other25.position.x - 0.3, other25.position.z)
+		other25.set_meta("dark", true)
+		fk25.chalk_stop("dusol", post_o)
+		other25.set_meta("dark", false)
+		var dark25: bool = fk25.chalk_made == made_far
+		main.in_village = false
+		fk25.chalk_stop("dusol", post_o)
+		main.in_village = true
+		var out25: bool = fk25.chalk_made == made_far
+		# a real round: kongal reaches the stop at (10, 15), which stands 1.3 tiles from a lit lamp
+		var hook_at: Vector2 = fk25.route_at("kongal", 0)
+		var keep_route = main.folk_route.get("kongal")
+		reset_to(hook_at + Vector2(12.0, 0.0))
+		main.folk_route["kongal"] = {"i": 0, "wait": 0.0, "pos": hook_at - Vector2(0.02, 0.0), "back": false, "dir": 1}
+		fk25.route_update("kongal", 0.1, false, 1.0)
+		var hook25: bool = fk25.chalk_made > made_far or fk25.chalk.values().any(func(a): return a.size() == fk25.CHALK_MAX)
+		if keep_route == null:
+			main.folk_route.erase("kongal")
+		else:
+			main.folk_route["kongal"] = keep_route
+		var old25: Array = []
+		for dots in fk25.chalk.values():
+			old25.append_array(dots)
+		main.day = 41
+		fk25.update_chalk()
+		var rubbed25: bool = fk25.chalk.is_empty() and fk25.chalk_day == 41
+		await wait(0.15)
+		var gone25: bool = old25.all(func(d): return not is_instance_valid(d))
+		var lamps_same: bool = main.lanterns.size() == count25 and not lamp25.get_meta("dark", false)
+		main.day = keep_day25
+		fk25.chalk_day = -1
+		main.in_village = false
+		check("d25_chalk", built25 and clean25 and one25 and foot25 and grown25 and capped25 and far25 and dark25 and out25 and hook25 and rubbed25 and gone25 and lamps_same,
+			"2 lit lamps=%s a new day starts clean=%s a stop by a lamp: one dot=%s at its foot=%s it grows=%s capped at 5=%s far from lamps: none=%s dark lamp: none=%s outside the village: none=%s a real stop makes one=%s a new day rubs them out=%s freed=%s lamps unchanged=%s" % [built25, clean25, one25, foot25, grown25, capped25, far25, dark25, out25, hook25, rubbed25, gone25, lamps_same])
+	if want.call("d28_inn_cup"):
+		# two stays in a row from the same side of the inn's door set a cup of tea on that side (x offset 0.9, z 0.4 before the mark); another side starts over; too little gold changes nothing; both numbers are saved (idea 28)
+		var mk28: Object = main.market
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		calm_enemies(true)
+		var keep28 := {"gold": main.player.gold, "hour": main.hour, "day": main.day, "nights": main.inn_nights, "side": mk28.inn_side, "streak": mk28.inn_streak, "fresh": mk28.inn_fresh}
+		var n28: Vector2 = main.village.marks.N
+		main.player.gold = 100
+		main.inn_nights = 2 # not the first night: no talk
+		mk28.inn_side = 0
+		mk28.inn_streak = 0
+		mk28.inn_cup_show()
+		var built28: bool = mk28.inn_cup != null and not mk28.inn_cup.visible
+		var sides28: bool = mk28.inn_side_of(n28.x + 0.6) == 1 and mk28.inn_side_of(n28.x - 0.6) == -1 and mk28.inn_side_of(n28.x + 0.1) == 0
+		reset_to(n28 + Vector2(0.6, 1.0))
+		mk28.stay_inn()
+		await wait(0.95)
+		var first28: bool = mk28.inn_streak == 1 and mk28.inn_side == 1 and not mk28.inn_cup.visible
+		reset_to(n28 + Vector2(0.5, 1.0))
+		mk28.stay_inn()
+		await wait(0.95)
+		var cup28: bool = mk28.inn_streak == 2 and mk28.inn_cup.visible and is_equal_approx(mk28.inn_cup.position.x, n28.x + 0.9) and is_equal_approx(mk28.inn_cup.position.z, n28.y - 0.4)
+		var saved28 := {}
+		var f28 := FileAccess.open(main.SAVE_PATH, FileAccess.READ)
+		if f28 != null:
+			var parsed28: Variant = JSON.parse_string(f28.get_as_text())
+			if parsed28 is Dictionary:
+				saved28 = parsed28
+			f28.close()
+		var save28: bool = saved28.get("inn_side", -9) == 1 and saved28.get("inn_streak", -9) == 2
+		reset_to(n28 + Vector2(-0.7, 1.0))
+		mk28.stay_inn()
+		await wait(0.95)
+		var other28: bool = mk28.inn_streak == 1 and mk28.inn_side == -1 and not mk28.inn_cup.visible
+		reset_to(n28 + Vector2(-0.4, 1.0))
+		mk28.stay_inn()
+		await wait(0.95)
+		var left28: bool = mk28.inn_streak == 2 and mk28.inn_cup.visible and is_equal_approx(mk28.inn_cup.position.x, n28.x - 0.9)
+		main.player.gold = 5
+		reset_to(n28 + Vector2(0.9, 1.0))
+		var nights28: int = main.inn_nights
+		mk28.stay_inn()
+		await wait(0.2)
+		var poor28: bool = mk28.inn_streak == 2 and mk28.inn_side == -1 and main.inn_nights == nights28
+		mk28.inn_side = keep28.side
+		mk28.inn_streak = keep28.streak
+		mk28.inn_fresh = keep28.fresh
+		mk28.inn_cup_show()
+		main.player.gold = keep28.gold
+		main.hour = keep28.hour
+		main.day = keep28.day
+		main.inn_nights = keep28.nights
+		main.in_village = false
+		calm_enemies(false)
+		check("d28_inn_cup", built28 and sides28 and first28 and cup28 and save28 and other28 and left28 and poor28,
+			"a hidden cup is built=%s side from x=%s first stay: no cup=%s second stay from the same side: cup on that side=%s both numbers saved=%s another side starts over=%s two on the left: cup on the left=%s too poor: unchanged=%s" % [built28, sides28, first28, cup28, save28, other28, left28, poor28])
+	if want.call("d32_rain_rings"):
+		# in the rain rings open on the marsh water within 9 tiles of her, at most 24 at once, never on a tile a bridge deck covers; dry, indoors or out of the marsh: none (idea 32)
+		var ef32: Object = main.effects
+		marsh_world()
+		main.intro = false
+		main.in_house = -1
+		var wb32: Object = main.world_build
+		var b32: Dictionary = main.bridges[0]
+		var cover32: bool = wb32.deck_tiles.has(Vector2i(int((b32.a + b32.b) / 2), b32.z)) and wb32.deck_tiles.has(Vector2i(b32.a - 1, b32.z + 1)) and wb32.deck_tiles.has(Vector2i(b32.b + 1, b32.z))
+		reset_to(Vector2((b32.a + b32.b) / 2.0, b32.z + 0.5))
+		main.raining = false
+		var r0: int = ef32.rain_rings
+		ef32.rain_ring_t = 0.0
+		ef32.update_rain_rings(0.01)
+		var dry32: bool = ef32.rain_rings == r0
+		main.raining = true
+		main.in_house = 0
+		ef32.rain_ring_t = 0.0
+		ef32.update_rain_rings(0.01)
+		var in32: bool = ef32.rain_rings == r0
+		main.in_house = -1
+		main.in_village = true
+		ef32.rain_ring_t = 0.0
+		ef32.update_rain_rings(0.01)
+		var out32: bool = ef32.rain_rings == r0
+		main.in_village = false
+		var on_water := true
+		var off_deck := true
+		var near32 := true
+		for i in 300: # no frame runs in this loop, so the rings stay open: the 24th is the last
+			ef32.rain_ring_t = 0.0
+			var before: int = ef32.rain_rings
+			ef32.update_rain_rings(0.01)
+			if ef32.rain_rings > before:
+				var tl: Vector2i = ef32.last_rain_ring
+				on_water = on_water and main.map[main.idx(tl.x, tl.y)] == main.WATER
+				off_deck = off_deck and not wb32.deck_tiles.has(tl)
+				near32 = near32 and absi(tl.x - int(round(main.player.x))) <= 9 and absi(tl.y - int(round(main.player.z))) <= 9
+		var made32: bool = ef32.rain_rings == r0 + 24
+		var cap32: bool = ef32.rain_ring_live == ef32.RAIN_RING_CAP
+		main.raining = false # or the next frames open more
+		await wait(1.1)
+		var done32: bool = ef32.rain_ring_live == 0
+		main.raining = false
+		ef32.rain_ring_t = 0.0
+		calm_enemies(false)
+		check("d32_rain_rings", cover32 and dry32 and in32 and out32 and on_water and off_deck and near32 and made32 and cap32 and done32,
+			"deck tiles marked=%s dry: none=%s indoors: none=%s out of the marsh: none=%s rings on water=%s never on a deck tile=%s within 9 tiles=%s many made=%s at most 24 at once=%s all gone in a second=%s" % [cover32, dry32, in32, out32, on_water, off_deck, near32, made32, cap32, done32])
+	if want.call("d33_roof_rain"):
+		# under a roof (cottage porch, a stall's awning, the inn's eave, a house door's eave) the rain is sown in a ring bare out to the roof's nearest edge; in the open, dry, or indoors it is the whole box; the weather itself is untouched (idea 33)
+		var ef33: Object = main.effects
+		var wb33: Object = main.world_build
+		main.close_story()
+		main.intro = false
+		main.in_house = -1
+		main.in_village = true
+		var built33: bool = wb33.roof_rects.size() >= 5 + main.village.doors.size()
+		var at33: Vector2 = main.village.marks["1"]
+		main.raining = true
+		main.rain.emitting = true
+		reset_to(at33 + Vector2(0.5, -0.6))
+		ef33.update_rain_shelter()
+		var i33: int = wb33.roof_at(Vector2(main.player.x, main.player.z))
+		var under33: bool = i33 >= 0 and ef33.rain_cut > 0.0 and main.rain.emission_shape == CPUParticles3D.EMISSION_SHAPE_RING and is_equal_approx(main.rain.emission_ring_inner_radius, ef33.rain_cut)
+		var inside33: bool = under33 and ef33.rain_cut <= wb33.roof_edge(i33, Vector2(main.player.x, main.player.z))
+		var open_pt: Vector2 = at33
+		for off in [Vector2(0, 4), Vector2(4, 4), Vector2(-4, 4), Vector2(0, -4), Vector2(4, 0), Vector2(-4, 0)]:
+			if wb33.roof_at(at33 + off) < 0:
+				open_pt = at33 + off
+				break
+		reset_to(open_pt)
+		ef33.update_rain_shelter()
+		var open33: bool = ef33.rain_cut == 0.0 and main.rain.emission_shape == CPUParticles3D.EMISSION_SHAPE_BOX and is_equal_approx(main.rain.emission_box_extents.x, 14.0)
+		var edge_pt: Vector2 = at33 + Vector2(-0.76, -0.6) # just past the awning's end
+		reset_to(edge_pt)
+		ef33.update_rain_shelter()
+		var beside33: bool = wb33.roof_at(edge_pt) >= 0 or (ef33.rain_cut == 0.0 and main.rain.emission_shape == CPUParticles3D.EMISSION_SHAPE_BOX)
+		reset_to(at33 + Vector2(0.5, -0.6))
+		main.raining = false
+		ef33.update_rain_shelter()
+		var dry33: bool = ef33.rain_cut == 0.0 and main.rain.emission_shape == CPUParticles3D.EMISSION_SHAPE_BOX
+		main.raining = true
+		main.in_house = 0
+		ef33.update_rain_shelter()
+		var in33: bool = ef33.rain_cut == 0.0
+		main.in_house = -1
+		var n33: Vector2 = main.village.marks.N
+		reset_to(n33 + Vector2(0.0, -0.4))
+		ef33.update_rain_shelter()
+		var inn33: bool = ef33.rain_cut > 0.0
+		var d33: Vector2 = main.village.doors[0]
+		reset_to(d33 + Vector2(0.0, -1.0))
+		ef33.update_rain_shelter()
+		var door33: bool = ef33.rain_cut > 0.0
+		reset_to(Vector2(main.shop_pos.x, main.shop_pos.z - 0.5))
+		main.in_village = false
+		ef33.update_rain_shelter()
+		var porch33: bool = ef33.rain_cut > 0.0
+		var weather33: bool = main.raining and main.rain.emitting
+		main.raining = false
+		main.rain.emitting = false
+		ef33.update_rain_shelter()
+		check("d33_roof_rain", built33 and under33 and inside33 and open33 and beside33 and dry33 and in33 and inn33 and door33 and porch33 and weather33,
+			"roof rectangles built=%s under an awning: a ring=%s bare no further than the edge=%s open sky: the whole box=%s past the awning's end: whole=%s dry: whole=%s indoors: whole=%s inn eave=%s a door's eave=%s the cottage porch=%s the weather untouched=%s" % [built33, under33, inside33, open33, beside33, dry33, in33, inn33, door33, porch33, weather33])
+	if want.call("d35_lamp_moths"):
+		# three small dark-winged moths gather round the nearest lit lamp as evening comes (night 0.35 to 0.7), tight at night (within 0.34 + 0.1), and open out again at dawn until they are gone; none by day, none at a dark lamp, none far from every lamp; no foes, no sounds (idea 35)
+		var wb35: Object = main.world_build
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var lamp35: OmniLight3D = main.village_life.village_lamps().filter(func(l): return not l.get_meta("dark", false) and l != main.dark_lamp)[0]
+		var keep_night: float = main.night
+		var foes35: int = main.enemies.size()
+		var log35: int = main.sfx_log.size()
+		var built35: bool = wb35.moths.size() == 3
+		reset_to(Vector2(lamp35.position.x + 2.0, lamp35.position.z))
+		wb35.moth_lamp = null
+		wb35.moth_seek_t = 0.0
+		main.night = 0.1
+		wb35.update_lamp_moths(0.05)
+		var day35: bool = wb35.moth_gather == 0.0 and wb35.moths.all(func(mo): return not mo.node.visible)
+		main.night = 0.5
+		wb35.moth_seek_t = 0.0
+		wb35.update_lamp_moths(0.05)
+		var dusk35: bool = is_equal_approx(wb35.moth_gather, smoothstep(0.35, 0.7, 0.5)) and wb35.moths.all(func(mo): return mo.node.visible) and wb35.moth_lamp != null
+		var dusk_d: float = 0.0
+		for mo in wb35.moths:
+			dusk_d = maxf(dusk_d, Vector2(mo.node.position.x - wb35.moth_lamp.position.x, mo.node.position.z - wb35.moth_lamp.position.z).length())
+		main.night = 1.0
+		wb35.update_lamp_moths(0.05)
+		var night_d: float = 0.0
+		for mo in wb35.moths:
+			night_d = maxf(night_d, Vector2(mo.node.position.x - wb35.moth_lamp.position.x, mo.node.position.z - wb35.moth_lamp.position.z).length())
+		var tight35: bool = wb35.moth_gather == 1.0 and night_d < 0.34 + 0.1 + 0.01 and dusk_d > night_d
+		var wide35: bool = true
+		main.night = 0.4 # dawn: the ring opens again
+		wb35.update_lamp_moths(0.05)
+		var dawn_d: float = 0.0
+		for mo in wb35.moths:
+			dawn_d = maxf(dawn_d, Vector2(mo.node.position.x - wb35.moth_lamp.position.x, mo.node.position.z - wb35.moth_lamp.position.z).length())
+		wide35 = dawn_d > dusk_d
+		main.night = 0.2
+		wb35.update_lamp_moths(0.05)
+		var gone35: bool = wb35.moths.all(func(mo): return not mo.node.visible)
+		var wing35: bool = absf(wb35.moths[0].wings[0].rotation.z + wb35.moths[0].wings[1].rotation.z) < 0.001
+		main.night = 1.0
+		lamp35.set_meta("dark", true)
+		wb35.moth_seek_t = 0.0
+		wb35.update_lamp_moths(0.05)
+		var dark35: bool = wb35.moth_lamp != lamp35
+		lamp35.set_meta("dark", false)
+		reset_to(Vector2(-200.0, -200.0))
+		wb35.moth_lamp = null
+		wb35.moth_seek_t = 0.0
+		wb35.update_lamp_moths(0.05)
+		var far35: bool = wb35.moth_lamp == null and wb35.moths.all(func(mo): return not mo.node.visible)
+		var quiet35: bool = main.enemies.size() == foes35 and main.sfx_log.size() == log35
+		main.night = keep_night
+		wb35.moth_lamp = null
+		wb35.update_lamp_moths(0.0)
+		main.in_village = false
+		check("d35_lamp_moths", built35 and day35 and dusk35 and tight35 and wide35 and gone35 and wing35 and dark35 and far35 and quiet35,
+			"3 moths=%s by day: none=%s dusk: all three round the nearest lamp=%s night: tight (%.2f)=%s dawn: opens again (%.2f > %.2f)=%s gone by morning=%s wings beat in turn=%s a dark lamp: not that one=%s far from lamps: none=%s no foes, no sound=%s" % [built35, day35, dusk35, night_d, tight35, dawn_d, dusk_d, wide35, gone35, wing35, dark35, far35, quiet35])
+	if want.call("d43_room_echo"):
+		# in the castle's treasury, the doorkeeper's stand room and the west guard room a footstep comes back once, 0.3 s later, as a quiet low tick (triangle 96) if no foe lives in the room and she is still in it; outside a room, a step out, a story or a newer step: none (idea 43)
+		var cz43: Object = main.castle_zone
+		var cx43: float = main.CASTLE.CASTLE_X
+		var keep_en: Array = main.enemies
+		main.enemies = []
+		main.close_story()
+		main.intro = false
+		main.in_hill = true
+		reset_to(Vector2(cx43 + 15.0, 3.0))
+		var room1 := Vector2(cx43 + 26.5, 23.0)
+		var room2 := Vector2(cx43 + 19.0, 36.0)
+		var room3 := Vector2(cx43 + 4.0, 13.0)
+		var hall := Vector2(cx43 + 15.0, 3.0)
+		var tags43: bool = cz43.echo_room(room1) == 0 and cz43.echo_room(room2) == 1 and cz43.echo_room(room3) == 2 and cz43.echo_room(hall) == -1
+		reset_to(room1)
+		main.sfx_log.clear()
+		var e0: int = cz43.echoes
+		cz43.step_echo()
+		await wait(0.5)
+		var heard43: bool = cz43.echoes == e0 + 1 and main.sfx_log.has("triangle:96")
+		await wait(0.4)
+		var once43: bool = cz43.echoes == e0 + 1
+		cz43.step_echo()
+		reset_to(hall) # steps out of the room before the echo is due
+		await wait(0.5)
+		var left43: bool = cz43.echoes == e0 + 1
+		reset_to(room1)
+		cz43.step_echo()
+		cz43.step_echo() # the newer step takes the wait
+		await wait(0.5)
+		var newer43: bool = cz43.echoes == e0 + 2
+		reset_to(hall)
+		cz43.step_echo()
+		await wait(0.5)
+		var open43: bool = cz43.echoes == e0 + 2
+		reset_to(room3)
+		main.enemies = [{"x": room3.x + 1.0, "z": room3.y, "dead": false}]
+		var foe43: bool = cz43.echo_room(room3) == -1
+		main.enemies = [{"x": room3.x + 1.0, "z": room3.y, "dead": true}, {"x": room3.x + 1.0, "z": room3.y, "dead": false, "prop": true}]
+		var live43: bool = cz43.echo_room(room3) == 2
+		main.enemies = []
+		main.show_story("", ["x"])
+		cz43.step_echo()
+		await wait(0.5)
+		var story43: bool = cz43.echoes == e0 + 2
+		main.close_story()
+		main.in_hill = false
+		var land43: bool = cz43.echo_room(room1) == -1
+		main.enemies = keep_en
+		check("d43_room_echo", tags43 and heard43 and once43 and left43 and newer43 and open43 and foe43 and live43 and story43 and land43,
+			"three rooms tagged, the hall not=%s a step in a room echoes once, quietly=%s only once=%s stepping out first: none=%s a newer step takes the wait=%s outside a room: none=%s a live foe in the room: none=%s a dead foe or a prop: still echoes=%s a story open: none=%s out of the castle: none=%s" % [tags43, heard43, once43, left43, newer43, open43, foe43, live43, story43, land43])
+	if want.call("d46_water_loop"):
+		# the fountain's water is one local loop: full strength within 2.5 tiles, easing out to nothing by 16 (no step over 0.15 a tile), a low jet 0.45 as loud; indoors, outside the village or in the title none; leaving fades it at 1.2 a second, not at once; the sound switch silences it (idea 46)
+		var am46: Object = main.ambience
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var fa46: Vector2 = main.village.fountain_at()
+		var keep46 := {"wet": main.village.fountain_wet, "muted": main.muted, "x": main.player.x, "z": main.player.z}
+		main.village.fountain_wet = true
+		am46.duck = 1.0
+		am46.duck_hold = 0.0
+		var gains46: Array = []
+		for d in range(0, 19):
+			reset_to(fa46 + Vector2(float(d), 0.0))
+			gains46.append(am46.water_target())
+		var near46: bool = is_equal_approx(gains46[1], 1.0) and is_equal_approx(gains46[2], 1.0)
+		var far46: bool = gains46[16] == 0.0 and gains46[18] == 0.0
+		var steps_ok := true
+		for i in range(1, 19):
+			steps_ok = steps_ok and gains46[i] <= gains46[i - 1] + 0.0001 and gains46[i - 1] - gains46[i] < 0.15
+		var mid46: bool = gains46[9] > 0.25 and gains46[9] < 0.75
+		reset_to(fa46 + Vector2(1.0, 0.0))
+		main.village.fountain_wet = false
+		var low46: bool = is_equal_approx(am46.water_target(), am46.WATER_LOW)
+		main.village.fountain_wet = true
+		main.in_house = 0
+		var house46: bool = am46.water_target() == 0.0
+		main.in_house = -1
+		main.intro = true
+		var title46: bool = am46.water_target() == 0.0
+		main.intro = false
+		# at the basin the loop plays; stepping out of the village fades it over ~0.8 s rather than cutting it
+		am46.gains["water"] = 1.0
+		am46.update(0.0)
+		var plays46: bool = am46.players.has("water") and am46.players["water"].playing and is_equal_approx(am46.players["water"].volume_db, am46.BASE_DB)
+		main.in_village = false
+		am46.update(0.1)
+		var eased46: bool = am46.gains["water"] > 0.85 and am46.gains["water"] < 1.0 and am46.players["water"].playing
+		for i in 12:
+			am46.update(0.1)
+		var off46: bool = am46.gains["water"] == 0.0 and not am46.players["water"].playing
+		main.in_village = true
+		am46.gains["water"] = 1.0
+		main.muted = true
+		am46.update(0.0)
+		var muted46: bool = not am46.players["water"].playing
+		main.muted = keep46.muted
+		main.village.fountain_wet = keep46.wet
+		am46.gains["water"] = 0.0
+		am46.update(0.0)
+		reset_to(Vector2(keep46.x, keep46.z))
+		main.in_village = false
+		check("d46_water_loop", near46 and far46 and steps_ok and mid46 and low46 and house46 and title46 and plays46 and eased46 and off46 and muted46,
+			"full within 2.5 tiles=%s none from 16=%s no step over 0.15 and never up=%s halfway at 9 tiles=%s a low jet 0.45=%s indoors none=%s title none=%s it plays at the basin=%s leaving eases (not a cut)=%s then off=%s the sound switch silences it=%s" % [near46, far46, steps_ok, mid46, low46, house46, title46, plays46, eased46, off46, muted46])
+	if want.call("d48_story_hush"):
+		# a picture scene (not a talk) shuts the ambience loops fast (4 a second); after it closes they stay shut 0.5 s, then come back over 1.5 s without a jump (step under 0.1 per 0.1 s); a talk does nothing; the music and the sound switch are not touched (idea 48)
+		var am48: Object = main.ambience
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var keep48 := {"raining": main.raining, "music_on": main.music_on, "muted": main.muted, "bus": AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Music")), "target": main.music.bus_target}
+		main.raining = true
+		am48.gains["rain"] = 1.0
+		am48.duck = 1.0
+		am48.duck_hold = 0.0
+		main.show_story("", ["x"]) # a talk
+		for i in 6:
+			am48.update(0.1)
+		var talk48: bool = am48.duck == 1.0 and is_equal_approx(am48.heard("rain"), 1.0) and am48.players["rain"].playing
+		main.close_story()
+		main.show_story("res://art/story/02_lantern.jpg", ["x"]) # a picture scene
+		am48.update(0.1)
+		var closing48: bool = is_equal_approx(am48.duck, 0.6) and am48.heard("rain") < 1.0 and am48.players["rain"].playing
+		for i in 6:
+			am48.update(0.1)
+		var shut48: bool = am48.duck == 0.0 and am48.heard("rain") == 0.0 and not am48.players["rain"].playing
+		main.close_story()
+		am48.update(0.3)
+		am48.update(0.1)
+		var gap48: bool = am48.duck == 0.0 and not am48.players["rain"].playing
+		var last48: float = 0.0
+		var smooth48 := true
+		var up48 := true
+		var back_at := -1.0
+		for i in 40:
+			am48.update(0.1)
+			var h: float = am48.heard("rain")
+			smooth48 = smooth48 and h - last48 < 0.12
+			up48 = up48 and h >= last48 - 0.0001
+			if back_at < 0.0 and am48.duck >= 1.0:
+				back_at = 0.1 * (i + 1)
+			last48 = h
+		var back48: bool = is_equal_approx(am48.duck, 1.0) and is_equal_approx(am48.heard("rain"), 1.0) and back_at > 1.2 and back_at < 2.0
+		var music48: bool = main.music_on == keep48.music_on and main.muted == keep48.muted and main.music.bus_target == keep48.target and is_equal_approx(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Music")), keep48.bus)
+		main.muted = true
+		am48.update(0.0)
+		var muted48: bool = not am48.players["rain"].playing
+		main.muted = keep48.muted
+		main.raining = keep48.raining
+		am48.gains["rain"] = 0.0
+		am48.duck = 1.0
+		am48.update(0.0)
+		main.in_village = false
+		check("d48_story_hush", talk48 and closing48 and shut48 and gap48 and smooth48 and up48 and back48 and music48 and muted48,
+			"a talk leaves the loops=%s a picture scene starts to shut them=%s shut within 0.6 s=%s still shut 0.4 s after it closes=%s the return is smooth=%s and only upward=%s back to full in 1.2 to 2 s (%.1f)=%s the music and the sound switch untouched=%s a muted game stays silent=%s" % [talk48, closing48, shut48, gap48, smooth48, up48, back_at, back48, music48, muted48])
+	if want.call("d50_rain_house"):
+		# in the rain the open-air loop is 1.0 outdoors and 0.2 inside a house while the eave's round taps take over (0.8); the two cross over at 1.2 a second; dry: both none; the weather state is not changed (idea 50)
+		var am50: Object = main.ambience
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var keep50 := {"raining": main.raining, "emitting": main.rain.emitting, "duck": am50.duck}
+		am50.duck = 1.0
+		am50.duck_hold = 0.0
+		main.raining = true
+		var out50: bool = am50.rain_target() == 1.0 and am50.eave_target() == 0.0
+		main.in_house = 0
+		var in50: bool = is_equal_approx(am50.rain_target(), 0.2) and is_equal_approx(am50.eave_target(), 0.8) and am50.eave_target() > am50.rain_target()
+		main.in_house = -1
+		am50.gains["rain"] = 1.0
+		am50.gains["eave"] = 0.0
+		am50.update(0.0)
+		var loud50: bool = am50.players["rain"].playing and not (am50.players.has("eave") and am50.players["eave"].playing)
+		main.in_house = 0
+		am50.update(0.1)
+		var cross50: bool = is_equal_approx(am50.gains["rain"], 0.88) and is_equal_approx(am50.gains["eave"], 0.12) and am50.players["eave"].playing
+		for i in 8:
+			am50.update(0.1)
+		var inside50: bool = is_equal_approx(am50.gains["rain"], 0.2) and is_equal_approx(am50.gains["eave"], 0.8) and am50.players["eave"].playing and am50.players["rain"].playing and am50.players["eave"].volume_db > am50.players["rain"].volume_db
+		main.in_house = -1
+		for i in 8:
+			am50.update(0.1)
+		var back50: bool = is_equal_approx(am50.gains["rain"], 1.0) and is_equal_approx(am50.gains["eave"], 0.0) and not am50.players["eave"].playing
+		var taps50: bool = am50.make_loop("eave").loop_end == int(am50.RATE * am50.LOOP_SECS) and am50.make_loop("eave").loop_mode == AudioStreamWAV.LOOP_FORWARD
+		var weather50: bool = main.raining and main.rain.emitting == keep50.emitting
+		main.raining = false
+		main.in_house = 0
+		var dry50: bool = am50.rain_target() == 0.0 and am50.eave_target() == 0.0
+		main.in_house = -1
+		main.raining = keep50.raining
+		am50.gains["rain"] = 0.0
+		am50.gains["eave"] = 0.0
+		am50.duck = keep50.duck
+		am50.update(0.0)
+		main.in_village = false
+		check("d50_rain_house", out50 and in50 and loud50 and cross50 and inside50 and back50 and taps50 and weather50 and dry50,
+			"outdoors the open rain=%s indoors a murmur and the taps=%s the taps are off outdoors=%s a step in: crossing at 1.2 a second=%s settled inside=%s back out: the taps stop=%s a two second tap loop=%s the weather untouched=%s dry: both none=%s" % [out50, in50, loud50, cross50, inside50, back50, taps50, weather50, dry50])
+	if want.call("d53_door_stick"):
+		# a shot stopped by a village house's wall at its door leaves a short stick that shivers, drops and goes in 1.2 s (4 sticks reused); damage and the wall are as before; a shot that runs out, hits her, is far from a door, or flies outside the village leaves none (idea 53)
+		var ef53: Object = main.effects
+		main.in_village = true
+		main.in_house = -1
+		main.intro = false
+		main.close_story()
+		var d53: Vector2 = main.village.doors[0]
+		reset_to(d53 + Vector2(8.0, 6.0))
+		var keep_shots: Array = main.enemy_shots.duplicate()
+		main.enemy_shots.clear()
+		var wall53: bool = not main.walkable(d53.x, d53.y - 0.7)
+		var hp53: float = main.player.hp
+		var s0: int = ef53.stick_made
+		var shot53: MeshInstance3D = main.box(Vector3(0.3, 0.2, 0.2), main.mat_color(Color("#c0522a")))
+		shot53.position = Vector3(d53.x, 0.6, d53.y - 0.1)
+		main.add_child(shot53)
+		main.enemy_shots.append({"node": shot53, "v": Vector2(0, -6), "life": 1.2, "owner": {}, "dmg": 10})
+		main.monsters.update_enemy_shots(0.1)
+		var made53: bool = ef53.stick_made == s0 + 1 and main.enemy_shots.is_empty() and ef53.last_stick.visible and main.player.hp == hp53
+		var stick53: Node3D = ef53.last_stick
+		var faces53: bool = absf(stick53.rotation.y - atan2(0.0, -1.0)) < 0.01 and Vector2(stick53.position.x, stick53.position.z).distance_to(d53) < 1.2
+		await wait(0.02)
+		var y_first: float = stick53.position.y
+		var shiver: float = absf(stick53.rotation.z)
+		for i in 8:
+			await wait(0.015)
+			shiver = maxf(shiver, absf(stick53.rotation.z))
+		var shiver53: bool = shiver > 0.02 and y_first > 0.3
+		await wait(0.4)
+		var down53: bool = stick53.position.y < 0.1 and stick53.visible
+		await wait(0.8)
+		var gone53: bool = not stick53.visible
+		# a shot that runs out of life beside the door, one that hits her, and one flying away from every door
+		var s1: int = ef53.stick_made
+		var late53: MeshInstance3D = main.box(Vector3(0.3, 0.2, 0.2), main.mat_color(Color("#c0522a")))
+		late53.position = Vector3(d53.x, 0.6, d53.y - 0.1)
+		main.add_child(late53)
+		main.enemy_shots.append({"node": late53, "v": Vector2(0, -6), "life": 0.05, "owner": {}, "dmg": 10})
+		main.monsters.update_enemy_shots(0.1)
+		var spent53: bool = ef53.stick_made == s1
+		var far_pt: Vector2 = d53 + Vector2(12.0, 0.0)
+		for off in [Vector2(12, 0), Vector2(-12, 0), Vector2(0, 12), Vector2(0, -12), Vector2(12, 12)]:
+			if main.village.doors.all(func(dd): return dd.distance_to(d53 + off) > 3.0):
+				far_pt = d53 + off
+				break
+		ef53.arrow_stick(Vector3(far_pt.x, 0.6, far_pt.y), Vector2(0, -1))
+		var far53: bool = ef53.stick_made == s1
+		main.in_village = false
+		ef53.arrow_stick(Vector3(d53.x, 0.6, d53.y - 0.7), Vector2(0, -1))
+		var out53: bool = ef53.stick_made == s1
+		main.in_village = true
+		main.in_house = 0
+		ef53.arrow_stick(Vector3(d53.x, 0.6, d53.y - 0.7), Vector2(0, -1))
+		var in53: bool = ef53.stick_made == s1
+		main.in_house = -1
+		for i in 6:
+			ef53.arrow_stick(Vector3(d53.x, 0.6, d53.y - 0.7), Vector2(0, -1))
+		var pool53: bool = ef53.sticks.size() == 4 and ef53.stick_made == s1 + 6
+		await wait(1.4)
+		var hidden53: bool = ef53.sticks.all(func(s): return not s.visible)
+		main.enemy_shots = keep_shots
+		main.in_village = false
+		check("d53_door_stick", wall53 and made53 and faces53 and shiver53 and down53 and gone53 and spent53 and far53 and out53 and in53 and pool53 and hidden53,
+			"the wall stops a shot at the door=%s one stick, no damage=%s it points along the shot=%s it shivers=%s it drops=%s and goes=%s a spent shot: none=%s far from a door: none=%s outside the village: none=%s indoors: none=%s four sticks reused=%s all hidden again=%s" % [wall53, made53, faces53, shiver53, down53, gone53, spent53, far53, out53, in53, pool53, hidden53])
 
 	var failed := results.count(false)
 	print("TESTS %d passed, %d failed" % [results.size() - failed, failed])

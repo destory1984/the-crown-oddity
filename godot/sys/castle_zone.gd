@@ -103,6 +103,38 @@ func stairs_key() -> bool:
 func in_castle() -> bool:
 	return m.in_hill and m.player.x >= Main.CASTLE.CASTLE_X - 0.5 and m.player.x < Main.HOUSE_X - 0.5
 
+# three bounded rooms where a footstep comes back once, faintly, 0.3 s later: the treasury, the doorkeeper's stand room and the west
+# guard room (grid x, z of their floor, in tiles). The echo is heard only while no foe lives in the room and she is still in it when it
+# arrives, so a step out of the door drops it (delight idea 43). A sound only.
+const ECHO_ROOMS := [Rect2(23.5, 20.5, 6.0, 5.0), Rect2(14.5, 33.5, 10.0, 5.0), Rect2(0.5, 9.5, 8.0, 8.0)]
+const ECHO_DELAY := 0.3
+var echo_seq := 0 # a step later than the one waiting cancels the wait
+var echoes := 0 # echoes heard (autoplay d43_room_echo)
+
+func echo_room(p: Vector2) -> int:
+	if not in_castle():
+		return -1
+	for i in ECHO_ROOMS.size():
+		var r := Rect2(ECHO_ROOMS[i].position + Vector2(Main.CASTLE.CASTLE_X, 0.0), ECHO_ROOMS[i].size)
+		if not r.has_point(p):
+			continue
+		if m.enemies.any(func(e): return not e.dead and not e.get("prop", false) and r.has_point(Vector2(e.x, e.z))):
+			return -1
+		return i
+	return -1
+
+func step_echo() -> void:
+	echo_seq += 1
+	var room := echo_room(Vector2(m.player.x, m.player.z))
+	if room < 0 or m.story_open:
+		return
+	var seq := echo_seq
+	m.get_tree().create_timer(ECHO_DELAY).timeout.connect(func():
+		if seq != echo_seq or m.story_open or echo_room(Vector2(m.player.x, m.player.z)) != room:
+			return
+		echoes += 1
+		m.sound.sfx(96, 0.18, "triangle", 0.03, -20.0))
+
 func in_stairs() -> bool:
 	return m.in_hill and m.player.x >= Main.STAIRS.STAIRS_X - 0.5 and m.player.x < Main.UNDER.UNDER_X - 0.5
 

@@ -125,6 +125,7 @@ func footstep() -> void:
 		sfx(WET_FREQ[wet_steps], 0.07, "splash", WET_VOL[wet_steps])
 		wet_steps -= 1
 	m.effects.wet_print()
+	m.castle_zone.step_echo()
 
 # water skipped across and left behind: the next three footsteps carry a drop of it
 const WET_FREQ := [0.0, 760.0, 880.0, 1000.0]

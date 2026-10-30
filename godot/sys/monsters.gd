@@ -1176,6 +1176,8 @@ func update_enemy_shots(dt: float) -> void:
 				m.hurt_mate(mid, 10)
 				hit = true
 		if hit or sh.life <= 0.0 or not m.walkable(n.position.x, n.position.z):
+			if not hit and sh.life > 0.0:
+				m.effects.arrow_stick(n.position, sh.v) # stopped by something solid: a door leaves a short stick
 			n.queue_free()
 			m.enemy_shots.remove_at(i)
 

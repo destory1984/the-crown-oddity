@@ -26,7 +26,7 @@ func save_game() -> void:
 		"fly_q": m.fly_q, "flies": m.marsh.flies.map(func(f): return f.caught),
 		"grotto_q": m.grotto_q, "grotto_side": m.grotto_side, "has_pearl": m.has_pearl,
 		"cloud_q": m.cloud_q, "cloud_chest": m.cloud_chest, "has_feather": m.has_feather,
-		"woke": m.woke, "crystal_done": m.crystal_done, "has_ring": m.has_ring, "freed": m.forest.freed, "has_acorn": m.has_acorn, "shrine_seen": m.shrine_seen, "trial_best": m.trial_best, "race_best": m.race_best, "books": m.castle.books.map(func(b): return b.read), "has_bookmark": m.has_bookmark, "has_shard": m.has_shard, "shop_bought": m.shop_bought, "play_secs": m.play_secs, "ng": m.ng, "fest_gift": m.fest_gift, "mail_q": m.mail_q, "mail_got": m.mail_got, "stats": m.stats, "feats": m.feats_done, "houses": m.house_seen, "flowers": m.marsh.picked, "has_tea": m.has_tea, "fish": m.fish_kinds, "has_shoes": m.has_shoes, "target_best": m.target_best, "has_medal": m.has_medal, "bottles": m.village.bottles.map(func(b): return b.got), "inn_nights": m.inn_nights, "magpie_q": m.magpie_q, "talks_heard": m.talks_heard.keys(),
+		"woke": m.woke, "crystal_done": m.crystal_done, "has_ring": m.has_ring, "freed": m.forest.freed, "has_acorn": m.has_acorn, "shrine_seen": m.shrine_seen, "trial_best": m.trial_best, "race_best": m.race_best, "books": m.castle.books.map(func(b): return b.read), "has_bookmark": m.has_bookmark, "has_shard": m.has_shard, "shop_bought": m.shop_bought, "play_secs": m.play_secs, "ng": m.ng, "fest_gift": m.fest_gift, "mail_q": m.mail_q, "mail_got": m.mail_got, "stats": m.stats, "feats": m.feats_done, "houses": m.house_seen, "flowers": m.marsh.picked, "has_tea": m.has_tea, "fish": m.fish_kinds, "has_shoes": m.has_shoes, "target_best": m.target_best, "has_medal": m.has_medal, "bottles": m.village.bottles.map(func(b): return b.got), "inn_nights": m.inn_nights, "inn_side": m.market.inn_side, "inn_streak": m.market.inn_streak, "magpie_q": m.magpie_q, "talks_heard": m.talks_heard.keys(),
 		"road_q": m.road_q, "road_box": m.road_box, "mill_q": m.mill_q, "has_oar_ring": m.has_oar_ring, "post_q": m.post_q, "south_q": m.south_q, "has_whistle": m.has_whistle, "clock_q": m.clock_q, "clock_gears": m.clock_gears, "clock_box": m.clock_box, "clock_late": m.clock_late, "has_oil": m.has_oil, "shore_q": m.shore_q, "has_cushion": m.has_cushion, "hf_seen": m.hf_seen, "has_bait": m.has_bait, "hollow_q": m.hollow_q, "mem_lit": m.forest.mem_lamps.map(func(l): return l.lit), "hollow_doors": m.forest.doors.map(func(dr): return dr.open), "hollow_boxes": m.forest.boxes.map(func(b): return b.open),
 		"seals": m.garden.seals.map(func(sl): return sl.open),
 		"stairs_wall": m.stairs.wall_open, "stairs_lamps": m.stairs.lamps.map(func(l): return l.lit),
@@ -260,6 +260,9 @@ func load_game() -> void:
 	m.target_best = int(d.get("target_best", 0))
 	m.has_medal = bool(d.get("has_medal", false))
 	m.inn_nights = int(d.get("inn_nights", 0))
+	m.market.inn_side = int(d.get("inn_side", 0))
+	m.market.inn_streak = int(d.get("inn_streak", 0))
+	m.market.inn_cup_show()
 	m.magpie_q = int(d.get("magpie_q", 0))
 	for k in d.get("talks_heard", []):
 		m.talks_heard[String(k)] = true

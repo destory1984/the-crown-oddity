@@ -322,7 +322,73 @@ func route_update(id: String, dt: float, home_only: bool, speed: float) -> bool:
 		r.pos = to
 		if pts[r.i][1] and not r.back:
 			r.wait = randf_range(6.0, 14.0)
+			chalk_stop(id, to)
 	return true
+
+# the eave in front of each village house door is a roof rectangle for the rain (delight idea 33)
+func build_eave_roofs() -> void:
+	if m.village == null:
+		return
+	for d in m.village.doors:
+		m.world_build.add_roof(Rect2(d.x - 0.95, d.y - 2.4, 2.0, 2.55))
+
+# a villager who settles at a stop of his round beside a lit lamp scratches one small chalk dot on the stone at its foot; a lamp keeps
+# up to CHALK_MAX dots and they are all rubbed out when the game day turns (delight idea 25). Only a picture: lamps, their glass and
+# their count are not touched.
+const CHALK_NEAR := 3.0
+const CHALK_MAX := 5
+var chalk: Dictionary = {} # lamp -> [MeshInstance3D], a dot each
+var chalk_day := -1
+var chalk_made := 0 # dots made (autoplay d25_chalk)
+var last_chalk: MeshInstance3D
+
+func chalk_lamp(p: Vector2) -> Node3D:
+	var best: Node3D = null
+	var bd := CHALK_NEAR
+	for l in m.village_life.village_lamps():
+		if l.get_meta("dark", false) or l == m.dark_lamp:
+			continue
+		var d := Vector2(l.position.x - 0.3, l.position.z).distance_to(p) # the post stands 0.3 left of the lamp
+		if d < bd:
+			bd = d
+			best = l
+	return best
+
+func chalk_stop(id: String, at: Vector2) -> void:
+	if m.village == null or not m.in_village:
+		return
+	update_chalk()
+	var lamp := chalk_lamp(at)
+	if lamp == null:
+		return
+	var dots: Array = chalk.get(lamp, [])
+	if dots.size() >= CHALK_MAX:
+		return
+	var k := dots.size()
+	var a := 0.9 + 1.25 * k
+	var post := Vector2(lamp.position.x - 0.3, lamp.position.z)
+	var mat := m.mat_color(Color("#efe9d8"))
+	var dot: MeshInstance3D = m.box(Vector3(0.07, 0.012, 0.07), mat)
+	dot.position = Vector3(post.x + cos(a) * 0.32, m.height_at(post.x, post.y) + 0.02, post.y + sin(a) * 0.32)
+	dot.rotation.y = a
+	dot.scale = Vector3.ONE * 0.1
+	m.add_child(dot)
+	var tw := dot.create_tween()
+	tw.tween_property(dot, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	dots.append(dot)
+	chalk[lamp] = dots
+	chalk_made += 1
+	last_chalk = dot
+
+# a new game day rubs them all out
+func update_chalk() -> void:
+	if m.day == chalk_day:
+		return
+	chalk_day = m.day
+	for dots in chalk.values():
+		for d in dots:
+			d.queue_free()
+	chalk.clear()
 
 # Doran reads a letter at each stop of his round: a small paper held before his chest. When she comes within LETTER_NEAR tiles, or a
 # story is open, he folds it away (the paper hides) and turns to face her; once she is back out past LETTER_NEAR + 0.4 and the story
@@ -392,6 +458,7 @@ func update_folk_sleep(dt: float) -> void:
 		return
 	update_z_slow(dt)
 	update_letter()
+	update_chalk()
 	var night := folk_should_sleep()
 	var watching := m.in_village and m.in_house < 0 # walking home is only worth showing when she is on the street
 	var rolls := {} # bedroll spots taken in the room she is in

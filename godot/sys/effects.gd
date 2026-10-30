@@ -603,3 +603,121 @@ func update_street_leaves() -> void:
 		tw.tween_property(node, "position", Vector3(to.x, 0.012, to.y), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tw.parallel().tween_property(node, "rotation:y", node.rotation.y + v.x * 0.4, 0.5)
 		tw.tween_callback(func(): lf.moving = false)
+
+# in the rain, little rings open on the marsh water near her, on open water only: a tile a bridge deck covers (world_build.deck_tiles)
+# gets none, so the stream runs on dotted either side of a bridge and plain under it (delight idea 32)
+const RAIN_RING_GAP := 0.07
+const RAIN_RING_CAP := 24
+const RAIN_RING_REACH := 9
+var rain_ring_t := 0.0
+var rain_rings := 0 # rings opened (autoplay d32_rain_rings)
+var rain_ring_live := 0
+var last_rain_ring := Vector2i(-1, -1) # the tile of the latest one
+
+func update_rain_rings(dt: float) -> void:
+	rain_ring_t -= dt
+	if rain_ring_t > 0.0 or not m.raining or m.intro or m.in_house >= 0 or not m.in_marsh():
+		return
+	rain_ring_t = RAIN_RING_GAP
+	if rain_ring_live >= RAIN_RING_CAP:
+		return
+	for tries in 4:
+		var tx := int(round(m.player.x)) + m.rng.randi_range(-RAIN_RING_REACH, RAIN_RING_REACH)
+		var tz := int(round(m.player.z)) + m.rng.randi_range(-RAIN_RING_REACH, RAIN_RING_REACH)
+		if tx < 1 or tz < 1 or tx >= Main.N - 1 or tz >= Main.N - 1 or m.map[m.idx(tx, tz)] != Main.WATER:
+			continue
+		if m.world_build.deck_tiles.has(Vector2i(tx, tz)):
+			continue
+		rain_ring_at(Vector3(tx + m.rnd(-0.15, 0.15), -0.19, tz + m.rnd(-0.15, 0.15)), Vector2i(tx, tz))
+		return
+
+func rain_ring_at(pos: Vector3, tile: Vector2i) -> void:
+	rain_rings += 1
+	rain_ring_live += 1
+	last_rain_ring = tile
+	var mat := m.glow_mat(Color(0.8, 0.92, 1.0, 0.5), 1.0)
+	var ring := MeshInstance3D.new()
+	ring.mesh = ring_mesh(0.8, 1.0, 0.0, TAU, 12)
+	ring.material_override = mat
+	ring.position = pos
+	ring.scale = Vector3.ONE * 0.08
+	m.add_child(ring)
+	var tw := ring.create_tween().set_parallel(true)
+	tw.tween_property(ring, "scale", Vector3.ONE * 0.28, 0.9)
+	tw.tween_property(mat, "albedo_color:a", 0.0, 0.9)
+	tw.chain().tween_callback(func():
+		rain_ring_live -= 1
+		ring.queue_free())
+
+# under a roof (world_build.roof_rects) the rain above her stops: the drops are sown in a ring round her, bare out to the roof's
+# nearest edge, so the rain past the roof still falls (delight idea 33). Out in the open the rain is the whole box again.
+var rain_cut := 0.0 # radius of the dry circle, 0 for none
+
+func update_rain_shelter() -> void:
+	if m.rain == null:
+		return
+	var cut := 0.0
+	if m.raining and m.in_house < 0 and not m.intro:
+		var me := Vector2(m.player.x, m.player.z)
+		var i: int = m.world_build.roof_at(me)
+		if i >= 0:
+			cut = clampf(m.world_build.roof_edge(i, me) - 0.1, 0.25, 3.0)
+	if absf(cut - rain_cut) < 0.05 and (cut > 0.0) == (rain_cut > 0.0):
+		return
+	rain_cut = cut
+	if cut > 0.0:
+		m.rain.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+		m.rain.emission_ring_axis = Vector3.UP
+		m.rain.emission_ring_height = 1.0
+		m.rain.emission_ring_radius = 14.0
+		m.rain.emission_ring_inner_radius = cut
+	else:
+		m.rain.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		m.rain.emission_box_extents = Vector3(14, 0.5, 14)
+
+# a shot stopped at a village door does not vanish into the wood: a short stick stands in it a moment, shivers four times, drops to the
+# ground and goes. Four sticks are made once and used over; the shot's damage and the wall stay as they were (delight idea 53).
+const STICK_POOL := 4
+const STICK_DOOR := 1.6 # tiles from a door's spot
+var sticks: Array = []
+var stick_next := 0
+var stick_made := 0 # sticks shown (autoplay d53_door_stick)
+var last_stick: Node3D
+
+func door_near(p: Vector2) -> bool:
+	return m.in_village and m.in_house < 0 and m.village != null and m.village.doors.any(func(d): return d.distance_to(p) < STICK_DOOR)
+
+func arrow_stick(pos: Vector3, v: Vector2) -> void:
+	if not door_near(Vector2(pos.x, pos.z)) or v.length() < 0.01:
+		return
+	if sticks.is_empty():
+		for k in STICK_POOL:
+			var piece := Node3D.new()
+			var shaft: MeshInstance3D = m.box(Vector3(0.04, 0.04, 0.5), m.mat_color(Color("#8a6a42")))
+			piece.add_child(shaft)
+			var tip: MeshInstance3D = m.box(Vector3(0.05, 0.05, 0.08), m.mat_color(Color("#c8c2b0")))
+			tip.position.z = 0.27
+			piece.add_child(tip)
+			piece.visible = false
+			m.add_child(piece)
+			sticks.append(piece)
+	var st: Node3D = sticks[stick_next]
+	stick_next = (stick_next + 1) % STICK_POOL
+	if st.has_meta("tw") and (st.get_meta("tw") as Tween).is_valid():
+		(st.get_meta("tw") as Tween).kill()
+	var dir := v.normalized()
+	st.position = Vector3(pos.x - dir.x * 0.15, maxf(pos.y, 0.5), pos.z - dir.y * 0.15)
+	st.rotation = Vector3(0.0, atan2(dir.x, dir.y), 0.0)
+	st.visible = true
+	last_stick = st
+	stick_made += 1
+	m.sfx(210, 0.06, "triangle", 0.1, -60.0)
+	var tw := st.create_tween()
+	st.set_meta("tw", tw)
+	for k in 4: # four shivers, each smaller
+		tw.tween_property(st, "rotation:z", 0.14 * (1.0 - k / 4.0) * (1.0 if k % 2 == 0 else -1.0), 0.05)
+	tw.tween_property(st, "rotation:z", 0.0, 0.04)
+	tw.tween_property(st, "position:y", 0.04, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(st, "rotation:x", 1.2, 0.3)
+	tw.tween_interval(0.6)
+	tw.tween_callback(func(): st.visible = false)

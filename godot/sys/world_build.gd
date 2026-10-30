@@ -96,6 +96,10 @@ func build_map() -> void:
 	bridge_line(10, 34, 25)
 	bridge_line(12, 36, 39)
 
+# the tiles a bridge deck covers, whatever lay under it: the open water beside them gets rain rings, the water under the deck does not
+# (delight idea 32, effects.update_rain_rings)
+var deck_tiles := {} # Vector2i -> true
+
 func bridge_line(x0: int, x1: int, z: int) -> void:
 	var run = null
 	for i in range(x0, x1 + 1):
@@ -118,6 +122,7 @@ func bridge_line(x0: int, x1: int, z: int) -> void:
 			continue
 		for i in range(b.a - 1, b.b + 2):
 			for zz in [z, z + 1]:
+				deck_tiles[Vector2i(i, zz)] = true
 				if m.map[m.idx(i, zz)] == Main.WATER:
 					m.map[m.idx(i, zz)] = Main.BRIDGE
 					m.hgt[m.idx(i, zz)] = 0.08
@@ -1148,3 +1153,97 @@ func build_chests() -> void:
 		m.add_child(s)
 		m.blob(0.8).position = Vector3(p.x, m.height_at(p.x, p.y) + 0.02, p.y)
 		m.chests.append({"x": p.x, "z": p.y, "node": s, "open": false})
+
+# flat rectangles a roof covers where Sora can stand (the cottage porch, the stall awnings, the inn's eave, the village door eaves):
+# inside one the rain above her is cut and the rain outside it falls on (delight idea 33, effects.update_rain_shelter). Only a picture:
+# the weather and the collision are untouched.
+var roof_rects: Array = [] # Rect2 in world x, z
+
+func add_roof(r: Rect2) -> void:
+	roof_rects.append(r)
+
+func build_roofs() -> void:
+	add_roof(Rect2(m.shop_pos.x - 1.7, m.shop_pos.z - 1.9, 3.4, 2.2))
+	if m.village == null:
+		return
+	for key in m.market.STALLS: # the awning, and the strip in front of it where she buys
+		var at: Vector2 = m.village.marks[key]
+		add_roof(Rect2(at.x - 0.46, at.y - 1.3, 1.92, 1.55))
+	var n: Vector2 = m.village.marks.N
+	add_roof(Rect2(n.x - 2.6, n.y - 3.5, 5.2, 3.7))
+
+# the index of the roof over p, -1 for open sky
+func roof_at(p: Vector2) -> int:
+	for i in roof_rects.size():
+		if (roof_rects[i] as Rect2).has_point(p):
+			return i
+	return -1
+
+# how far p stands from the nearest edge of roof i
+func roof_edge(i: int, p: Vector2) -> float:
+	var r: Rect2 = roof_rects[i]
+	return minf(minf(p.x - r.position.x, r.end.x - p.x), minf(p.y - r.position.y, r.end.y - p.y))
+
+# three small moth shadows gather round the nearest lit lamp as the evening comes on and drift off at dawn (delight idea 35): each is two
+# flat dark wings that beat, nothing like the brick moths (no warning ring, no sound, no harm). The ring they fly shrinks from
+# MOTH_FAR tiles at dusk to MOTH_NEAR tiles at night and opens again as night thins, so they scatter before they are gone.
+const MOTH_N := 3
+const MOTH_SEEK := 14.0
+const MOTH_FAR := 3.0
+const MOTH_NEAR := 0.34
+var moths: Array = [] # [{"node": Node3D, "wings": [MeshInstance3D, MeshInstance3D]}]
+var moth_lamp: OmniLight3D
+var moth_gather := 0.0 # 0 scattered .. 1 round the lamp
+var moth_t := 0.0
+var moth_seek_t := 0.0
+
+func build_lamp_moths() -> void:
+	var mat := m.mat_color(Color("#34303a"))
+	for k in MOTH_N:
+		var node := Node3D.new()
+		var wings: Array = []
+		for side in [-1.0, 1.0]:
+			var w := box(Vector3(0.07, 0.006, 0.05), mat)
+			w.position.x = side * 0.035
+			node.add_child(w)
+			wings.append(w)
+		node.visible = false
+		m.add_child(node)
+		moths.append({"node": node, "wings": wings})
+
+func moth_lamp_ok(l: OmniLight3D) -> bool:
+	return l != null and is_instance_valid(l) and l.has_meta("glass") and not l.get_meta("dark", false) and l != m.dark_lamp
+
+func update_lamp_moths(dt: float) -> void:
+	if moths.is_empty():
+		return
+	moth_t += dt
+	moth_gather = smoothstep(0.35, 0.7, m.night)
+	moth_seek_t -= dt
+	var me := Vector2(m.player.x, m.player.z)
+	if moth_seek_t <= 0.0 or not moth_lamp_ok(moth_lamp):
+		moth_seek_t = 1.0
+		var far: bool = moth_lamp != null and Vector2(moth_lamp.position.x, moth_lamp.position.z).distance_to(me) > MOTH_SEEK + 4.0
+		if not moth_lamp_ok(moth_lamp) or far or moth_gather < 0.05:
+			var best: OmniLight3D = null
+			var bd := MOTH_SEEK
+			for l in m.lanterns:
+				var d := Vector2(l.position.x, l.position.z).distance_to(me)
+				if d < bd and moth_lamp_ok(l):
+					bd = d
+					best = l
+			moth_lamp = best
+	var show: bool = moth_lamp != null and moth_gather > 0.05
+	for k in moths.size():
+		var node: Node3D = moths[k].node
+		node.visible = show
+		if not show:
+			continue
+		var r := lerpf(MOTH_FAR, MOTH_NEAR, moth_gather) + 0.1 * sin(moth_t * 2.0 + k * 2.0)
+		var a := moth_t * (1.6 + 0.35 * k) + k * 2.1
+		node.position = moth_lamp.position + Vector3(cos(a) * r, 0.15 * sin(moth_t * 3.0 + k * 2.0), sin(a) * r)
+		node.rotation.y = -a
+		node.scale = Vector3.ONE * lerpf(0.4, 1.0, moth_gather)
+		var flap := 0.7 * sin(moth_t * 32.0 + k)
+		moths[k].wings[0].rotation.z = flap
+		moths[k].wings[1].rotation.z = -flap
