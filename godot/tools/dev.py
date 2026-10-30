@@ -157,7 +157,7 @@ def test(name):
         kill()
         print("TESTS TIMED OUT (a script error usually stops the runner; run check, or read the Godot log)")
         return 1
-    lines = [l for l in (r.stdout + r.stderr).splitlines() if l.startswith(("TEST", "SCRIPT ERROR"))]
+    lines = [l for l in (r.stdout + r.stderr).splitlines() if l.startswith(("TEST", "SCRIPT ERROR")) or re.match(r"\s+at: ", l)]
     print("\n".join(lines) or (r.stdout + r.stderr)[-2000:])
     return r.returncode
 

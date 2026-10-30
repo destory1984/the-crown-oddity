@@ -137,8 +137,20 @@ var touch_layer: Control
 var safe := Vector4.ZERO      # the phone's unsafe margins in canvas px: left, top, right, bottom (zero off a phone; sys/safe_area.gd)
 var away := false             # focus was lost: the game is paused behind the 돌아왔다 key (sys/away.gd)
 
+# the web build drops the key-up when focus leaves while a key is down (a window switch, a capture shortcut), and Godot's own release
+# skips it while it still counts the app as focused, so Sora walked on by herself (the owner, 2026-10-31). From a focus loss on only
+# keys pressed again count. Physical keys: a Korean IME or Shift can change a key's keycode between its press and its release.
+var keys_lost := false
+var live_keys := {}
+
 func key_down(k: int) -> bool:
-	return fake_keys.has(k) or touch_keys.has(k) or Input.is_key_pressed(k)
+	return fake_keys.has(k) or touch_keys.has(k) or (Input.is_physical_key_pressed(k) and (not keys_lost or live_keys.has(k)))
+
+func track_key(e: InputEventKey) -> void:
+	if not e.pressed:
+		live_keys.erase(e.physical_keycode)
+	elif not e.echo:
+		live_keys[e.physical_keycode] = true
 
 var camera: Camera3D
 var sun: DirectionalLight3D
@@ -407,6 +419,9 @@ func _exit_tree() -> void:
 
 func _notification(what: int) -> void:
 	away_ui.notify(what)
+	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		keys_lost = true
+		live_keys.clear()
 
 func _ready() -> void:
 	music.setup()
@@ -746,6 +761,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.132: 키를 누르지 않았는데 소라가 혼자 걷던 것을 고쳤다. 키를 누른 채 다른 창으로 가거나 캡처 단축키를 쓰면 손을 뗀 신호가 사라져 계속 눌린 것으로 쳤다. 이제 창에서 벗어나는 순간 모든 키를 놓은 것으로 치고, 다시 누른 키만 인정한다. 한글 입력 상태나 Shift 때문에 키가 어긋나는 일도 막았다.",
 	"· v0.1.131: 개구리 울음을 새로 만들었다. 삑삑거리던 두 음을 없애고, 낮은 소리가 1초에 36번 끊겨 드르륵 떨리는 울음으로 바꿨다. 개(0.2초)는 살짝 오르고 굴(0.28초)은 내려간다.",
 	"· v0.1.130: 광장 분수대의 물소리를 없앴다. 곁에 서 있어도 소리가 나지 않고, 칼로 쳤을 때 물이 찰싹이는 소리만 남았다. 다래와 토리가 다니는 길이 축구장 모퉁이 깃발(25, 21.8)에 걸리던 것도 꺾임점을 0.3칸 옮겨 고쳤다.",
 	"· v0.1.129: 남쪽 풀밭이 축구장이 되었다. 맞은편 북쪽 끝에 같은 골대를 세워 어느 쪽에 넣어도 골이다. 공은 가운데 점(가로 8칸, 세로 5.6칸의 한복판)에 놓인다. 흰 테두리, 중앙선, 반지름 1.1칸의 중앙 원, 골 앞 네모 둘을 긋고 네 귀퉁이에 빨간 깃발을, 동쪽 줄가에 골 수를 적는 점수판을 세웠다. 풀밭 등불은 줄 밖으로 두 칸 옮겼다.",
@@ -2074,6 +2090,8 @@ func toast(msg: String) -> void:
 # ---------------------------------------------------------------- input
 # the title screen listens before any control can swallow the click or key
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		track_key(event)
 	if touch_ui: # the words follow the input used last: touch names after a touch, key names after a key or a real mouse
 		var kb: bool = (event is InputEventKey and event.pressed) or (event is InputEventMouseButton and event.pressed and event.device != InputEvent.DEVICE_ID_EMULATION)
 		var tc: bool = event is InputEventScreenTouch and event.pressed

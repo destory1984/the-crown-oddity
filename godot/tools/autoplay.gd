@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
+const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "key_unstick", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_fountain_quiet", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
@@ -2225,11 +2225,35 @@ func run() -> void:
 			m0.stun = 0.0
 			m0.wind = 0.0
 			calm_enemies(true)
+			hold_mates() # late in a full run a companion's blow broke the wind-up (combat.gd), so the charge never came
 			var winding: bool = await wait_for(func(): return m0.wind > 0.0, 2.0)
 			var hp_wind: float = main.player.hp
 			await wait_for(func(): return main.player.hp < 200.0, 4.0) # the charge, however slow the game clock runs late in a full run
 			check("mole_charge", winding and hp_wind == 200.0 and main.player.hp < 200.0,
 				"winds up=%s, no damage during wind-up=%s, charge hit for %d (mole %.1f,%.1f wind %.2f dash %.2f stun %.2f next %s; Sora %.1f,%.1f; B %s; time_scale %.2f)" % [winding, hp_wind == 200.0, int(200.0 - main.player.hp), m0.x, m0.z, m0.wind, m0.dash, m0.stun, m0.next, main.player.x, main.player.z, main.cave_marks.B, Engine.time_scale])
+	if want.call("key_unstick"):
+		# a key held when focus leaves counts as let go, as its key-up may never come; it counts again from its next press; a key-up with another keycode still lets go
+		var press := func(down: bool, code := KEY_W) -> void:
+			var e := InputEventKey.new()
+			e.keycode = code
+			e.physical_keycode = KEY_W
+			e.pressed = down
+			Input.parse_input_event(e)
+			Input.flush_buffered_events()
+		var keep_lost: bool = main.keys_lost
+		press.call(true)
+		var held: bool = main.key_down(KEY_W)
+		main._notification(Node.NOTIFICATION_WM_WINDOW_FOCUS_OUT)
+		var let_go: bool = not main.key_down(KEY_W)
+		press.call(true)
+		var again: bool = main.key_down(KEY_W)
+		press.call(false, KEY_P)
+		var up: bool = not main.key_down(KEY_W)
+		press.call(true)
+		var after: bool = main.key_down(KEY_W)
+		press.call(false)
+		main.keys_lost = keep_lost
+		check("key_unstick", held and let_go and again and up and after, "held %s, a focus loss lets go %s, pressed again %s, a key-up with another keycode lets go %s, the next press counts %s" % [held, let_go, again, up, after])
 	if want.call("mole_grants_skip"):
 		var mo = main.enemies.filter(func(e): return e.get("mole", false) and not e.dead)
 		if not mo.is_empty():
@@ -4398,6 +4422,7 @@ func run() -> void:
 		var swooped := false
 		var hurt_seen := 0.0
 		var hp0: float = main.player.hp
+		var top := 0.0 # the highest seen: a swoop brings it low, so one last sample can land on the ground
 		for i in 50:
 			reset_to(Vector2(20, 30))
 			main.player.hp = hp0
@@ -4405,7 +4430,8 @@ func run() -> void:
 			if b0.dash > 0.0:
 				swooped = true
 			hurt_seen = maxf(hurt_seen, b0.hurt)
-		var flies: bool = b0.node.position.y > 0.5
+			top = maxf(top, b0.node.position.y)
+		var flies: bool = top > 0.5
 		if not b0.dead:
 			b0.dead = true
 			b0.node.queue_free()
@@ -11264,6 +11290,7 @@ func run() -> void:
 		await wait_for(func(): return main.gust_dir != Vector2.ZERO, 3.0)
 		release()
 		var crossed: bool = await wait_for(func(): return main.player.x > o + 11.0 and main.gust_dir == Vector2.ZERO, 4.0)
+		var landed: Vector2 = Vector2(main.player.x - o, main.player.z)
 		crossed = crossed and main.player.x < o + 13.0 and absf(main.player.z - 10.0) < 0.6
 		var mates_land: bool = Vector2(main.mate.position.x, main.mate.position.z).distance_to(Vector2(main.player.x, main.player.z)) < 4.0 and Vector2(main.mate2.position.x, main.mate2.position.z).distance_to(Vector2(main.player.x, main.player.z)) < 4.0
 		# the swivel platform: 2 s to turn, then rows 9..11 of cols 8..10 are floor; nobody on it, and not cut off from the far bank
@@ -11307,7 +11334,7 @@ func run() -> void:
 		await wait(1.5)
 		var onward: bool = main.obs.room_of(main.player.x) == 1 and main.ui.zone_sub.text == "관측원 · 꺼진 빛"
 		check("obs_s1", shut and note_first and read and walk_stops and dormant and wind and crossed and mates_land and turning and bridged and on_it and cut_off and walks_over and walks_back and posted and q_dark and true_mirror and needs_hand and fixed and onward,
-			"D shut=%s; M waits for the note=%s, note read=%s; walking stops=%s, hole sleeps=%s then blows=%s, gust crosses=%s, friends land=%s; platform turns=%s, bridges=%s, refuses on it=%s and from the far bank=%s, walk over=%s and back=%s; post=%s; receiver dark=%s, mirror true=%s, needs the hand=%s; fixed, gate open, post freed=%s; next floor=%s" % [shut, note_first, read, walk_stops, dormant, wind, crossed, mates_land, turning, bridged, on_it, cut_off, walks_over, walks_back, posted, q_dark, true_mirror, needs_hand, fixed, onward])
+			"D shut=%s; M waits for the note=%s, note read=%s; walking stops=%s, hole sleeps=%s then blows=%s, gust crosses=%s (landed %s), friends land=%s; platform turns=%s, bridges=%s, refuses on it=%s and from the far bank=%s, walk over=%s and back=%s; post=%s; receiver dark=%s, mirror true=%s, needs the hand=%s; fixed, gate open, post freed=%s; next floor=%s" % [shut, note_first, read, walk_stops, dormant, wind, crossed, landed, mates_land, turning, bridged, on_it, cut_off, walks_over, walks_back, posted, q_dark, true_mirror, needs_hand, fixed, onward])
 		calm_enemies(false)
 		main.in_hill = false
 		main.observatory_q = 6
