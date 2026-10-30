@@ -1075,29 +1075,33 @@ func build_small_things(m: Node) -> void:
 	var k: Vector2 = folk_pos["kongal"]
 	doodle_crown = chalk_plane(m, "crown", k + Vector2(1.5, -3.2), 0.2) # on the square's south edge, three tiles from his spot
 	doodle_otter = chalk_plane(m, "otter", k + Vector2(3.5, -3.1), -0.15)
-	var stick: Material = m.mat_color(Color("#7a5232"))
-	var cols := [Color("#d8342c"), Color("#2f5fb8"), Color("#e8c23a"), Color("#3a9a4a")]
 	for i in PINWHEEL_TILES.size():
 		var t: Vector2 = PINWHEEL_TILES[i]
 		var g := Node3D.new()
 		g.position = Vector3(VILLAGE_X + t.x, 0, t.y)
-		var pole: MeshInstance3D = m.box(Vector3(0.05, 0.9, 0.05), stick)
-		pole.position = Vector3(0, 0.45, 0)
-		g.add_child(pole)
-		var hub := Node3D.new()
-		hub.position = Vector3(0, 0.95, 0.05)
-		for b in 4:
-			var blade: MeshInstance3D = m.box(Vector3(0.3, 0.14, 0.02), m.mat_color(cols[(b + i) % 4]))
-			blade.position = Vector3(0.15, 0.07, 0)
-			var arm := Node3D.new()
-			arm.rotation.z = b * PI / 2.0
-			arm.add_child(blade)
-			hub.add_child(arm)
-		var cap: MeshInstance3D = m.box(Vector3(0.08, 0.08, 0.06), m.mat_color(Color("#f2ead8")))
-		hub.add_child(cap)
-		g.add_child(hub)
+		var hub := make_pinwheel(m, g, i)
 		m.add_child(g)
 		pinwheels.append({"hub": hub, "turning": false, "spin": 0.0})
+
+# a pole and four coloured blades under g; returns the hub that turns (also Bori's, marsh_toys.gd)
+func make_pinwheel(m: Node, g: Node3D, i: int) -> Node3D:
+	var cols := [Color("#d8342c"), Color("#2f5fb8"), Color("#e8c23a"), Color("#3a9a4a")]
+	var pole: MeshInstance3D = m.box(Vector3(0.05, 0.9, 0.05), m.mat_color(Color("#7a5232")))
+	pole.position = Vector3(0, 0.45, 0)
+	g.add_child(pole)
+	var hub := Node3D.new()
+	hub.position = Vector3(0, 0.95, 0.05)
+	for b in 4:
+		var blade: MeshInstance3D = m.box(Vector3(0.3, 0.14, 0.02), m.mat_color(cols[(b + i) % 4]))
+		blade.position = Vector3(0.15, 0.07, 0)
+		var arm := Node3D.new()
+		arm.rotation.z = b * PI / 2.0
+		arm.add_child(blade)
+		hub.add_child(arm)
+	var cap: MeshInstance3D = m.box(Vector3(0.08, 0.08, 0.06), m.mat_color(Color("#f2ead8")))
+	hub.add_child(cap)
+	g.add_child(hub)
+	return hub
 
 # which pinwheels turn: the first three with the hill's three small windmills, the fourth with the big one (mill_q 3)
 func pinwheel_turning(m: Node, i: int) -> bool:

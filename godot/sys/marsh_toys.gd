@@ -136,6 +136,7 @@ func build() -> void:
 	build_cattails()
 	build_rack()
 	build_mat()
+	build_pinwheel()
 	m.world_build.build_tea_cups()
 	m.world_build.build_start_reeds()
 	clear_pads()
@@ -299,6 +300,59 @@ func build_mat() -> void:
 	mat_node.rotation.y = COTTAGE_YAW
 	put(mat_node, mat_at, 0.8)
 
+# a pinwheel in front of Bori's door (the owner, 14:23: "보리 할머니 집 앞에도 바람개비 하나 넣어"): the marsh breeze
+# turns it slowly; a blow whirls it and it eases back like the village ones
+const PIN_TURN := 2.5 # rad/s in the breeze
+var pin_hub: Node3D
+var pin_at := Vector2(-1, -1)
+var pin_spin := 0.0   # seconds of a blow's whirl left
+var pin_hits := 0     # blows that reached it (autoplay bori_pinwheel)
+
+func build_pinwheel() -> void:
+	# the toys keep 2.5 tiles off the walk to the door; a thin pole may stand nearer, just off the path's line
+	for c: Vector2 in [cot(Vector2(1.2, 2.0)), cot(Vector2(-1.2, 2.2)), cot(Vector2(1.6, 2.6)), cot(Vector2(-1.7, 2.6))]:
+		if pin_ok(c):
+			pin_at = c
+			break
+	if pin_at.x < 0.0:
+		return
+	var g := Node3D.new()
+	pin_hub = m.village.make_pinwheel(m, g, 1)
+	g.rotation.y = COTTAGE_YAW
+	put(g, pin_at, 0.4)
+
+func pin_ok(p: Vector2) -> bool:
+	if m.tile_at(p.x, p.y) == Main.WATER or lane_dist(p) < 0.9 or p.distance_to(Vector2(m.shop_pos.x, m.shop_pos.z)) < 1.0:
+		return false
+	for r in m.rocks:
+		if Vector2(r.x, r.z).distance_to(p) < r.r + 0.3:
+			return false
+	for tk in taken:
+		if p.distance_to(tk[0]) < tk[1] + 0.3:
+			return false
+	return true
+
+func update_pinwheel(dt: float) -> void:
+	if pin_hub == null:
+		return
+	var speed := PIN_TURN
+	if pin_spin > 0.0:
+		pin_spin = maxf(0.0, pin_spin - dt)
+		speed = lerpf(speed, m.village.PINWHEEL_SPIN, pin_spin / m.village.PINWHEEL_EASE)
+	pin_hub.rotation.z -= dt * speed
+
+# the same reach test as the village pinwheels (village.gd pinwheels_hit)
+func pinwheel_hit(reach: float, f: Vector2, cone: float, all_round: bool) -> void:
+	if pin_hub == null or not m.in_marsh():
+		return
+	var d := Vector2(pin_hub.global_position.x, pin_hub.global_position.z) - Vector2(m.player.x, m.player.z)
+	if d.length() > reach + 0.6 or not (all_round or d.normalized().dot(f) > cone - 0.2):
+		return
+	pin_spin = m.village.PINWHEEL_EASE
+	pin_hits += 1
+	m.sfx(520.0, 0.3, "noise", 0.1, 600.0) # a light whirr
+	m.sfx(600.0, 0.25, "triangle", 0.06, 500.0)
+
 # ---------------------------------------------------------------- E
 # no toy answers during a story, the shop, a fall, a fade or a fight (a living foe within 6 tiles)
 func usable() -> bool:
@@ -368,6 +422,7 @@ func update(dt: float) -> void:
 	update_frogs(dt)
 	update_cattails(dt)
 	update_pipe(dt)
+	update_pinwheel(dt)
 	m.shop.update_cups(dt)
 	m.world_build.update_start_reeds(dt)
 

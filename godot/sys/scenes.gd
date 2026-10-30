@@ -13,6 +13,7 @@ const SCENES := {
 	"dusk": {"play": true, "hour": 19.5},
 	"noon": {"play": true, "hour": 13.0},
 	"cottage": {"play": true, "at": "cottage"},
+	"bori_pinwheel": {"play": true, "at": "cottage", "hour": 14.0}, # the pinwheel in front of Bori's door (v0.1.123)
 	"shop": {"play": true, "at": "shop", "gold": 120, "shop": true},
 	"boss": {"play": true, "at": Vector2(16, 11)},
 	"bridge": {"play": true, "at": Vector2(19, 26)},

@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "pinwheel_hit", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_water_loop", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 func _ready() -> void:
 	run.call_deferred()
@@ -1578,6 +1578,51 @@ func run() -> void:
 		var control: bool = fq.kicks == kq + 1 and fq.vel.length() > 6.0
 		check("football_quiet", story_still and bag_still and foe_still and control, "still in a story %s, with the bag open %s, with a foe 7.3 tiles off %s (foe placed %s); the same swing kicks it when all is calm %s" % [story_still, bag_still, foe_still, foe, control])
 		fb_end(was_q)
+	if want.call("bori_pinwheel"):
+		# a pinwheel stands in front of Bori's door and turns slowly in the marsh breeze; a real swing whirls it, then it eases back
+		var mt: Object = main.marsh_toys
+		var built: bool = mt.pin_hub != null and mt.pin_at.distance_to(main.cottage_at) < 3.2
+		var was_in: Array = [main.in_village, main.in_forest, main.in_lake, main.in_hill, main.in_garden, main.in_cave]
+		main.in_village = false
+		main.in_forest = false
+		main.in_lake = false
+		main.in_hill = false
+		main.in_garden = false
+		main.in_cave = false
+		main.close_story()
+		calm_enemies(true)
+		var turns := false
+		var whirled := false
+		var eased := false
+		var far_quiet := false
+		if built:
+			var r0: float = mt.pin_hub.rotation.z
+			await wait(0.5)
+			turns = absf(mt.pin_hub.rotation.z - r0) > 0.8 # about 2.5 rad/s
+			var h0: int = mt.pin_hits
+			reset_to(mt.pin_at + Vector2(-1.1, 0.0))
+			main.player.face = Vector2(1, 0)
+			main.player.atk_cd = 0.0
+			main.attack()
+			whirled = mt.pin_hits == h0 + 1 and mt.pin_spin > 2.0
+			var r1: float = mt.pin_hub.rotation.z
+			await wait(0.2)
+			whirled = whirled and absf(mt.pin_hub.rotation.z - r1) > 2.0 # near 20 rad/s
+			await wait(2.6)
+			eased = mt.pin_spin == 0.0
+			reset_to(mt.pin_at + Vector2(-6.0, 0.0))
+			main.player.atk_cd = 0.0
+			main.attack()
+			far_quiet = mt.pin_hits == h0 + 1
+		calm_enemies(false)
+		main.in_village = was_in[0]
+		main.in_forest = was_in[1]
+		main.in_lake = was_in[2]
+		main.in_hill = was_in[3]
+		main.in_garden = was_in[4]
+		main.in_cave = was_in[5]
+		check("bori_pinwheel", built and turns and whirled and eased and far_quiet,
+			"by Bori's door %s (at %s), turns in the breeze %s, a swing whirls it %s, eases back %s, a swing 6 tiles off does nothing %s" % [built, mt.pin_at, turns, whirled, eased, far_quiet])
 	if want.call("pinwheel_hit"):
 		# a swing that reaches a pinwheel spins it at about 20 rad/s and it eases down over 2.5 s: to still when its windmill is not mended, to its usual turn when it is
 		var was_p: Array = fb_start()

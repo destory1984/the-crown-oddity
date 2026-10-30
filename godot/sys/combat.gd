@@ -323,6 +323,7 @@ func attack() -> void:
 				m.crystal_hit(c)
 	if m.in_marsh():
 		m.world_build.chop_trees(reach, f, cone, spin or slam)
+		m.marsh_toys.pinwheel_hit(reach, f, cone, spin or slam)
 	if m.in_village and m.in_house < 0:
 		m.village.fountain_hit(m, reach, f, cone, spin or slam)
 		m.village.bricks_hit(m, reach, f, cone, spin or slam)
@@ -474,6 +475,7 @@ func charged_slash() -> void:
 		if d.length() < 2.8 and d.normalized().dot(f) > 0.2:
 			damage_enemy(e, m.player.atk * 3.0, Vector2(m.player.x, m.player.z), 10.0, true, 0.14)
 			m.last_hit_t = m.t
+	m.marsh_toys.pinwheel_hit(2.8, f, 0.2, false)
 	if m.in_village and m.in_house < 0:
 		m.village.pinwheels_hit(m, 2.8, f, 0.2, false)
 		m.football.hit(2.8, f, 0.2, false, m.football.KICK_FAR)
@@ -493,6 +495,7 @@ func light_blade(f: Vector2) -> void:
 
 # a ring skill reaches the village's pinwheels and its football all round (the ball goes straight away from her)
 func strike_village(reach: float) -> void:
+	m.marsh_toys.pinwheel_hit(reach, m.player.face, 0.0, true)
 	if m.in_village and m.in_house < 0:
 		m.village.pinwheels_hit(m, reach, m.player.face, 0.0, true)
 		m.football.hit(reach, m.player.face, 0.0, true, m.football.KICK_FAR)
