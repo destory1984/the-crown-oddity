@@ -15,7 +15,7 @@ const WALK_MAX := 8.0
 const CLAP_T := 5.0
 const CLAP_H := 0.1    # the little bounce of each clap
 const SIDE_ROWS := [22, 23, 24, 25, 26, 27, 21, 28] # rows along the side lines, the middle first
-const SIDE_X := [16, 26]                            # columns just outside the side lines
+const SIDE_X := [17, 25]                            # columns just outside the side lines
 
 var phase := ""        # "", run, clap, home
 var clap_t := 0.0
@@ -111,7 +111,7 @@ func start() -> void:
 		var e: Dictionary = crowd[id]
 		if e.seat < 0:
 			var best := -1
-			for i in seats.size():
+			for i in mini(crowd.size(), seats.size()): # the middle rows, both sides, or the east would fill first
 				if not taken.has(i) and (best < 0 or e.pos.distance_to(seats[i]) < e.pos.distance_to(seats[best])):
 					best = i
 			if best < 0:

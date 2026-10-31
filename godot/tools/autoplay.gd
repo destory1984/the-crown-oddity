@@ -1428,7 +1428,7 @@ func run() -> void:
 		var was_b: Array = fb_start()
 		var fbn: Object = main.football
 		var vxb: float = main.village.VILLAGE_X
-		fb_put(Vector2(24.6, 23.0), Vector2(40.0, 20.0), Vector2(1, 0))
+		fb_put(Vector2(23.6, 23.0), Vector2(40.0, 20.0), Vector2(1, 0))
 		fbn.vel = Vector2(7.0, 0)
 		var b0: int = fbn.bounces
 		var inside := true
@@ -1446,11 +1446,11 @@ func run() -> void:
 		await wait(0.9)
 		var post_ok: bool = fbn.bounces > b1 and fbn.vel.y <= 0.0 and fbn.p.y < fbn.goal_z and fbn.goals == g_b and fbn.state == "play"
 		var b2: int = fbn.bounces
-		fb_put(Vector2(25.0, 22.8), Vector2(40.0, 20.0), Vector2(0, -1)) # up the line into the corner flag
+		fb_put(Vector2(24.0, 22.8), Vector2(40.0, 20.0), Vector2(0, -1)) # up the line into the corner flag
 		fbn.vel = Vector2(0, -6.0)
 		await wait(0.9)
-		var basin_ok: bool = fbn.bounces > b2 and fbn.p.distance_to(Vector2(vxb + 25.0, 21.8)) >= 0.25 and fbn.vel.y >= 0.0
-		fb_put(Vector2(17.2, 28.0), Vector2(40.0, 20.0), Vector2(1, 0))
+		var basin_ok: bool = fbn.bounces > b2 and fbn.p.distance_to(Vector2(vxb + 24.0, 21.8)) >= 0.25 and fbn.vel.y >= 0.0
+		fb_put(Vector2(18.2, 28.0), Vector2(40.0, 20.0), Vector2(1, 0))
 		fbn.away_t = fbn.HOME_AFTER - 0.5
 		await wait(0.9)
 		var rolling_home: bool = fbn.state == "home"
@@ -1460,10 +1460,10 @@ func run() -> void:
 		await wait(2.2)
 		var back_out: bool = fbn.state == "play" and fbn.p.distance_to(fbn.spot) < 0.05
 		var near_sora: bool = true # a ball near Sora is left where it lies
-		fb_put(Vector2(17.2, 28.0), Vector2(18.2, 27.2), Vector2(1, 0))
+		fb_put(Vector2(18.2, 28.0), Vector2(19.2, 27.2), Vector2(1, 0))
 		fbn.away_t = fbn.HOME_AFTER - 0.5
 		await wait(1.0)
-		near_sora = fbn.state == "play" and fbn.p.distance_to(Vector2(vxb + 17.2, 28.0)) < 0.05
+		near_sora = fbn.state == "play" and fbn.p.distance_to(Vector2(vxb + 18.2, 28.0)) < 0.05
 		check("football_bounce", edge_ok and post_ok and basin_ok and rolling_home and back_stuck and back_out and near_sora,
 			"edge bounce keeps 40-60%% and stays inside %s (kept %.1f of 7), post %s, lamp %s, stuck ball rolls home after 10 s away %s then rests on its spot %s, one off the pitch comes home %s, one beside her stays %s" % [edge_ok, vmax, post_ok, basin_ok, rolling_home, back_stuck, back_out, near_sora])
 		fb_end(was_b)

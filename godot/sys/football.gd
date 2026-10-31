@@ -14,14 +14,14 @@ const Main := preload("res://main.gd")
 var m: Main
 
 # village tiles; the world position adds village.VILLAGE_X
-const PITCH := Rect2(16.6, 20.6, 8.8, 8.0) # the south lawn (17 to 25, rows 21 to 28) between the inn street and the pond: the ball never leaves it
+const PITCH := Rect2(17.6, 20.6, 6.8, 8.0) # the south lawn (17 to 25, rows 21 to 28) between the inn street and the pond: the ball never leaves it
 const SPOT := Vector2(21.0, 24.6)           # where the ball lies: the centre spot
 const GOAL_X := 21.0                        # the middle of the mouth
 const GOAL_LINE := 27.4                     # the south goal line (z); the mouth faces north, the net runs back to GOAL_LINE + GOAL_DEPTH
 const GOAL_LINE_N := 21.8                   # the north goal line, its net runs back to GOAL_LINE_N - GOAL_DEPTH
-const TOUCH_X := Vector2(17.0, 25.0)        # the painted side lines
+const TOUCH_X := Vector2(18.0, 24.0)        # the painted side lines, 6 wide (8 until the owner, 2026-10-31: "가로폭을 지금의 75%로")
 const CIRCLE_R := 1.1
-const BOX := Vector2(4.2, 1.3)              # the box before each goal: wide, deep
+const BOX := Vector2(3.2, 1.3)              # the box before each goal: wide, deep
 const LINE_W := 0.07
 const FLAG_H := 0.85
 const GOAL_W := 2.2
