@@ -82,6 +82,7 @@ const SCENES := {
 	"journal": {"play": true, "journal": true},
 	"journal_late": {"play": true, "journal": true, "late": true, "win": Vector2i(960, 540)}, # a late-game journal on a 960x540 window, keyboard (lap 6)
 	"journal_late_touch": {"play": true, "journal": true, "late": true, "win": Vector2i(960, 540), "touch": true},
+	"hud_fx": {"play": true, "village": true, "vat": Vector2(21.0, 25.4), "hour": 14.0, "hud_fx": true, "wait": "0.8"},
 	"item_card": {"play": true, "item_card": true, "wait": "1.5"},
 	"bag": {"play": true, "bag": true, "late": true, "win": Vector2i(960, 540)}, # the bag (Tab) late in the game on a 960x540 window
 	"bag_touch": {"play": true, "bag": true, "late": true, "win": Vector2i(960, 540), "touch": true},
@@ -191,6 +192,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.build_jar()
 	if sc.has("gold"):
 		m.player.gold = sc.gold
+		m.hud_fx.sync()
 	if sc.get("shop", false):
 		m.story_step = 3
 		m.toggle_shop(true)
@@ -831,6 +833,13 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.football.p = Vector2(m.player.x, m.player.z + 1.3)
 		m.football.ball.position = Vector3(m.football.p.x, 0, m.football.p.y)
 		m.football.goals = 3
+	if sc.get("hud_fx", false): # a chest's gold in the air, and her HP low
+		m.player.hp = m.player.max_hp * 0.2
+		var again := Timer.new() # gold keeps coming, so some is in the air whenever the shot is taken
+		again.wait_time = 0.3
+		again.autostart = true
+		again.timeout.connect(func(): m.player.gold += 150)
+		m.add_child(again)
 	if sc.get("item_card", false): # the talk that hands over the pearl
 		m.show_story("", Main.STORY.PEARL)
 	if sc.get("bag", false): # the bag with most keepsakes

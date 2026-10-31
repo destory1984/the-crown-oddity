@@ -248,7 +248,7 @@ func _draw() -> void:
 		vw = maxf(vw, main.ui_font.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x)
 	status_plate_rect = Rect2(Vector2(x0 - 52, 22), Vector2(bar_w() + 52 + 16 + vw + 12, 142))
 	draw_style_box(navy_plate(), status_plate_rect)
-	bar(Vector2(x0, 34), bar_w(), p.hp / p.max_hp, Color("#e03a44"), "체력", "%d/%d" % [ceili(p.hp), p.max_hp])
+	bar(Vector2(x0, 34), bar_w(), p.hp / p.max_hp, Color("#e03a44"), "체력", "%d/%d" % [ceili(p.hp), p.max_hp], main.hud_fx.low)
 	bar(Vector2(x0, 56), bar_w(), p.mp / p.max_mp, Color("#f08a2a"), "기세", "%d/%d" % [int(p.mp), p.max_mp], p.mp >= 60.0)
 	bar(Vector2(x0, 78), bar_w(), p.sp / 100.0, Color("#f2e2b0"), "기력", "%d/100" % int(p.sp))
 	var need: int = p.lv * 25
@@ -367,5 +367,6 @@ func _draw() -> void:
 	draw_rect(gp, GOLD_DIM, false, 1.0)
 	diamond(gp.position + Vector2(0, 14), 5, GOLD)
 	diamond(gp.position + Vector2(126, 14), 5, GOLD)
-	diamond(gp.position + Vector2(24, 14), 6, Color("#ffd84a"))
-	text(gp.position + Vector2(40, 20), str(p.gold), 15, TEXT)
+	var pop: float = main.hud_fx.gold_pop
+	diamond(gp.position + Vector2(24, 14), 6 + 3 * pop, Color("#ffd84a"))
+	text(gp.position + Vector2(40, 20), str(main.hud_fx.shown), 15 + int(3 * pop), TEXT.lerp(Color("#ffd84a"), pop))

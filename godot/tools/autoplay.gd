@@ -13,7 +13,7 @@ var results: Array = []
 const TESTS := ["title_music", "story_moves", "boss_intro", "village_road_note", "king_pace", "boss_journal", "boss_intro_mole", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "key_unstick", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
-	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "goal_crowd", "item_art", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_fountain_quiet", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "goal_crowd", "item_art", "hud_fx", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_fountain_quiet", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
 
 # these count frames or hit narrow windows, and flake at the 4x clock dev.py runs the suite at: each runs at 1x
 const REAL_SPEED := ["corridor_boss", "football_kick", "hog_roll", "mash", "new_foes", "obs_boss", "obs_s1", "shore", "archer_backoff", "corridor_s2", "marsh_duck", "marsh_fluff", "marsh_pipe", "cloud", "corridor_core", "corridor_fix", "corridor_s3", "marsh_frogs", "undercroft", "football_cheer", "bat_double", "pack_turns", "obs_s2", "door_bell"]
@@ -1502,6 +1502,51 @@ func run() -> void:
 			"scored %s, flash on %s x%d (%d before), banner '%s' %s, ball in the net %s, goals %d -> %d once only %s, back on its spot after %.2f s %s, banner gone %s, goals in the save %s" % [got, flash_on, fg.flashes, fl0, fg.banner.text if fg.banner != null else "", banner_on, in_net, g0, fg.goals, once, t_back, at_spot, faded, in_save])
 		fg.goals = g0
 		fb_end(was_g)
+	if want.call("hud_fx"):
+		# gold flies and the number climbs as it lands; a talk holds it back; a load does not celebrate; the red edge follows her HP
+		var hf: Object = main.hud_fx
+		await wait(0.1)
+		var g0: int = main.player.gold
+		var f0: int = hf.flown
+		main.player.gold += 150
+		await wait(0.05)
+		var sent: int = hf.flown - f0
+		var held_num: bool = hf.shown == g0
+		var landed_all: bool = await wait_for(func(): return hf.flying == 0, 3.0)
+		await wait(0.05)
+		var climbed: bool = hf.shown == g0 + 150
+		var f1: int = hf.flown
+		main.player.gold += 3
+		await wait(0.05)
+		var one: bool = hf.flown - f1 == 1
+		await wait_for(func(): return hf.flying == 0, 3.0)
+		var f2: int = hf.flown
+		main.show_story("", main.STORY.CLOUD_IN)
+		main.player.gold += 40
+		await wait(0.1)
+		var waited: bool = hf.flown == f2
+		main.close_story()
+		await wait(0.1)
+		var after_talk: bool = hf.flown - f2 == 3
+		await wait_for(func(): return hf.flying == 0, 3.0)
+		var f3: int = hf.flown
+		main.player.gold += 500
+		hf.sync()
+		await wait(0.1)
+		var quiet: bool = hf.flown == f3 and hf.shown == main.player.gold
+		main.player.gold -= 100
+		await wait(0.05)
+		var spent: bool = hf.shown == main.player.gold and hf.flown == f3
+		main.player.gold = g0
+		var hp0: float = main.player.hp
+		var b0: int = hf.beats
+		main.player.hp = main.player.max_hp * 0.2
+		await wait(0.8)
+		var red: bool = hf.edge.visible and hf.edge.modulate.a > 0.2 and hf.beats == b0 + 1
+		main.player.hp = hp0
+		var cleared: bool = await wait_for(func(): return not hf.edge.visible, 2.0)
+		check("hud_fx", sent == 5 and held_num and landed_all and climbed and one and waited and after_talk and quiet and spent and red and cleared,
+			"150 gold: %d diamonds, number waits=%s, all landed=%s, climbed=%s; 3 gold one=%s; held in a talk=%s, flies after=%s; a load quiet=%s, spending quiet=%s; low HP red=%s, cleared=%s" % [sent, held_num, landed_all, climbed, one, waited, after_talk, quiet, spent, red, cleared])
 	if want.call("item_art"):
 		# every picture exists, every line that shows one is a real line, a talk shows and hides the card, a drop pops it, the bag uses it
 		var ia: Object = main.item_art
@@ -3501,6 +3546,16 @@ func run() -> void:
 		calm_enemies(true)
 		main.enable_touch()
 		await wait(0.2)
+		var tl: Object = main.touch_layer
+		var cam0: float = main.cam_dist
+		tl.press("zoom_in", 9)
+		var marked: bool = tl.pressed.has("zoom_in") # the size is read half way down: a slow test frame can outlast the whole dip
+		tl.pressed["zoom_in"] = tl.PRESS_T / 2.0
+		var dips: bool = marked and is_equal_approx(tl.press_size("zoom_in"), 1.0 - tl.PRESS_DIP)
+		await wait(0.3)
+		var dip_over: bool = tl.press_size("zoom_in") == 1.0 and tl.pressed.is_empty()
+		main.cam_dist = cam0
+		check("touch_press", dips and dip_over, "a key dips under the finger=%s and comes back=%s" % [dips, dip_over])
 		var vs: Vector2 = main.get_viewport().get_visible_rect().size
 		reset_to(main.START)
 		await wait(0.2)

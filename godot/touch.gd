@@ -30,9 +30,13 @@ const GEOM := [
 const GUARD_SLACK := 36.0   # a thumb that slides this far past the guard key's rim still holds it (idea 94)
 const FADE_AFTER := 8.0     # seconds with no finger down and no foe near, then the combat keys go faint (idea 100)
 const FADE_TO := 0.3        # how faint
+const PRESS_T := 0.16       # a key dips and a ring leaves it, this long (the owner, 2026-10-31: "세 가지 넣어라")
+const PRESS_DIP := 0.14
 const SAY_FOR := 1.3        # the word over the bracelet key stays this long (idea 92)
 
 var tex := {}
+var pressed := {}          # key name -> seconds left of its dip
+var presses := 0           # keys pressed (autoplay hud_fx)
 var guard_latch := false   # one-hand setting: a tap on the shield key holds it until the next tap (idea 90)
 var run_latch := false     # and a tap on the run key runs until the next tap
 var crown_say := ""        # the word for what the bracelet key does here, shown over it for a moment
@@ -164,6 +168,8 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func press(n: String, idx: int) -> void:
+	pressed[n] = PRESS_T
+	presses += 1
 	match n:
 		"attack": main.attack()
 		"dodge": main.dodge()
@@ -214,11 +220,20 @@ func _process(dt: float) -> void:
 		if run_latch:
 			main.touch_keys[KEY_SHIFT] = true
 	crown_say_t = maxf(0.0, crown_say_t - dt)
+	for n in pressed.keys():
+		pressed[n] -= dt
+		if pressed[n] <= 0.0:
+			pressed.erase(n)
 	# safe quiet: no finger down, nothing hunting her; then the combat keys fade, the touch itself brings them back (idea 100)
 	var calm: bool = playing() and pad_idx < 0 and held.is_empty() and not main.enemies.any(func(e): return not e.dead and not e.get("prop", false) and Vector2(e.x - main.player.x, e.z - main.player.z).length() < 10.0)
 	idle_t = idle_t + dt if calm else 0.0
 	dim = move_toward(dim, 1.0 if idle_t >= FADE_AFTER else 0.0, dt / 1.2)
 	queue_redraw()
+
+func press_size(n: String) -> float:
+	if not pressed.has(n):
+		return 1.0
+	return 1.0 - PRESS_DIP * sin(PI * (1.0 - pressed[n] / PRESS_T))
 
 func _draw() -> void:
 	var vs := get_viewport_rect().size
@@ -245,7 +260,7 @@ func _draw() -> void:
 		if not k.has(n):
 			continue
 		var c: Vector2 = k[n][0]
-		var r: float = k[n][1]
+		var r: float = k[n][1] * press_size(n)
 		var lit := held.values().has(n)
 		var latched: bool = (n == "guard" and guard_latch) or (n == "run" and run_latch)
 		var al := 0.9 * (fade if n in ["attack", "dodge", "guard", "run"] and not lit and not latched else 1.0)
@@ -263,6 +278,10 @@ func _draw() -> void:
 			draw_arc(c, r + GUARD_SLACK, 0.0, TAU, 48, Color(1, 0.93, 0.7, 0.35), 2.0)
 		if latched: # latched: a gold dot on the key
 			draw_circle(c + Vector2(r * 0.7, -r * 0.7), 6.0, Color("#ffd86a"))
+	for n in pressed: # every key, the skill icons hud.gd draws too: a gold ring leaves it
+		if k.has(n):
+			var left: float = pressed[n] / PRESS_T
+			draw_arc(k[n][0], k[n][1] + 16.0 * (1.0 - left), 0.0, TAU, 40, Color(1.0, 0.85, 0.42, left), 3.0)
 	# the latches stay told in words under the keys while they are on (idea 90)
 	var lt := latch_text()
 	if lt != "":

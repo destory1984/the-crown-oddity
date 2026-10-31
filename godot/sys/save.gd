@@ -88,6 +88,7 @@ func load_game() -> void:
 	m.menus.recap_from_save(float(d.get("saved_at", 0.0))) # a long break brings the short recap first (idea 81)
 	for k in ["lv", "xp", "max_hp", "atk", "gold", "pots"]:
 		m.player[k] = int(d.get(k, m.player[k]))
+	m.hud_fx.sync()
 	m.player.hp = float(d.get("hp", m.player.max_hp))
 	if m.player.hp <= 0.0: # an older save made in the frame she fell: she wakes healed, as after a faint
 		m.player.hp = float(m.player.max_hp)
