@@ -762,6 +762,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.136: 동쪽 마을 길 끝의 안내문을 소라의 혼잣말로 바꿨다. 마을은 나중에. 늪 물길의 벽돌왕부터 쓰러뜨리자, 마을은 나중에. 동굴의 수레두더지부터 넘어서자.",
 	"· v0.1.135: 일지 오른쪽 맨 위에 만난 보스 목록이 생겼다. 이름을 누르면 소개 페이지를 다시 보고, 닫으면 일지로 돌아온다. 쓰러뜨린 보스도 나온다. 벽돌왕을 쓰러뜨리고 동굴을 마치기 전에 동쪽 마을 길 끝으로 가면 무엇을 먼저 할지 안내문이 뜬다. 벽돌왕이 공격 사이에 기다리는 시간을 절반으로 줄였다. 공격 전 예고 시간은 그대로다.",
 	"· v0.1.134: 굴파기 수레두더지 앞에도 소개 페이지가 생겼다. 문이 열린 뒤 9.5칸 안으로 처음 다가가면 세상이 멈추고 새 그림과 조심할 공격 세 줄이 뜬다. 벽돌왕처럼 한 번만 나온다.",
 	"· v0.1.133: 벽돌왕 앞에 소개 페이지가 생겼다. 소라가 12.5칸 안으로 처음 다가가면 세상이 멈추고 새 그림과 이름, 조심할 공격 세 줄이 한 쪽으로 뜬다. 한 번만 나오고 새 회차에도 다시 나오지 않는다. 플레이어 리뷰에서 시작 때 적이 많아 헷갈린다는 의견을 받아 보스부터 소개하기로 했다.",
@@ -2422,7 +2423,7 @@ func _process(dt: float) -> void:
 	if not in_cave and not in_village and story_step >= 7 and player.x > 46.5 and player.x < CAVE_X - 0.5 and player.z > 17.5 and player.z < 23.5 and fade_rect.color.a == 0.0:
 		fade_then(enter_village)
 	if not in_cave and not in_village and story_step < 7 and player.x > 46.0 and player.x < CAVE_X - 0.5 and player.z > 17.5 and player.z < 23.5 and toast_t <= 0.0:
-		toast("벽돌이 마을 길을 막고 있다. 북쪽 벽돌왕부터 쓰러뜨리자" if story_step < 5 else "벽돌이 마을 길을 막고 있다. 동굴로 내려가 수레두더지를 넘어서자") # the road ended in silence (the owner, 2026-10-31)
+		toast("마을은 나중에. 늪 물길의 벽돌왕부터 쓰러뜨리자" if story_step < 5 else "마을은 나중에. 동굴의 수레두더지부터 넘어서자") # the road ended in silence (the owner, 2026-10-31)
 	if in_village and Vector2(player.x, player.z).distance_to(village.marks.G) < 0.9 and fade_rect.color.a == 0.0:
 		fade_then(village_life.leave_village)
 	if in_village and Vector2(player.x, player.z).distance_to(village.marks.F) < 0.9 and fade_rect.color.a == 0.0:
