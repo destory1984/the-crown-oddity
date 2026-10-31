@@ -461,15 +461,15 @@ func update_folk_chat(dt: float) -> void:
 		m.folk_chat_gap = maxf(4.0, bubble_life(m.touch_words(tr(line)), 3.0) + 1.0)
 	folk_say(id, line)
 
-func folk_say(id: String, line: String) -> void:
+func folk_say(id: String, line: String, dur := 3.0) -> void:
 	var at := folk_chat_at(id)
 	var anchor := Node3D.new()
 	anchor.position = Vector3(at.x, m.shop_pos.y if id == "bori" else 0.0, at.y)
 	m.add_child(anchor)
 	var n0 := m.bubbles_said
-	say_bubble(anchor, m.touch_words(tr(line)), 3.0)
+	say_bubble(anchor, m.touch_words(tr(line)), dur)
 	m.bubbles_said = n0 # the companions' count stays theirs
 	(anchor.get_child(0) as Node3D).position.y = m.folk_bubble_y(id)
 	m.folk_chat_last[id] = line
 	m.folk_said.append([id, line])
-	m.folk_bubbles.append({"anchor": anchor, "id": id, "t": bubble_life(m.touch_words(tr(line)), 3.0) + 0.6 + (1.0 if m.touch_ui else 0.0)})
+	m.folk_bubbles.append({"anchor": anchor, "id": id, "t": bubble_life(m.touch_words(tr(line)), dur) + 0.6 + (1.0 if m.touch_ui else 0.0)})

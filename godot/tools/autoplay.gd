@@ -1534,6 +1534,10 @@ func run() -> void:
 		await wait_for(func(): return gc.phase == "home", 8.0)
 		var t_clap: float = gsec() - t1c
 		var clapped: bool = gc.claps - clap0 > 20 and t_clap > 4.5 and t_clap < 5.6
+		var heard: Dictionary = gc.cheered.duplicate()
+		var known: bool = heard.size() >= 5 and heard.values().has("골인~!") and gc.roars >= 4 and gc.most_up <= gc.CHEER_MAX
+		for id in heard:
+			known = known and (heard[id] == gc.CHEER_OWN[id] or gc.CHEER_ANY.has(heard[id])) and main.folk_said.has([id, heard[id]])
 		var back_ok: bool = await wait_for(func(): return gc.phase == "", 12.0)
 		await wait(0.1)
 		var off := 0.0
@@ -1553,8 +1557,8 @@ func run() -> void:
 		var f3 := FileAccess.open(main.SAVE_PATH, FileAccess.WRITE)
 		f3.store_string(keep_c)
 		f3.close()
-		check("goal_crowd", ran and there and side and nodes and clapped and back_ok and off < 0.2 and quiet and inside,
-			"%d came=%s lined up in %.1f s=%s beside the pitch=%s drawn there=%s clapped %.1f s, %d claps=%s back=%s, furthest off %.2f, tests quiet=%s, going indoors ends it=%s" % [homes.size(), ran, t_run, there, side, nodes, t_clap, gc.claps - clap0, clapped, back_ok, off, quiet, inside])
+		check("goal_crowd", ran and there and side and nodes and clapped and known and back_ok and off < 0.2 and quiet and inside,
+			"%d came=%s lined up in %.1f s=%s beside the pitch=%s drawn there=%s clapped %.1f s, %d claps=%s, %d shouted (most balloons %d, %d roars)=%s back=%s, furthest off %.2f, tests quiet=%s, going indoors ends it=%s" % [homes.size(), ran, t_run, there, side, nodes, t_clap, gc.claps - clap0, clapped, heard.size(), gc.most_up, gc.roars, known, back_ok, off, quiet, inside])
 		fc.goals = g0c
 		fb_end(was_c)
 	if want.call("football_cheer"):

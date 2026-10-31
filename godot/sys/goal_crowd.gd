@@ -1,6 +1,7 @@
 # A goal brings the village out: everyone awake on the street runs to the pitch, lines up along its edges, claps for
 # 5 s and walks back to where they were (the owner, 2026-10-31: "골을 넣으면, 마을 사람들이 모두 달려와서 축구장 근처에
 # 늘어서서 박수 5초간 쳐주고 다시 자기 자리로"). While someone is in `crowd`, folk.gd draws them here and their day stands still.
+# They cheer as they clap (the owner, 20:41): one line a person, at most three balloons at once, "골인~!" first.
 # `m` is the main node (main.gd), its state and helpers are reached as m.x.
 extends RefCounted
 
@@ -16,6 +17,16 @@ const CLAP_T := 5.0
 const CLAP_H := 0.1    # the little bounce of each clap
 const SIDE_ROWS := [22, 23, 24, 25, 26, 27, 21, 28] # rows along the side lines, the middle first
 const SIDE_X := [17, 25]                            # columns just outside the side lines
+const CLAP_HZ := [1400.0, 1700.0, 2000.0, 2300.0, 2600.0] # a few pitches, each is kept once in sfx_cache
+const ROAR_HZ := [520.0, 640.0, 760.0]
+const ROAR_GAP := 1.0
+const CHEER_MAX := 3      # balloons at once
+const CHEER_GAP := 0.5    # seconds between two lines
+const CHEER_LIFE := 1.4   # a line stays this long, shorter than a chat, so most of the line gets a turn
+const CHEER_LAST := 1.0   # no new line this close to the end of the clapping
+const CHEER_ANY := ["골인~!", "멋있다!", "잘 찼다!", "우와아!", "한 골 더!"]
+const CHEER_OWN := {"doran": "허허, 대단하오!", "kongal": "언니 최고!", "mulgyeol": "제법인걸!", "dusol": "시원하게 들어갔군!",
+	"chadol": "한 방이다!", "saecham": "콩빵 한 판 굽고 싶네!", "yeoul": "와, 그물이 출렁인다!", "darae": "아이고, 잘했다!", "tori": "나도 찰래!"}
 
 var phase := ""        # "", run, clap, home
 var clap_t := 0.0
@@ -25,6 +36,11 @@ var crowd := {}        # id -> {pos, home, seat, way, i, speed, beat}
 var seats: Array = []  # world x, z of the free tiles beside the pitch
 var floods := {}       # seat index -> {tile: next tile towards that seat}
 var claps := 0         # clap sounds played (autoplay goal_crowd)
+var roar_t := 0.0
+var roars := 0         # crowd roars played (autoplay goal_crowd)
+var cheer_t := 0.0
+var cheered := {}      # id -> the line they shouted at this clap
+var most_up := 0       # most balloons up at once (autoplay goal_crowd)
 
 func _init(main: Main) -> void:
 	m = main
@@ -159,6 +175,10 @@ func update(dt: float) -> void:
 				phase = "clap"
 				clap_t = CLAP_T
 				sound_t = 0.0
+				roar_t = 0.0
+				cheer_t = 0.0
+				cheered = {}
+				most_up = 0
 				var mid := Vector2(vx() + 21.0, 24.6)
 				for id in crowd:
 					(m.village.folk_node[id] as Sprite3D).flip_h = m.screen_left(mid - crowd[id].pos)
@@ -168,9 +188,15 @@ func update(dt: float) -> void:
 			if sound_t <= 0.0:
 				sound_t = randf_range(0.06, 0.14)
 				claps += 1
-				m.sfx(randf_range(1400.0, 2600.0), 0.04, "noise", 0.07)
+				m.sfx(CLAP_HZ.pick_random(), 0.04, "noise", 0.07)
 				var e: Dictionary = crowd[crowd.keys().pick_random()]
 				m.burst(Vector3(e.pos.x, 1.3, e.pos.y), Color("#ffe08a"), 3, 1.2)
+			roar_t -= dt
+			if roar_t <= 0.0:
+				roar_t = ROAR_GAP
+				roars += 1
+				m.sfx(ROAR_HZ.pick_random(), 1.2, "noise", 0.14, 260.0)
+			cheer(dt)
 			if clap_t <= 0.0:
 				phase = "home"
 				for id in crowd:
@@ -186,6 +212,31 @@ func update(dt: float) -> void:
 			if all_back:
 				crowd.clear()
 				phase = ""
+
+# the next one in line shouts, unless three balloons are up
+func cheer(dt: float) -> void:
+	cheer_t -= dt
+	var up := 0
+	for b in m.folk_bubbles:
+		if crowd.has(b.id):
+			up += 1
+	most_up = maxi(most_up, up)
+	if cheer_t > 0.0 or clap_t < CHEER_LAST or up >= CHEER_MAX:
+		return
+	var who: Array = crowd.keys().filter(func(id): return not cheered.has(id))
+	if who.is_empty():
+		return
+	var id: String = who.pick_random()
+	var line: String = CHEER_OWN[id] if randf() < 0.5 else CHEER_ANY.pick_random()
+	if cheered.is_empty():
+		line = CHEER_ANY[0]
+	cheered[id] = line
+	cheer_t = CHEER_GAP
+	m.folk_chat_gap = maxf(m.folk_chat_gap, 2.0) # no chat about the weather in the middle of it
+	m.chatter.folk_say(id, line, CHEER_LIFE)
+	if bool(m.cfg.get("voice", true)):
+		var hz: float = m.sound.VOICE[m.folk.FOLK_NAME[id]][0]
+		m.sfx(hz, 0.3, "babble", 0.1, hz * 0.4)
 
 # how high this clap lifts them
 func lift(id: String) -> float:
