@@ -82,6 +82,7 @@ const SCENES := {
 	"journal": {"play": true, "journal": true},
 	"journal_late": {"play": true, "journal": true, "late": true, "win": Vector2i(960, 540)}, # a late-game journal on a 960x540 window, keyboard (lap 6)
 	"journal_late_touch": {"play": true, "journal": true, "late": true, "win": Vector2i(960, 540), "touch": true},
+	"item_card": {"play": true, "item_card": true, "wait": "1.5"},
 	"bag": {"play": true, "bag": true, "late": true, "win": Vector2i(960, 540)}, # the bag (Tab) late in the game on a 960x540 window
 	"bag_touch": {"play": true, "bag": true, "late": true, "win": Vector2i(960, 540), "touch": true},
 	"hud_gems_touch": {"play": true, "village": true, "vat": Vector2(15.5, 12.6), "hour": 14.0, "touch": true, "late": true, "win": Vector2i(960, 540), "mates": true}, # token gems and two companions, touch (lap 6)
@@ -830,6 +831,8 @@ func apply_test_args(args: PackedStringArray) -> void:
 		m.football.p = Vector2(m.player.x, m.player.z + 1.3)
 		m.football.ball.position = Vector3(m.football.p.x, 0, m.football.p.y)
 		m.football.goals = 3
+	if sc.get("item_card", false): # the talk that hands over the pearl
+		m.show_story("", Main.STORY.PEARL)
 	if sc.get("bag", false): # the bag with most keepsakes
 		var root2: Window = m.get_tree().root
 		root2.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS

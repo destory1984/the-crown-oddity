@@ -39,6 +39,7 @@
 #   sys/corridor_zone.gd  Water corridor (v0.1.84): four rooms under the lake island, levers, carts, Mulgyeol's posts, the sluice-keeper.
 #   sys/observatory_zone.gd  Moon-watch observatory (v0.1.120): four rooms up from the hill, wind hole, swivel platform, mirrors, Noeul's hand, the brick moth.
 #   sys/marsh_toys.gd     Reed-marsh toys (v0.1.106): the wind-up duck, three frogs, cattail fluff, the reed pipe rack, Bori's mat.
+#   sys/item_art.gd       The picture of what Sora just got, on a card; the bag uses the same pictures.
 #   sys/goal_crowd.gd     A goal brings the village to the pitch: run, line up, clap 5 s, walk back.
 #   sys/football.gd       The village square's football and goal (v0.1.109): kicks, bounces, the goal flash and score banner, the goals count.
 #   sys/safe_area.gd      The phone's home bar and camera hole (v0.1.119): the safe area in canvas pixels, feeding touch.gd, hud.gd and hud_build.gd.
@@ -86,6 +87,7 @@ var moon_tokens := preload("res://sys/tokens.gd").new(self)
 var marsh_toys := preload("res://sys/marsh_toys.gd").new(self)
 var football := preload("res://sys/football.gd").new(self)
 var goal_crowd := preload("res://sys/goal_crowd.gd").new(self)
+var item_art := preload("res://sys/item_art.gd").new(self)
 var ambience := preload("res://sys/ambience.gd").new(self)
 var safe_area := preload("res://sys/safe_area.gd").new(self)
 var away_ui := preload("res://sys/away.gd").new(self)
@@ -764,6 +766,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.141: 물건을 얻으면 화면 가운데 카드에 그 물건 그림이 뜬다. 물건 25가지(싹 튼 도토리 포함)의 그림을 새로 그렸고, 건네받는 대사부터 그 대화가 끝날 때까지 보인다. 대화 없이 얻는 회랑 물매듭과 달맞이 눈금판은 2.6초 동안 뜬다. 소지품 칸에도 같은 그림이 들어간다.",
 	"· v0.1.140: 골이 들어가 사람들이 박수를 치는 5초 동안 환호도 한다. 첫 사람은 '골인~!'을 외치고, 한 사람이 한 줄씩 말풍선을 띄우며, 말풍선은 한 번에 3개까지다. 자기만의 말 9가지와 함께 쓰는 말 5가지가 있고, 1초마다 사람들의 함성 소리가 박수 소리에 겹친다.",
 	"· v0.1.139: 축구장 가로폭을 8칸 → 6칸으로 줄였다. 골 박수 때 마을 사람들이 양쪽에 고르게 늘어선다.",
 	"· v0.1.138: 소라가 골을 넣으면 낮에 밖에 있는 마을 사람들이 모두 축구장으로 달려와 양옆에 늘어서서 5초 동안 박수치고 제자리로 돌아간다.",

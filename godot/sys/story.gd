@@ -246,6 +246,7 @@ func show_line(line: String) -> void:
 	if parts.size() < 3:
 		parts = PackedStringArray(["", "", line])
 	m.ui.story_who.text = parts[0]
+	m.item_art.on_line(parts[2])
 	var f := parts[1]
 	if f == "-": # narration that also sends the other speaker off stage
 		f = ""
@@ -302,6 +303,7 @@ func close_story() -> void:
 		cp_at = Time.get_ticks_msec() / 1000.0 * Engine.time_scale
 	fold_page = 0
 	m.story_open = false
+	m.item_art.hide_item()
 	if m.after_story.is_valid():
 		var f := m.after_story
 		m.after_story = Callable()

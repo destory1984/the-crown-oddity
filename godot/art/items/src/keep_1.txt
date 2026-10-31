@@ -1,0 +1,13 @@
+The attached image is our shop item art (style reference). Match its style exactly: polished cozy fantasy RPG item art, 1990s anime cel shading, clean dark outlines, gold trim with small blue gems used sparingly, slight top-down three-quarter view, one single object per cell, no frame, no shadow on the ground.
+Use your image generation tool to create ONE PNG and save it as keep_1.png in the current directory.
+Grid: 4 columns by 2 rows of equal square cells, each object centred in its cell with a wide margin so that no object touches another. Objects must read clearly at 96 px. Each must look different from the others in shape and colour.
+Row by row, left to right:
+1) Firefly jar: a small corked glass jar with five glowing yellow-green fireflies inside.
+2) Water pearl: one single round pearl glowing deep sea blue, resting on a tiny gold ring stand.
+3) Wind feather: one long pale teal and white feather, curved as if lifted by a breeze.
+4) Squirrel acorn: one shiny plump golden-brown acorn with a textured cap.
+5) Sprouted acorn: the same acorn split a little, with a small fresh green two-leaf sprout growing from it.
+6) Thirteenth lantern: a tall black iron street lantern with four glass panes and a warm yellow flame, a small crescent moon on top.
+7) Crystal ring: a gold ring set with a pale violet rough-cut crystal.
+8) Wind shoes: a pair of light brown leather ankle boots with small white wing-shaped straps.
+No text, no letters, no numbers, no labels, no sparkles. Background: solid flat pure magenta #FF00FF everywhere outside the objects, and no magenta inside them.

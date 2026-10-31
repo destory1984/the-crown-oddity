@@ -1317,6 +1317,7 @@ func boss_beaten() -> void:
 	m.sfx(330, 0.5, "sine", 0.25, 200)
 	m.burst(Vector3(m.obs.at(3, "B").x, 1.0, m.obs.at(3, "B").y), Color("#d8c4ff"), 40, 4.0)
 	m.toast("달나방이 쓰러졌다. 달맞이 눈금판과 회복약 2개를 얻었다")
+	m.item_art.pop("dial")
 	m.obs_check = 3
 	apply_state()
 	refresh_quest()

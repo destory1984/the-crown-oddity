@@ -898,35 +898,35 @@ func journal_lines() -> Array:
 # 명령어 만들어줘")
 func keepsakes() -> Array:
 	var k: Array = []
-	var add := func(have: bool, name: String, effect: String, kind: String):
+	var add := func(have: bool, name: String, effect: String, kind: String, art: String):
 		if have:
-			k.append([name, effect, kind])
-	add.call(m.has_skip, tr("물수제비 걸음"), tr("Shift로 달리면 물 위를 튕기듯 건넌다"), "item")
-	add.call(m.has_unbrick, tr("벽돌 풀기"), tr("팔찌로 벽돌 벽과 벽돌 더미를 흙으로 푼다 (E)"), "item")
-	add.call(m.fly_q >= 3, tr("반딧불 병"), tr("곁에 두면 등불이 없어도 밤에 쉬며 달빛을 채운다"), "item")
-	add.call(m.has_pearl, tr("물빛 진주"), tr("굳은 숲으로 가는 길을 여는 열쇠 하나"), "item")
-	add.call(m.has_feather, tr("바람 깃털"), tr("구르기에 드는 기운이 25에서 15로 준다"), "item")
-	add.call(m.has_acorn, tr("싹 튼 도토리") if m.has_sprout else tr("다람쥐 도토리"), tr("회복약이 체력을 %d 채운다") % (75 if m.has_sprout else 65), "item")
-	add.call(m.hollow_q == 3, tr("열셋째 등불"), tr("노을이 되찾은 기억을 담은 등불"), "item")
-	add.call(m.has_ring, tr("수정 반지"), tr("치명타 확률이 15%에서 25%로 오른다"), "item")
-	add.call(m.has_shoes, tr("바람 신발"), tr("달리기가 1초에 6.2칸에서 7칸으로 빨라진다"), "item")
-	add.call(m.has_oar_ring, tr("삿대 고리"), tr("동료의 한 방이 소라 공격력의 25%에서 30%로 세진다"), "item")
-	add.call(m.has_whistle, tr("물지기 호루라기"), tr("물결이 쓰러져도 10초 대신 5초 만에 일어난다"), "item")
-	add.call(m.corr_reward, tr("회랑 물매듭"), tr("물길 회랑을 건너온 징표"), "item")
-	add.call(m.obs_reward, tr("달맞이 눈금판"), tr("노을과 같은 방향으로 맞춘 신호의 눈금"), "item")
-	add.call(m.has_oil, tr("달지기 기름병"), tr("회복약을 마시면 기세도 20 찬다"), "item")
-	add.call(m.shore_q == 3, tr("보리의 등불"), tr("깨어난 물가에서 보리가 건넨 등불"), "item")
-	add.call(m.has_cushion, tr("갈대 방석"), tr("밤에 등불 곁에서 쉬면 체력이 1초에 4씩 찬다"), "item")
-	add.call(m.has_bait, tr("미끼 주머니"), tr("낚시에서 입질이 30% 빨리 온다"), "item")
-	add.call(m.quarters_q == 1 or m.quarters_q == 2, tr("녹슨 태엽"), tr("숙소의 기사에게 가져다줄 부서진 태엽"), "item")
-	add.call(m.has_buckler, tr("작은 놋 방패"), tr("섬광 막기 창이 0.12초에서 0.16초로 늘어난다"), "gear")
-	add.call(m.post_q == 3, tr("보리의 엽서"), tr("보리 할머니께 전할 엽서"), "item")
-	add.call(m.has_armour, tr("달지기 갑옷"), tr("받는 피해가 15% 줄어든다"), "gear")
-	add.call(m.has_tea, tr("달꽃 차"), tr("밤에 쉬며 달빛을 채우는 시간이 0.6배로 준다"), "item")
-	add.call(m.has_shard, tr("구름 조각"), tr("기술을 다시 쓰는 시간이 20% 줄어든다"), "item")
-	add.call(m.has_bookmark, tr("달지기 책갈피"), tr("얻는 경험치가 1.2배가 된다"), "item")
-	add.call(m.has_lamp, tr("한결의 등잔"), tr("한결이 남긴 등잔. 최대 체력 +20, 공격력 +3"), "item")
-	add.call(m.has_medal, tr("과녁 메달"), tr("치명타 피해가 1.8배에서 2.0배로 늘어난다"), "item")
+			k.append([name, effect, kind, art])
+	add.call(m.has_skip, tr("물수제비 걸음"), tr("Shift로 달리면 물 위를 튕기듯 건넌다"), "item", "")
+	add.call(m.has_unbrick, tr("벽돌 풀기"), tr("팔찌로 벽돌 벽과 벽돌 더미를 흙으로 푼다 (E)"), "item", "")
+	add.call(m.fly_q >= 3, tr("반딧불 병"), tr("곁에 두면 등불이 없어도 밤에 쉬며 달빛을 채운다"), "item", "firefly")
+	add.call(m.has_pearl, tr("물빛 진주"), tr("굳은 숲으로 가는 길을 여는 열쇠 하나"), "item", "pearl")
+	add.call(m.has_feather, tr("바람 깃털"), tr("구르기에 드는 기운이 25에서 15로 준다"), "item", "feather")
+	add.call(m.has_acorn, tr("싹 튼 도토리") if m.has_sprout else tr("다람쥐 도토리"), tr("회복약이 체력을 %d 채운다") % (75 if m.has_sprout else 65), "item", "sprout" if m.has_sprout else "acorn")
+	add.call(m.hollow_q == 3, tr("열셋째 등불"), tr("노을이 되찾은 기억을 담은 등불"), "item", "lantern13")
+	add.call(m.has_ring, tr("수정 반지"), tr("치명타 확률이 15%에서 25%로 오른다"), "item", "ring")
+	add.call(m.has_shoes, tr("바람 신발"), tr("달리기가 1초에 6.2칸에서 7칸으로 빨라진다"), "item", "shoes")
+	add.call(m.has_oar_ring, tr("삿대 고리"), tr("동료의 한 방이 소라 공격력의 25%에서 30%로 세진다"), "item", "oar_ring")
+	add.call(m.has_whistle, tr("물지기 호루라기"), tr("물결이 쓰러져도 10초 대신 5초 만에 일어난다"), "item", "whistle")
+	add.call(m.corr_reward, tr("회랑 물매듭"), tr("물길 회랑을 건너온 징표"), "item", "knot")
+	add.call(m.obs_reward, tr("달맞이 눈금판"), tr("노을과 같은 방향으로 맞춘 신호의 눈금"), "item", "dial")
+	add.call(m.has_oil, tr("달지기 기름병"), tr("회복약을 마시면 기세도 20 찬다"), "item", "oil")
+	add.call(m.shore_q == 3, tr("보리의 등불"), tr("깨어난 물가에서 보리가 건넨 등불"), "item", "bori_lamp")
+	add.call(m.has_cushion, tr("갈대 방석"), tr("밤에 등불 곁에서 쉬면 체력이 1초에 4씩 찬다"), "item", "cushion")
+	add.call(m.has_bait, tr("미끼 주머니"), tr("낚시에서 입질이 30% 빨리 온다"), "item", "bait")
+	add.call(m.quarters_q == 1 or m.quarters_q == 2, tr("녹슨 태엽"), tr("숙소의 기사에게 가져다줄 부서진 태엽"), "item", "cog")
+	add.call(m.has_buckler, tr("작은 놋 방패"), tr("섬광 막기 창이 0.12초에서 0.16초로 늘어난다"), "gear", "buckler")
+	add.call(m.post_q == 3, tr("보리의 엽서"), tr("보리 할머니께 전할 엽서"), "item", "postcard")
+	add.call(m.has_armour, tr("달지기 갑옷"), tr("받는 피해가 15% 줄어든다"), "gear", "armour")
+	add.call(m.has_tea, tr("달꽃 차"), tr("밤에 쉬며 달빛을 채우는 시간이 0.6배로 준다"), "item", "tea")
+	add.call(m.has_shard, tr("구름 조각"), tr("기술을 다시 쓰는 시간이 20% 줄어든다"), "item", "cloud")
+	add.call(m.has_bookmark, tr("달지기 책갈피"), tr("얻는 경험치가 1.2배가 된다"), "item", "bookmark")
+	add.call(m.has_lamp, tr("한결의 등잔"), tr("한결이 남긴 등잔. 최대 체력 +20, 공격력 +3"), "item", "lamp")
+	add.call(m.has_medal, tr("과녁 메달"), tr("치명타 피해가 1.8배에서 2.0배로 늘어난다"), "item", "medal")
 	return k
 
 # ---- 소지품 (Tab): equipment, keepsakes, what she spends and the six tokens, as cards on one scrolling sheet in the
@@ -991,11 +991,11 @@ func bag_sections() -> Array:
 	var keeps: Array = keepsakes()
 	for k in keeps:
 		if k[2] == "gear":
-			gear.append({"name": k[0], "effect": k[1]})
+			gear.append(keep_card(k))
 	var items: Array = [{"name": tr("왕관"), "effect": tr("벗겨지지 않는 달지기의 표식")}, {"name": tr("태엽 팔찌"), "effect": tr("두 팔목의 열쇠. 등불과 벽돌에 E")}]
 	for k in keeps:
 		if k[2] == "item":
-			items.append({"name": k[0], "effect": k[1]})
+			items.append(keep_card(k))
 	var heal: int = int((75.0 if m.has_sprout else (65.0 if m.has_acorn else 45.0)) * (1.3 if m.player.lv >= 25 else 1.0))
 	var use: Array = [{"name": tr("회복약 %d개") % m.player.pots, "effect": tr("4 키로 마신다 · 체력 %d 회복") % heal, "art": BAG_ART.potion, "dim": m.player.pots <= 0},
 		{"name": tr("금화 %d닢") % m.player.gold, "effect": tr("상점과 장터에서 쓴다")}]
@@ -1003,6 +1003,12 @@ func bag_sections() -> Array:
 	for i in m.tokens.size():
 		toks.append({"name": tr(m.moon_tokens.NAMES[i]), "effect": tr("얻었다") if m.tokens[i] else tr(m.moon_tokens.HOW[i]), "dim": not m.tokens[i]})
 	return [[tr("장비"), gear], [tr("지닌 물건"), items], [tr("쓰는 것"), use], [tr("달지기 보석") + " %d/6" % m.moon_tokens.count(), toks]]
+
+func keep_card(k: Array) -> Dictionary:
+	var e := {"name": k[0], "effect": k[1]}
+	if k[3] != "":
+		e.art = m.item_art.path(k[3])
+	return e
 
 func bag_fill() -> void:
 	var box: VBoxContainer = m.ui.bag_box

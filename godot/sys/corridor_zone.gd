@@ -1167,6 +1167,7 @@ func boss_beaten() -> void:
 	m.sfx(330, 0.5, "sine", 0.25, 200)
 	m.burst(Vector3(m.corridor.at(3, "B").x, 1.0, m.corridor.at(3, "B").y), Color("#9fd8ff"), 40, 4.0)
 	m.toast("수문지기가 쓰러졌다. 회랑 물매듭과 회복약 2개를 얻었다")
+	m.item_art.pop("knot")
 	m.corr_check = 3
 	refresh_quest()
 	m.save_game()

@@ -1,0 +1,14 @@
+The attached image is our shop item art (style reference). Match its style exactly: polished cozy fantasy RPG item art, 1990s anime cel shading, clean dark outlines, gold trim with small blue gems used sparingly, slight top-down three-quarter view, one single object per cell, no frame, no shadow on the ground.
+Use your image generation tool to create ONE PNG and save it as keep_3.png in the current directory.
+Grid: 3 columns by 3 rows of equal square cells, each object centred in its cell with a wide margin so that no object touches another. Objects must read clearly at 96 px. Each must look different from the others in shape and colour.
+Row by row, left to right:
+1) Rusty clockwork: one palm-sized rust-brown winding spring and gear, chipped and old.
+2) Small brass buckler: a small round hammered brass shield with an arm strap.
+3) Bori's postcard: a slightly worn cream postcard with a stamp in the corner, a little marsh drawing and wavy ink lines that are not readable.
+4) Moonkeeper armour: a silver-blue breastplate with a crescent moon on the chest, clearly plate metal.
+5) Moonflower tea: a small white teacup of pale gold tea with one white flower floating in it and two thin curls of steam.
+6) Cloud shard: a small solid chunk of soft white and pale blue cloud, like a broken piece of a cloud with a crisp edge.
+7) Moonkeeper bookmark: a slim crescent-moon-shaped brass bookmark with a short dark blue ribbon.
+8) Hangyeol's oil lamp: a tiny old round brass saucer oil lamp with a small handle, unlit, with a very faint warm glow in the bowl.
+9) Target medal: a round gold medal showing red and white target rings, on a short red ribbon.
+No text, no letters, no numbers, no labels, no sparkles. Background: solid flat pure magenta #FF00FF everywhere outside the objects, and no magenta inside them.
