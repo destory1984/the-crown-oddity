@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["title_music", "boss_intro", "boss_intro_mole", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "key_unstick", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
+const TESTS := ["title_music", "boss_intro", "village_road_note", "king_pace", "boss_journal", "boss_intro_mole", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "key_unstick", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_fountain_quiet", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
@@ -12500,6 +12500,77 @@ func run() -> void:
 			calm_enemies(false)
 			check("boss_intro_mole", door_shut and opened2 and held2 and one_page2 and not_twice2,
 				"shut behind the door %s, page at 9 %s, world held %s, one page %s, not twice %s" % [door_shut, opened2, held2, one_page2, not_twice2])
+	if want.call("boss_journal"):
+		# the journal lists bosses met or felled; a name opens the page, closing it comes back to the journal
+		main.close_story()
+		var keep_seen: Array = main.boss_seen
+		var keep_step: int = main.story_step
+		var keep_skip: bool = main.has_skip
+		main.boss_seen = []
+		main.story_step = 3
+		main.has_skip = false
+		var none: bool = main.menus.boss_journal().is_empty()
+		main.boss_seen = ["cart_mole"]
+		var one: Array = main.menus.boss_journal()
+		var only_mole: bool = one.size() == 4 and "수레두더지" in one[1] and not "벽돌왕" in one[1]
+		main.boss_seen = []
+		main.story_step = 5
+		var felled: bool = "벽돌왕" in main.menus.boss_journal()[1] # an old save that felled him before the pages
+		main.toggle_journal(true)
+		var head: bool = main.ui.journal_text2.get_parsed_text().begins_with("만난")
+		main.menus.journal_pick("boss:brick_king")
+		await wait(0.2)
+		var page: bool = main.story_open and main.ui.story_who.text == "벽돌왕" and main.ui.story_img.texture != null and not main.ui.journal.visible
+		main.ui.story_text.visible_characters = -1
+		main.story.next_story()
+		await wait(0.2)
+		var back: bool = not main.story_open and main.ui.journal.visible
+		main.toggle_journal(false)
+		main.boss_seen = keep_seen
+		main.story_step = keep_step
+		main.has_skip = keep_skip
+		check("boss_journal", none and only_mole and felled and head and page and back,
+			"empty before any %s, only the met one %s, a felled one listed %s, first in the right column %s, page opens %s, back to the journal %s" % [none, only_mole, felled, head, page, back])
+	if want.call("village_road_note"):
+		# the road east says why it is shut until the cave is done, and which step comes first
+		main.close_story()
+		var keep_st: int = main.story_step
+		var keep_vil: bool = main.in_village
+		var keep_cv: bool = main.in_cave
+		main.in_village = false
+		main.in_cave = false
+		var said_at := func(step: int) -> String:
+			main.story_step = step
+			main.toast_t = 0.0
+			main.ui.toast.text = ""
+			reset_to(Vector2(46.3, 20.0))
+			await wait(0.2)
+			return main.ui.toast.text
+		var early: String = await said_at.call(3)
+		var mid: String = await said_at.call(5)
+		main.story_step = keep_st
+		main.in_village = keep_vil
+		main.in_cave = keep_cv
+		check("village_road_note", "벽돌왕" in early and "수레두더지" in mid, "before the king: %s; before the cave is done: %s" % [early, mid])
+	if want.call("king_pace"):
+		# the Brick King's waits run at twice the clock: a 1 s wait ends in about 0.5 s, the wind-up does not shorten
+		main.close_story()
+		var kings = main.enemies.filter(func(e): return e.get("boss", false) and not e.dead)
+		if kings.is_empty():
+			check("king_pace", main.monsters.KING_PACE == 2.0, "felled earlier in this run; the pace is %.1f" % main.monsters.KING_PACE)
+		else:
+			var kg: Dictionary = kings[0]
+			calm_enemies(true)
+			hold_mates()
+			reset_to(Vector2(kg.x, kg.z + 5.0))
+			main.player.inv = 9.0
+			kg.stomp = 0.0
+			kg.swing = 0.0
+			kg.atk_cd = 1.0
+			await wait_for(func(): return kg.stomp > 0.0, 3.0)
+			var soon: bool = kg.stomp > 0.0 and kg.stomp <= 1.2
+			calm_enemies(false)
+			check("king_pace", soon, "stomp wound up within the halved wait: %s (%.2f left)" % [soon, kg.stomp])
 	if want.call("sign_read"):
 		# E beside the east signpost says where it points, in the marsh only; nothing beyond its reach
 		main.close_story()

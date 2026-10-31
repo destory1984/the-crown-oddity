@@ -22,7 +22,7 @@ const ICON_SVG := {
 	"music_off": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#eef3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 17V6.5l9-2V15"/><path d="M9.5 9.5l9-2"/><circle cx="7" cy="17.4" r="2.5"/><circle cx="16" cy="15.4" r="2.5"/><path d="M4 4l16 16"/></svg>',
 	"back": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(0.25 -2.25)"><path d="M9 7L4.5 11.5 9 16"/><path d="M5 11.5h9a5 5 0 0 1 0 10h-2"/></g></svg>',
 }
-const JOURNAL_HEADS := ["지금 할 일", "곁이야기", "도전 과제", "지닌 것", "익힌 기술", "마을 사람", "다시 이어 하기"]
+const JOURNAL_HEADS := ["지금 할 일", "곁이야기", "만난 보스", "도전 과제", "지닌 것", "익힌 기술", "마을 사람", "다시 이어 하기"]
 
 func _init(main: Main) -> void:
 	m = main
@@ -715,8 +715,24 @@ func folk_journal() -> Array:
 	out.append("")
 	return out
 
+# the bosses met so far: a name opens that boss's page again, and closing it comes back here (the owner, 2026-10-31)
+const BOSS_LINK := "boss:"
+
+func boss_journal() -> Array:
+	var ids: Array = Main.STORY.BOSS_PAGES.keys().filter(func(id): return m.story.boss_met(id))
+	if ids.is_empty():
+		return []
+	var names: Array = ids.map(func(id): return "[url=%s%s]%s[/url]" % [BOSS_LINK, id, tr(Main.STORY.BOSS_PAGES[id][1][0])])
+	return [tr("만난 보스"), RAW_MARK + "  " + "  ·  ".join(names), tr("  이름을 누르면 소개가 다시 보인다"), ""]
+
 func journal_pick(id: String) -> void:
-	if not m.ui.journal.visible or id not in Main.SLEEP_IDS:
+	if not m.ui.journal.visible:
+		return
+	if id.begins_with(BOSS_LINK):
+		m.after_story = func(): toggle_journal(true, true)
+		m.story.boss_page(id.substr(BOSS_LINK.length()))
+		return
+	if id not in Main.SLEEP_IDS:
 		return
 	folk_picks += 1
 	journal_folk = "" if journal_folk == id else id
@@ -736,7 +752,9 @@ func toggle_journal(show: bool, keep_scroll := false) -> void:
 			m.ui.journal_text2.text = ""
 		else:
 			var lines: Array = journal_lines()
-			var cut: int = lines.find(tr("도전 과제"))
+			var cut: int = lines.find(tr("만난 보스")) # the right column starts with the bosses once there are any
+			if cut < 0:
+				cut = lines.find(tr("도전 과제"))
 			m.ui.journal_text.text = journal_bbcode(lines.slice(0, cut))
 			m.ui.journal_text2.text = journal_bbcode(lines.slice(cut))
 		if keep_scroll:
@@ -838,6 +856,7 @@ func journal_lines() -> Array:
 		else: # a new round: the best time is kept, the deed is not
 			side.call("달빛 시련", tr("이번 회차는 바람 언덕 동쪽 선돌에서") + " · " + best_txt)
 	out.append("")
+	out.append_array(boss_journal())
 	out.append(tr("도전 과제"))
 	for i in Main.FEATS.size():
 		var v := mini(m.errands.feat_value(Main.FEATS[i][1]), Main.FEATS[i][2])

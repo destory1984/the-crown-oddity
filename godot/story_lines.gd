@@ -90,6 +90,9 @@ const BOSS_CART_MOLE := [
 	"체력이 반 아래면 숨었다 붉은 고리에서 솟고, 돌진도 두 번이다.",
 ]
 
+# id -> picture and lines; the journal lists them in this order (menus.boss_journal)
+const BOSS_PAGES := {"brick_king": ["res://art/story/boss_brick_king.jpg", BOSS_BRICK_KING], "cart_mole": ["res://art/story/boss_cart_mole.jpg", BOSS_CART_MOLE]}
+
 const BOSS_FALLS := [
 	"||벽돌왕이 무너지며 수백 개의 벽돌이 물속으로 흩어졌다.",
 	"||막혀 있던 물길이 터져, 늪 전체로 물이 다시 흐르기 시작했다.",

@@ -135,18 +135,28 @@ func touch_words(t: String) -> String:
 
 # a boss's one page, the first time Sora walks up to it: the picture, its name on the tab and what to watch for, all in
 # one box (the owner, 2026-10-31, after a player's review: too many foes at the start, so bosses get introduced).
-# lines[0] is the name. Shown once, kept across rounds.
-func boss_intro(id: String, path: String, lines: Array) -> void:
+# Shown once on the way in, kept across rounds; the journal opens it again (menus.boss_journal).
+func boss_intro(id: String) -> void:
 	if m.boss_intro_off or m.intro or m.story_open or id in m.boss_seen:
 		return
 	m.boss_seen.append(id)
 	m.save_game()
+	m.sfx(70, 0.5, "square", 0.25, 60)
+	boss_page(id)
+
+func boss_page(id: String) -> void:
+	var lines: Array = Main.STORY.BOSS_PAGES[id][1] # lines[0] is the name
 	var said := PackedStringArray()
 	for l in lines.slice(1):
 		said.append(tr(l))
-	m.sfx(70, 0.5, "square", 0.25, 60)
-	show_story(path, [lines[0] + "||" + "
+	show_story(Main.STORY.BOSS_PAGES[id][0], [lines[0] + "||" + "
 ".join(said)])
+
+# met on the way in, or felled before the pages existed (an old save never walked up to him again)
+func boss_met(id: String) -> bool:
+	if id in m.boss_seen:
+		return true
+	return m.story_step >= 5 if id == "brick_king" else m.has_skip
 
 # small: the picture sits small in the corner above the box and the game stays in view, as in a talk scene
 # (the old painting in the last house's cupboard; the owner, 2026-10-25)

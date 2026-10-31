@@ -1026,11 +1026,12 @@ func archer_aim(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 # Phase 2 (below half): a 1.5 s roar (invulnerable, shoves Sora 4 tiles, calls two goblins),
 # then stomps every 2.4 s with a 1.0 s wind-up and a shockwave ring that rolls out to 6 tiles.
 const BOSS_INTRO_R := 12.5 # his page opens just before he wakes at 11 tiles
+const KING_PACE := 2.0 # his waits between blows run at twice the clock (the owner, 2026-10-31); wind-ups unchanged
 
 func update_boss(e: Dictionary, dt: float, d: float, to: Vector2, gy: float) -> void:
 	var node: Node3D = e.node
 	if d < BOSS_INTRO_R:
-		m.story.boss_intro("brick_king", "res://art/story/boss_brick_king.jpg", Main.STORY.BOSS_BRICK_KING)
+		m.story.boss_intro("brick_king")
 	var awake := d < 11.0 and not m.intro
 	m.ui.boss.visible = awake or (m.ui.boss.visible and d < 16.0)
 	m.ui.boss_bar.size.x = 420.0 * maxf(0.0, e.hp) / e.max_hp
@@ -1109,7 +1110,7 @@ func update_boss(e: Dictionary, dt: float, d: float, to: Vector2, gy: float) -> 
 		var nz: float = e.z + ev.y * dt
 		if m.walkable(nx, e.z): e.x = nx
 		if m.walkable(e.x, nz): e.z = nz
-		e.atk_cd -= dt
+		e.atk_cd -= dt * KING_PACE
 		if awake and e.atk_cd <= 0.0:
 			if e.phase == 1 and d < 2.2 and not e.get("swung", false): # swing and stomp take turns
 				e.swung = true
