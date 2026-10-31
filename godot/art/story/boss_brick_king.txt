@@ -1,0 +1,12 @@
+Use your image generation tool to create ONE image and save it as boss_brick_king.png in the current directory.
+
+ATTACHMENT: 05_brick_king.jpg, the CURRENT illustration of the same world: copy its 1990s cel style, colors, the marsh, and exactly the brick king's parts (purple studded brick body, black brick head, two glowing square amber eyes, gold studded crown with a blue diamond gem, red cape plate). In it he has fallen to pieces; here he is whole. Do NOT draw Sora or any other person.
+
+Scene: the Brick King, whole and huge, sits squarely on a marsh waterway like a toy dam, water pooled and held back behind him against an old mossy stone wall with an arch. He leans forward a little, one big brick fist raised, about to stomp, looking at the viewer with amused pride rather than cruelty: a giant toy, grand and a little funny, not a horror monster. He fills the right two thirds of the picture, seen from low in the reeds, a few golden reeds and cattails in the near foreground at the left. The left third is calm dusk sky and marsh, kept simple. Late afternoon light, before the sunset of the original.
+
+World: a hand-made garden land whose ground is slowly hardening into toy-like plastic brick, with golden reed marshes, cattails and old lantern posts.
+
+STYLE (match the attached image exactly): classic 1990s TV anime cel. Clean uniform dark ink outlines, flat colors with exactly one hard-edged shadow tone, no gradients, no texture, simple flat painted background, slightly faded film colors. 16:9 landscape.
+AVOID the typical AI-illustration look: no golden backlight or rim light, no sparkles, no glitter particles, no bokeh light orbs, no lens flare, no glow halos, no over-saturated colors, no glossy airbrushed shading, no symmetric centered poster composition.
+No text, no logo, no watermark, no frame.
+When done, reply with only the file path.

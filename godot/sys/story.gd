@@ -133,6 +133,21 @@ func touch_words(t: String) -> String:
 		t = t.replace(w[0], w[1])
 	return m.touch_e.sub(t, "팔찌 단추", true)
 
+# a boss's one page, the first time Sora walks up to it: the picture, its name on the tab and what to watch for, all in
+# one box (the owner, 2026-10-31, after a player's review: too many foes at the start, so bosses get introduced).
+# lines[0] is the name. Shown once, kept across rounds.
+func boss_intro(id: String, path: String, lines: Array) -> void:
+	if m.boss_intro_off or m.intro or m.story_open or id in m.boss_seen:
+		return
+	m.boss_seen.append(id)
+	m.save_game()
+	var said := PackedStringArray()
+	for l in lines.slice(1):
+		said.append(tr(l))
+	m.sfx(70, 0.5, "square", 0.25, 60)
+	show_story(path, [lines[0] + "||" + "
+".join(said)])
+
 # small: the picture sits small in the corner above the box and the game stays in view, as in a talk scene
 # (the old painting in the last house's cupboard; the owner, 2026-10-25)
 # clicks that were meant for the fight ran on into a story box that opened meanwhile and skipped it (the owner,
@@ -144,7 +159,7 @@ var opened_at := -10.0
 var line_at := -10.0
 
 func click_too_soon() -> bool:
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := Time.get_ticks_msec() / 1000.0 * Engine.time_scale
 	return now - opened_at < CLICK_OPEN_WAIT or now - line_at < CLICK_LINE_WAIT
 
 # the box's fade tweens: a new story kills the old close fade, whose callback would hide the box it just opened
@@ -182,7 +197,7 @@ func show_story(path: String, lines: Array, small := false) -> void:
 	close_sheets()
 	if fade_tw != null and fade_tw.is_valid():
 		fade_tw.kill()
-	opened_at = Time.get_ticks_msec() / 1000.0
+	opened_at = Time.get_ticks_msec() / 1000.0 * Engine.time_scale
 	small_pic = small
 	fit_story()
 	m.story_lines = lines.duplicate()
@@ -208,7 +223,7 @@ func show_story(path: String, lines: Array, small := false) -> void:
 	fade_tw.tween_property(m.ui.story, "modulate:a", 1.0, 0.6)
 
 func show_line(line: String) -> void:
-	line_at = Time.get_ticks_msec() / 1000.0
+	line_at = Time.get_ticks_msec() / 1000.0 * Engine.time_scale
 	var fold: Node2D = m.ui.get("story_fold")
 	if fold != null:
 		fold.visible = fold_page > 0 and story_total - m.story_lines.size() == fold_page
@@ -272,9 +287,9 @@ func next_story() -> void:
 	close_story()
 
 func close_story() -> void:
-	if m.story_open and m.talk_mode and m.story_lines.is_empty() and story_total >= CP_MIN_LINES and not m.after_story.is_valid() 			and not m.intro and Time.get_ticks_msec() / 1000.0 - line_at < CP_QUICK:
+	if m.story_open and m.talk_mode and m.story_lines.is_empty() and story_total >= CP_MIN_LINES and not m.after_story.is_valid() 			and not m.intro and Time.get_ticks_msec() / 1000.0 * Engine.time_scale - line_at < CP_QUICK:
 		cp_key = story_hash
-		cp_at = Time.get_ticks_msec() / 1000.0
+		cp_at = Time.get_ticks_msec() / 1000.0 * Engine.time_scale
 	fold_page = 0
 	m.story_open = false
 	if m.after_story.is_valid():

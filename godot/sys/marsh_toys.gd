@@ -57,6 +57,7 @@ const FROG_CALL_D := 12.0
 var frog_call_t := 0.0 # the next croak (m.t); from the clock, so the shared random draws stay as they were
 var frog_calls := 0
 var frog_named := false
+var frog_said := 0 # counted for the tests
 
 # the cattails and their fluff
 var cattails: Array = []    # {pos, node, top, fuzz, ready, reset_t, sway}
@@ -499,6 +500,7 @@ func frog_croak(f: Dictionary, me: Vector2) -> void:
 	tw.tween_property(f.node, "scale", Vector3.ONE, 0.15)
 	if not frog_named:
 		frog_named = true
+		frog_said += 1
 		m.chatter.say_bubble(f.node, tr("개굴!"), 1.6)
 
 func update_frogs(dt: float) -> void:

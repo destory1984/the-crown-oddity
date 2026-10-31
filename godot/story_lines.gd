@@ -75,6 +75,14 @@ const BORI := [
 	"||할 일: 상점에서 회복약을 챙기고, 북쪽 벽돌왕을 쓰러뜨린다.",
 ]
 
+# his page before the fight (story.boss_intro): the name, then its lines in one box
+const BOSS_BRICK_KING := [
+	"벽돌왕",
+	"늪 물길에 털썩 앉은 벽돌왕. 금관이 자랑이다.",
+	"발 구르기 전에 붉은 고리가 차오른다. 밖으로 피하자.",
+	"체력이 반 아래면 고블린 둘이 나오고, 쿵마다 충격파가 퍼진다.",
+]
+
 const BOSS_FALLS := [
 	"||벽돌왕이 무너지며 수백 개의 벽돌이 물속으로 흩어졌다.",
 	"||막혀 있던 물길이 터져, 늪 전체로 물이 다시 흐르기 시작했다.",

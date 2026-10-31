@@ -1025,8 +1025,12 @@ func archer_aim(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 # Phase 1: stomp (1.2 s red ring, 3 tiles) every 3.2 s; a 0.6 s front swing when Sora is within 2.2.
 # Phase 2 (below half): a 1.5 s roar (invulnerable, shoves Sora 4 tiles, calls two goblins),
 # then stomps every 2.4 s with a 1.0 s wind-up and a shockwave ring that rolls out to 6 tiles.
+const BOSS_INTRO_R := 12.5 # his page opens just before he wakes at 11 tiles
+
 func update_boss(e: Dictionary, dt: float, d: float, to: Vector2, gy: float) -> void:
 	var node: Node3D = e.node
+	if d < BOSS_INTRO_R:
+		m.story.boss_intro("brick_king", "res://art/story/boss_brick_king.jpg", Main.STORY.BOSS_BRICK_KING)
 	var awake := d < 11.0 and not m.intro
 	m.ui.boss.visible = awake or (m.ui.boss.visible and d < 16.0)
 	m.ui.boss_bar.size.x = 420.0 * maxf(0.0, e.hp) / e.max_hp

@@ -671,6 +671,7 @@ var sleeper_nodes := {}     # id -> the bed in the room
 var door_z := {}            # id -> the z over his door while he sleeps
 
 var sleep_off := false      # the autoplay tests keep the villagers out (all but folk_sleep)
+var boss_intro_off := false # scenes and tests walk up to bosses without their first page (autoplay boss_intro turns it on)
 
 # ---- day routines (the user, 2026-10-24: the village still felt empty): by day each villager walks a short loop
 # between two or three spots tied to his life, waiting 6 - 14 s at each. Points are village tiles, true = a stop;
@@ -761,6 +762,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.133: 벽돌왕 앞에 소개 페이지가 생겼다. 소라가 12.5칸 안으로 처음 다가가면 세상이 멈추고 새 그림과 이름, 조심할 공격 세 줄이 한 쪽으로 뜬다. 한 번만 나오고 새 회차에도 다시 나오지 않는다. 플레이어 리뷰에서 시작 때 적이 많아 헷갈린다는 의견을 받아 보스부터 소개하기로 했다.",
 	"· v0.1.132: 키를 누르지 않았는데 소라가 혼자 걷던 것을 고쳤다. 키를 누른 채 다른 창으로 가거나 캡처 단축키를 쓰면 손을 뗀 신호가 사라져 계속 눌린 것으로 쳤다. 이제 창에서 벗어나는 순간 모든 키를 놓은 것으로 치고, 다시 누른 키만 인정한다. 한글 입력 상태나 Shift 때문에 키가 어긋나는 일도 막았다.",
 	"· v0.1.131: 개구리 울음을 새로 만들었다. 삑삑거리던 두 음을 없애고, 낮은 소리가 1초에 36번 끊겨 드르륵 떨리는 울음으로 바꿨다. 개(0.2초)는 살짝 오르고 굴(0.28초)은 내려간다.",
 	"· v0.1.130: 광장 분수대의 물소리를 없앴다. 곁에 서 있어도 소리가 나지 않고, 칼로 쳤을 때 물이 찰싹이는 소리만 남았다. 다래와 토리가 다니는 길이 축구장 모퉁이 깃발(25, 21.8)에 걸리던 것도 꺾임점을 0.3칸 옮겨 고쳤다.",
@@ -1592,6 +1594,7 @@ var stairs = STAIRS.new()
 const UNDER := preload("res://undercroft.gd")
 var under = UNDER.new()     # 성 아래 잠긴 층, a side zone under the castle's great hall (Sora is still in_hill there)   # 달의 계단 from the castle's east gate up to the garden (Sora is still in_hill there)
 var stairs_spawned := false
+var boss_seen: Array = []    # bosses whose page has been shown once (story.boss_intro), kept across rounds
 var stairs_seen := false     # stepped onto the moon stairs once (v0.1.68: the quarters gate never closes again after that)
 var castle = CASTLE.new()   # 가라앉은 달지기 성 between the hill and the garden (Sora is still in_hill in there)
 var castle_q := 0           # 0 never entered, 1 inside, 2 fighting the knight, 3 knight beaten (east gate open)
@@ -2206,8 +2209,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_B: music.toggle_music()
 
 # ---------------------------------------------------------------- loop
+var max_dt := 1.0 / 20.0 # the longest frame the world takes; the tests raise it, they run at --time-scale 4
+
 func _process(dt: float) -> void:
-	dt = minf(dt, 1.0 / 20.0)
+	dt = minf(dt, max_dt)
 	music.update(dt) # before the world waits for a sheet, a story or the shop: the tune plays on
 	ambience.update(dt) # and the rain loops with it
 	if hitstop > 0.0:

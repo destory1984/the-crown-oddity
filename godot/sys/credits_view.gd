@@ -59,7 +59,7 @@ func _init(font: Font, after: Callable) -> void:
 		col.add_child(gap)
 
 func _ready() -> void:
-	started = Time.get_ticks_msec() / 1000.0
+	started = Time.get_ticks_msec() / 1000.0 * Engine.time_scale
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.8)
 	await get_tree().process_frame
@@ -79,7 +79,7 @@ func _input(e: InputEvent) -> void:
 	if not press:
 		return
 	get_viewport().set_input_as_handled()
-	if Time.get_ticks_msec() / 1000.0 - started >= SKIP_AFTER:
+	if Time.get_ticks_msec() / 1000.0 * Engine.time_scale - started >= SKIP_AFTER:
 		finish()
 
 func finish() -> void:

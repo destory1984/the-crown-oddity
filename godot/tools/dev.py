@@ -148,17 +148,28 @@ def baseline(names):
     return 0
 
 
-def test(name):
+# The game's clock runs this many times faster in tests: the suite spends most of its time waiting on it.
+# --real runs at 1 before a push, because a bigger step per frame can hide a bug that only shows at full frame rate.
+TEST_SPEED = 4
+RETRY_MAX = 8
+
+
+def test(name, speed=TEST_SPEED):
     kill()
     import_once()
     try:
-        r = run([str(GODOT_CLI), "--headless", "--path", ".", "--", f"--test={name or 'all'}"], timeout=1500 if os.name == "nt" else 1800)  # the cloud box is slower; 182 tests take a bit over 600 s on the PC
+        r = run([str(GODOT_CLI), "--headless", "--time-scale", str(speed), "--path", ".", "--", f"--test={name or 'all'}"], timeout=1500 if os.name == "nt" else 1800)  # the cloud box is slower; 182 tests take a bit over 600 s on the PC
     except subprocess.TimeoutExpired:
         kill()
         print("TESTS TIMED OUT (a script error usually stops the runner; run check, or read the Godot log)")
         return 1
-    lines = [l for l in (r.stdout + r.stderr).splitlines() if l.startswith(("TEST", "SCRIPT ERROR")) or re.match(r"\s+at: ", l)]
+    lines = [l for l in (r.stdout + r.stderr).splitlines() if l.startswith(("TEST", "SCRIPT ERROR")) or (re.match(r"\s+at: ", l) and ".gd" in l)]
     print("\n".join(lines) or (r.stdout + r.stderr)[-2000:])
+    failed = [l.split()[1] for l in lines if " FAIL " in l and l.startswith("TEST ")]
+    if r.returncode and speed > 1 and failed and len(failed) <= RETRY_MAX:
+        # a timing flake at 4x passes here; a test that leans on an earlier one fails alone, which also shows it needs a look
+        print(f"retrying {len(failed)} at real speed: {','.join(failed)}")
+        return test(",".join(failed), 1)
     return r.returncode
 
 
@@ -217,7 +228,7 @@ def ship(message, quick=None):
     if quick is not None and not quick:
         print("--quick needs the batch's test names (a,b,c)")
         return 1
-    if check() or test(quick):
+    if check() or test(quick, TEST_SPEED if quick else 1):
         print("SHIP STOPPED: fix the failures above first")
         return 1
     v = bump_version()
@@ -268,6 +279,7 @@ def main():
     ap.add_argument("--hour")
     ap.add_argument("--pseudo", action="store_true", help="shot: pseudo-translate text to spot strings missing from i18n/text.csv")
     ap.add_argument("--day")
+    ap.add_argument("--real", action="store_true", help="test: run at the game's real speed, not 4x (before a push)")
     ap.add_argument("--quick", help="ship: run only these tests (comma list) instead of the full suite")
     a = ap.parse_args()
     if a.cmd == "kill":
@@ -282,7 +294,7 @@ def main():
         extra = [f"--hour={a.hour}"] * bool(a.hour) + [f"--day={a.day}"] * bool(a.day) + ["--pseudo"] * a.pseudo
         return shot(a.names, extra)
     if a.cmd == "test":
-        return test(a.names[0] if a.names else None)
+        return test(a.names[0] if a.names else None, 1 if a.real else TEST_SPEED)
     if a.cmd == "sound":
         return sound()
     if a.cmd == "baseline":

@@ -16,6 +16,7 @@ const SCENES := {
 	"bori_pinwheel": {"play": true, "at": "cottage", "hour": 14.0}, # the pinwheel in front of Bori's door (v0.1.123)
 	"shop": {"play": true, "at": "shop", "gold": 120, "shop": true},
 	"boss": {"play": true, "at": Vector2(16, 11)},
+	"boss_intro": {"play": true, "at": Vector2(16, 15.5), "boss_intro": true}, # the page before the Brick King
 	"bridge": {"play": true, "at": Vector2(19, 26)},
 	"faint": {"play": true, "faint": 2.5},
 	"opening": {"play": true, "opening": true},
@@ -169,6 +170,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 	var sc: Dictionary = SCENES.get(scene_name, {})
 	if sc.is_empty() and scene_name != "title":
 		push_error("unknown scene: %s (known: %s)" % [scene_name, ", ".join(SCENES.keys())])
+	m.boss_intro_off = not sc.get("boss_intro", false)
 	if sc.get("play", false):
 		m.start_game(false)
 	var at = sc.get("at", null)

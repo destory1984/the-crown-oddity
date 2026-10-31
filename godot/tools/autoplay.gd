@@ -10,16 +10,23 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["title_music", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "key_unstick", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
+const TESTS := ["title_music", "boss_intro", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "key_unstick", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_fountain_quiet", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
+
+# these count frames or hit narrow windows, and flake at the 4x clock dev.py runs the suite at: each runs at 1x
+const REAL_SPEED := ["corridor_boss", "football_kick", "hog_roll", "mash", "new_foes", "obs_boss", "obs_s1", "shore", "archer_backoff", "corridor_s2", "marsh_duck", "marsh_fluff", "marsh_pipe", "cloud", "corridor_core", "corridor_fix", "corridor_s3", "marsh_frogs", "undercroft", "football_cheer", "bat_double", "pack_turns", "obs_s2", "door_bell"]
 
 func _ready() -> void:
 	run.call_deferred()
 
 func wait(sec: float) -> void:
 	await get_tree().create_timer(sec).timeout
+
+# seconds on the game's clock: dev.py runs the suite at --time-scale 4, where the wall clock runs slow against the game
+func gsec() -> float:
+	return Time.get_ticks_msec() / 1000.0 * Engine.time_scale
 
 # a test that presses a settings row writes user://settings.json; the file as it was goes back afterwards, so the next run starts the same
 func settings_keep() -> String:
@@ -227,6 +234,7 @@ func marsh_ground_ok(p: Vector2) -> bool:
 
 # one living foe to a spot, for the "nothing during a fight" checks (calm_enemies parks it again)
 func marsh_foe(at: Vector2) -> bool:
+	hold_mates() # a companion's blow can drop the foe before the check reads it
 	for e in main.enemies:
 		if not e.dead and not e.get("boss", false) and not e.get("mole", false) and not e.get("prop", false) and is_instance_valid(e.node):
 			e.x = at.x
@@ -343,7 +351,11 @@ func obs_press(letter: String, r: int, i := 0, off := Vector2(0.9, 0)) -> void:
 	await wait(0.25)
 
 func run() -> void:
-	var want := func(n): return only == "all" or n in only.split(",")
+	var speed: float = Engine.time_scale
+	var want := func(n):
+		Engine.time_scale = 1.0 if n in REAL_SPEED else speed
+		main.max_dt = maxf(0.05, 0.025 * Engine.time_scale)
+		return only == "all" or n in only.split(",")
 	main.sleep_off = true # the villagers stay out at night here; folk_sleep turns their sleep back on
 	main.routine_off = true # and on their spots by day; folk_routine turns their rounds on
 	main.folk_chat_off = true # and quiet; folk_chat lets them talk
@@ -1464,7 +1476,7 @@ func run() -> void:
 		var fl0: int = fg.flashes
 		main.attack()
 		var got: bool = await wait_for(func(): return fg.goals > g0, 1.5)
-		var t_goal := Time.get_ticks_msec()
+		var t_goal := gsec()
 		await wait(0.12)
 		var flash_on: bool = fg.flash != null and fg.flash.color.a > 0.05
 		var banner_on: bool = fg.banner != null and fg.banner.visible and "골" in fg.banner.text and fg.banner.text.ends_with(" %d" % (g0 + 1))
@@ -1475,7 +1487,7 @@ func run() -> void:
 		var three: bool = fg.flashes == 3
 		var once: bool = fg.goals == g0 + 1
 		await wait_for(func(): return fg.state == "play", 2.0)
-		var t_back: float = (Time.get_ticks_msec() - t_goal) / 1000.0
+		var t_back: float = gsec() - t_goal
 		var at_spot: bool = fg.p.distance_to(fg.spot) < 0.05 and fg.vel.length() < 0.01
 		await wait(1.3)
 		var faded: bool = fg.banner != null and not fg.banner.visible
@@ -8853,7 +8865,7 @@ func run() -> void:
 				if g.get("wind", 0.0) > 0.0 or g.get("lwind", 0.0) > 0.0 or g.get("ldash", 0.0) > 0.0:
 					winding += 1
 				if g.atk_cd > prev_cd[k] + 0.5:
-					swings.append(Time.get_ticks_msec() / 1000.0)
+					swings.append(gsec())
 				prev_cd[k] = g.atk_cd
 				var gd: float = Vector2(g.x - C.x, g.z - C.y).length()
 				if i > 40 and gd > 1.9 and gd < 2.7:
@@ -8907,7 +8919,7 @@ func run() -> void:
 			var stepped := false
 			for i in 50:
 				await wait(0.05)
-				var now := Time.get_ticks_msec() / 1000.0
+				var now := gsec()
 				if g.get("lwind", 0.0) > 0.0:
 					if t_wind < 0.0:
 						t_wind = now
@@ -8994,7 +9006,7 @@ func run() -> void:
 		var shot_why := ""
 		for i in 60:
 			await wait(0.05)
-			var now := Time.get_ticks_msec() / 1000.0
+			var now := gsec()
 			var tl = ar.get("tele", null)
 			if ar.get("wind", 0.0) > 0.0 and t_wind < 0.0:
 				t_wind = now
@@ -9053,7 +9065,7 @@ func run() -> void:
 			reset_to(C)
 			main.player.hp = hp_full
 			var act: Array = wl.filter(func(e): return e.wind > 0.0 or e.dash > 0.0)
-			var now := Time.get_ticks_msec() / 1000.0
+			var now := gsec()
 			if act.size() > 1:
 				overlap = true
 			if act.size() == 1:
@@ -9193,7 +9205,7 @@ func run() -> void:
 			var rd := Vector2.ZERO
 			for i in 60:
 				await wait(0.05)
-				var now := Time.get_ticks_msec() / 1000.0
+				var now := gsec()
 				if h.rolling and t_roll < 0.0:
 					t_roll = now
 					rd = h.rdir
@@ -10619,11 +10631,11 @@ func run() -> void:
 		await corr_press("T", 2, 0, Vector2(-0.4, 0))
 		var riding: bool = not Z.ride.is_empty()
 		var west_start: bool = C.at(2, "T").x < o + 8.0 and C.at(2, "R").x > o + 11.0 # the cart really crosses the channel (v0.1.91)
-		var t0 := Time.get_ticks_msec()
+		var t0 := gsec()
 		await wait(0.5)
 		var no_blows: bool = main.player.atk_cd >= 0.25
 		await wait_for(func(): return Z.arrived, 5.0)
-		var secs: float = float(Time.get_ticks_msec() - t0) / 1000.0
+		var secs: float = gsec() - t0
 		var rr: Vector2 = C.at(2, "R")
 		var on_r: bool = Z.arrived and Vector2(main.player.x, main.player.z).distance_to(rr) < 0.3
 		var pace: bool = secs > 4.2 and secs < 6.2 # 10 tiles at 2 a second
@@ -10660,9 +10672,9 @@ func run() -> void:
 		var none1: bool = Z.group_active < 0 and corr_foes().is_empty() # Mulgyeol has not crossed yet
 		await corr_press("P", 3)
 		var started: bool = main.mate_job.get("kind", "") == "corr_cart"
-		var t0 := Time.get_ticks_msec()
+		var t0 := gsec()
 		await wait_for(func(): return main.corr_sec[3].latch_fixed, 9.0)
-		var secs: float = float(Time.get_ticks_msec() - t0) / 1000.0
+		var secs: float = gsec() - t0
 		var crossed: bool = main.corr_sec[3].latch_fixed and secs < 8.5 and Vector2(main.mate.position.x, main.mate.position.z).distance_to(C.at(3, "R")) < 0.8
 		await corr_press("F", 3, 1, Vector2(0.0, 1.0))
 		var order: bool = Z.group_active < 0 and corr_foes().is_empty() and main.corr_bits == 0
@@ -12389,6 +12401,53 @@ func run() -> void:
 		root2.content_scale_size = sc2[2]
 		await wait(0.1)
 		check("run_hold", steady and flips == 2, "state changes over a wobbling thumb %d (the single threshold changed %d)=%s, through finger events %d flips=%s" % [changes, old_changes, steady, flips, flips == 2])
+	if want.call("boss_intro"):
+		# the Brick King's page: not at 13.5 tiles, once at 12, the world waits under it, never again, kept in the save and
+		# across rounds. A full run has already felled him, so a stand-in is called up and put away again.
+		main.close_story()
+		var was_v2: bool = main.in_village
+		main.in_village = false
+		calm_enemies(true)
+		main.boss_intro_off = false
+		main.boss_seen = []
+		var alive: Callable = func(e): return e.get("boss", false) and not e.dead
+		var stand_in: bool = main.enemies.filter(alive).is_empty()
+		if stand_in:
+			main.monsters.spawn_boss()
+		var bk: Dictionary = main.enemies.filter(alive)[0]
+		var home: Vector2 = Vector2(bk.x, bk.z)
+		reset_to(home + Vector2(0, 13.5))
+		await wait(0.3)
+		var far_shut: bool = not main.story_open
+		reset_to(home + Vector2(0, 12.0))
+		await wait(0.3)
+		var opened: bool = main.story_open and main.ui.story_who.text == "벽돌왕" and main.ui.story_img.texture != null and main.ui.story_text.text.count("
+") == 2
+		var moved0: float = bk.x + bk.z
+		await wait(0.5)
+		var held: bool = bk.x + bk.z == moved0
+		main.ui.story_text.visible_characters = -1
+		main.story.next_story()
+		await wait(0.3)
+		var one_page: bool = not main.story_open
+		var seen: bool = "brick_king" in main.boss_seen
+		reset_to(home + Vector2(0, 13.5))
+		await wait(0.2)
+		reset_to(home + Vector2(0, 12.0))
+		await wait(0.3)
+		var not_twice: bool = not main.story_open
+		main.save_game()
+		var sd = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var kept: bool = "brick_king" in sd.get("boss_seen", []) and "boss_seen" in main.errands.NG_KEEP
+		main.boss_intro_off = true
+		if stand_in:
+			bk.dead = true
+			bk.node.visible = false
+			bk.shadow.visible = false
+		calm_enemies(false)
+		main.in_village = was_v2
+		check("boss_intro", far_shut and opened and held and one_page and seen and not_twice and kept,
+			"shut at 13.5 tiles %s, page at 12 %s, world held %s, one page %s, marked %s, not twice %s, kept %s" % [far_shut, opened, held, one_page, seen, not_twice, kept])
 	if want.call("sign_read"):
 		# E beside the east signpost says where it points, in the marsh only; nothing beyond its reach
 		main.close_story()
@@ -12625,7 +12684,7 @@ func run() -> void:
 		var c0: int = mt.frog_calls
 		var away: Vector2 = (mt.frogs[0].perch - mt.POND).normalized()
 		reset_to(mt.POND + away * 8.0)
-		var b0: int = main.bubbles_said
+		var b0: int = mt.frog_said
 		var called: bool = await wait_for(func(): return mt.frog_calls > c0, 12.0)
 		var low: bool = main.sfx_log.any(func(s): return String(s) == "croak:165")
 		await wait(0.3)
@@ -12638,10 +12697,10 @@ func run() -> void:
 			quiet_run = quiet_run + 1 if absi(pcm.decode_s16(i * 2)) < 60 else 0
 			gaps += 1 if quiet_run == 40 else 0
 		var rasp: bool = gaps >= 5 and gaps <= 8
-		var named: bool = main.bubbles_said == b0 + 1
+		var named: bool = mt.frog_said == b0 + 1
 		var c1: int = mt.frog_calls
 		var again: bool = await wait_for(func(): return mt.frog_calls > c1, 12.0)
-		var once: bool = main.bubbles_said == b0 + 1
+		var once: bool = mt.frog_said == b0 + 1
 		reset_to(mt.POND + Vector2(13.5, 0.0)) # dry ground to the east
 		main.player.vx = 0.0
 		var c2: int = mt.frog_calls
@@ -17081,11 +17140,11 @@ func nf_trial(kind: String, inside: bool, C: Vector2) -> Dictionary:
 		"shots": 0, "fire_at": 0.0, "sweep": 0.0, "seam_gap": 0.0}
 	e.hp = 99999.0
 	var hp0: float = main.player.hp
-	var t0 := Time.get_ticks_msec() / 1000.0
+	var t0 := gsec()
 	var moved := false
 	for i in {"bird": 44, "moth": 50, "hopper": 50, "pendulum": 52}[kind]: # just short of its second telegraph
 		await wait(0.05)
-		var now := Time.get_ticks_msec() / 1000.0 - t0
+		var now := gsec() - t0
 		if e.tele_t > 0.0 and r.tele == 0.0:
 			r.tele = now
 		if e.tele_t > 0.0 and not inside and not moved:
