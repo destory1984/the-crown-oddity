@@ -836,7 +836,7 @@ func build_hud() -> void:
 	var help := m.menus.menu_panel(root, Vector2(8, -588), Vector2(340, 487), Control.PRESET_BOTTOM_LEFT) # ends 8 px above the buttons
 	help.mouse_filter = Control.MOUSE_FILTER_STOP
 	var help_title := label(help, "조작법", Vector2(62, 20), 13, Color("#a99d84"))
-	var rows := [["WASD / 방향키", "이동"], ["Shift", "달리기"], ["J / 왼쪽 클릭", "공격 (연속기)"], ["K / 오른쪽 클릭", "구르기 (때맞추면 섬광)"], ["L / 가운데 클릭", "막기 (때맞추면 반격, Lv4부터 1초 모아 J)"],
+	var rows := [["WASD / 방향키", "이동"], ["Shift", "달리기"], ["J / 왼쪽 클릭", "공격 (연속기)"], ["K / 오른쪽 클릭", "구르기 (때맞추면 섬광)"], ["L / 가운데 클릭", "막기 (때맞추면 반격, 모아 베기를 익히면 1초 모아 J)"],
 		["U I O / 1 2 3", "스킬 (기세 30·15·60)"], ["4", "회복약"], ["E", "말 걸기, 상자 열기, 들어가기, 팔찌 쓰기"], ["Z X / 휠", "확대·축소"], ["T R P", "3시간 뒤로 / 비 / 사진"], ["F8", "처음 자리로 (진행은 그대로)"], ["F9", "처음부터 (두 번 눌러 저장 지우기)"], ["Q", "일지 (할 일과 곁이야기)"], ["B", "배경 음악 켜기/끄기"], ["H", "조작법 숨기기"]]
 	m.ui.help_rows = []
 	for i in rows.size():
@@ -848,7 +848,7 @@ func build_hud() -> void:
 	m.ui.help_keys_rows = m.ui.help_rows
 	# phones: the touch keys, each row with the key's own picture (use_touch_help swaps the two sets)
 	var trows := [["touch_stick_base", "왼쪽 막대", "이동, 끝까지 밀면 달리기"], ["touch_attack", "칼", "공격 (연속기)"],
-		["touch_dodge", "화살표", "구르기 (때맞추면 섬광)"], ["touch_guard", "방패 (누른 채)", "막기 (때맞추면 반격, Lv4부터 1초 모아 칼)"],
+		["touch_dodge", "화살표", "구르기 (때맞추면 섬광)"], ["touch_guard", "방패 (누른 채)", "막기 (때맞추면 반격, 모아 베기를 익히면 1초 모아 칼)"],
 		["touch_crown", "팔찌 (E)", "말 걸기, 상자 열기, 들어가기, 팔찌 쓰기"],
 		["skill_0", "기술 그림 셋", "회오리·불씨탄·빛파동 (기세 30·15·60)"], ["skill_3", "초록 물약 병", "회복약"],
 		["key_zoom_in", "돋보기 둘", "확대·축소"], ["key_help", "물음표", "조작법"], ["key_sound", "스피커", "효과음 켜고 끄기"],

@@ -762,6 +762,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.137: 칼 기술을 레벨이 아니라 이야기로 얻는다. 벽돌왕 → 4타 연속기, 수레두더지 → 달려 베기, 등불의 밤 → 모아 베기, 호수의 거북 → 5타 마무리, 숲 → 빛 칼날, 언덕의 매 → 가벼운 발, 성의 기사 → 세 갈래 빛 칼날. 일지에 다음 기술을 얻는 고비가 나온다.",
 	"· v0.1.136: 동쪽 마을 길 끝의 안내문을 소라의 혼잣말로 바꿨다. 마을은 나중에. 늪 물길의 벽돌왕부터 쓰러뜨리자, 마을은 나중에. 동굴의 수레두더지부터 넘어서자.",
 	"· v0.1.135: 일지 오른쪽 맨 위에 만난 보스 목록이 생겼다. 이름을 누르면 소개 페이지를 다시 보고, 닫으면 일지로 돌아온다. 쓰러뜨린 보스도 나온다. 벽돌왕을 쓰러뜨리고 동굴을 마치기 전에 동쪽 마을 길 끝으로 가면 무엇을 먼저 할지 안내문이 뜬다. 벽돌왕이 공격 사이에 기다리는 시간을 절반으로 줄였다. 공격 전 예고 시간은 그대로다.",
 	"· v0.1.134: 굴파기 수레두더지 앞에도 소개 페이지가 생겼다. 문이 열린 뒤 9.5칸 안으로 처음 다가가면 세상이 멈추고 새 그림과 조심할 공격 세 줄이 뜬다. 벽돌왕처럼 한 번만 나온다.",
@@ -1597,6 +1598,7 @@ var stairs = STAIRS.new()
 const UNDER := preload("res://undercroft.gd")
 var under = UNDER.new()     # 성 아래 잠긴 층, a side zone under the castle's great hall (Sora is still in_hill there)   # 달의 계단 from the castle's east gate up to the garden (Sora is still in_hill there)
 var stairs_spawned := false
+var known_moves: Array = []  # sword moves learnt from the story (combat.STORY_MOVES), kept across rounds
 var boss_seen: Array = []    # bosses whose page has been shown once (story.boss_intro), kept across rounds
 var stairs_seen := false     # stepped onto the moon stairs once (v0.1.68: the quarters gate never closes again after that)
 var castle = CASTLE.new()   # 가라앉은 달지기 성 between the hill and the garden (Sora is still in_hill in there)
@@ -2354,7 +2356,7 @@ func _process(dt: float) -> void:
 	if g_now and not guarding:
 		guard_since = t
 	guarding = g_now
-	if guarding and player.lv >= 4 and t - guard_since >= 1.0 and int(t * 10.0) != int((t - dt) * 10.0):
+	if guarding and combat.knows("charge") and t - guard_since >= 1.0 and int(t * 10.0) != int((t - dt) * 10.0):
 		burst(Vector3(player.x, 1.0, player.z), Color("#fff1a0"), 3, 1.0) # light gathered: J for a charged cut
 	counter_t -= dt
 	flash_cd -= dt
@@ -2637,6 +2639,7 @@ func _process(dt: float) -> void:
 
 	# HUD
 	banner_t -= dt
+	combat.check_moves()
 	if banner_t <= 0: ui.banner.modulate.a = maxf(0, ui.banner.modulate.a - dt * 2)
 	toast_t -= dt
 	if toast_t <= 0: ui.toast.modulate.a = maxf(0, ui.toast.modulate.a - dt * 3)

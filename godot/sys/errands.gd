@@ -6,7 +6,7 @@ const Main := preload("res://main.gd")
 
 var m: Main
 
-const NG_KEEP := ["boss_seen", "lv", "xp", "max_hp", "atk", "gold", "pots", "has_pearl", "has_feather", "has_acorn", "has_ring", "has_shoes",
+const NG_KEEP := ["boss_seen", "moves", "lv", "xp", "max_hp", "atk", "gold", "pots", "has_pearl", "has_feather", "has_acorn", "has_ring", "has_shoes",
 	"has_armour", "has_tea", "has_shard", "has_bookmark", "has_lamp", "has_medal", "has_oar_ring", "has_whistle", "has_oil", "has_cushion", "has_bait", "has_buckler", "has_sprout", "work_hp", "woke", "stats", "feats", "trial_best", "race_best", "fish", "pip_max", "pip_awards", "goals"]
 const OAR_AT := Vector2(9.0, 11.0) # middle of the north-west marsh pond, reachable only by water skip
 

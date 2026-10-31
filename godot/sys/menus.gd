@@ -446,8 +446,8 @@ func build_settings(root: Control) -> void:
 	# the owner, 2026-10-25: more detail, so each row says what the key does, what it costs and when it opens up
 	var tips := ["요령", "괴물은 때리기 직전에 빨갛게 부풀고 \"!\"가 뜬다. 그때 구르면 섬광 피하기(잠깐 세상이 느려진다), 막으면 섬광 막기. 쓰러지면 금화와 레벨은 그대로 두고 건널목이나 광장에서 다시 깬다"]
 	var help_rows := [["이동", "WASD 또는 방향키. Shift를 누르고 있으면 달린다(기력이 준다). 물수제비 걸음을 얻으면 달려서 물 위도 건넌다"],
-		["베기", "J 또는 왼쪽 클릭. 이어 누르면 연속 베기(Lv2 회전 베기, Lv6 내려찍기). 달리며 J는 돌진 베기(Lv3, 기력 15), L로 1초 막은 뒤 J는 모아 베기(Lv4). Lv8 빛 칼날, Lv20 세 갈래"],
-		["구르기", "K 또는 오른쪽 클릭(기력 25, Lv10부터 18). 구르기를 시작하는 순간(0.15초 안, Lv10부터 0.2초)에 공격이 오면 섬광 피하기: 맞지 않고 기세 20, 기력 25를 얻는다"], ["막기", "L 또는 가운데 버튼을 누르고 있는 동안 막는다. 막으면 피해가 30%로 줄고 기력 15를 쓴다. 맞는 순간에 막기를 시작하면 섬광 막기"],
+		["베기", "J 또는 왼쪽 클릭. 이어 누르면 연속 베기. 회전 베기, 내려찍기, 돌진 베기, 모아 베기, 빛 칼날은 이야기를 따라 차례로 익힌다. 달리며 J는 돌진 베기(기력 15), L로 1초 막은 뒤 J는 모아 베기"],
+		["구르기", "K 또는 오른쪽 클릭(기력 25, 가벼운 발을 익히면 18). 구르기를 시작하는 순간(0.15초 안, 가벼운 발을 익히면 0.2초)에 공격이 오면 섬광 피하기: 맞지 않고 기세 20, 기력 25를 얻는다"], ["막기", "L 또는 가운데 버튼을 누르고 있는 동안 막는다. 막으면 피해가 30%로 줄고 기력 15를 쓴다. 맞는 순간에 막기를 시작하면 섬광 막기"],
 		["기술", "U 회오리(기세 30), I 불씨탄(기세 15), O 빛파동(기세 60). 1 2 3도 같다. 기세는 괴물을 때리면 차고 Lv30부터 줄지 않는다. Lv15부터 다시 쓰기가 20% 빠르다. 4는 회복약(체력 45, Lv25부터 30% 더)"],
 		["팔찌 E", "말 걸기, 상자와 문 열기, 집 들어가기, 등불 켜기, 벽돌 풀기, 길돌, 낚시. 등불과 벽돌은 달빛 눈금을 쓴다(낮 2, 밤 1). 밤에 켜진 등불 곁에 서 있으면 3초에 한 눈금 찬다"],
 		["메뉴", "Q 일지(할 일, 곁일, 모은 것), H 조작법, M 효과음, B 음악, T 시간 3시간 보내기, P 화면 글자 숨기기, Esc 이 창"],
@@ -463,8 +463,8 @@ func build_settings(root: Control) -> void:
 	# phones: the same page for the touch keys (use_touch_help swaps the two)
 	# the same detail as the keyboard rows (costs, flash windows, level moves), told with the touch keys
 	var touch_rows := [["이동", "화면 왼쪽에 엄지를 대면 막대가 생긴다. 끝까지 밀면 달린다(기력이 준다). 물수제비 걸음을 얻으면 달려서 물 위도 건넌다"],
-		["베기", "칼 단추. 이어 누르면 연속 베기(Lv2 회전 베기, Lv6 내려찍기). 달리며 칼은 돌진 베기(Lv3, 기력 15), 방패를 1초 누른 채 칼은 모아 베기(Lv4). Lv8 빛 칼날, Lv20 세 갈래"],
-		["구르기", "화살표 단추(기력 25, Lv10부터 18). 구르기를 시작하는 순간(0.15초 안, Lv10부터 0.2초)에 공격이 오면 섬광 피하기: 맞지 않고 기세 20, 기력 25를 얻는다"],
+		["베기", "칼 단추. 이어 누르면 연속 베기. 회전 베기, 내려찍기, 돌진 베기, 모아 베기, 빛 칼날은 이야기를 따라 차례로 익힌다. 달리며 칼은 돌진 베기(기력 15), 방패를 1초 누른 채 칼은 모아 베기"],
+		["구르기", "화살표 단추(기력 25, 가벼운 발을 익히면 18). 구르기를 시작하는 순간(0.15초 안, 가벼운 발을 익히면 0.2초)에 공격이 오면 섬광 피하기: 맞지 않고 기세 20, 기력 25를 얻는다"],
 		["막기", "방패 단추를 누르고 있는 동안 막는다. 막으면 피해가 30%로 줄고 기력 15를 쓴다. 맞는 순간에 막기를 시작하면 섬광 막기"],
 		["기술", "오른쪽 아래 그림 셋: 회오리(기세 30), 불씨탄(기세 15), 빛파동(기세 60). 기세는 괴물을 때리면 차고 Lv30부터 줄지 않는다. Lv15부터 다시 쓰기가 20% 빠르다. 초록 하트는 회복약(체력 45, Lv25부터 30% 더)"],
 		["팔찌", "팔찌 단추 (E): 말 걸기, 상자와 문 열기, 집 들어가기, 등불 켜기, 벽돌 풀기, 길돌, 낚시. 등불과 벽돌은 달빛 눈금을 쓴다(낮 2, 밤 1). 밤에 켜진 등불 곁에 서 있으면 3초에 한 눈금 찬다"],
@@ -870,10 +870,16 @@ func journal_lines() -> Array:
 	out.append(tr("지닌 것"))
 	var keep: Array = keepsakes().map(func(k): return k[0])
 	out.append("  " + (", ".join(keep) if not keep.is_empty() else tr("왕관과 태엽 팔찌")))
-	# level moves so far and the next one (the owner asked for perks past Lv8, 2026-10-25)
+	# moves so far and the next one: the story's first, then the level's (the owner, 2026-10-25, 2026-10-31)
 	out.append("")
 	out.append(tr("익힌 기술"))
 	var learnt: Array = []
+	var next_move := {}
+	for mv in Combat.STORY_MOVES:
+		if m.combat.knows(mv.id):
+			learnt.append(tr(mv.name))
+		elif next_move.is_empty():
+			next_move = mv
 	var next_lv := 0
 	for lv in Combat.LV_NAMES:
 		if lv <= m.player.lv:
@@ -881,7 +887,9 @@ func journal_lines() -> Array:
 		elif next_lv == 0:
 			next_lv = lv
 	out.append("  " + (", ".join(learnt) if not learnt.is_empty() else tr("베기, 구르기, 막기")))
-	if next_lv > 0:
+	if not next_move.is_empty():
+		out.append("  " + tr("다음: %s %s") % [tr(next_move.after), tr(next_move.name)])
+	elif next_lv > 0:
 		out.append("  " + tr("다음: Lv%d %s") % [next_lv, tr(Combat.LV_NAMES[next_lv])])
 	return out
 

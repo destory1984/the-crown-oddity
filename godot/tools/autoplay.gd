@@ -10,7 +10,7 @@ var main: Node
 var only := "all"
 var results: Array = []
 
-const TESTS := ["title_music", "boss_intro", "village_road_note", "king_pace", "boss_journal", "boss_intro_mole", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "key_unstick", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
+const TESTS := ["title_music", "story_moves", "boss_intro", "village_road_note", "king_pace", "boss_journal", "boss_intro_mole", "start_click", "story_opens", "story_closes", "opening", "meet_bori", "boss_opens_cave", "save_load", "story_kept", "cave_enter", "cave_layout", "archer_telegraph", "key_door", "rival_scene", "cave_save_load", "painting_once", "unstick", "mole_charge", "key_unstick", "mole_grants_skip", "cave_faint", "cave_exit", "water_skip", "water_skip_letgo", "village_enter", "village_layout", "simji_talk", "lamp_cost_night", "lamp_cost_day", "lamp_no_pips", "pip_rest", "errand_done", "kongal_errand", "doran_errand", "mulgyeol_errand", "lantern_night", "folk_again", "lake", "forest", "hill", "garden_end", "village_exit", "marsh_scraps", "forest_grove", "firefly_errand", "grotto", "cloud", "castle", "shrine", "journal", "esc_sheets", "news_more", "touch_controls", "quest_layout", "bgm", "mash", "folk_height", "folk_hop", "windrun_retry", "story_pad", "folk_sleep", "folk_routine", "hint_folk", "wolf", "trial", "squirrels", "crystals", "race", "vault", "save_tonight", "fishing", "bat", "moonflowers", "houses", "one_key", "feats", "mail", "festival", "new_round", "shop_price", "cloud_path", "waystones", "stuck_fixes", "story_fixes", "bracelet", "playtest5", "laps", "books", "bori_e", "moon_stairs", "undercroft", "workshop", "hollow", "hush", "trial_repeat", "road", "mill", "post", "lake_south", "clock", "shore", "quarters", "oak", "village_market", "mate_facing", "settings", "mate_chat", "pips", "folk_chat", "noeul_rest", "east_bridge", "fall_down", "mate_hp", "start_key", "bridges", "shop_buy", "shop_click", "footsteps", "boss_survive", "faint_resets", "lap6", "lap7", "lap8",
 	"flash_dodge", "late_dodge", "flash_guard", "guard_block", "guard_back", "momentum", "level_moves", "level_perks", "gear_look", "hill_dressing", "village_dressing", "fountain", "mate_breath", "exit_marks", "pip_hint", "reset_ask", "plant_shake", "sora_breath", "rest_why", "hawk_unstick", "camp_diary", "click_guard", "round_badge", "tree_shake", "rest_heal", "story_moves_sora", "babble", "trial_count", "toy_bricks", "hud_plates", "credits", "lake_dressing", "forest_dressing", "stairs_dressing", "garden_dressing", "folk_mark", "island_landing", "bori_away", "bus_layout", "area_steps", "tree_chop", "chain_cut", "stage_noeul", "seam_pins", "lantern_toggle", "ending_replay", "mural_split", "skill_cost", "goblin_telegraph", "boss_phase2",
 	"hawk_leash", "mold_leash", "mold_no_skip", "king_calm", "faint_banner", "windrun_faint", "mate_skips_air", "kid_reload", "race_save",
 	"bug_boss_tick", "bug_mill_pile", "bug_mold_faint", "bug_mul_twice", "quest_marks", "field_respawn", "pack_turns", "goblin_lunge", "archer_backoff", "wolf_turns", "bat_double", "hog_roll", "new_foes", "token_gates", "token_stairs", "token_ui", "token_old_save", "token_new_round", "token_fix", "token_fix2", "gate_pond", "gate_valley", "gate_castle", "gate_knight", "gate_quarters", "gate_new_round", "gate_fix4", "gate_fix5", "lap6_ui", "boss_hp7", "review_fixes", "corridor_enter", "corridor_s1", "corridor_s2", "corridor_s3", "corridor_core", "corridor_boss", "corridor_save", "corridor_fix", "corridor_gate", "corridor_round", "bag", "refusal", "stairs_fx", "lake_stair", "picture_hud", "toy_taps", "idle_places", "folk_nod", "potion_kept", "eave_drips", "full_chime", "run_hold", "sign_tease", "sign_read", "foe_pace", "doodles", "pinwheels", "door_bell", "marsh_duck", "marsh_frogs", "marsh_frog_call", "marsh_fluff", "marsh_pipe", "marsh_mat", "d1_leaves", "d4_sign_sway", "d7_shop_flag", "d8_palm", "d9_rope", "d10_empty_chest", "d14_rest_more", "d16_scenic", "d18_noeul_bow", "d19_listened", "toy_fence", "football_kick", "football_bounce", "football_goal", "football_save", "football_quiet", "football_cheer", "football_north", "pitch_marks", "ending_home", "pinwheel_hit", "bori_pinwheel", "d20_arrive", "d21_cup", "d26_shelter", "d27_sleep_z", "d30_kid_shoes", "d34_drip_timbre", "d36_cave_dust", "d37_tag", "d38_moon_plaque", "d39_ribbons", "d40_windows", "d41_wet_steps", "d42_chest_knock", "d44_mill_creak", "d49_clack", "d51_stud", "d52_wall_dust", "d54_release_dust", "d55_calm", "d57_air_whiff", "d58_screw", "d59_revive_bow", "d60_breath_word", "d63_umbrella", "d64_photo", "d66_hush", "d67_pond_drop", "d68_moon_ring", "d69_inn_stretch", "d70_run_water", "d71_tea_cups", "d72_height_ruler", "d74_wall_chair", "d77_acorn_husk", "d80_start_reeds", "d82_pip_gap", "d86_last_bottle", "d99_ready_rim", "d2_wet_prints", "d5_reed_drops", "d6_street_leaves", "d11_fountain_step", "d13_loop_dizzy", "d15_look_back", "d17_chest_look", "d22_letter", "d23_twirl", "d24_can", "d25_chalk", "d28_inn_cup", "d32_rain_rings", "d33_roof_rain", "d35_lamp_moths", "d43_room_echo", "d46_fountain_quiet", "d48_story_hush", "d50_rain_house", "d53_door_stick", "d65_map_back", "d73_bell_answer", "d75_fold", "d79_four_blocks", "d81_recap", "d83_potion_preview", "d84_folk_detail", "d85_resume", "d87_save_gear", "d88_dots", "d89_read_pace", "d90_one_hand", "d91_lefty", "d92_crown_word", "d94_guard_slip", "d97_key_size", "d98_edge_bubble", "d100_fade_keys", "d95_safe_area", "d96_back_button", "obs_enter", "obs_s1", "obs_s2", "obs_s3", "obs_top", "obs_boss", "obs_save", "obs_gate", "obs_round", "pip_rest_far"] # pip_rest_far walks through four areas: last
@@ -637,8 +637,9 @@ func run() -> void:
 		var lv0: int = main.player.lv
 		var ghp0: float = gob.hp
 		main.player.combo_t = 0.0
-		# five-hit chain at Lv6: the fifth swing is the slam
-		main.player.lv = 6
+		# five-hit chain: the fifth swing is the slam
+		var moves0: Array = main.known_moves.duplicate()
+		main.known_moves = ["combo4", "combo5"]
 		reset_to(Vector2(30, 30))
 		gob.x = 31.0
 		gob.z = 30.0
@@ -652,8 +653,8 @@ func run() -> void:
 			combos.append(main.player.combo)
 			await wait(0.1)
 		var chain: bool = combos == [0, 1, 2, 3, 4]
-		# dash slash at Lv3: running with Shift
-		main.player.lv = 3
+		# dash slash: running with Shift
+		main.known_moves = ["dash"]
 		reset_to(Vector2(26, 30))
 		gob.x = 27.5
 		gob.z = 30.0
@@ -668,8 +669,8 @@ func run() -> void:
 		main.fake_keys.clear()
 		await wait_for(func(): return main.dash.is_empty(), 3.0) # the dash is a 0.14 s slide now
 		var dashed: bool = main.player.x > 27.5 and gob.hp < hp1
-		# charged slash at Lv4: guard a second, then J
-		main.player.lv = 4
+		# charged slash: guard a second, then J
+		main.known_moves = ["charge"]
 		reset_to(Vector2(30, 30))
 		gob.x = 31.2
 		gob.z = 30.0
@@ -686,6 +687,7 @@ func run() -> void:
 		var charged: bool = hp2 - gob.hp >= main.player.atk * 2.5
 		check("level_moves", chain and dashed and charged, "5-hit chain=%s %s dash moved and hit=%s charged cut=%.0f" % [chain, str(combos), dashed, hp2 - gob.hp])
 		main.player.lv = lv0
+		main.known_moves = moves0
 		gob.hp = ghp0
 		gob.atk_cd = 1.0
 		gob.stun = 0.0
@@ -3185,18 +3187,21 @@ func run() -> void:
 		var shown: bool = main.ui.journal.visible
 		var txt: String = plain(main.ui.journal_text.text) + plain(main.ui.journal_text2.text)
 		var has: bool = "지금 할 일" in txt and "늪의 옛 지도 조각" in txt and "곁이야기" in txt and "지닌 것" in txt
-		# the learnt moves: at Lv4 the first three and Lv6 next
+		# the learnt moves: the first three, then what the story gives next
 		main.toggle_journal(false)
 		var lv0: int = main.player.lv
-		main.player.lv = 4
+		var moves0: Array = main.known_moves.duplicate()
+		main.known_moves = ["combo4", "dash", "charge"]
 		main.toggle_journal(true)
 		var txt4: String = plain(main.ui.journal_text2.text)
-		var moves: bool = "익힌 기술" in txt4 and "4타 연속기, 달려 베기, 모아 베기" in txt4 and "다음: Lv6 5타 마무리" in txt4 and not "빛 칼날" in txt4
+		var moves: bool = "익힌 기술" in txt4 and "4타 연속기, 달려 베기, 모아 베기" in txt4 and "다음: 호수의 거북을 쓰러뜨리면 5타 마무리" in txt4 and not "빛 칼날" in txt4
 		main.player.lv = 30
+		main.known_moves = main.combat.STORY_MOVES.map(func(mv): return mv.id)
 		main.toggle_journal(true)
 		var txt30: String = plain(main.ui.journal_text2.text)
 		moves = moves and "꺼지지 않는 기세" in txt30 and not "다음:" in txt30
 		main.player.lv = lv0
+		main.known_moves = moves0
 		tap(KEY_H)
 		await wait(0.1)
 		var swapped: bool = main.ui.help.visible and not main.ui.journal.visible
@@ -12552,6 +12557,68 @@ func run() -> void:
 		main.in_village = keep_vil
 		main.in_cave = keep_cv
 		check("village_road_note", "벽돌왕" in early and "수레두더지" in mid, "before the king: %s; before the cave is done: %s" % [early, mid])
+	if want.call("story_moves"):
+		# the sword moves come one at a time with the story: a high level alone opens none, a milestone opens its own after
+		# the story has closed, the banner says so, the list is saved and an old later-round save has them all
+		main.close_story()
+		var cb: Object = main.combat
+		var keep_lv: int = main.player.lv
+		var keep_moves: Array = main.known_moves.duplicate()
+		var keep_flags := [main.story_step, main.has_skip, main.night_q, main.lake_q, main.forest_q, main.hill_q, main.castle_q]
+		main.player.lv = 30
+		main.known_moves = []
+		main.story_step = 4
+		main.has_skip = false
+		main.night_q = 0
+		main.lake_q = 0
+		main.forest_q = 0
+		main.hill_q = 0
+		main.castle_q = 0
+		main.banner_t = 0.0
+		cb.check_moves()
+		var high_alone: bool = main.known_moves.is_empty() and cb.combo_len() == 3
+		main.story_step = 5
+		main.story_open = true
+		cb.check_moves()
+		var waits: bool = main.known_moves.is_empty()
+		main.story_open = false
+		cb.check_moves()
+		var king: bool = main.known_moves == ["combo4"] and cb.combo_len() == 4 and main.ui.banner_title.text == "4타 연속기"
+		main.has_skip = true
+		main.night_q = 4
+		main.lake_q = 4
+		main.forest_q = 3
+		main.hill_q = 3
+		main.castle_q = 3
+		var order: Array = []
+		for k in 8:
+			main.banner_t = 0.0
+			cb.check_moves()
+			order.append(main.known_moves.size())
+		var one_each: bool = order == [2, 3, 4, 5, 6, 7, 7, 7] and cb.combo_len() == 5
+		main.save_game()
+		var saved = JSON.parse_string(FileAccess.get_file_as_string(main.SAVE_PATH))
+		var kept: bool = cb.saved_moves(saved).size() == 7 and "moves" in main.errands.NG_KEEP
+		var old_first: bool = cb.saved_moves({"ng": 0}).is_empty() and cb.saved_moves({"ng": 1}).size() == 7
+		main.known_moves = []
+		cb.sync_moves()
+		var silent: bool = main.known_moves.size() == 7
+		main.known_moves = []
+		main.banner_t = 0.0
+		await wait(0.2)
+		var by_frame: bool = main.known_moves.size() == 1 and main.ui.banner_sub.text.begins_with("새 기술: 4타")
+		main.player.lv = keep_lv
+		main.known_moves = keep_moves
+		main.story_step = keep_flags[0]
+		main.has_skip = keep_flags[1]
+		main.night_q = keep_flags[2]
+		main.lake_q = keep_flags[3]
+		main.forest_q = keep_flags[4]
+		main.hill_q = keep_flags[5]
+		main.castle_q = keep_flags[6]
+		main.save_game()
+		check("story_moves", high_alone and waits and king and one_each and kept and old_first and silent and by_frame,
+			"Lv30 alone none=%s waits for the story=%s king gives combo4=%s one a time=%s %s saved=%s old saves=%s load silent=%s by the frame loop=%s" % [high_alone, waits, king, one_each, str(order), kept, old_first, silent, by_frame])
 	if want.call("king_pace"):
 		# the Brick King's waits run at twice the clock: a 1 s wait ends in about 0.5 s, the wind-up does not shorten
 		main.close_story()

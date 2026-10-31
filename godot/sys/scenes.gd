@@ -1019,6 +1019,7 @@ func apply_test_args(args: PackedStringArray) -> void:
 	if opt.has("sounds"):
 		load("res://tools/autoplay.gd").sound_report(m, opt.sounds)
 		m.get_tree().quit()
+	m.combat.sync_moves() # a scene starts late in the story without a run of "new move" banners
 	if opt.has("shot"):
 		var path: String = opt.shot if opt.shot != "" else "res://shot.png"
 		m.get_tree().create_timer(float(opt.get("wait", "4"))).timeout.connect(func():

@@ -6,25 +6,70 @@ const Main := preload("res://main.gd")
 
 var m: Main
 
+# the sword moves come with the story, not the level, so her blade does not outgrow the opening (the owner, 2026-10-31:
+# "기술은 천천히 획득", "이야기 진행에 따라서 균등하게 배분"); "after" finishes the journal's "다음:" line
+const STORY_MOVES := [
+	{"id": "combo4", "name": "4타 연속기", "line": "새 기술: 4타 연속기 (J를 네 번, 넷째 타는 한 바퀴 베기)", "after": "벽돌왕을 쓰러뜨리면"},
+	{"id": "dash", "name": "달려 베기", "line": "새 기술: 달려 베기 (Shift로 달리며 J)", "after": "수레두더지를 쓰러뜨리면"},
+	{"id": "charge", "name": "모아 베기", "line": "새 기술: 모아 베기 (L로 막으며 1초 모은 뒤 J)", "after": "등불의 밤을 넘기면"},
+	{"id": "combo5", "name": "5타 마무리", "line": "새 기술: 5타 마무리 (다섯째 타는 땅 내려찍기)", "after": "호수의 거북을 쓰러뜨리면"},
+	{"id": "blade", "name": "빛 칼날", "line": "새 기술: 빛 칼날 (연속기 마지막 타가 빛 칼날을 날린다)", "after": "숲의 일을 마치면"},
+	{"id": "light_feet", "name": "가벼운 발", "line": "가벼운 발: 구르기 기력 25 → 18, 섬광 피하기 틈 0.15 → 0.2초", "after": "언덕의 매를 쓰러뜨리면"},
+	{"id": "tri_blade", "name": "세 갈래 빛 칼날", "line": "세 갈래 빛 칼날: 마지막 타의 빛 칼날이 셋으로 갈라진다", "after": "성의 기사를 쓰러뜨리면"},
+]
+# what is left on the level: none of it is sword strength
 const LV_MOVES := {
-	2: "새 기술: 4타 연속기 (J를 네 번, 넷째 타는 한 바퀴 베기)",
-	3: "새 기술: 달려 베기 (Shift로 달리며 J)",
-	4: "새 기술: 모아 베기 (L로 막으며 1초 모은 뒤 J)",
-	6: "새 기술: 5타 마무리 (다섯째 타는 땅 내려찍기)",
-	8: "새 기술: 빛 칼날 (연속기 마지막 타가 빛 칼날을 날린다)",
-	10: "가벼운 발: 구르기 기력 25 → 18, 섬광 피하기 틈 0.15 → 0.2초",
 	15: "달빛 숨: 기술을 다시 쓰기까지 20% 빨라진다",
-	20: "세 갈래 빛 칼날: 마지막 타의 빛 칼날이 셋으로 갈라진다",
 	25: "든든한 약: 회복약이 30% 더 채운다",
 	30: "꺼지지 않는 기세: 때리지 않아도 기세가 줄지 않는다",
 }
 # short names for the journal's "익힌 기술" list
-const LV_NAMES := {2: "4타 연속기", 3: "달려 베기", 4: "모아 베기", 6: "5타 마무리", 8: "빛 칼날",
-	10: "가벼운 발", 15: "달빛 숨", 20: "세 갈래 빛 칼날", 25: "든든한 약", 30: "꺼지지 않는 기세"}
+const LV_NAMES := {15: "달빛 숨", 25: "든든한 약", 30: "꺼지지 않는 기세"}
 const SKILL_MP := [30, 15, 60]
 
 func _init(main: Main) -> void:
 	m = main
+
+func knows(id: String) -> bool:
+	return id in m.known_moves
+
+func move_earned(id: String) -> bool:
+	match id:
+		"combo4": return m.story_step >= 5
+		"dash": return m.has_skip
+		"charge": return m.night_q >= 4
+		"combo5": return m.lake_q >= 4
+		"blade": return m.forest_q >= 3
+		"light_feet": return m.hill_q >= 3
+		"tri_blade": return m.castle_q >= 3
+	return false
+
+# one new move a time, after the fight's story has closed and any level banner has gone
+func check_moves() -> void:
+	if m.story_open or m.intro or m.banner_t > 0.0:
+		return
+	for mv in STORY_MOVES:
+		if not knows(mv.id) and move_earned(mv.id):
+			m.known_moves.append(mv.id)
+			m.ui.banner_title.text = tr(mv.name)
+			m.ui.banner_sub.text = tr(mv.line)
+			m.ui.banner.modulate.a = 1.0
+			m.banner_t = 3.0
+			m.sfx(659, 0.15, "triangle", 0.3)
+			m.get_tree().create_timer(0.14).timeout.connect(func(): m.sfx(880, 0.3, "triangle", 0.3))
+			return
+
+# a load or a scene: moves the story has already passed come without a banner
+func sync_moves() -> void:
+	for mv in STORY_MOVES:
+		if not knows(mv.id) and move_earned(mv.id):
+			m.known_moves.append(mv.id)
+
+# a save from before the moves were kept: a later round has walked the whole story
+func saved_moves(d: Dictionary) -> Array:
+	if d.has("moves"):
+		return d.moves
+	return STORY_MOVES.map(func(mv): return mv.id) if int(d.get("ng", 0)) > 0 else []
 
 # ---------------------------------------------------------------- combat
 func damage_enemy(e: Dictionary, amt: float, from: Vector2, kb := 4.0, force_crit := false, stop := 0.05) -> void:
@@ -224,7 +269,7 @@ func slash_span() -> float:
 	return clampf(1.2 + 0.2 * (m.player.lv - 1), 1.2, 2.6)
 
 func combo_len() -> int:
-	return 3 + (1 if m.player.lv >= 2 else 0) + (1 if m.player.lv >= 6 else 0)
+	return 3 + (1 if knows("combo4") else 0) + (1 if knows("combo5") else 0)
 
 # one swing of the combo; the last swing of the chain is the finisher:
 # 3 hits: a heavy cut; 4 hits: a full spin; 5 hits: a ground slam
@@ -262,10 +307,10 @@ func attack() -> void:
 		if m.player.atk_cd <= BUFFER:
 			buffer_t = BUFFER
 		return
-	if m.player.lv >= 4 and m.guarding and m.t - m.guard_since >= 1.0:
+	if knows("charge") and m.guarding and m.t - m.guard_since >= 1.0:
 		charged_slash()
 		return
-	if m.player.lv >= 3 and m.key_down(KEY_SHIFT) and Vector2(m.player.vx, m.player.vz).length() > 4.0 and m.player.sp >= 15.0:
+	if knows("dash") and m.key_down(KEY_SHIFT) and Vector2(m.player.vx, m.player.vz).length() > 4.0 and m.player.sp >= 15.0:
 		dash_slash()
 		return
 	var tg = nearest_enemy(2.2)
@@ -337,9 +382,9 @@ func attack() -> void:
 	if slam:
 		m.shake = maxf(m.shake, 0.3)
 		m.burst(here + Vector3(0, 0.2, 0), Color("#d8c8a0"), 30, 3.5)
-	if last and m.player.lv >= 8:
+	if last and knows("blade"):
 		light_blade(f)
-		if m.player.lv >= 20: # two more, 25 degrees to each side
+		if knows("tri_blade"): # two more, 25 degrees to each side
 			light_blade(f.rotated(0.44))
 			light_blade(f.rotated(-0.44))
 	var lunge := 4.0 if last else 2.0
@@ -369,7 +414,7 @@ func air_whiff(missed_high: bool) -> void:
 		air_hints += 1
 		m.toast(tr("너무 높이 떠 있어 칼이 닿지 않는다. 내려앉을 때를 기다리자"))
 
-# Lv3: running with Shift, J dashes 3 m ahead and cuts everything along the way
+# running with Shift, J dashes 3 m ahead and cuts everything along the way
 const DASH_TIME := 0.14 # the dash slash is a visible slide, not a blink (the user, 2026-10-25: Sora "warps" when keys are mashed)
 
 func dash_slash() -> void:
@@ -457,7 +502,7 @@ func dash_ghost(at: Vector2) -> void:
 	tw.tween_property(g, "modulate:a", 0.0, 0.22)
 	tw.tween_callback(g.queue_free)
 
-# Lv4: guard for a second to gather light, then J: a wide, heavy cut in front
+# guard for a second to gather light, then J: a wide, heavy cut in front
 func charged_slash() -> void:
 	m.guard_since = m.t
 	m.player.combo = 0
@@ -483,7 +528,7 @@ func charged_slash() -> void:
 	m.burst(here + Vector3(f.x, 0.8, f.y), Color("#fff1a0"), 30, 3.5)
 	m.sfx(330, 0.3, "sawtooth", 0.25, -200)
 
-# Lv8: the finisher sends a blade of light forward (it flies like the ember bolt)
+# the finisher sends a blade of light forward (it flies like the ember bolt)
 func light_blade(f: Vector2) -> void:
 	var b := MeshInstance3D.new()
 	b.mesh = m.ring_mesh(0.3, 0.6, -0.9, 1.8)
@@ -616,7 +661,7 @@ func drink_potion() -> void:
 func dodge() -> void:
 	if not m.dash.is_empty():
 		return
-	var cost := (15 if m.has_feather else 25) - (7 if m.player.lv >= 10 else 0)
+	var cost := (15 if m.has_feather else 25) - (7 if knows("light_feet") else 0)
 	if m.player.dodge > 0 or m.player.sp < cost:
 		return
 	m.player.sp -= cost
