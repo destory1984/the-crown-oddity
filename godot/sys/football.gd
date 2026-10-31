@@ -441,6 +441,7 @@ func score() -> void:
 	update_board()
 	m.save_game()
 	goal_fx()
+	m.goal_crowd.start()
 
 func goal_fx() -> void:
 	ensure_fx()

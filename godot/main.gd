@@ -39,6 +39,7 @@
 #   sys/corridor_zone.gd  Water corridor (v0.1.84): four rooms under the lake island, levers, carts, Mulgyeol's posts, the sluice-keeper.
 #   sys/observatory_zone.gd  Moon-watch observatory (v0.1.120): four rooms up from the hill, wind hole, swivel platform, mirrors, Noeul's hand, the brick moth.
 #   sys/marsh_toys.gd     Reed-marsh toys (v0.1.106): the wind-up duck, three frogs, cattail fluff, the reed pipe rack, Bori's mat.
+#   sys/goal_crowd.gd     A goal brings the village to the pitch: run, line up, clap 5 s, walk back.
 #   sys/football.gd       The village square's football and goal (v0.1.109): kicks, bounces, the goal flash and score banner, the goals count.
 #   sys/safe_area.gd      The phone's home bar and camera hole (v0.1.119): the safe area in canvas pixels, feeding touch.gd, hud.gd and hud_build.gd.
 #   sys/away.gd           Coming back (v0.1.119): focus lost on a phone pauses the game behind a centred 돌아왔다 key.
@@ -84,6 +85,7 @@ var quest_marks := preload("res://sys/quest_marks.gd").new(self)
 var moon_tokens := preload("res://sys/tokens.gd").new(self)
 var marsh_toys := preload("res://sys/marsh_toys.gd").new(self)
 var football := preload("res://sys/football.gd").new(self)
+var goal_crowd := preload("res://sys/goal_crowd.gd").new(self)
 var ambience := preload("res://sys/ambience.gd").new(self)
 var safe_area := preload("res://sys/safe_area.gd").new(self)
 var away_ui := preload("res://sys/away.gd").new(self)
@@ -762,6 +764,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.138: 소라가 골을 넣으면 낮에 밖에 있는 마을 사람들이 모두 축구장으로 달려와 양옆에 늘어서서 5초 동안 박수치고 제자리로 돌아간다.",
 	"· v0.1.137: 칼 기술을 레벨이 아니라 이야기로 얻는다. 벽돌왕 → 4타 연속기, 수레두더지 → 달려 베기, 등불의 밤 → 모아 베기, 호수의 거북 → 5타 마무리, 숲 → 빛 칼날, 언덕의 매 → 가벼운 발, 성의 기사 → 세 갈래 빛 칼날. 일지에 다음 기술을 얻는 고비가 나온다.",
 	"· v0.1.136: 동쪽 마을 길 끝의 안내문을 소라의 혼잣말로 바꿨다. 마을은 나중에. 늪 물길의 벽돌왕부터 쓰러뜨리자, 마을은 나중에. 동굴의 수레두더지부터 넘어서자.",
 	"· v0.1.135: 일지 오른쪽 맨 위에 만난 보스 목록이 생겼다. 이름을 누르면 소개 페이지를 다시 보고, 닫으면 일지로 돌아온다. 쓰러뜨린 보스도 나온다. 벽돌왕을 쓰러뜨리고 동굴을 마치기 전에 동쪽 마을 길 끝으로 가면 무엇을 먼저 할지 안내문이 뜬다. 벽돌왕이 공격 사이에 기다리는 시간을 절반으로 줄였다. 공격 전 예고 시간은 그대로다.",

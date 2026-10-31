@@ -233,6 +233,8 @@ func folk_awake_here(id: String) -> bool:
 func folk_talk_at(id: String) -> Vector2:
 	if not folk_awake_here(id):
 		return m.village.folk_pos[id]
+	if m.goal_crowd.crowd.has(id):
+		return m.goal_crowd.crowd[id].pos
 	match m.folk_state.get(id, "out"):
 		"in":
 			return bed_spot(id) if m.in_house == folk_home(id) else Vector2.INF
@@ -466,6 +468,7 @@ func update_folk_sleep(dt: float) -> void:
 	update_z_slow(dt)
 	update_letter()
 	update_chalk()
+	m.goal_crowd.update(dt)
 	var night := folk_should_sleep()
 	var watching := m.in_village and m.in_house < 0 # walking home is only worth showing when she is on the street
 	var rolls := {} # bedroll spots taken in the room she is in
@@ -479,6 +482,14 @@ func update_folk_sleep(dt: float) -> void:
 		if not m.village.folk_node.has(id) or not folk_awake_here(id):
 			continue
 		var spr: Sprite3D = m.village.folk_node[id]
+		if m.goal_crowd.crowd.has(id): # out at the pitch; the day waits for him
+			var c: Vector2 = m.goal_crowd.crowd[id].pos
+			spr.position = Vector3(c.x, 0.0, c.y)
+			hop("folk_" + id, spr, dt, 0.0, HOP_H * folk_hop_scale(id), true)
+			spr.position.y += m.goal_crowd.lift(id)
+			if m.folk_rocks.has(id):
+				m.folk_rocks[id].r = 0.0
+			continue
 		var home: Vector2 = m.village.folk_pos[id]
 		var door: Vector2 = m.village.doors[folk_home(id)]
 		var st: String = m.folk_state.get(id, "out")
