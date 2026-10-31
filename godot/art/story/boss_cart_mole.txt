@@ -1,0 +1,12 @@
+Use your image generation tool to create ONE image and save it as boss_cart_mole.png in the current directory.
+
+ATTACHMENT: boss_brick_king.jpg, the illustration of this game's first boss: copy its 1990s cel style, ink lines, studded toy-brick construction and framing idea. Use a different creature and place. Do NOT draw the Brick King, Sora or any other person.
+
+Subject: the Digging Cart Mole, a giant toy mole built from studded plastic bricks: a chunky brown brick body, a dark brown blocky head with a short square snout, two glowing square amber eyes, two small cream ear bricks, a thin gold brick band on its head and a small dark red plate on its back. Its lower half is a mine cart: two big gold wheels at the sides. It charges straight toward the viewer down an old mine rail, head lowered, brick dust and small stones flying behind it, looking stubborn and a little silly: it only ever looks straight ahead. A giant toy, not a horror monster.
+
+Place: a dim underground cave of blue stone blocks, in deep blues as in the game, with teal water channels at the side, a few pale crystals and small pink mushrooms on the wall. A cracked stone wall stands at the left edge. The mole fills the right two thirds of the picture. Light comes from the crystals and water, kept flat.
+
+STYLE (match the attached image exactly): classic 1990s TV anime cel. Clean uniform dark ink outlines, flat colors with exactly one hard-edged shadow tone, no gradients, no texture, simple flat painted background, slightly faded film colors. 16:9 landscape.
+AVOID the typical AI-illustration look: no golden backlight or rim light, no sparkles, no glitter particles, no bokeh light orbs, no lens flare, no glow halos, no over-saturated colors, no glossy airbrushed shading, no symmetric centered poster composition.
+No text, no logo, no watermark, no frame.
+When done, reply with only the file path.

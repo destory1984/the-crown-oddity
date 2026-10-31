@@ -24,6 +24,7 @@ const SCENES := {
 	"cave_in": {"play": true, "cave_in": true},
 	"talk": {"play": true, "talk": true},
 	"mole": {"play": true, "mole": true},
+	"mole_intro": {"play": true, "mole": true, "boss_intro": true}, # the page before the cart mole
 	"scene": {"play": true, "scene": true},
 	"village": {"play": true, "village": true},
 	"village_night": {"play": true, "village": true, "hour": 22.0},

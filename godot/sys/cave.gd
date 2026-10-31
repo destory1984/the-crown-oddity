@@ -915,6 +915,8 @@ func mole_shut_out() -> bool:
 
 func update_mole(e: Dictionary, dt: float, d: float, to: Vector2) -> void:
 	var node: Node3D = e.node
+	if d < 9.5 and not mole_shut_out(): # its page, just before it wakes at 8 tiles; not through the locked door
+		m.story.boss_intro("cart_mole", "res://art/story/boss_cart_mole.jpg", Main.STORY.BOSS_CART_MOLE)
 	var awake := d < 8.0 and not mole_shut_out()
 	if not m.cave_door_open: # leashed inside: never nearer than 1.6 tiles to the door
 		e.x = maxf(e.x, m.cave_marks.D.x + 1.6)
