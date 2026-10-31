@@ -494,6 +494,8 @@ func pond_drop(at: Vector3) -> void:
 	ring.visible = false
 	m.add_child(ring)
 	add_fx(d, 0.55, func(n: Node3D, k: float, _dt: float):
+		if not is_instance_valid(ring): # above 90 frames a second two frames fall in the last 2%
+			return
 		var t := k * 0.55
 		if t < 0.25:
 			n.position.y = from.y - (from.y - at.y - 0.05) * pow(t / 0.25, 2.0)

@@ -8737,7 +8737,7 @@ func run() -> void:
 		calm_enemies(true)
 	if want.call("bug_boss_tick"):
 		# one 0.1 s step of the enemy loop takes 0.1 s off each clock, for the kinds with their own update
-		# (a common foe's wait falls at monsters.FOE_PACE, since v0.1.125; the king keeps his own clock)
+		# (a common foe's wait falls at monsters.FOE_PACE, since v0.1.125; the king's at monsters.KING_PACE, since v0.1.135)
 		# (king, wolf, bat) as for those that lean on the shared one (hedgehog)
 		var kings: Array = main.enemies.filter(func(e): return e.get("boss", false) and not e.dead)
 		var made: Array = []
@@ -8760,7 +8760,7 @@ func run() -> void:
 		var bad_tick: Array = []
 		for e in who:
 			var kind: String = "king" if e.get("boss", false) else ("wolf" if e.get("wolf", false) else ("bat" if e.get("bat", false) else "hog"))
-			var want_cd: float = 1.9 if e.get("boss", false) else 2.0 - 0.1 * main.monsters.FOE_PACE
+			var want_cd: float = 2.0 - 0.1 * (main.monsters.KING_PACE if e.get("boss", false) else main.monsters.FOE_PACE)
 			if absf(e.atk_cd - want_cd) > 0.001 or absf(e.hurt - 0.4) > 0.001:
 				bad_tick.append("%s atk_cd=%.2f hurt=%.2f" % [kind, e.atk_cd, e.hurt])
 		check("bug_boss_tick", bad_tick.is_empty(), "each clock down 0.1 after one 0.1 s step" if bad_tick.is_empty() else "; ".join(bad_tick))
@@ -14704,6 +14704,13 @@ func run() -> void:
 		main.idle_name = ""
 		s67.idle_cause = ""
 		calm_enemies(false)
+		# two frames in the drop's last 2%: the ring is freed after the first, a second call must leave it alone
+		fx67.pond_drop(Vector3(pier.x, 0.0, pier.y))
+		var last67: Dictionary = main.fx[main.fx.size() - 1]
+		last67.update.call(last67.node, 0.99, 0.0)
+		await get_tree().process_frame
+		last67.update.call(last67.node, 0.995, 0.0)
+		check("d67_drop_twice", main.fx.has(last67), "a second call in the last 2% raises no error (dev.py stops on one)")
 		check("d67_pond_drop", drinking and not_yet and dropped and at_feet and landed and again67 and cut and away67,
 			"at the pier: drinking=%s no drop mid-act=%s one drop at the end=%s at her feet, falling=%s it lands=%s again on a new visit=%s cut short: no drop=%s away: none=%s" % [drinking, not_yet, dropped, at_feet, landed, again67, cut, away67])
 	if want.call("d68_moon_ring"):
