@@ -203,6 +203,8 @@ func step_aside() -> void:
 		c.visible = not up
 
 func _process(dt: float) -> void:
+	var vp := get_viewport_rect().size
+	upright_t = upright_t + dt if vp.y > vp.x else 0.0
 	main.safe_area.update(dt)
 	step_aside()
 	if not playing():
@@ -230,6 +232,20 @@ func _process(dt: float) -> void:
 	dim = move_toward(dim, 1.0 if idle_t >= FADE_AFTER else 0.0, dt / 1.2)
 	queue_redraw()
 
+# held upright with the rotation locked, or a touch screen that cannot turn: the game goes on, a small pill asks and
+# leaves. A full cover here read as a game that would not start (two players, 2026-11-02)
+const HINT_LINE := "가로로 돌려 주세요"
+const HINT_FOR := 8.0
+const HINT_FONT := 44
+const HINT_PAD := 16.0
+var upright_t := 0.0
+
+func hint_rect(vs: Vector2) -> Rect2:
+	if vs.y <= vs.x or upright_t > HINT_FOR:
+		return Rect2()
+	var size: Vector2 = main.ui_font.get_string_size(tr(HINT_LINE), HORIZONTAL_ALIGNMENT_LEFT, -1, HINT_FONT) + Vector2.ONE * HINT_PAD * 2.0
+	return Rect2(Vector2((vs.x - size.x) / 2.0, vs.y * 0.28), size)
+
 func press_size(n: String) -> float:
 	if not pressed.has(n):
 		return 1.0
@@ -237,13 +253,10 @@ func press_size(n: String) -> float:
 
 func _draw() -> void:
 	var vs := get_viewport_rect().size
-	if vs.y > vs.x: # held upright: ask for landscape
-		draw_rect(Rect2(Vector2.ZERO, vs), Color(0.02, 0.04, 0.09, 0.92))
-		var msg: String = tr("가로로 돌려 주세요")
-		var f: Font = main.ui_font
-		var w := f.get_string_size(msg, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
-		draw_string(f, Vector2((vs.x - w) / 2.0, vs.y / 2.0), msg, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("#eef3ff"))
-		return
+	var hint := hint_rect(vs)
+	if hint.size != Vector2.ZERO:
+		draw_rect(hint, Color(0.02, 0.04, 0.09, 0.72))
+		draw_string(main.ui_font, hint.position + Vector2(HINT_PAD, HINT_PAD + HINT_FONT), tr(HINT_LINE), HORIZONTAL_ALIGNMENT_LEFT, -1, HINT_FONT, Color("#eef3ff"))
 	if not playing():
 		return
 	# the stick: under the thumb while held, a faint one at rest where the left thumb usually lies
