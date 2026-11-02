@@ -17130,6 +17130,10 @@ func run() -> void:
 			"held on touch=%s 20 px past the rim still held=%s 50 px past let go=%s lift after=%s held look (finger, no word)=%s latched look (word, no finger)=%s" % [held94, kept94, let94, after94, held_look94, latch_look94])
 	if want.call("upright_hint"):
 		# upright with the rotation locked, or a touch screen that cannot turn: the game stays in view, a small pill asks and leaves
+		if main.intro:
+			main.start_game(false)
+		main.close_story()
+		calm_enemies(true)
 		main.enable_touch()
 		await wait(0.2)
 		var tu: Object = main.touch_layer
@@ -17142,7 +17146,15 @@ func run() -> void:
 		tu.upright_t = tu.HINT_FOR + 0.1
 		var gone: bool = tu.hint_rect(tall).size == Vector2.ZERO
 		tu.upright_t = 0.0
-		check("upright_hint", small and inside and none_wide and gone, "a small pill %s on screen=%s none in landscape=%s gone after 8 s=%s" % [small, inside, none_wide, gone])
+		main.story_open = true
+		tu.hint_tick(tall, 1.0)
+		var held_back: bool = tu.upright_t == 0.0 # a story is over this layer: the 8 s wait for play
+		main.story_open = false
+		tu.hint_tick(tall, 1.0)
+		var counts: bool = tu.upright_t == 1.0
+		tu.upright_t = 0.0
+		calm_enemies(false)
+		check("upright_hint", small and inside and none_wide and gone and held_back and counts, "a small pill %s on screen=%s none in landscape=%s gone after 8 s=%s no count in a story=%s counts in play=%s" % [small, inside, none_wide, gone, held_back, counts])
 	if want.call("d97_key_size"):
 		# three sizes of the play keys from one table: the radii grow by 10% and 24%, the gaps stay at 10 px or more, nothing meets a skill coin
 		# or the minimap; the hit radius and the avoid list follow (idea 97)

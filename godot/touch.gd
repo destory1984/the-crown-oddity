@@ -203,8 +203,7 @@ func step_aside() -> void:
 		c.visible = not up
 
 func _process(dt: float) -> void:
-	var vp := get_viewport_rect().size
-	upright_t = upright_t + dt if vp.y > vp.x else 0.0
+	hint_tick(get_viewport_rect().size, dt)
 	main.safe_area.update(dt)
 	step_aside()
 	if not playing():
@@ -239,6 +238,13 @@ const HINT_FOR := 8.0
 const HINT_FONT := 44
 const HINT_PAD := 16.0
 var upright_t := 0.0
+
+# the 8 s run in play only: the title and a story sit over this layer and would use them up unseen
+func hint_tick(vs: Vector2, dt: float) -> void:
+	if vs.y <= vs.x:
+		upright_t = 0.0
+	elif playing():
+		upright_t += dt
 
 func hint_rect(vs: Vector2) -> Rect2:
 	if vs.y <= vs.x or upright_t > HINT_FOR:
