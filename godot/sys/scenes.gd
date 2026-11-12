@@ -1032,6 +1032,12 @@ func apply_test_args(args: PackedStringArray) -> void:
 		runner.main = m
 		runner.only = opt.test
 		m.add_child(runner)
+	if opt.has("reel"): # a promo clip for Movie Maker (tools/reel.gd)
+		var reel := Node.new()
+		reel.set_script(load("res://tools/reel.gd"))
+		reel.main = m
+		reel.clip = opt.reel
+		m.add_child(reel)
 	if opt.has("sounds"):
 		load("res://tools/autoplay.gd").sound_report(m, opt.sounds)
 		m.get_tree().quit()

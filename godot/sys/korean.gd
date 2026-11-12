@@ -55,6 +55,9 @@ static func josa(s: String) -> String:
 # stray line breaks (the owner, 2026-10-26). A word joiner (U+2060, drawn as nothing) between the letters of each
 # word leaves the spaces as the only places a line can break.
 static func keep_words(text: String) -> String:
+	var loc := TranslationServer.get_locale()
+	if loc.begins_with("ja") or loc.begins_with("zh"): # no spaces between words there: joiners would stop every break
+		return text
 	var out := ""
 	for i in text.length():
 		var c := text[i]

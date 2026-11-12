@@ -144,6 +144,56 @@ func load_settings() -> void:
 	m.cfg.keysize = clampi(int(m.cfg.keysize), 0, 2)
 	m.muted = bool(d.get("muted", m.muted))
 	m.music_on = bool(d.get("music", true))
+	m.cfg.lang = str(d.get("lang", "")) if str(d.get("lang", "")) in LANGS else ""
+
+# ---- language (v0.1.146): Korean, English, Japanese, Simplified Chinese. "" follows the device's language;
+# tests and scene shots run in Korean unless --lang=<code> is given.
+const LANGS := ["ko", "en", "ja", "zh_CN"]
+const LANG_NAMES := {"ko": "한국어", "en": "English", "ja": "日本語", "zh_CN": "简体中文"}
+
+func lang_code() -> String:
+	if m.cfg.get("lang", "") in LANGS:
+		return m.cfg.lang
+	var args := OS.get_cmdline_user_args()
+	for a in args:
+		if a.begins_with("--lang=") and a.trim_prefix("--lang=") in LANGS:
+			return a.trim_prefix("--lang=")
+	for a in args:
+		if a.begins_with("--test") or a.begins_with("--scene"):
+			return "ko"
+	match OS.get_locale_language():
+		"ko": return "ko"
+		"ja": return "ja"
+		"zh": return "zh_CN"
+	return "en"
+
+# the locale, and the font chain: Pretendard (Hangul, Latin), then the kanji font of the language first, since
+# Japanese and Chinese draw the same code points differently
+func apply_language() -> void:
+	var code := lang_code()
+	TranslationServer.set_locale(code)
+	var cjk: Array[Font] = []
+	# Korean and English keep the old chain: a Noto glyph for a stray symbol made lines taller (test quest_layout)
+	var noto: Array = {"ja": ["NotoSansJP", "NotoSansSC"], "zh_CN": ["NotoSansSC", "NotoSansJP"]}.get(code, [])
+	for f in noto:
+		var p := "res://fonts/noto/%s.sub.woff2" % f
+		if ResourceLoader.exists(p):
+			cjk.append(load(p))
+	if m.ui_font is FontFile:
+		var chain: Array[Font] = []
+		for f in m.ui_font.fallbacks:
+			if not (f is FontFile and f.resource_path.begins_with("res://fonts/noto/")):
+				chain.append(f)
+		var at := chain.size() - 1 if chain.size() > 0 and chain[-1] is SystemFont else chain.size()
+		for k in cjk.size():
+			chain.insert(at + k, cjk[k])
+		m.ui_font.fallbacks = chain
+
+func next_language() -> void:
+	m.cfg.lang = LANGS[(LANGS.find(lang_code()) + 1) % LANGS.size()]
+	save_settings()
+	apply_language()
+	apply_settings()
 
 func save_settings() -> void:
 	var d := m.cfg.duplicate()
@@ -411,10 +461,15 @@ func build_settings(root: Control) -> void:
 		m.ui.set_stacks[0].append([t, dsc, m.ui.set_rows[key]])
 	var lt := m.hud_build.label(m.ui.set_pages[0], "언어", Vector2(0, rows.size() * 92), 18, Color("#eef3ff"))
 	lt.size = Vector2(112, 20)
-	var lang := m.hud_build.wrap_label(m.ui.set_pages[0], "한국어. 영어, 일본어, 중국어는 번역 표만 준비되어 있다.", Vector2(122, rows.size() * 92), 518, 18, ODD_MUTED)
+	var lang := m.hud_build.wrap_label(m.ui.set_pages[0], "게임 글의 언어. 처음에는 기기의 언어를 따른다.", Vector2(122, rows.size() * 92), 518, 18, ODD_MUTED)
 	scale_text(lt)
 	scale_text(lang)
-	m.ui.set_stacks[0].append([lt, lang, null])
+	# the button names each language in itself, so anyone can find their own
+	m.ui.set_lang = set_button(m.ui.set_pages[0], LANG_NAMES[lang_code()], Vector2(122, rows.size() * 92 + 42), Vector2(116, 34), func():
+		next_language()
+		m.ui.set_lang.text = LANG_NAMES[lang_code()])
+	m.ui.set_lang.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	m.ui.set_stacks[0].append([lt, lang, m.ui.set_lang])
 	var nt := m.hud_build.label(m.ui.set_pages[0], "지금 음악", Vector2(0, (rows.size() + 1) * 92), 18, Color("#eef3ff"))
 	nt.size = Vector2(112, 20)
 	scale_text(nt)

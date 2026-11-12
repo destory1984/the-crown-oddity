@@ -6,14 +6,14 @@ uid="uid://b3c8pic6hi1v"
 
 [deps]
 
-files=["res://i18n/text.ko.translation"]
+files=["res://i18n/text.ko.translation", "res://i18n/text.en.translation", "res://i18n/text.ja.translation", "res://i18n/text.zh_CN.translation"]
 
 source_file="res://i18n/text.csv"
-dest_files=["res://i18n/text.ko.translation"]
+dest_files=["res://i18n/text.ko.translation", "res://i18n/text.en.translation", "res://i18n/text.ja.translation", "res://i18n/text.zh_CN.translation"]
 
 [params]
 
 compress=1
 delimiter=0
-unescape_keys=false
+unescape_keys=true
 unescape_translations=true

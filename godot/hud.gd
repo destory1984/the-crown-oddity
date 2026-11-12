@@ -148,6 +148,9 @@ func navy_plate() -> StyleBoxFlat:
 
 func text(at: Vector2, s: String, size: int, col: Color, align := HORIZONTAL_ALIGNMENT_LEFT, width := -1.0) -> void:
 	s = tr(s) # drawn text is not auto-translated like Labels are
+	if width > 0.0: # a boxed line shrinks to fit (English and Japanese run longer than Korean), to 9 px at the least
+		while size > 9 and main.ui_font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
+			size -= 1
 	draw_string_outline(main.ui_font, at, s, align, width, size, 4, Color(0, 0, 0, 0.7 * col.a)) # fades with the text
 	draw_string(main.ui_font, at, s, align, width, size, col)
 
@@ -161,8 +164,14 @@ func bar(at: Vector2, w: float, frac: float, col: Color, label: String, value: S
 	draw_rect(Rect2(at - Vector2(1, 1), Vector2(w + 2, h + 2)), GOLD_DIM, false, 1.0)
 	diamond(at + Vector2(-6, h / 2.0), 5, GOLD)
 	diamond(at + Vector2(w + 6, h / 2.0), 5, GOLD)
-	text(at + Vector2(-45, 10), label, 16, DIM) # 11 -> 14 -> 15 -> 16 and the numbers 12 -> 14 -> 15 -> 16 (the owner, 2026-10-27/28: too small, then +1, +1)
+	text(at + Vector2(-45, 10), short_label(label), 16, DIM) # 11 -> 14 -> 15 -> 16 and the numbers 12 -> 14 -> 15 -> 16 (the owner, 2026-10-27/28: too small, then +1, +1)
 	text(at + Vector2(w + 16, 11), value, 16, TEXT)
+
+# the status labels have 40 px before the bars: English gets short words there ("Momentum" ran into its bar)
+const SHORT_EN := {"체력": "HP", "기세": "MP", "기력": "SP", "경험": "EXP", "달빛": "Moon", "보석": "Gems", "회복약": "Potion"}
+
+func short_label(label: String) -> String:
+	return SHORT_EN.get(label, label) if TranslationServer.get_locale().begins_with("en") else label
 
 # where the bars start: past the portrait ring and its right diamond (182, or 250 beside the big ring)
 func bars_x() -> float:
@@ -254,7 +263,7 @@ func _draw() -> void:
 	var need: int = p.lv * 25
 	bar(Vector2(x0, 100), bar_w(), float(p.xp) / need, Color("#8de07a"), "경험", "%d/%d" % [p.xp, need])
 	# the bracelets' moon gauge: pip_max small diamonds (8 at the start, up to 12; 12 end at x 354, under the 400 px bars)
-	text(Vector2(x0 - 45, 130), "달빛", 16, DIM)
+	text(Vector2(x0 - 45, 130), short_label("달빛"), 16, DIM, HORIZONTAL_ALIGNMENT_LEFT, 36.0)
 	var spots := pip_spots()
 	pips_drawn = spots.size()
 	for i in spots.size():
@@ -272,7 +281,7 @@ func _draw() -> void:
 	if grow >= 0.5 and main.crown_pips < main.pip_max: # the next pip glows in while resting (too small a diamond cannot be drawn)
 		diamond(Vector2(pip_x() + main.crown_pips * 16, 124), grow, Color("#9fd4ff"))
 	# the moonkeeper tokens: six gems, gold when earned (the owner, 2026-10-28)
-	text(Vector2(x0 - 45, 152), "보석", 16, DIM)
+	text(Vector2(x0 - 45, 152), short_label("보석"), 16, DIM, HORIZONTAL_ALIGNMENT_LEFT, 36.0)
 	var tspots := token_spots()
 	tokens_drawn = tspots.size()
 	tokens_lit = 0
@@ -348,7 +357,7 @@ func _draw() -> void:
 			draw_colored_polygon(pts, Color(0, 0, 0, 0.6))
 		# under every coin its name, the key first on a keyboard (button draft 3, the owner 2026-10-27)
 		var kb := sc + Vector2(0, 42)
-		text(kb + Vector2(-38, 5), names[i] if main.touch_ui else keys[i] + " " + names[i], 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 76)
+		text(kb + Vector2(-38, 5), names[i] if main.touch_ui else keys[i] + " " + tr(short_label(names[i])), 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 76)
 		if i == 3:
 			text(sc + Vector2(half * 0.41, half * 0.88), "×%d" % p.pots, 12, TEXT)
 			if p.pots == 1: # one bottle left: its outline beside the count, steady (delight idea 86)
@@ -360,7 +369,7 @@ func _draw() -> void:
 		var left := [["H", "도움말"], ["M", "소리"], ["Q", "할 일"], ["Esc", "설정"]]
 		for i in 4:
 			var at := Vector2(8 + i * 76 + 34, vs.y - 17)
-			text(at + Vector2(-38, 5), left[i][1] if main.touch_ui else left[i][0] + " " + left[i][1], 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 76)
+			text(at + Vector2(-38, 5), left[i][1] if main.touch_ui else left[i][0] + " " + tr(left[i][1]), 12, TEXT, HORIZONTAL_ALIGNMENT_CENTER, 76)
 	# ---- gold pill
 	var gp := Rect2(Vector2(vs.x - 139, vs.y - 129), Vector2(126, 28)) # its end diamond 8 px from the edge, 8 px over the skills
 	draw_rect(gp, NAVY)

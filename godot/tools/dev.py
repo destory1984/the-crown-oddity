@@ -68,6 +68,11 @@ def import_once():
     if os.name != "nt" and not (ROOT / ".godot" / "imported").exists():
         print("first run: importing assets into .godot/ ...")
         run([str(GODOT_CLI), "--headless", "--path", ".", "--import"], timeout=600)
+    # the translation files are only rebuilt by an import, and a running game does not import
+    csv_, ko = ROOT / "i18n" / "text.csv", ROOT / "i18n" / "text.ko.translation"
+    if csv_.exists() and (not ko.exists() or csv_.stat().st_mtime > ko.stat().st_mtime):
+        print("i18n/text.csv changed: importing ...")
+        run([str(GODOT_CLI), "--headless", "--path", ".", "--import"], timeout=600)
 
 
 def check():
@@ -96,6 +101,7 @@ def scene_names():
 
 
 def shot(names, extra):
+    import_once()
     SHOTS.mkdir(exist_ok=True)
     known = scene_names()
     failed = 0
@@ -279,6 +285,7 @@ def main():
     ap.add_argument("--hour")
     ap.add_argument("--pseudo", action="store_true", help="shot: pseudo-translate text to spot strings missing from i18n/text.csv")
     ap.add_argument("--day")
+    ap.add_argument("--lang", help="shot: show the game in this language (en, ja, zh_CN); scenes run in Korean otherwise")
     ap.add_argument("--real", action="store_true", help="test: run at the game's real speed, not 4x (before a push)")
     ap.add_argument("--quick", help="ship: run only these tests (comma list) instead of the full suite")
     a = ap.parse_args()
@@ -291,7 +298,7 @@ def main():
         print("\n".join(scene_names()))
         return 0
     if a.cmd == "shot":
-        extra = [f"--hour={a.hour}"] * bool(a.hour) + [f"--day={a.day}"] * bool(a.day) + ["--pseudo"] * a.pseudo
+        extra = [f"--hour={a.hour}"] * bool(a.hour) + [f"--day={a.day}"] * bool(a.day) + ["--pseudo"] * a.pseudo + [f"--lang={a.lang}"] * bool(a.lang)
         return shot(a.names, extra)
     if a.cmd == "test":
         return test(a.names[0] if a.names else None, 1 if a.real else TEST_SPEED)

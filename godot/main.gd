@@ -457,6 +457,7 @@ func _ready() -> void:
 	title_font.font_names = PackedStringArray(["Cinzel", "Georgia", "Times New Roman", "serif"])
 	title_font.fallbacks = [ui_font]
 	title_font.font_weight = 700
+	menus.apply_language()
 	touch_ui = OS.has_feature("web_android") or OS.has_feature("web_ios") or OS.has_feature("android") or OS.has_feature("ios")
 	touch_ui = touch_ui or OS.get_environment("TOUCH_UI") == "1"
 	var short_side := 400.0 # the screen's short side in CSS px, a phone's unless the browser says otherwise
@@ -768,6 +769,7 @@ const CHANGES := [
 	"개발 상황: 놀 수 있는 분량 약 322분 / 목표 300분 (107%)",
 	"",
 	"2026-10-28 낮",
+	"· v0.1.146: 설정의 언어 줄이 단추가 되었다. 누를 때마다 한국어 → English → 日本語 → 简体中文으로 바뀌고, 처음에는 기기의 언어를 따른다. 게임 글 4,362줄을 영어, 일본어, 중국어로 옮겼다. 번역표를 모으는 도구가 영어 n이 든 줄을 건너뛰어 상점과 가방 글 949줄이 빠져 있던 것도 고쳤다.",
 	"· v0.1.144: 터치 기기를 세로로 두면 '가로로 돌려 주세요' 화면이 게임을 92% 가려 실행이 안 되는 것처럼 보였다. 이제 작은 띠로 8초만 알리고 게임은 그대로 보인다.",
 	"· v0.1.143: 연못 물을 마신 뒤 떨어지는 물방울 고리가 초당 90프레임이 넘는 화면에서 오류를 내던 것을 고쳤다.",
 	"· v0.1.142: 금화를 얻으면 금빛 마름모가 소라에게서 금화 칸으로 날아가고, 닿을 때마다 숫자가 오르며 칸이 커졌다 돌아온다. 금화 10닢 미만은 1개, 50닢 미만은 3개, 200닢 미만은 5개, 그 이상은 8개가 날아가고, 대화 중에 얻은 금화는 대화가 끝난 뒤 날아간다. 체력이 25% 밑으로 내려가면 낮은 소리가 한 번 나고 화면 가장자리가 붉게 뛰며 체력 줄이 깜박인다. 10% 밑에서는 더 빨리 뛴다. 터치 단추는 누르면 14% 줄었다 돌아오고 금빛 고리가 퍼진다.",
@@ -1366,7 +1368,7 @@ const CHANGES := [
 # Head: sound on/off and text size 가- / 가+. Tabs: Settings (comfort and display), Help (controls), Changes, About.
 # Saved apart from the game in user://settings.json, so F9 (start over) keeps them.
 const TEXT_SIZES := [0.85, 1.0, 1.15, 1.3]
-var cfg := {"text": 1, "shake": true, "tilt": true, "nums": true, "sora_px": true, "voice": true, "read": 0, "hold": false, "lefty": false, "keysize": 0} # voice: the babble under the story lines (v0.1.82); read, hold, lefty, keysize: balloon reading pace, one-hand latches, mirrored keys, key size (delight 89, 90, 91, 97)
+var cfg := {"lang": "", "text": 1, "shake": true, "tilt": true, "nums": true, "sora_px": true, "voice": true, "read": 0, "hold": false, "lefty": false, "keysize": 0} # voice: the babble under the story lines (v0.1.82); read, hold, lefty, keysize: balloon reading pace, one-hand latches, mirrored keys, key size (delight 89, 90, 91, 97)
 var settings_open := false
 var set_tab := 0
 var tilt_rect: ColorRect

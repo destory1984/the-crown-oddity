@@ -11,11 +11,11 @@ config_version=5
 [application]
 
 config/name="The Crown Oddity"
-config/version="0.1.145"
+config/version="0.1.146"
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.png"
-config/updated="2026-11-02"
+config/updated="2026-11-12"
 
 [autoload]
 
@@ -32,7 +32,7 @@ enabled=PackedStringArray("res://addons/open_godot_mcp/plugin.cfg")
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://i18n/text.ko.translation")
+locale/translations=PackedStringArray("res://i18n/text.ko.translation", "res://i18n/text.en.translation", "res://i18n/text.ja.translation", "res://i18n/text.zh_CN.translation")
 
 [open_godot_mcp]
 

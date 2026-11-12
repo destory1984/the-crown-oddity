@@ -15,10 +15,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TABLE = ROOT / "i18n" / "text.csv"
 LANGS = ["ko", "en", "ja", "zh_CN"]
-SOURCES = ["main.gd", "hud.gd", "story_lines.gd", "village.gd", "marsh.gd"] + sorted(
+SOURCES = ["main.gd", "hud.gd", "story_lines.gd", "village.gd", "marsh.gd"]
+SOURCES += sorted(p.name for p in ROOT.glob("*.gd") if p.name not in SOURCES) + sorted(
     p.relative_to(ROOT).as_posix() for p in (ROOT / "sys").glob("*.gd"))
 HANGUL = re.compile(r"[가-힣]")
-LITERAL = re.compile(r'"((?:[^"\\n]|\.)*)"')
+LITERAL = re.compile(r'"((?:[^"\\\n]|\\.)*)"') # any char but a quote, backslash or newline, or an escape pair
 
 
 def keys_in_code():
